@@ -1,0 +1,128 @@
+#%RAML 1.0
+title: Bildungslogin (Medien-Metadaten)
+version: 1.0.2
+baseUri: https://www.bildungslogin.de/api/media
+protocols:
+  - HTTPS
+mediaType: application/json
+
+types:
+  MediaQuery: !include schemas/mediaquery.schema.json
+  MediaQueryResult: !include schemas/mediaquery-result.schema.json
+  MediafeedQuery: !include schemas/mediafeed-query.schema.json
+  MediafeedResult: !include schemas/mediafeed-result.schema.json
+
+documentation:
+  - title: Allgemeines
+    content: !include documentation/common.md
+  - title: Changelog
+    content: !include documentation/changelog.md
+  - title: Überblick
+    content: !include documentation/overview.md
+  - title: Rollen
+    content: !include documentation/roles.md
+  - title: Datenformat und Zeichencodierung
+    content: !include documentation/encoding.md
+  - title: Sicherheit
+    content: !include documentation/security.md
+  - title: Verfügbarkeit und Performanz
+    content: !include documentation/availability.md
+
+securitySchemes:
+  basic:
+    description: |
+      HTTP Basic Authentication gemäß **[RFC 7617](https://tools.ietf.org/html/rfc7617)**.
+    type: Basic Authentication
+  ibs_client_token:
+      description: |
+        OAuth2 AccessToken __OHNE__ Nutzerbezug.
+
+        Ein __consumer__ kann unter Verwendung seiner _client credentials_ ein
+        AccessToken erzeugen. Dazu wird der
+        [OAuth 2.0 client credentials grant](http://tools.ietf.org/html/rfc6749#section-4.4) flow
+        verwendet. Die _client credentials_ werden für jeden __consumer__
+        individuell erzeugt und diesem bereitgestellt.
+
+        Eine Beschreibung des Ablaufs, der notwendigen Parameter und der
+        Beschreibung des Ergebnisses ist in  der
+        [API-Dokumentation der Internet Business Suite](documentation/apidoc.pdf),
+        in Abschnitt **8.1.5. client_credentials grant type**
+        zu finden.
+
+      type: OAuth 2.0
+      describedBy:
+        headers:
+          Authorization:
+            description: |
+               Ein AccessToken vom Typ "Bearer", siehe
+               [The OAuth 2.0 Authorization Framework: Bearer Token Usage](https://tools.ietf.org/html/rfc6750)
+            type: string
+        responses:
+          401:
+            description: kein oder ungültiges AccessToken wurde übergeben
+      settings:
+        authorizationUri: https://global.telekom.com/gcp-web-api/oauth
+        accessTokenUri: https://global.telekom.com/gcp-web-api/oauth
+        authorizationGrants: client_credentials
+        scopes: ID des Bildungslogin-Dienstes in der IBS
+
+/media:
+  /query:
+    displayName: Suchanfrage Medien
+    description: |
+      Bereitstellung nach Medien-Daten anhand einer Suchanfrage.
+    securedBy: [ibs_client_token]
+    post:
+      description: |
+        Basierend auf einer Suchanfrage (`MediaQuery`), wird eine Liste von passenden 
+        Suchergebnissen (`MediaQueryResult`) mit Medien-Metadaten zu dieser Suchanfrage 
+        geliefert.
+
+        Eine Suchanfrage besteht dabei aus einer beliebigen Menge von Einzelanfragen (`SingleMediaQuery`)
+        nach jeweils genau einem Medium. Diese Einzelanfragen werden separat voneinander
+        bearbeitet, die Resultate werden gesammelt als (`MediaQueryResult`) zurückgeliefert.
+
+        Die Liste der Suchergebnisse enthält zu jeder Einzelanfrage eine Antwort (`SingleMediaQueryResult`), 
+        bestehend aus einem Status-Code (gefunden, nicht gefunden, Fehler), sowie (im Erfolgsfall) den 
+        Medien-Metadaten (siehe **[schemas/media.schema.json](schemas/media.schema.json)**).  
+      body: 
+        application/vnd.de.bildungslogin.mediaquery+json:        
+          type: MediaQuery
+          example: !include examples/mediaquery.json
+      responses:
+        200:
+          description: |
+            Liste der zur Suchanfrage gefundenen Medien-Metadaten.
+          body:
+            application/vnd.de.bildungslogin.mediaquery-result+json:        
+              type: MediaQueryResult
+              example: !include examples/mediaquery-result.json
+        400:
+          description: |
+            Ungültige Anfrage   
+  /feed:
+    displayName: Medienfeed
+    description: |
+      Bereitstellung von geänderten Medien-Daten.
+    securedBy: [ibs_client_token]
+    post:
+      description: |
+        Es werden die IDs für alle diejenigen Medien geliefert, 
+        welche sich nach einem gegebenen Zeitpunkt geändert haben.
+        
+        Der Zeitpunkt wird als Parameter in der Anfrage (`MediafeedQuery`) übergeben.
+      body: 
+        application/vnd.de.bildungslogin.mediafeed-query+json:        
+          type: MediafeedQuery
+          example: !include examples/mediafeed-query.json
+      responses:
+        200:
+          description: |
+            Liste von IDs der zur Suchanfrage gefundenen Medien.
+          body:
+            application/vnd.de.bildungslogin.mediafeed-result+json:        
+              type: MediafeedResult
+              example: !include examples/mediafeed-result.json
+        400:
+          description: |
+            Ungültige Anfrage   

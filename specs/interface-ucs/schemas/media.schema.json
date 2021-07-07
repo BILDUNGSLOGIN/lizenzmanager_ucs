@@ -1,0 +1,82 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"id": "http://bildungslogin.t-systems-mms.eu/api/publisher/schemas/media.schema.json#",
+	"title": "Medium",
+	"description": "Ein Eintrag bzw. Element im Medienregal. Repräsentiert einen Verweis auf einen digitalen Bildungsinhalt",
+	"type": "object",
+	"properties": {
+		"id": {
+			"$ref": "#/definitions/MediumIdentifier"
+		},
+		"title": {
+			"$ref": "#/definitions/Title"
+		},
+		"author": {
+			"$ref": "#/definitions/Author"
+		},
+		"description": {
+			"$ref": "#/definitions/Description"
+		},
+		"publisher": {
+			"$ref": "#/definitions/Publisher"
+		},
+		"cover": {
+			"$ref": "#/definitions/Cover"
+		},
+		"coverSmall": {
+			"$ref": "#/definitions/CoverSmall"
+		},
+		"modified": {
+			"$ref": "#/definitions/ModifiedTimestamp"
+		}
+	},
+	"required": [
+		"id",
+		"title",
+		"publisher",
+		"cover",
+		"coverSmall",
+		"modified"
+	],
+	"definitions": {
+		"MediumIdentifier": {
+			"title": "MediumId",
+			"$ref": "common.schema.json#/definitions/urn",
+			"description": "im Kontext eines Verlages eindeutiger Bezeichner eines Mediums. Als Namespace IDentifier wird 'bilo:medium' verwendet.",
+			"maxLength": 100
+		},
+		"Title": {
+			"description": "Titel des Angebots zur Anzeige im Medienregal, z.B. bei einem Buch der Buchtitel, bei einer Anwendung Name der Anwendung etc.",
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 100
+		},
+		"Author": {
+			"description": "Autor des Medium",
+			"type": "string",
+			"maxLength": 100
+		},
+		"Description": {
+			"description": "Beschreibung des Mediums, verwendet zur Anzeige im Bildungslogin Medienregal",
+			"type": "string",
+			"maxLength": 500
+		},
+		"Publisher": {
+			"description": "Der Verlag, der dieses Medium bereitstellt. Als eindeutiger Bezeichner wird hier das Verlagskürzel verwendet, welches auch als Prefix der BundleCodes dient",
+			"type": "string",
+			"maxLength": 10
+		},
+		"Cover": {
+			"$ref": "common.schema.json#/definitions/link",
+			"description": "Bild zur Darstellung im Medienregal, in der Regalansicht. Breite 120px, Höhe max. 160px."
+		},
+		"CoverSmall": {
+			"$ref": "common.schema.json#/definitions/link",
+			"description": "Bild zur Darstellung im Medienregal, in der Listenansicht. Höhe max. 65px."
+		},
+		"ModifiedTimestamp": {
+			"$ref": "common.schema.json#/definitions/timestamp",
+			"description": "Zeitstempel der letzten Änderung"
+		}
+	}
+}

@@ -1,0 +1,11 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"id": "http://bildungslogin.t-systems-mms.eu/api/schemas/mediafeed-result.schema.json#",
+	"title": "Mediafeed",
+	"description": "Ergebnis einer Suchanfrage nach Änderungszeitpunkt als Liste von IDs geänderter Medien",
+	"type": "array",
+	"minItems": 0,
+	"items": {
+	  "$ref": "media.schema.json#/definitions/MediumIdentifier"
+	}
+}

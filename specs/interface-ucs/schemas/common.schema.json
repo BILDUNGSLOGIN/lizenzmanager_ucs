@@ -1,0 +1,60 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"id": "http://bildungslogin.t-systems-mms.eu/api/publisher/schemas/common.schema.json#",
+	"title": "common",
+	"description": "common type definitions",
+	"definitions": {
+		"urn": {
+			"description": "Uniform Resource Name, https://de.wikipedia.org/wiki/Uniform_Resource_Name",
+			"type": "string",
+			"pattern": "^urn(:[a-z0-9]{1,32})+:[\\S]+$"
+		},
+		"link": {
+			"description": "Ein Link-Element analog zum HTML-Link. Die Semantik (wohin führt der Link) wird durch das rel-Attribut ausgedrückt",
+			"type": "object",
+			"properties": {
+				"href": {
+					"description": "eine gültige URL",
+					"type": "string",
+					"maxLength": 500,
+					"format": "uri"
+				},
+				"rel": {
+					"type": "string",
+					"enum": [
+						"src",
+						"self"
+					]
+				}
+			}
+		},
+		"timestamp": {
+			"description": "Ein Zeitstempel als POSIX timestamp integer (https://en.wikipedia.org/wiki/Unix_time)",
+			"type": "integer"
+		},
+		"uuid": {
+			"title": "UUID",
+			"description": "Ein Universally unique identifier (UUID) gemäss https://tools.ietf.org/html/rfc4122",
+			"type": "string",
+			"minLength": 36,
+			"maxLength": 36,
+			"example": "ee39c6d5-ba87-459b-af8b-d8fa73cd5934"
+		},
+		"gcpid": {
+			"title": "GCPID",
+			"description": "Eindeutige ID eines Nutzerkontos in der Internet Business Suite und damit im Bildungslogin",
+			"type": "string",
+			"maxLength": 40,
+			"example": "2010100001423381057643823759"			
+		},
+		"parameters": {
+			"title": "Parameter-Liste",
+			"description": "eine Liste von Parametern",
+			"type":"array",
+			"minItems": 0,
+			"items": {
+				"type":"object"
+			}
+		}
+	}
+}

@@ -1,0 +1,16 @@
+{
+	"id": "urn:bilo:medium:A0023#48-85-TZ",
+	"title": "Antolin",
+	"description": "Mit Lesen Punkten!",
+	"author": "Schrödel",
+	"publisher": "SCR",
+	"cover": {
+		"href": "https://www.antolin.de/images_css/rabe.gif",
+		"rel": "src"
+	},
+	"coverSmall": {
+		"href": "https://www.antolin.de/images_css/rabe.gif",
+		"rel": "src"
+	},
+	"modified": 1458500544
+}

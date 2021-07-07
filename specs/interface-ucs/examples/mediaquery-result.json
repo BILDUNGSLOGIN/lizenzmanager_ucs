@@ -1,0 +1,30 @@
+[
+  {
+    "query": {
+      "id": "urn:bilo:medium:A0023#48-85-TZ"
+    },
+    "status": 200,
+    "data": {
+      "id": "urn:bilo:medium:A0023#48-85-TZ",
+      "title": "Antolin",
+      "description": "Mit Lesen Punkten!",
+      "author": "Schrödel",
+      "publisher": "SHR",
+      "cover": {
+        "href": "https://www.antolin.de/images_css/rabe.gif",
+        "rel": "src"
+      },
+      "coverSmall": {
+        "href": "https://www.antolin.de/images_css/rabe.gif",
+        "rel": "src"
+      },
+      "modified": 1458500544
+    }
+  },
+  {
+    "query": {
+      "id": "urn:bilo:medium:no-such-title"
+    },
+    "status": 404
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://bildungslogin.t-systems-mms.eu/api/schemas/mediafeed-query.schema.json#",
+  "title": "MediafeedQuery",
+  "description": "Definiert eine Suchanfrage anhand eines Zeitpunkts",
+  "type": "object",
+  "properties": {
+    "modifiedAfter": {
+      "description": "Suche nach Medien, die nach dem angegebenen Zeitstempel geändert wurden",
+      "$ref": "common.schema.json#/definitions/timestamp"
+    }
+  },
+  "required": [
+    "modifiedAfter"
+  ]
+}
