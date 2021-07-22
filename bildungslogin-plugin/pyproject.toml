@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "bildungslogin-plugin"
+version = "1.0.0"
+description = "This is a plugin for bildungslogin"
+authors = ["Joerg Baach <baach@univention.de>"]
+license = "AGPL V3"
+maintainers = ["Univention GmbH <packages@univention.de>"]
+homepage = "https://univention.de"
+documentation = "https://docs.software-univention.de/developers_4.4.html.de"
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: AsyncIO",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
+
+[tool.poetry.plugins."ucsschool_apis.plugins"]
+"bildungslogin" = "bildungslogin_plugin.bildungslogin_plugin:BildungsloginPlugin"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+#ucsschool-apis = "^0.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+toml = "^0.10.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

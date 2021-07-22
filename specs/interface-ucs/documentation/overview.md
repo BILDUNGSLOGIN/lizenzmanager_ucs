@@ -1,1 +1,0 @@
-Die Plattform __BILDUNGSLOGIN__ bietet künftig Zugang zu weit über 2.500 Bildungsmedien: zu digitalen Schulbüchern, Online-Portalen und angereichertem Unterrichtsmaterial für Lehrkraft und Lernende – für die allgemeinbildende Schule, die berufliche Bildung und die Erwachsenenbildung (weitere Informationen auf [bildungslogin.de/info](http://bildungslogin.de/info/))
