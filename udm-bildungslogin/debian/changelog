@@ -1,0 +1,5 @@
+udm-bildungslogin (0.0.0-2) unstable; urgency=medium
+
+  * Initial package build
+
+ -- Jürn Brodersen <brodersen@univention.de>  Mon, 26 Jul 2021 10:51:30 +0200

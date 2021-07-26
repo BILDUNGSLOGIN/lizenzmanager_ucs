@@ -1,0 +1,18 @@
+Source: udm-bildungslogin
+Section: univention
+Priority: optional
+Maintainer: Univention GmbH <packages@univention.de>
+Standards-Version: 3.9.8
+Build-Depends:
+ debhelper,
+
+Package: udm-bildungslogin
+Architecture: all
+Depends:
+ ${misc:Depends},
+Description: UCS directory integration for bildungslogin
+ .
+ This package is part of Univention Corporate Server (UCS),
+ an integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/
