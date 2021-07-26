@@ -46,3 +46,7 @@ eval "$(ucr shell ldap/base)"
 ucs_registerLDAPExtension "$@" \
 	--ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
 	--schema "/usr/share/bildungslogin/schema/vbm.schema" || die
+
+joinscript_save_current_version
+
+exit 0
