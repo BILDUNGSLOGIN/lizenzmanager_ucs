@@ -1,7 +1,8 @@
-#!/usr/bin/make -f
+#!/bin/bash
+# -*- coding: utf-8 -*-
 #
-# udm-bildungslogin
-#  rules file for the debian package
+# udm bildungslogin
+#  join script
 #
 # Copyright 2021 Univention GmbH
 #
@@ -29,9 +30,17 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
 
+## joinscript api: bindpwdfile
 
-%:
-	dh $@ --with univention-join
+VERSION=1
+
+. /usr/share/univention-join/joinscripthelper.lib
+
+joinscript_init
+
+eval "$(ucr shell ldap/base)"
+
+ucs_registerLDAPExtension "$@" \
+	--ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
+	--schema $PATH_to_installed_schema || die
