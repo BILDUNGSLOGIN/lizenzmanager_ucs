@@ -1,0 +1,20 @@
+default:
+  artifacts:
+    expire_in: 1 day
+  interruptible: yes
+
+variables:
+  UCS_VERSION: "448"
+  UCS_RELEASE: "4.4"
+  BRANCH: $CI_DEFAULT_BRANCH
+  SCOPE: "vbm"
+  LANG: "C.UTF-8"
+  GIT_STRATEGY: fetch
+  GIT_SUBMODULE_STRATEGY: none
+  GIT_DEPTH: "3"
+  CI_REGISTRY: docker-registry.knut.univention.de
+  LINT: $CI_REGISTRY/ucslint
+  BUILD: $CI_REGISTRY/knut/deb-builder
+  SSH: $CI_REGISTRY/knut/ssh
+  IMPORT_HOST: "omar.knut.univention.de"
+  BUILD_HOST: "dimma.knut.univention.de"

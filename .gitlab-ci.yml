@@ -1,0 +1,46 @@
+include:
+  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
+  - local: '/.gitlab-ci/base.yml'
+
+stages:
+  - "Generate child configs"
+  - "Start child pipelines"
+
+generate-config:
+  stage: "Generate child configs"
+  rules:
+    - when: always
+  image:
+    name: $BUILD
+    entrypoint: [""]
+  script:
+    - >
+      deb-builder
+      --yaml .gitlab-ci/base.yml
+      --yaml .gitlab-ci/base-deb.yml
+      --out generated-config-deb.yml
+      */debian/control
+  artifacts:
+    paths:
+      - generated-config-deb.yml
+
+deb-pipeline:
+  stage: "Start child pipelines"
+  rules:
+    - if: $CI_COMMIT_BRANCH != $BRANCH
+      when: never
+    - if: "$CI_COMMIT_MESSAGE =~ /skip-build/ || $pipeline =~ /skip-build/"
+      when: never
+    - if: "$CI_COMMIT_MESSAGE =~ /force-ucslint/ || $pipeline =~ /force-ucslint/"
+    - if: "$CI_COMMIT_MESSAGE =~ /force-build/ || $pipeline =~ /force-build/"
+    - changes:
+      - "*/debian/changelog"
+  needs:
+    - generate-config
+  variables:
+    pipeline: $pipeline
+  trigger:
+    include:
+      - artifact: generated-config-deb.yml
+        job: generate-config
+    strategy: depend
