@@ -33,9 +33,11 @@
 
 ## joinscript api: bindpwdfile
 
+# shellcheck disable=SC2034
 VERSION=1
 
 . /usr/share/univention-join/joinscripthelper.lib
+. /usr/share/univention-lib/ldap.sh
 
 joinscript_init
 
@@ -43,4 +45,4 @@ eval "$(ucr shell ldap/base)"
 
 ucs_registerLDAPExtension "$@" \
 	--ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
-	--schema $PATH_to_installed_schema || die
+	--schema "/usr/share/bildungslogin/schema/vbm.schema" || die

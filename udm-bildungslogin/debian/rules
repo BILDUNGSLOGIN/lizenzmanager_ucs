@@ -34,4 +34,4 @@
 
 
 %:
-	dh $@ --with univention-join
+	dh $@
