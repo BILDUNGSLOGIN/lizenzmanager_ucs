@@ -1,2 +1,2 @@
-schema/* /usr/share/bildungslogin/schema
+usr/share/bildungslogin usr/share/
 68udm-bildungslogin.inst usr/lib/univention-install/
