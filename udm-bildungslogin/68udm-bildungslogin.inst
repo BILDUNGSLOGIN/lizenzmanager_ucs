@@ -38,15 +38,37 @@ VERSION=1
 
 . /usr/share/univention-join/joinscripthelper.lib
 . /usr/share/univention-lib/ldap.sh
+. /usr/share/ucs-school-lib/base.sh
 
 joinscript_init
 
 eval "$(ucr shell ldap/base)"
 
-ucs_registerLDAPExtension "$@" \
-	--ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
-	--schema "/usr/share/bildungslogin/schema/vbm.schema" || die
+univention-directory-manager container/cn create "$@" \
+  --ignore_exists \
+  --set name="vbm" \
+  --position "cn=univention,$ldap_base"
 
-joinscript_save_current_version
+univention-directory-manager container/cn create "$@" \
+  --ignore_exists \
+  --set name="bildungslogin" \
+  --position "cn=vbm,cn=univention,$ldap_base"
+
+univention-directory-manager container/cn create "$@" \
+  --ignore_exists \
+  --set name="licenses" \
+  --position "cn=bildungslogin,cn=vbm,cn=univention,$ldap_base"
+
+univention-directory-manager container/cn create "$@" \
+  --ignore_exists \
+  --set name="metadata" \
+  --position "cn=bildungslogin,cn=vbm,cn=univention,$ldap_base"
+
+ucs_registerLDAPExtension "$@" \
+  --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
+  --schema "/usr/share/bildungslogin/schema/bildungslogin.schema" \
+  --udm_module "/usr/share/bildungslogin/handlers/license.py" || die
+
+#joinscript_save_current_version TODO: uncomment before release
 
 exit 0

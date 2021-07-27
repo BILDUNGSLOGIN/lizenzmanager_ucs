@@ -9,8 +9,6 @@
 objectIdentifier vbmBildungslogin 1.3.6.1.4.1.10176.99999.172906.1
 objectIdentifier directoryStringType 1.3.6.1.4.1.1466.115.121.1.15
 objectIdentifier integerType 1.3.6.1.4.1.1466.115.121.1.27
-objectIdentifier generalizedTimeType 1.3.6.1.4.1.1466.115.121.1.24
-objectIdentifier booleanType 1.3.6.1.4.1.1466.115.121.1.7
 
 # License attributes, OIDs from 100
 
@@ -53,14 +51,14 @@ attributetype ( vbmBildungslogin:106
 attributetype ( vbmBildungslogin:107
         NAME 'vbmValidityStartDate'
         DESC 'The earliest possible date from which the license can be activated and used'
-        EQUALITY generalizedTimeMatch
-        SYNTAX generalizedTimeType SINGLE-VALUE )
+        EQUALITY caseIgnoreMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:108
         NAME 'vbmValidityEndDate'
         DESC 'The latest possible date from which the license can be activated and used'
-        EQUALITY generalizedTimeMatch
-        SYNTAX generalizedTimeType SINGLE-VALUE )
+        EQUALITY caseIgnoreMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:109
         NAME 'vbmValidityDuration'
@@ -77,14 +75,14 @@ attributetype ( vbmBildungslogin:110
 attributetype ( vbmBildungslogin:111
         NAME 'vbmIgnoredForDisplay'
         DESC 'Marks a license to be ignored for license assignment'
-        EQUALITY booleanMatch
-        SYNTAX booleanType SINGLE-VALUE )
+        EQUALITY caseExactMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:112
         NAME 'vbmDeliveryDate'
         DESC 'The date the license was created/imported/delivered in the system'
-        EQUALITY generalizedTimeMatch
-        SYNTAX generalizedTimeType SINGLE-VALUE )
+        EQUALITY caseIgnoreMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:113
         NAME 'vbmLicenseSchool'
@@ -133,8 +131,8 @@ attributetype ( vbmBildungslogin:206
 attributetype ( vbmBildungslogin:207
         NAME 'vbmMetaDataModified'
         DESC 'The last time this object was modified'
-        EQUALITY generalizedTimeMatch
-        SYNTAX generalizedTimeType SINGLE-VALUE )
+        EQUALITY caseIgnoreMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
 
 # Assignment attributes, OIDs from 300
 
@@ -147,8 +145,8 @@ attributetype ( vbmBildungslogin:301
 attributetype ( vbmBildungslogin:302
         NAME 'vbmAssignmentTimeOfAssignment'
         DESC 'The time this assignment was created'
-        EQUALITY generalizedTimeMatch
-        SYNTAX generalizedTimeType SINGLE-VALUE )
+        EQUALITY caseIgnoreMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:303
         NAME 'vbmAssignmentStatus'
@@ -162,7 +160,8 @@ objectclass ( vbmBildungslogin:1
         NAME 'vbmLicense'
         DESC 'A volume license provided by VBM'
         SUP top STRUCTURAL
-        MUST ( cn $ vbmLicenseCode $ vbmProductId $ vbmLicenseQuantity $ vbmLicenseProvider $ vbmPurchasingReference $ vbmUtilizationSystems $ vbmValidityStartDate $ vbmValidityEndDate $ vbmValidityDuration $ vbmLicenseSpecialType $ vbmIgnoredForDisplay $ vbmDeliveryDate $ vbmLicenseSchool ) )
+        MUST ( cn $ vbmLicenseCode $ vbmProductId $ vbmLicenseQuantity $ vbmLicenseProvider $ vbmPurchasingReference $ vbmUtilizationSystems $ vbmValidityStartDate $ vbmValidityEndDate $ vbmValidityDuration $ vbmIgnoredForDisplay $ vbmDeliveryDate $ vbmLicenseSchool )
+        MAY ( vbmLicenseSpecialType ) )
 
 objectclass ( vbmBildungslogin:2
         NAME 'vbmMetaDatum'
