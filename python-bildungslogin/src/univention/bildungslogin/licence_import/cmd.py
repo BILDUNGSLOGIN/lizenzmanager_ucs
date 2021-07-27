@@ -32,17 +32,18 @@ import argparse
 from univention.bildungslogin.licence_import import import_licences
 
 
-def parse_args():
-	parser = argparse.ArgumentParser(description='Import media licences')
-	parser.add_argument('--licence-file', help='Path to the licence file whoch should be imported')
-	args = parser.parse_args()
-	return args
+def parse_args():  # type: () -> argparse.Namespace
+    parser = argparse.ArgumentParser(description='Import media licences')
+    parser.add_argument('--licence-file', help='Path to the licence file which should be imported')
+    parser.add_argument('--school', help='School abbreviation for which the licence should be imported')
+    args = parser.parse_args()
+    return args
 
 
-def main():
-	args = parse_args()
-	import_licences(args.licence_file)
+def main():  # type: () -> None
+    args = parse_args()
+    import_licences(args.licence_file, args.school)
 
 
 if __name__ == '__main__':
-	main()
+    main()

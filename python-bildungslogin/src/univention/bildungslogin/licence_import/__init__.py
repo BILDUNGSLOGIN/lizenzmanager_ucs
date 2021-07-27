@@ -27,6 +27,35 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
 
+import json
+import time
 
-def import_licences(licence_file):
-	raise NotImplementedError
+from typing import Dict
+
+from univention.bildungslogin.licence import Licence
+
+
+def load_licence(licence_raw, school):  # type: (Dict, str) -> Licence
+    return Licence(
+        licence_code=licence_raw['lizenzcode'],
+        product_id=licence_raw['product_id'],
+        licence_quantity=licence_raw['lizenzanzahl'],
+        licence_provider=licence_raw['lizenzgeber'],
+        purchasing_date=licence_raw['kaufreferenz'],
+        utilization_systems=licence_raw['nutzungssysteme'],
+        validity_start_date=licence_raw['gueltigkeitsbeginn'],
+        validity_end_date=licence_raw['gueltigkeitsende'],
+        validity_duration=licence_raw['gueltigkeitsdauer'],
+        licence_special_type=licence_raw['sonderlizenz'],
+        ignored_for_display=False,
+        delivery_date=str(int(time.time())),
+        licence_school=school,
+    )
+
+
+def import_licences(licence_file, school):  # type: (str, str) -> None
+    with open(licence_file, 'r') as licence_file_fd:
+        licences_raw = json.load(licence_file_fd)
+    licences = [load_licence(licence_raw, school) for licence_raw in licences_raw]
+    for licence in licences:
+        licence.save()
