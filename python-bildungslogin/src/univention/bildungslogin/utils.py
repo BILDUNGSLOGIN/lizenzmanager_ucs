@@ -1,4 +1,5 @@
 from enum import Enum
+from ucsschool.lib.models import UdmObject
 
 
 class Status(Enum):
@@ -14,3 +15,14 @@ class Assignment:
         self.time_of_assignment = time_of_assignment
         self.status = status
         self.licence = licence
+
+    @staticmethod
+    def from_udm_obj(udm_obj):  # type: (UdmObject) -> Assignment
+        # todo here i actually need to find the parent and get it's license_code, right?
+        licence = "something"
+        return Assignment(
+            username=udm_obj.props.vbmAssignmentAssignee,
+            licence=licence,
+            time_of_assignment=udm_obj.props.vbmAssignmentTimeOfAssignment,
+            status=udm_obj.props.vbmAssignmentStatus,
+        )

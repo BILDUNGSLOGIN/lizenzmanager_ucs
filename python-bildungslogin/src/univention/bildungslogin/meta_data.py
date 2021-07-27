@@ -1,11 +1,14 @@
+# WIP, not tests (!)
+
+
 import hashlib
 
 from ldap.filter import filter_format
 from typing import List, Optional
+from ucsschool.lib.models import UdmObject
 
 from utils import Assignment, Status
 from univention.udm import UDM, CreateError, NoObject as UdmNoObject
-from univention.management.console.ldap import get_machine_connection
 
 
 class MetaData:
@@ -18,8 +21,8 @@ class MetaData:
         publisher=None,
         cover=None,
         cover_small=None,
-    ):  # type: (str, Optional[str], Optional[str], Optional[str], Optional[str], Optional[str], Optional[str]) -> None
-        """in the beginning only have the product_id"""
+        modified=None,
+    ):  # type: (str, str, str, str, str, str, str, str) -> None
         self.product_id = product_id
         self.title = title
         self.description = description
@@ -27,61 +30,113 @@ class MetaData:
         self.publisher = publisher
         self.cover = cover
         self.cover_small = cover_small
+        self.modified = modified
 
-        # todo das ist eher unguenstig.
-        lo, po = get_machine_connection(write=True)
+
+class MetaDataHandler:
+    def __init__(self, lo):
+        self.lo = lo
         udm = UDM(lo).version(1)
-        self._licences_mod = udm.get("vbm/licences")
-        self._meta_data_mod = udm.get("vbm/metadata")
+        self._licenses_mod = udm.get("vbm/licenses")
         self._assignments_mod = udm.get("vbm/assignments")
-        self.udm_obj = self._get_udm_object()
+        self._meta_data_mod = udm.get("vbm/metadata")
 
-    def _get_udm_object(self):
-        filter_s = filter_format("(vbmProductId=%s)", [self.product_id])
-        return [o for o in self._licences_mod.search(filter_s)][0]
+    @staticmethod
+    def from_udm_obj(udm_obj):  # type: (UdmObject) -> MetaData
+        return MetaData(
+            product_id=udm_obj.props.vbmProductId,
+            title=udm_obj.props.vbmMetaDataTitle,
+            description=udm_obj.props.vbmMetaDataDescription,
+            author=udm_obj.props.vbmMetaDataAuthor,
+            publisher=udm_obj.props.vbmMetaDataPublisher,
+            cover=udm_obj.props.vbmMetaDataCover,
+            cover_small=udm_obj.props.vbmMetaDataCoverSmall,
+            modified=udm_obj.props.vbmMetaDataModified,
+        )
 
-    def fetch_meta_data(self):
-        """call meta-data api"""
+    def get_all(self, filter_s=None):  # type: (str) -> List[MetaData]
+        assignments = self._meta_data_mod.search(filter_s=filter_s)
+        return [MetaDataHandler.from_udm_obj(a) for a in assignments]
+
+    def fetch_meta_data(self, meta_data):  # type: (MetaData) -> None
+        """call meta-data api
+        todo"""
         pass
 
-    def _get_assignments(self):  # type: () -> List[Assignment]
+    def _get_assignments(self, meta_data):  # type: (MetaData) -> List[Assignment]
         """assignments of licence with productID"""
-        # 1) get all licences with productid
-        filter_s = filter_format("(&(vbmProductId=%s))", [self.product_id])
-        licences_of_product = [o for o in self._licences_mod.search(filter_s)]
-        # 2) count get the leaves
-        # todo check can i do this in one step? -> this looks expensive
-        # this would be easy if vbmassignment would have the vbmlicence
+        # get licenses objects from udm with the given product id.
+        filter_s = filter_format("(&(vbmProductId=%s))", [meta_data.product_id])
+        licences_of_product = [o for o in self._licenses_mod.search(filter_s)]
         assignments = []
         for udm_licence in licences_of_product:
+            # the assignments are placed below the licenses.
             assignments_to_licence = self._assignments_mod.search(base=udm_licence.dn)
-            for assignment in assignments_to_licence:
-                assignments.append(Assignment(status=assignment.props.vbmAssignmentStatus,
-                 time_of_assignment=assignment.props.vbmAssignmentTimeOfAssignment,
-                  username=assignment.props.vbmAssignmentAssignee,
-                  licence=udm_licence.props.vbmLicenceCode))
+            assignments.extend(
+                [
+                    Assignment.from_udm_obj(assignment)
+                    for assignment in assignments_to_licence
+                ]
+            )
         return assignments
 
-    @property
-    def number_of_available_licences(self):  # type: () -> int
+    def number_of_available_licences(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status available"""
-        return len([a for a in self._get_assignments() if a.status == Status.AVAILABLE])
+        return len(
+            [
+                a
+                for a in self._get_assignments(meta_data)
+                if a.status == Status.AVAILABLE
+            ]
+        )
 
-    @property
-    def number_of_provisioned_and_assigned_licences(self):  # type: () -> int
+    def number_of_provisioned_and_assigned_licences(
+        self, meta_data
+    ):  # type: (MetaData) -> int
         """count the number of assignments with status provisioned or assigned"""
-        return len([a for a in self._get_assignments() if a.status in [Status.PROVISIONED, Status.ASSIGNED]])
+        return len(
+            [
+                a
+                for a in self._get_assignments(meta_data)
+                if a.status in [Status.PROVISIONED, Status.ASSIGNED]
+            ]
+        )
 
-    @property
-    def number_of_expired_licences(self):  # type: () -> int
+    def number_of_expired_licences(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status expired"""
-        return len([a for a in self._get_assignments() if a.status in [Status.EXPIRED]])
+        return len(
+            [
+                a
+                for a in self._get_assignments(meta_data)
+                if a.status in [Status.EXPIRED]
+            ]
+        )
 
-    @property
-    def number_of_licences(self):  # type: () -> int
+    def number_of_licences(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments"""
-        return len(self._get_assignments())
+        return len(self._get_assignments(meta_data))
 
-    def save(self):
-        # The cn of vbmMetaDatum will be a hash of the vbmProductId.
-        cn = hashlib.sha256(self.product_id)
+    def create(self, meta_data):  # type: (MetaData) -> None
+        try:
+            udm_obj = self._meta_data_mod.new()
+            udm_obj.props.cn = hashlib.sha256(meta_data.product_id).hexdigest()
+            udm_obj.props.vbmProductId = meta_data.product_id
+            udm_obj.props.vbmMetaDataTitle = meta_data.title
+            udm_obj.props.vbmMetaDataDescription = meta_data.description
+            udm_obj.props.vbmMetaDataAuthor = meta_data.author
+            udm_obj.props.vbmMetaDataPublisher = meta_data.publisher
+            udm_obj.props.vbmMetaDataCover = meta_data.cover
+            udm_obj.props.vbmMetaDataCoverSmall = meta_data.cover_small
+            udm_obj.props.vbmMetaDataModified = meta_data.modified
+            udm_obj.save()
+        except CreateError as e:
+            print(
+                "Error creating meta datum for product id {}: {}".format(
+                    meta_data.product_id, e
+                )
+            )
+
+    def save(self, meta_data):  # type: (MetaData) -> None
+        # this can be called by fetch_meta_data to update meta-data
+        # todo
+        pass
