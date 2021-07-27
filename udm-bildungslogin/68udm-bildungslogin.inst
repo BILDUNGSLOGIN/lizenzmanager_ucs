@@ -69,6 +69,11 @@ ucs_registerLDAPExtension "$@" \
   --schema "/usr/share/bildungslogin/schema/bildungslogin.schema" \
   --udm_module "/usr/share/bildungslogin/handlers/license.py" || die
 
+ucs_registerLDAPExtension "$@" \
+  --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
+  --udm_module "/usr/share/bildungslogin/handlers/metadatum.py" || die
+
+
 #joinscript_save_current_version TODO: uncomment before release
 
 exit 0
