@@ -6,18 +6,18 @@ from utils import Status, Assignment
 
 class LicenceManager:
     @staticmethod
-    def get_all_assignments_for_user(username: str) -> List[Assignment]:
+    def get_all_assignments_for_user(username):  # type: (str) -> List[Assignment]
         """&(vbmAssignmentAssignee=uid)(vbmAssignmentStatus!=...)"""
         pass
 
     @staticmethod
-    def get_assignments_for_product_id_for_user(username: str) -> List[Assignment]:
+    def get_assignments_for_product_id_for_user(username):  # type: (str) -> List[Assignment]
         """&(vbmAssignmentAssignee=uid)(vbmAssignmentStatus!=...) below sub"""
         # do we need this?
         pass
 
     @staticmethod
-    def assign_to_licence(licence: str, username: str) -> bool:
+    def assign_to_licence(licence, username):  # type: (str, str) -> bool
         # licence is still valid, status is ok
         # check if school is ok
         # create assignment in layer below
@@ -30,7 +30,7 @@ class LicenceManager:
         return True
 
     @staticmethod
-    def assign_users_to_licences(licences: List[Licence], usernames: List[str]) -> None:
+    def assign_users_to_licences(licences, usernames):  # type: (List[Licence], List[str]) -> None
         """Eine Lizenz kann nur zugewiesen werden,
         wenn die Menge an Lizenzen ausreicht, um allen Benutzern eine Lizenz zuzuweisen.
         -> this is more like"""
@@ -41,12 +41,12 @@ class LicenceManager:
             assigned = LicenceManager.assign_to_licence(licence.licence_code, username)
             if assigned:
                 print(
-                    f"log something about assigning {licence.meta_data.title} to {username}"
+                    "log something about assigning {} to {}".format(licence.meta_data.title, username)
                 )
                 user_counter += 1
 
     @staticmethod
-    def change_licence_status(licence_id: str, username: str, status: str) -> bool:
+    def change_licence_status(licence_id, username, status):  # type: (str, str, str) -> bool
         # can change from available to assigned if a username is provided
         # or from available to provisioned
         # todo matrix

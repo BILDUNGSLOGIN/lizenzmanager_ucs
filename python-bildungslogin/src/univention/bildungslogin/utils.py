@@ -9,9 +9,7 @@ class Status(Enum):
 
 
 class Assignment:
-    def __init__(
-        self, username: str, licence: str, time_of_assignment: str, status: Status
-    ):
+    def __init__(self, username, licence, time_of_assignment, status):  # type: (str, str, str, Status) -> None
         self.assignee = username
         self.time_of_assignment = time_of_assignment
         self.status = status

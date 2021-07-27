@@ -1,25 +1,27 @@
 from typing import List
 from utils import Assignment
+from meta_data import MetaData
 
 
 class Licence:
     def __init__(
         self,
-        licence_code: str,
-        product_id: str,
-        licence_quatity: str,
-        licence_provider: str,
-        purchasing_date: str,
-        utilization_systems: str,
-        validity_start_date: str,
-        validity_end_date: str,
-        validity_duration: str,
-        licence_special_type: str,
-        ignored_for_display: bool,
-        delivery_date: str,
-        licence_school: str,
-    ):
+        licence_code,
+        product_id,
+        licence_quatity,
+        licence_provider,
+        purchasing_date,
+        utilization_systems,
+        validity_start_date,
+        validity_end_date,
+        validity_duration,
+        licence_special_type,
+        ignored_for_display,
+        delivery_date,
+        licence_school,
+    ):  # type: (str, str, str, str, str, str, str, str, str, str, bool, str, str) -> None
         self.licence_code = licence_code
+        # todo
         self.meta_data = MetaData(product_id)
         self.licence_quatity = licence_quatity
         self.licence_provider = licence_provider
@@ -34,7 +36,7 @@ class Licence:
         self.licence_school = licence_school
 
     @property
-    def assignments(self) -> List[Assignment]:
+    def assignments(self):  # type: () -> List[Assignment]
         """search for assignments in leaves of licence"""
         return []
 
@@ -43,7 +45,7 @@ class Licence:
         pass
 
     @property
-    def meta_data(self):
+    def meta_data(self):  # type: () -> MetaData
         if not self.meta_data:
             self.fetch_meta_data_for_licence()
         return self.meta_data
@@ -53,22 +55,22 @@ class Licence:
         self.meta_data = value
 
     @property
-    def number_of_available_licences(self) -> int:
+    def number_of_available_licences(self):   # type: () -> int
         """count the number of assignments with status available"""
         return 0
 
     @property
-    def number_of_provisioned_and_assigned_licenses(self) -> int:
+    def number_of_provisioned_and_assigned_licenses(self):  # type: () -> int
         """count the number of assignments with status provisioned or assigned"""
         return 0
 
     @property
-    def number_of_expired_licences(self) -> int:
+    def number_of_expired_licences(self):  # type: () -> int
         """count the number of assignments with status expired"""
         return 0
 
     @property
-    def number_of_licenses(self) -> int:
+    def number_of_licenses(self):  # type: () -> int
         """count the number of assignments"""
         return 0
 
