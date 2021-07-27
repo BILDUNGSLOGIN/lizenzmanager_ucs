@@ -32,7 +32,7 @@ deb-pipeline:
     - if: "$CI_COMMIT_MESSAGE =~ /force-ucslint/ || $pipeline =~ /force-ucslint/"
     - if: "$CI_COMMIT_MESSAGE =~ /force-build/ || $pipeline =~ /force-build/"
     - if: '$CI_COMMIT_BRANCH == $BRANCH'
-      - changes:
+      changes:
         - "*/debian/changelog"
     - if: '$CI_COMMIT_BRANCH == $BRANCH'
       when: manual
