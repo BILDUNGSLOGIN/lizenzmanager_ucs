@@ -2,10 +2,10 @@ from enum import Enum
 
 
 class Status(Enum):
-    ASSIGNED = 1
-    PROVISIONED = 2
-    AVAILABLE = 3
-    EXPIRED = 4
+    ASSIGNED = "ASSIGNED"
+    PROVISIONED = "PROVISIONED"
+    AVAILABLE = "AVAILABLE"
+    EXPIRED = "EXPIRED"
 
 
 class Assignment:

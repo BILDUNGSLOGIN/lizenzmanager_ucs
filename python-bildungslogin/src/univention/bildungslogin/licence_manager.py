@@ -5,6 +5,8 @@ from utils import Status, Assignment
 
 
 class LicenceManager:
+
+
     @staticmethod
     def get_all_assignments_for_user(username):  # type: (str) -> List[Assignment]
         """&(vbmAssignmentAssignee=uid)(vbmAssignmentStatus!=...)"""
