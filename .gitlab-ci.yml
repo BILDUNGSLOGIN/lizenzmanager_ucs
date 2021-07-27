@@ -34,9 +34,9 @@ deb-pipeline:
     - if: '$CI_COMMIT_BRANCH == $BRANCH'
       - changes:
         - "*/debian/changelog"
-	- if: '$CI_COMMIT_BRANCH == $BRANCH'
-	  when: manual
-	  allow_failure: false
+    - if: '$CI_COMMIT_BRANCH == $BRANCH'
+      when: manual
+      allow_failure: false
   needs:
     - generate-config
   variables:
