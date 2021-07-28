@@ -75,7 +75,7 @@ property_descriptions = {
         short_description=_("Title"),
         long_description=_("The title product described by the metadatum"),
         syntax=univention.admin.syntax.string,
-        required=True,
+        required=False,
         may_change=True
     ),
 
@@ -83,7 +83,7 @@ property_descriptions = {
         short_description=_("Description"),
         long_description=_("The description of the  product described by the metadatum"),
         syntax=univention.admin.syntax.string,
-        required=True,
+        required=False,
         may_change=True
     ),
 
@@ -91,7 +91,7 @@ property_descriptions = {
         short_description=_("Author"),
         long_description=_("The author of the  product described by the metadatum"),
         syntax=univention.admin.syntax.string,
-        required=True,
+        required=False,
         may_change=True
     ),
 
@@ -99,7 +99,7 @@ property_descriptions = {
         short_description=_("Publisher"),
         long_description=_("The publisher of the  product described by the metadatum"),
         syntax=univention.admin.syntax.string,
-        required=True,
+        required=False,
         may_change=True
     ),
 
@@ -107,7 +107,7 @@ property_descriptions = {
         short_description=_("Cover"),
         long_description=_("The url for the cover of the  product described by the metadatum"),
         syntax=univention.admin.syntax.string,  # TODO URL?
-        required=True,
+        required=False,
         may_change=True
     ),
 
@@ -115,7 +115,7 @@ property_descriptions = {
         short_description=_("CoverSmall"),
         long_description=_("The url for the thumbnail of the  product described by the metadatum"),
         syntax=univention.admin.syntax.string,  # TODO URL?
-        required=True,
+        required=False,
         may_change=True
     ),
 

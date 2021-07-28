@@ -73,6 +73,10 @@ ucs_registerLDAPExtension "$@" \
   --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
   --udm_module "/usr/share/bildungslogin/handlers/metadatum.py" || die
 
+ucs_registerLDAPExtension "$@" \
+  --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
+  --udm_module "/usr/share/bildungslogin/handlers/assignment.py" || die
+
 
 #joinscript_save_current_version TODO: uncomment before release
 

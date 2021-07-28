@@ -31,6 +31,7 @@
 import univention.admin.syntax
 import univention.admin.handlers
 import univention.admin.localization
+import univention.admin.uexceptions
 from univention.admin.layout import Tab
 from hashlib import sha256
 
@@ -88,21 +89,21 @@ property_descriptions = {
         short_description=_("Provider"),
         long_description=_("The provider of the license"),
         syntax=univention.admin.syntax.string,
-        required=True,
+        required=False,
         may_change=False
     ),
     "purchasing_reference": univention.admin.property(
         short_description=_("Purchasing reference"),
         long_description=_("The purchasing reference"),
         syntax=univention.admin.syntax.string,
-        required=True,
+        required=False,
         may_change=False
     ),
     "utilization_systems": univention.admin.property(
         short_description=_("Utilization systems"),
         long_description=_("The utilization systems"),
         syntax=univention.admin.syntax.string,
-        required=True,
+        required=False,
         may_change=False
     ),
     "validity_start_date": univention.admin.property(
@@ -123,21 +124,22 @@ property_descriptions = {
         short_description=_("Validity duration"),
         long_description=_("The validity duration"),
         syntax=univention.admin.syntax.string,
-        required=True,
-        may_change=False
+        required=False,
+        may_change=False,
     ),
     "special_type": univention.admin.property(
         short_description=_("Special type"),
         long_description=_("The special type"),
         syntax=univention.admin.syntax.string,
+        required=False,
         may_change=False,
-        default=""
     ),
     "ignored": univention.admin.property(
         short_description=_("Ignored"),
         long_description=_("Whether this license is ignored for assignments"),
         syntax=univention.admin.syntax.boolean,
-        required=True
+        required=True,
+        default="0"
     ),
     "delivery_date": univention.admin.property(
         short_description=_("Delivery date"),
@@ -194,7 +196,9 @@ class object(univention.admin.handlers.simpleLdap):
 
     def _ldap_pre_ready(self):
         # The CN is *always* set to the hash256 of the license code
-        self["cn"] = sha256(self["code"])
+        if not self["code"]:
+            raise univention.admin.uexceptions.valueError(_("The code of a license must not be empty."))
+        self["cn"] = sha256(self["code"]).hexdigest()
 
 
 lookup = object.lookup

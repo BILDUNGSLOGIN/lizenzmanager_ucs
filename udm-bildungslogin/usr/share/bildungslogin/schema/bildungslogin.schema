@@ -160,17 +160,19 @@ objectclass ( vbmBildungslogin:1
         NAME 'vbmLicense'
         DESC 'A volume license provided by VBM'
         SUP top STRUCTURAL
-        MUST ( cn $ vbmLicenseCode $ vbmProductId $ vbmLicenseQuantity $ vbmLicenseProvider $ vbmPurchasingReference $ vbmUtilizationSystems $ vbmValidityStartDate $ vbmValidityEndDate $ vbmValidityDuration $ vbmIgnoredForDisplay $ vbmDeliveryDate $ vbmLicenseSchool )
-        MAY ( vbmLicenseSpecialType ) )
+        MUST ( cn $ vbmLicenseCode $ vbmProductId $ vbmLicenseQuantity $ vbmValidityStartDate $ vbmValidityEndDate $ vbmIgnoredForDisplay $ vbmDeliveryDate $ vbmLicenseSchool )
+        MAY ( vbmLicenseProvider $ vbmPurchasingReference $ vbmUtilizationSystems $ vbmLicenseSpecialType $ vbmValidityDuration ) )
 
 objectclass ( vbmBildungslogin:2
         NAME 'vbmMetaDatum'
         DESC 'Metadata describing a product'
         SUP top STRUCTURAL
-        MUST ( cn $ vbmProductId $ vbmMetaDataTitle $ vbmMetaDataDescription $ vbmMetaDataAuthor $ vbmMetaDataPublisher $ vbmMetaDataCover $ vbmMetaDataCoverSmall $ vbmMetaDataModified ) )
+        MUST ( cn $ vbmProductId $ vbmMetaDataModified )
+        MAY ( vbmMetaDataTitle $ vbmMetaDataDescription $ vbmMetaDataAuthor $ vbmMetaDataPublisher $ vbmMetaDataCover $ vbmMetaDataCoverSmall ) )
 
 objectclass ( vbmBildungslogin:3
         NAME 'vbmAssignment'
         DESC 'Holds information about license assignments to users'
         SUP top STRUCTURAL
-        MUST ( cn $ vbmAssignmentAssignee $ vbmAssignmentTimeOfAssignment $ vbmAssignmentStatus ) )
+        MUST ( cn $ vbmAssignmentStatus )
+        MAY ( vbmAssignmentAssignee $ vbmAssignmentTimeOfAssignment ) )
