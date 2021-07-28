@@ -45,14 +45,14 @@ class MetaDataHandler:
     @staticmethod
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> MetaData
         return MetaData(
-            product_id=udm_obj.props.vbmProductId,
-            title=udm_obj.props.vbmMetaDataTitle,
-            description=udm_obj.props.vbmMetaDataDescription,
-            author=udm_obj.props.vbmMetaDataAuthor,
-            publisher=udm_obj.props.vbmMetaDataPublisher,
-            cover=udm_obj.props.vbmMetaDataCover,
-            cover_small=udm_obj.props.vbmMetaDataCoverSmall,
-            modified=udm_obj.props.vbmMetaDataModified,
+            product_id=udm_obj.props.product_id,
+            title=udm_obj.props.title,
+            description=udm_obj.props.description,
+            author=udm_obj.props.author,
+            publisher=udm_obj.props.publisher,
+            cover=udm_obj.props.cover,
+            cover_small=udm_obj.props.cover_small,
+            modified=udm_obj.props.modified,
         )
 
     def from_dn(self, dn):  # type: (str) -> MetaData
@@ -76,7 +76,9 @@ class MetaDataHandler:
         pass
 
     def get_assignments_for_license(self, dn):  # type: (str) -> List[Assignment]
-        """Get all assignments which are placed as leaves under the license."""
+        """Get all assignments which are placed as leaves under the license.
+        todo move to license
+        """
         assignments_from_license = self._assignments_mod.search(base=dn)
         return [
                 self.ah.from_udm_obj(assignment)
@@ -84,7 +86,7 @@ class MetaDataHandler:
             ]
 
     def get_licenses_udm_object_by_product_id(self, product_id):  # type: (str) -> UdmObject
-        filter_s = filter_format("(&(vbmProductId=%s))", [product_id])
+        filter_s = filter_format("(&(product_id=%s))", [product_id])
         return [o for o in self._licenses_mod.search(filter_s)]
 
     def get_assignments_for_meta_data(self, meta_data):  # type: (MetaData) -> List[Assignment]
@@ -137,14 +139,14 @@ class MetaDataHandler:
     def create(self, meta_data):  # type: (MetaData) -> None
         try:
             udm_obj = self._meta_data_mod.new()
-            udm_obj.props.vbmProductId = meta_data.product_id
-            udm_obj.props.vbmMetaDataTitle = meta_data.title
-            udm_obj.props.vbmMetaDataDescription = meta_data.description
-            udm_obj.props.vbmMetaDataAuthor = meta_data.author
-            udm_obj.props.vbmMetaDataPublisher = meta_data.publisher
-            udm_obj.props.vbmMetaDataCover = meta_data.cover
-            udm_obj.props.vbmMetaDataCoverSmall = meta_data.cover_small
-            udm_obj.props.vbmMetaDataModified = meta_data.modified
+            udm_obj.props.product_id = meta_data.product_id
+            udm_obj.props.title = meta_data.title
+            udm_obj.props.description = meta_data.description
+            udm_obj.props.author = meta_data.author
+            udm_obj.props.publisher = meta_data.publisher
+            udm_obj.props.cover = meta_data.cover
+            udm_obj.props.cover_small = meta_data.cover_small
+            udm_obj.props.modified = meta_data.modified
             udm_obj.save()
         except CreateError as e:
             print(
@@ -154,7 +156,7 @@ class MetaDataHandler:
             )
 
     def get_meta_data_by_product_id(self, product_id):  # type: (str) -> UdmObject
-        filter_s = filter_format("(&(vbmProductId=%s))", [product_id])
+        filter_s = filter_format("(product_id=%s)", [product_id])
         try:
             return [o for o in self._meta_data_mod.search(filter_s)][0]
         except KeyError:
@@ -164,3 +166,5 @@ class MetaDataHandler:
         udm_meta_data = self.get_meta_data_by_product_id(meta_data.product_id)
         # todo update udm_meta_data
         udm_meta_data.save()
+
+

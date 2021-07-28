@@ -8,6 +8,11 @@ class Status(Enum):
     EXPIRED = "EXPIRED"
 
 
+class LicenseType(Enum):
+    VOLUME = "Volumenlizenz"
+    SINGLE = "Einzellizenz"
+
+
 class Assignment:
     def __init__(self, username, license, time_of_assignment, status):  # type: (str, str, str, Status) -> None
         self.assignee = username

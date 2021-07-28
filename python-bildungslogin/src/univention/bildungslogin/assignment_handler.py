@@ -4,16 +4,13 @@
 from time import time
 
 from ldap.filter import filter_format
-from typing import List
+from typing import List, Optional, Dict
 from ucsschool.lib.models import UdmObject
 from ucsschool.lib.models.base import LoType
 from univention.udm import UDM, CreateError, NoObject as UdmNoObject
 
 from .utils import Status, Assignment
-
-
-
-
+from .license import LicenseHandler
 
 
 class AssignmentHandler:
@@ -42,10 +39,10 @@ class AssignmentHandler:
         """
         udm_license = self.get_licence_of_assignment(udm_obj.position)
         return Assignment(
-            username=udm_obj.props.vbmAssignmentAssignee,
+            username=udm_obj.props.assignee,
             license=udm_license.props.vbmLicenseCode,
-            time_of_assignment=udm_obj.props.vbmAssignmentTimeOfAssignment,
-            status=udm_obj.props.vbmAssignmentStatus,
+            time_of_assignment=udm_obj.props.time_of_assignment,
+            status=udm_obj.props.status,
         )
 
     def from_dn(self, dn):  # type: (str) -> Assignment
@@ -57,7 +54,7 @@ class AssignmentHandler:
         return [self.from_udm_obj(a) for a in udm_assignments]
 
     def get_all_assignments_for_user(self, username):  # type: (str) -> List[Assignment]
-        filter_s = filter_format("(vbmAssignmentAssignee=%s)", [username])
+        filter_s = filter_format("(assignee=%s)", [username])
         udm_assignments = self._assignments_mod.search(filter_s)
         return [self.from_udm_obj(a) for a in udm_assignments]
 
@@ -69,7 +66,7 @@ class AssignmentHandler:
         udm_licenses = self._licenses_mod.search(filter_s)
         assignments = []
         for udm_license in udm_licenses:
-            filter_s = filter_format("(vbmAssignmentAssignee=%s)", [username])
+            filter_s = filter_format("(assignee=%s)", [username])
             udm_assignments = [a for a in self._assignments_mod.search(
                 base=udm_license.dn, filter_s=filter_s
             )]
@@ -102,6 +99,21 @@ class AssignmentHandler:
         except KeyError:
             print("No license with code {} was found!".format(license))
 
+    def create_assignments_for_licence(self, license_code):  # type: (str) -> bool
+        """refactor me"""
+        udm_license = self.get_license_by_license_code(license_code)
+        try:
+            assignment = self._assignments_mod.new()
+            assignment.position = udm_license.dn
+            assignment.props.status = Status.AVAILABLE
+            assignment.save()
+        except CreateError as e:
+            print(
+                "Error creating assignment for {} {}".format(
+                    license_code, e
+                )
+            )
+
     def assign_to_license(self, license_code, username):  # type: (str, str) -> bool
         udm_license = self.get_license_by_license_code(license_code)
         user = self.get_user_by_username(username)
@@ -109,9 +121,9 @@ class AssignmentHandler:
         try:
             assignment = self._assignments_mod.new()
             assignment.position = udm_license.dn
-            assignment.props.vbmAssignmentAssignee = username
-            assignment.props.vbmAssignmentTimeOfAssignment = time()  # todo correct format
-            assignment.props.vbmAssignmentStatus = Status.ASSIGNED
+            assignment.props.assignee = username
+            assignment.props.time_of_assignment = time()  # todo correct format
+            assignment.props.status = Status.ASSIGNED
             assignment.save()
         except CreateError as e:
             print(
@@ -143,20 +155,17 @@ class AssignmentHandler:
         if status not in [s.value for s in Status]:
             raise ValueError("Invalid status {}:".format(status))
 
-    def get_assignments_for_user_under_license(self, license_dn, username):  # type: (str, str)  -> UdmObject
+    def get_assignments_for_user_under_license(self, license_dn, username):  # type: (str, str)  -> List[UdmObject]
         """Search for license with license id and user with username and change the status
         If a user has more than one license with license code under license_dn,
         we take the first license we can find."""
-        filter_s = filter_format("(vbmAssignmentAssignee)", [username])
-        try:
-            return [
-                a
-                for a in self._assignments_mod.search(
-                    base=license_dn, filter_s=filter_s
-                )
-            ][0]
-        except KeyError:
-            print("No assignment under {} with username {} was found!".format(license_dn, username))
+        filter_s = filter_format("(assignee)", [username])
+        return [
+            a
+            for a in self._assignments_mod.search(
+                base=license_dn, filter_s=filter_s
+            )
+        ]
 
     def change_license_status(
         self, license_code, username, status
@@ -165,25 +174,36 @@ class AssignmentHandler:
         # or from available to provisioned
         # todo matrix
         # username has to be present except if license expired (or valid-date)
+
+        # assignment sollte alles mit unterstrich sein
         self.check_valid_status(status)
         udm_license = self.get_license_by_license_code(license_code)
-        udm_assignment = self.get_assignments_for_user_under_license(license_dn=udm_license.dn, username=username)
-        udm_assignment.props.vbmAssignmentStatus = status
+        udm_assignments = self.get_assignments_for_user_under_license(license_dn=udm_license.dn, username=username)
+        # ...todo das muessen wir bitte doch noch klaeren, besonders bezueglich volumenlizenzen.
+        udm_assignment = udm_assignments[0]
+        udm_assignment.props.status = status
         # todo this screams for error handling
         udm_assignment.save()
 
 
-ah = AssignmentHandler(lo)
-ah.change_license_status("license", "username", "status")
 
-licenses = ["123af", "schr-blubb"]
-usernames = ["tobias", "joerg"]
-ah.assign_users_to_licenses(licenses, usernames)
+if __name__ == '__main__':
 
-ah.assign_to_license("sadf", "ole")
+    ah = AssignmentHandler(lo)
+    ah.change_license_status("license", "username", "status")
 
-a1 = ah.get_assignments_for_product_id_for_user(username="tobias", product_id="my-product-id")
+    licenses = ["123af", "schr-blubb"]
+    usernames = ["tobias", "joerg"]
+    ah.assign_users_to_licenses(licenses, usernames)
 
-a2 = ah.get_all_assignments_for_user("tobias")
+    ah.assign_to_license("sadf", "ole")
 
-a3 = ah.get_all()
+    a1 = ah.get_assignments_for_product_id_for_user(username="tobias", product_id="my-product-id")
+
+    a2 = ah.get_all_assignments_for_user("tobias")
+
+    a3 = ah.get_all()
+
+    # todo nachfragen: wer bastelt das jetzt zusammen, bzw. was muss ich zurückgeben?
+    # ich brauechte noch eine meta-function, die alles zusammenbastelt.
+    #

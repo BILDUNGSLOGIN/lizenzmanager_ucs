@@ -2,11 +2,12 @@
 
 
 from ldap.filter import filter_format
-from typing import List, Optional
+from typing import List, Optional, Dict
+from univention.admin.syntax import date
 from univention.udm import UDM
 from univention.udm.exceptions import CreateError
 
-from utils import Assignment, Status
+from utils import Assignment, Status, LicenseType
 from meta_data import MetaData, MetaDataHandler
 from assignment_handler import AssignmentHandler
 from ucsschool.lib.models.base import UdmObject, LoType
@@ -28,7 +29,7 @@ class License:
         ignored_for_display,
         delivery_date,
         license_school,
-    ):  # type: (str, str, str, str, str, str, str, str, str, str, bool, str, str) -> None
+    ):  # type: (str, str, int, str, str, str, str, str, str, str, bool, str, str) -> None
         self.license_code = license_code
         self.product_id = product_id
         self.license_quantity = license_quantity
@@ -61,33 +62,29 @@ class LicenseHandler:
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> License
         return License(
             license_code=udm_obj.props.code,
-            product_id=udm_obj.props.vbmProductId,
-            license_quantity=udm_obj.props.vbmLicenseQuantity,
-            license_provider=udm_obj.props.vbmLicenseProvider,
-            utilization_systems=udm_obj.props.vbmUtilizationSystems,
-            validity_start_date=udm_obj.props.vbmValidityStartDate,
-            validity_end_date=udm_obj.props.vbmValidityEndDate,
-            validity_duration=udm_obj.props.vbmValidityDuration,
-            delivery_date=udm_obj.props.vbmDeliveryDate,
-            license_school=udm_obj.props.vbmLicenseSchool,
-            ignored_for_display=udm_obj.props.vbmIgnoredForDisplay,
-            license_special_type=udm_obj.props.vbmLicenseSpecialType,
-            purchasing_reference=udm_obj.props.vbmPurchasingReference,
+            product_id=udm_obj.props.product_id,
+            license_quantity=udm_obj.props.quantity,
+            license_provider=udm_obj.props.provider,
+            utilization_systems=udm_obj.props.utilization_systems,
+            validity_start_date=udm_obj.props.validity_start_date,
+            validity_end_date=udm_obj.props.validity_end_date,
+            validity_duration=udm_obj.props.validity_duration,
+            delivery_date=udm_obj.props.delivery_date,
+            license_school=udm_obj.props.school,
+            ignored_for_display=udm_obj.props.ignored,
+            license_special_type=udm_obj.props.special_type,
+            purchasing_reference=udm_obj.props.purchasing_reference,
         )
 
     def from_dn(self, dn):  # type: (str) -> License
         udm_license = self._licenses_mod.get(dn)
         return self.from_udm_obj(udm_license)
 
-    def get_meta_data_for_license(self, license):  # type: (MetaData) -> MetaData
+    def get_meta_data_for_license(self, license):  # type: (License) -> MetaData
         """search for the product of the license. If this there is none
         yet, return an empty object.
-
-        todo so far i don't have any information about the product when i say:
-        give me the licenses of the product
-        as far as i understand it, i would like this information in License
         """
-        filter_s = filter_format("(&(vbmProductId=%s))", [license.product_id])
+        filter_s = filter_format("(&(product_id=%s))", [license.product_id])
         udm_meta_data = [o for o in self._meta_data_mod.search(filter_s)][0]
         if not udm_meta_data:
             return MetaData(product_id=license.product_id)
@@ -114,22 +111,23 @@ class LicenseHandler:
 
     def get_number_of_available_licenses(self, license):  # type: (License) -> int
         """count the number of assignments with status available"""
-        filter_s = filter_format("(vbmAssignmentStatus=%s)", [Status.AVAILABLE])
+        filter_s = filter_format("(status=%s)", [Status.AVAILABLE])
         return len(self._get_assignments(filter_s=filter_s, license=license))
 
     def get_number_of_provisioned_and_assigned_licenses(
         self, license
     ):  # type: (License) -> int
-        """count the number of assignments with status provisioned or assigned"""
+        """count the number of assignments with status provisioned or assigned
+        todo why both?"""
         filter_s = filter_format(
-            "(|(vbmAssignmentStatus=%s)(vbmAssignmentStatus=%s))",
+            "(|(status=%s)(status=%s))",
             [Status.ASSIGNED, Status.PROVISIONED],
         )
         return len(self._get_assignments(filter_s=filter_s, license=license))
 
     def get_number_of_expired_licenses(self, license):  # type: (License) -> int
         """count the number of assignments with status expired"""
-        filter_s = filter_format("(vbmAssignmentStatus=%s)", [Status.EXPIRED])
+        filter_s = filter_format("(status=%s)", [Status.EXPIRED])
         return len(self._get_assignments(filter_s=filter_s, license=license))
 
     def get_number_of_licenses(self, license):  # type: (License) -> int
@@ -140,30 +138,94 @@ class LicenseHandler:
         try:
             udm_obj = self._licenses_mod.new()
             udm_obj.props.code = license.license_code
-            udm_obj.props.vbmProductId = license.product_id
-            udm_obj.props.vbmLicenseQuantity = license.license_quantity
-            udm_obj.props.vbmLicenseProvider = license.license_provider
-            udm_obj.props.vbmUtilizationSystems = license.utilization_systems
-            udm_obj.props.vbmValidityStartDate = license.validity_start_date
-            udm_obj.props.vbmValidityEndDate = license.validity_end_date
-            udm_obj.props.vbmValidityDuration = license.validity_duration
-            udm_obj.props.vbmDeliveryDate = license.delivery_date
-            udm_obj.props.vbmLicenseSchool = license.license_school
-            udm_obj.props.vbmIgnoredForDisplay = license.ignored_for_display
-            udm_obj.props.vbmLicenseSpecialType = license.license_special_type
-            udm_obj.props.vbmPurchasingReference = license.purchasing_reference
+            udm_obj.props.product_id = license.product_id
+            udm_obj.props.quantity = license.license_quantity
+            udm_obj.props.provider = license.license_provider
+            udm_obj.props.utilization_systems = license.utilization_systems
+            udm_obj.props.validity_start_date = license.validity_start_date
+            udm_obj.props.validity_end_date = license.validity_end_date
+            udm_obj.props.validity_duration = license.validity_duration
+            udm_obj.props.delivery_date = license.delivery_date
+            udm_obj.props.school = license.license_school
+            udm_obj.props.ignored = license.ignored_for_display
+            udm_obj.props.special_type = license.license_special_type
+            udm_obj.props.purchasing_reference = license.purchasing_reference
             udm_obj.save()
         except CreateError as e:
             print("Error creating license {}: {}".format(license.license_code, e))
+        # we create the assignments in advance before assigning them.
+        for i in range(license.license_quantity):
+            self.ah.create_assignments_for_licence(license_code=license.license_code)
+
+    def get_time_of_last_assignment(self, license):  # type: (License) -> str
+        filter_s = filter_format("(status=%s)", [Status.ASSIGNED])
+        assignments = self._get_assignments(filter_s=filter_s, license=license)
+        last_assignment = max([date.to_datetime(a.time_of_assignment) for a in assignments])
+        return date.from_datetime(last_assignment)
+
+    def get_license_type(self, license):  # type: (License) -> LicenseType
+        if license.license_quantity > 1:
+            return LicenseType.VOLUME
+        else:
+            return LicenseType.SINGLE
+
+    def search_for_license_code(self, lo, filter_s):  # type: (LoType, Optional[str]) -> List[Dict[str, str]]
+        """the filter_s can be used to filter license attributes, e.g. license codes
+        todo check """
+        lh = LicenseHandler(lo)
+        rows = []
+        for license in self.get_all(filter_s=filter_s):
+            meta_data = lh.get_meta_data_for_license(license)
+            rows.append({
+                "product_id": license.product_id,
+                "product": meta_data.title,
+                "publisher": meta_data.publisher,
+                "license_code": license.license_code,
+                "type": str(self.get_license_type(license)),
+                "time_of_assignment": self.get_time_of_last_assignment(license),
+                "assigned": lh.get_number_of_provisioned_and_assigned_licenses(license),
+                "acquired": lh.get_number_of_licenses(license),
+                "expired": lh.get_number_of_expired_licenses(license),
+                "available": lh.get_number_of_available_licenses(license)
+            })
+        return rows
 
 
-license = License()
+def import_licenses(school, licenses):
+    """dummy function for demonstration purposes"""
+    lh = LicenseHandler(lo)
+    for license in licenses:
+        l = License(license_school=school, **license)  # this is simplefied
+        lh.create(l)
 
-lh = LicenseHandler(lo)
-lh.create(license)
 
-lh.get_number_of_licenses(license)
-lh.get_number_of_expired_licenses(license)
-lh.get_number_of_provisioned_and_assigned_licenses(license)
-lh.get_number_of_available_licenses(license)
-lh.get_all_assignments(license)
+if __name__ == '__main__':
+    # dummy code, not tested
+    school = "Demoschool"  # script parameter
+    licenses = [
+        {
+            "lizenzcode": "VHT-7bd46a45-345c-4237-a451-4444736eb011",
+            "product_id": "urn:bilo:medium:A0023#48-85-TZ",
+            "lizenzanzahl": 25,
+            "lizenzgeber": "VHT",
+            "kaufreferenz": "2014-04-11T03:28:16 -02:00 4572022",
+            "nutzungssysteme": "Antolin",
+            "gueltigkeitsbeginn": "15-08-2021",
+            "gueltigkeitsende": "14-08-2022",
+            "gueltigkeitsdauer": "365",
+            "sonderlizenz": "Lehrer",
+        }
+    ]  # data which we get as json
+
+    import_licenses(school, licenses)
+
+
+    license = License()
+    lh = LicenseHandler(lo)
+    lh.create(license)
+
+    lh.get_number_of_licenses(license)
+    lh.get_number_of_expired_licenses(license)
+    lh.get_number_of_provisioned_and_assigned_licenses(license)
+    lh.get_number_of_available_licenses(license)
+    lh.get_all_assignments(license)
