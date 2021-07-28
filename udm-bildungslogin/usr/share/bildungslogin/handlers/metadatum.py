@@ -27,10 +27,12 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
+from ldap.filter import filter_format
 
 import univention.admin.syntax
 import univention.admin.handlers
 import univention.admin.localization
+import univention.admin.uexceptions
 from univention.admin.layout import Tab
 from hashlib import sha256
 
@@ -159,8 +161,14 @@ class object(univention.admin.handlers.simpleLdap):
     module = module
 
     def _ldap_pre_ready(self):
-        # The CN is *always* set to the hash256 of the of the product_id
-        self["cn"] = sha256(self["product_id"])
+        if self["product_id"]:
+            self["cn"] = sha256(self["product_id"]).hexdigest()
+
+    def _ldap_pre_create(self):
+        # The code, and thus the cn of any license must be unique in the domain
+        if self.lo.search(filter_format("(&(objectClass=vbmMetadatum)(cn=%s))", [self["cn"]]), attr=["dn"]):
+            raise univention.admin.uexceptions.valueError(_("A Metadatum with that product_id already exists"))
+        super(object, self)._ldap_pre_create()
 
 
 lookup = object.lookup
