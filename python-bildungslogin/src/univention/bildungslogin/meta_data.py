@@ -37,7 +37,7 @@ class MetaDataHandler:
     def __init__(self, lo):
         self.lo = lo
         udm = UDM(lo).version(1)
-        self._licences_mod = udm.get("vbm/licences")
+        self._licenses_mod = udm.get("vbm/licenses")
         self._assignments_mod = udm.get("vbm/assignments")
         self._meta_data_mod = udm.get("vbm/metadata")
 
@@ -65,12 +65,12 @@ class MetaDataHandler:
 
     def _get_assignments(self, meta_data):  # type: (MetaData) -> List[Assignment]
         """assignments of licence with productID"""
-        # get licences objects from udm with the given product id.
+        # get licenses objects from udm with the given product id.
         filter_s = filter_format("(&(vbmProductId=%s))", [meta_data.product_id])
-        licences_of_product = [o for o in self._licences_mod.search(filter_s)]
+        licences_of_product = [o for o in self._licenses_mod.search(filter_s)]
         assignments = []
         for udm_licence in licences_of_product:
-            # the assignments are placed below the licences.
+            # the assignments are placed below the licenses.
             assignments_to_licence = self._assignments_mod.search(base=udm_licence.dn)
             assignments.extend(
                 [

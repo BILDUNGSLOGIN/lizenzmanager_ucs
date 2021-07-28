@@ -54,7 +54,7 @@ async def get_user(
     # policy_instance: OPAClient = Depends(opa_instance),
     session: Session = Depends(kelvin_session),
 ):
-    """Return a user with context information about schools, roles, classes and licence information. WARNING: this
+    """Return a user with context information about schools, roles, classes and license information. WARNING: this
     route is protected for now by an 'OAuth2 Resource Owner Password Credentials Grant'. This is subject to change
     to another type of grant in the future."""
 
@@ -68,8 +68,8 @@ async def get_user(
             detail=f"No user was found for '{user_id}.'",
         )
 
-    # TODO licences. This here is only good for tests
-    licences = getattr(kelvinuser, "__licences__", ["foo-123", "bar-456"])
+    # TODO licenses. This here is only good for tests
+    licenses = getattr(kelvinuser, "__licenses__", ["foo-123", "bar-456"])
 
     context = {}
     for schoolname, classes in kelvinuser.school_classes.items():
@@ -85,7 +85,7 @@ async def get_user(
         if r not in roles:
             roles.append(r)
 
-    return User(id=user_id, licences=licences, context=context)
+    return User(id=user_id, licenses=licenses, context=context)
 
 
 # This is the object that is referenced in the pyproject.toml as the plugin object:

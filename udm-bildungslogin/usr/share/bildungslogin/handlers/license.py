@@ -8,25 +8,25 @@
 # All rights reserved.
 #
 # The source code of this program is made available
-# under the terms of the GNU Affero General Public Licence version 3
+# under the terms of the GNU Affero General Public License version 3
 # (GNU AGPL V3) as published by the Free Software Foundation.
 #
 # Binary versions of this program provided by Univention to you as
 # well as other copyrighted, protected or trademarked materials like
 # Logos, graphics, fonts, specific documentations and configurations,
-# cryptographic keys etc. are subject to a licence agreement between
+# cryptographic keys etc. are subject to a license agreement between
 # you and Univention and not subject to the GNU AGPL V3.
 #
 # In the case you use this program under the terms of the GNU AGPL V3,
 # the program is provided in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public Licence for more details.
+# GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public
-# Licence with the Debian GNU/Linux or Univention distribution in file
-# /usr/share/common-licences/AGPL-3; if not, see
-# <https://www.gnu.org/licences/>.
+# License with the Debian GNU/Linux or Univention distribution in file
+# /usr/share/common-licenses/AGPL-3; if not, see
+# <https://www.gnu.org/licenses/>.
 
 import univention.admin.syntax
 import univention.admin.handlers
@@ -41,7 +41,7 @@ module = "vbm/licence"
 childs = True
 object_name = _('Licences')
 object_name_plural = _('Licences')
-short_description = _("Licence")
+short_description = _("License")
 long_description = _("Licence from the VBM Bildungslogin")
 operations = ["add", "edit", "remove", "search"]  # TODO: Do we want a remove operation or not?
 
@@ -49,22 +49,22 @@ options = {
     "default": univention.admin.option(
         short_description=short_description,
         default=True,
-        objectClasses=["top", "vbmLicence"],
+        objectClasses=["top", "vbmLicense"],
     )
 }
 
 property_descriptions = {
     "cn": univention.admin.property(
         short_description=_("CN"),
-        long_description=_("CN of the licence"),
+        long_description=_("CN of the license"),
         syntax=univention.admin.syntax.string,
         required=True,
         identifies=True,
         may_change=False
     ),
     "code": univention.admin.property(
-        short_description=_("Licence code"),
-        long_description=_("Licence code of the licence"),
+        short_description=_("License code"),
+        long_description=_("License code of the license"),
         syntax=univention.admin.syntax.string,
         required=True,
         unique=True,
@@ -79,14 +79,14 @@ property_descriptions = {
     ),
     "quantity": univention.admin.property(
         short_description=_("Quantity"),
-        long_description=_("Amount of licences"),
+        long_description=_("Amount of licenses"),
         syntax=univention.admin.syntax.integer,
         required=True,
         may_change=False
     ),
     "provider": univention.admin.property(
         short_description=_("Provider"),
-        long_description=_("The provider of the licence"),
+        long_description=_("The provider of the license"),
         syntax=univention.admin.syntax.string,
         required=True,
         may_change=False
@@ -107,14 +107,14 @@ property_descriptions = {
     ),
     "validity_start_date": univention.admin.property(
         short_description=_("Validity start date"),
-        long_description=_("The date from which the licence is valid"),
+        long_description=_("The date from which the license is valid"),
         syntax=univention.admin.syntax.date,
         required=True,
         may_change=False
     ),
     "validity_end_date": univention.admin.property(
         short_description=_("Validity end date"),
-        long_description=_("The date from which the licence is not valid anymore"),
+        long_description=_("The date from which the license is not valid anymore"),
         syntax=univention.admin.syntax.date,
         required=True,
         may_change=False
@@ -135,7 +135,7 @@ property_descriptions = {
     ),
     "ignored": univention.admin.property(
         short_description=_("Ignored"),
-        long_description=_("Whether this licence is ignored for assignments"),
+        long_description=_("Whether this license is ignored for assignments"),
         syntax=univention.admin.syntax.boolean,
         required=True
     ),
@@ -171,19 +171,19 @@ layout = [
 mapping = univention.admin.mapping.mapping()
 for udm_name, ldap_name in [
     ("cn", "cn"),
-    ("code", "vbmLicenceCode"),
+    ("code", "vbmLicenseCode"),
     ("product_id", "vbmProductId"),
-    ("quantity", "vbmLicenceQuantity"),
-    ("provider", "vbmLicenceProvider"),
+    ("quantity", "vbmLicenseQuantity"),
+    ("provider", "vbmLicenseProvider"),
     ("purchasing_reference", "vbmPurchasingReference"),
     ("utilization_systems", "vbmUtilizationSystems"),
     ("validity_start_date", "vbmValidityStartDate"),
     ("validity_end_date", "vbmValidityEndDate"),
     ("validity_duration", "vbmValidityDuration"),
-    ("special_type", "vbmLicenceSpecialType"),
+    ("special_type", "vbmLicenseSpecialType"),
     ("ignored", "vbmIgnoredForDisplay"),
     ("delivery_date", "vbmDeliveryDate"),
-    ("school", "vbmLicenceSchool")
+    ("school", "vbmLicenseSchool")
 ]:
     mapping.register(udm_name, ldap_name, None, univention.admin.mapping.ListToString)
 
@@ -193,7 +193,7 @@ class object(univention.admin.handlers.simpleLdap):
     module = module
 
     def _ldap_pre_ready(self):
-        # The CN is *always* set to the hash256 of the licence code
+        # The CN is *always* set to the hash256 of the license code
         self["cn"] = sha256(self["code"])
 
 

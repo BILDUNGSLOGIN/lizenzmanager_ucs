@@ -7,7 +7,7 @@ def test_number_of_available_licences():
     pass
 
 
-def test_number_of_provisioned_and_assigned_licences():
+def test_number_of_provisioned_and_assigned_licenses():
     pass
 
 
@@ -15,7 +15,7 @@ def test_number_of_expired_licences():
     pass
 
 
-def test_number_of_licences():
+def test_number_of_licenses():
     pass
 
 
