@@ -12,4 +12,4 @@ class Assignment:
         self.assignee = username
         self.time_of_assignment = time_of_assignment
         self.status = status
-        self.licence = license
+        self.license = license

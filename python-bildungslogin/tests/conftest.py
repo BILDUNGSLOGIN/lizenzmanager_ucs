@@ -20,16 +20,16 @@ def product_id():
 def dummy_license(license_code, license_provider):
     license = License(license_code,
                 product_id,
-                licence_quantity,
-                licence_provider,
+                license_quantity,
+                license_provider,
                 purchasing_date,
                 utilization_systems,
                 validity_start_date,
                 validity_end_date,
                 validity_duration,
-                licence_special_type,
+                license_special_type,
                 ignored_for_display,
                 delivery_date,
         "DEMOSCHOOL")
-    return licence
+    return license
 
