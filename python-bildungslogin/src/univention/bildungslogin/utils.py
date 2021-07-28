@@ -18,7 +18,7 @@ class Assignment:
 
     @staticmethod
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> Assignment
-        # todo here i actually need to find the parent and get it's license_code, right?
+        # todo here i actually need to find the parent and get it's licence_code, right?
         licence = "something"
         return Assignment(
             username=udm_obj.props.vbmAssignmentAssignee,

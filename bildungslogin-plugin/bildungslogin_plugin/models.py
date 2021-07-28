@@ -8,7 +8,7 @@ sample_user = {
         "schoolA": {"classes": ["class1", "class2"], "roles": ["student"]},
         "schoolB": {"classes": [], "roles": ["staff", "teacher"]},
     },
-    "licenses": ["COR-123", "COR-456"],
+    "licences": ["COR-123", "COR-456"],
 }
 
 user_id_description = "The unique id of the user. Could be generated from a hash."
@@ -22,11 +22,11 @@ class Context(BaseModel):
 
 
 class User(BaseModel):
-    """A user describing with context and license information"""
+    """A user describing with context and licence information"""
 
     id: str = Field(..., description=user_id_description)
-    licenses: List[constr(max_length=255)] = Field(
-        ..., description="A list of license strings a user owns."
+    licences: List[constr(max_length=255)] = Field(
+        ..., description="A list of licence strings a user owns."
     )
     context: Dict[str, Context] = Field(
         ...,

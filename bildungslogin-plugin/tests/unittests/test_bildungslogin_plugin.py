@@ -73,7 +73,7 @@ class DictObject(dict):
 
 # This is the kelvin equivalent of the sample user from the models
 kelvin_sample_user = DictObject(
-    __licenses__=["COR-123", "COR-456"],
+    __licences__=["COR-123", "COR-456"],
     name="sample_user_id",
     roles=["student"],
     firstname="stu1",
