@@ -8,8 +8,9 @@ from univention.udm import UDM
 from univention.udm.exceptions import CreateError
 
 from utils import Assignment, Status
-from meta_data import MetaData
-from ucsschool.lib.models.base import UdmObject
+from meta_data import MetaData, MetaDataHandler
+from license_manager import AssignmentHandler
+from ucsschool.lib.models.base import UdmObject, LoType
 
 
 class License:
@@ -30,7 +31,7 @@ class License:
         license_school,
     ):  # type: (str, str, str, str, str, str, str, str, str, str, bool, str, str) -> None
         self.license_code = license_code
-        self.meta_data = MetaData(product_id)
+        self.product_id = product_id
         self.license_quantity = license_quantity
         self.license_provider = license_provider
         self.purchasing_reference = purchasing_reference
@@ -45,15 +46,16 @@ class License:
 
 
 class LicenseHandler:
-    def __init__(self, lo):
+    def __init__(self, lo):  # type: (LoType) -> None
         self.lo = lo
         udm = UDM(lo).version(1)
-        self._licenses_mod = udm.get("vbm/licenses")
-        self._assignments_mod = udm.get("vbm/assignments")
+        self._licenses_mod = udm.get("vbm/license")
+        self._assignments_mod = udm.get("vbm/assignment")
+        self._meta_data_mod = udm.get("vbm/metadatum")
 
     def get_all(self, filter_s=None):  # type: (Optional[str]) -> List[License]
-        licenses = self._licenses_mod.search(filter_s=filter_s)
-        return [LicenseHandler.from_udm_obj(a) for a in licenses]
+        udm_licenses = self._licenses_mod.search(filter_s=filter_s)
+        return [LicenseHandler.from_udm_obj(a) for a in udm_licenses]
 
     @staticmethod
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> License
@@ -77,6 +79,16 @@ class LicenseHandler:
         udm_license = self._licenses_mod.get(dn)
         return self.from_udm_obj(udm_license)
 
+    def get_meta_data(self, license):  # type: (MetaData) -> MetaData
+        """search for the product of the license. If this there is none
+        yet, return an empty object."""
+        filter_s = filter_format("(&(vbmProductId=%s))", [license.product_id])
+        udm_meta_data = [o for o in self._meta_data_mod.search(filter_s)][0]
+        if not udm_meta_data:
+            return MetaData(product_id=license.product_id)
+        else:
+            return MetaDataHandler.from_udm_obj(udm_meta_data)
+
     def _get_udm_object(self, license_code):
         filter_s = filter_format("(vbmlicenseCode=%s)", [license_code])
         return [o for o in self._licenses_mod.search(filter_s)][0]
@@ -87,20 +99,20 @@ class LicenseHandler:
         """helper function to search in udm layer"""
         udm_obj = self._get_udm_object(license.license_code)
         return [
-            Assignment.from_udm_obj(obj)
+            AssignmentHandler.from_udm_obj(obj, self.lo)
             for obj in self._assignments_mod.search(base=udm_obj.dn, filter_s=filter_s)
         ]
 
-    def all_assignments(self, license):  # type: (License) -> List[UdmObject]
+    def get_all_assignments(self, license):  # type: (License) -> List[UdmObject]
         """search for assignments in leaves of license"""
         return self._get_assignments(filter_s=None, license=license)
 
-    def number_of_available_licenses(self, license):  # type: (License) -> int
+    def get_number_of_available_licenses(self, license):  # type: (License) -> int
         """count the number of assignments with status available"""
         filter_s = filter_format("(vbmAssignmentStatus=%s)", [Status.AVAILABLE])
         return len(self._get_assignments(filter_s=filter_s, license=license))
 
-    def number_of_provisioned_and_assigned_licenses(
+    def get_number_of_provisioned_and_assigned_licenses(
         self, license
     ):  # type: (License) -> int
         """count the number of assignments with status provisioned or assigned"""
@@ -110,33 +122,20 @@ class LicenseHandler:
         )
         return len(self._get_assignments(filter_s=filter_s, license=license))
 
-    def number_of_expired_licenses(self, license):  # type: (License) -> int
+    def get_number_of_expired_licenses(self, license):  # type: (License) -> int
         """count the number of assignments with status expired"""
         filter_s = filter_format("(vbmAssignmentStatus=%s)", [Status.EXPIRED])
         return len(self._get_assignments(filter_s=filter_s, license=license))
 
-    def number_of_licenses(self, license):  # type: (License) -> int
+    def get_number_of_licenses(self, license):  # type: (License) -> int
         """count the number of assignments"""
-        return len(self.all_assignments(license=license))
-
-    @property
-    def meta_data(self):  # type: () -> MetaData
-        """we expect at least the title to be present,
-        otherwise we call the meta-data api"""
-        if not self.meta_data.title:
-            self.meta_data.fetch_meta_data()
-        return self.meta_data
-
-    @meta_data.setter
-    def meta_data(self, value):
-        self.meta_data = value
+        return len(self.get_all_assignments(license=license))
 
     def create(self, license):  # type: (License) -> None
         try:
             udm_obj = self._licenses_mod.new()
-            udm_obj.props.cn = hashlib.sha256(license.license_code).hexdigest()
             udm_obj.props.vbmLicenseCode = license.license_code
-            udm_obj.props.vbmProductId = license.meta_data.product_id
+            udm_obj.props.vbmProductId = license.product_id
             udm_obj.props.vbmLicenseQuantity = license.license_quantity
             udm_obj.props.vbmLicenseProvider = license.license_provider
             udm_obj.props.vbmUtilizationSystems = license.utilization_systems

@@ -4,11 +4,13 @@
 import hashlib
 
 from ldap.filter import filter_format
-from typing import List, Optional
+from typing import List
 from ucsschool.lib.models import UdmObject
+from ucsschool.lib.models.base import LoType
 
 from utils import Assignment, Status
 from univention.udm import UDM, CreateError, NoObject as UdmNoObject
+from license_manager import AssignmentHandler
 
 
 class MetaData:
@@ -34,12 +36,12 @@ class MetaData:
 
 
 class MetaDataHandler:
-    def __init__(self, lo):
+    def __init__(self, lo):  # type: (LoType) -> None
         self.lo = lo
         udm = UDM(lo).version(1)
-        self._licenses_mod = udm.get("vbm/licenses")
-        self._assignments_mod = udm.get("vbm/assignments")
-        self._meta_data_mod = udm.get("vbm/metadata")
+        self._licenses_mod = udm.get("vbm/license")
+        self._assignments_mod = udm.get("vbm/assignment")
+        self._meta_data_mod = udm.get("vbm/metadatum")
 
     @staticmethod
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> MetaData
@@ -54,6 +56,10 @@ class MetaDataHandler:
             modified=udm_obj.props.vbmMetaDataModified,
         )
 
+    def from_dn(self, dn):  # type: (str) -> MetaData
+        udm_license = self._meta_data_mod.get(dn)
+        return self.from_udm_obj(udm_license)
+
     def get_all(self, filter_s=None):  # type: (str) -> List[MetaData]
         assignments = self._meta_data_mod.search(filter_s=filter_s)
         return [MetaDataHandler.from_udm_obj(a) for a in assignments]
@@ -61,9 +67,16 @@ class MetaDataHandler:
     def fetch_meta_data(self, meta_data):  # type: (MetaData) -> None
         """call meta-data api
         todo"""
+        # something like
+        # res = self.meta_data_api_client.get([
+        #     {
+        #         "id": meta_data.product_id
+        #     }
+        # ])
+        # ... update or create udm object
         pass
 
-    def _get_assignments(self, meta_data):  # type: (MetaData) -> List[Assignment]
+    def get_assignments_for_meta_data(self, meta_data):  # type: (MetaData) -> List[Assignment]
         """assignments of license with productID"""
         # get licenses objects from udm with the given product id.
         filter_s = filter_format("(&(vbmProductId=%s))", [meta_data.product_id])
@@ -74,52 +87,51 @@ class MetaDataHandler:
             assignments_to_license = self._assignments_mod.search(base=udm_license.dn)
             assignments.extend(
                 [
-                    Assignment.from_udm_obj(assignment)
+                    AssignmentHandler.from_udm_obj(assignment, self.lo)
                     for assignment in assignments_to_license
                 ]
             )
         return assignments
 
-    def number_of_available_licenses(self, meta_data):  # type: (MetaData) -> int
+    def get_number_of_available_licenses(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status available"""
         return len(
             [
                 a
-                for a in self._get_assignments(meta_data)
+                for a in self.get_assignments_for_meta_data(meta_data)
                 if a.status == Status.AVAILABLE
             ]
         )
 
-    def number_of_provisioned_and_assigned_licenses(
+    def get_number_of_provisioned_and_assigned_licenses(
         self, meta_data
     ):  # type: (MetaData) -> int
         """count the number of assignments with status provisioned or assigned"""
         return len(
             [
                 a
-                for a in self._get_assignments(meta_data)
+                for a in self.get_assignments_for_meta_data(meta_data)
                 if a.status in [Status.PROVISIONED, Status.ASSIGNED]
             ]
         )
 
-    def number_of_expired_licenses(self, meta_data):  # type: (MetaData) -> int
+    def get_number_of_expired_licenses(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status expired"""
         return len(
             [
                 a
-                for a in self._get_assignments(meta_data)
+                for a in self.get_assignments_for_meta_data(meta_data)
                 if a.status in [Status.EXPIRED]
             ]
         )
 
-    def number_of_licenses(self, meta_data):  # type: (MetaData) -> int
+    def get_number_of_licenses(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments"""
-        return len(self._get_assignments(meta_data))
+        return len(self.get_assignments_for_meta_data(meta_data))
 
     def create(self, meta_data):  # type: (MetaData) -> None
         try:
             udm_obj = self._meta_data_mod.new()
-            udm_obj.props.cn = hashlib.sha256(meta_data.product_id).hexdigest()
             udm_obj.props.vbmProductId = meta_data.product_id
             udm_obj.props.vbmMetaDataTitle = meta_data.title
             udm_obj.props.vbmMetaDataDescription = meta_data.description
@@ -137,6 +149,12 @@ class MetaDataHandler:
             )
 
     def save(self, meta_data):  # type: (MetaData) -> None
-        # this can be called by fetch_meta_data to update meta-data
+        filter_s = filter_format("(&(vbmProductId=%s))", [meta_data.product_id])
+        udm_meta_data = [o for o in self._meta_data_mod.search(filter_s)][0]
+        if not udm_meta_data:
+            print("Meta data object with product id {} does not exist!".format(meta_data.product_id))
+            return
+        # update udm_meta_data
+        udm_meta_data.save()
         # todo
         pass
