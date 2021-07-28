@@ -30,6 +30,7 @@ stages:
         $IMPORT_HOST \
         repo_admin.py \
           -G $CI_REPOSITORY_URL \
+          --force \
           -p $base \
           -b $BRANCH \
           -P $base \
