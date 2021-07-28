@@ -38,7 +38,8 @@ translation = univention.admin.localization.translation("univention.admin.handle
 _ = translation.translate
 
 module = "vbm/assignment"
-childs = True
+childs = False
+superordinate = 'vbm/license'
 object_name = _('Assignment')
 object_name_plural = _('Assignments')
 short_description = _("Assignment")
@@ -109,7 +110,7 @@ class object(univention.admin.handlers.simpleLdap):
 
     def _ldap_pre_ready(self):
         # The CN is *always* a random uid
-        self["cn"] = uuid4()
+        self["cn"] = str(uuid4())
 
 
 lookup = object.lookup

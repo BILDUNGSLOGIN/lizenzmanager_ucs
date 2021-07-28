@@ -27,6 +27,7 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
+from ldap.filter import filter_format
 
 import univention.admin.syntax
 import univention.admin.handlers
@@ -40,6 +41,7 @@ _ = translation.translate
 
 module = "vbm/license"
 childs = True
+childmodules = ['vbm/assignment']
 object_name = _('Licenses')
 object_name_plural = _('Licenses')
 short_description = _("License")
@@ -199,6 +201,12 @@ class object(univention.admin.handlers.simpleLdap):
         if not self["code"]:
             raise univention.admin.uexceptions.valueError(_("The code of a license must not be empty."))
         self["cn"] = sha256(self["code"]).hexdigest()
+
+    def _ldap_pre_create(self):
+        # The code, and thus the cn of any license must be unique in the domain
+        if self.lo.search(filter_format("(&(objectClass=vbmLicense)(cn=%s))", [self["cn"]]), attr=["dn"]):
+            raise univention.admin.uexceptions.valueError(_("A license with that code already exists"))
+        super(object, self)._ldap_pre_create()
 
 
 lookup = object.lookup
