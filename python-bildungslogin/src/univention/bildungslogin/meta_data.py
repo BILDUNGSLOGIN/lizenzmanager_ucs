@@ -1,16 +1,14 @@
 # WIP, not tests (!)
 
 
-import hashlib
-
 from ldap.filter import filter_format
 from typing import List
 from ucsschool.lib.models import UdmObject
 from ucsschool.lib.models.base import LoType
 
 from utils import Assignment, Status
-from univention.udm import UDM, CreateError, NoObject as UdmNoObject
-from license_manager import AssignmentHandler
+from univention.udm import UDM, CreateError
+from assignment_handler import AssignmentHandler
 
 
 class MetaData:
@@ -42,6 +40,7 @@ class MetaDataHandler:
         self._licenses_mod = udm.get("vbm/license")
         self._assignments_mod = udm.get("vbm/assignment")
         self._meta_data_mod = udm.get("vbm/metadatum")
+        self.ah = AssignmentHandler(self.lo)
 
     @staticmethod
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> MetaData
@@ -76,21 +75,27 @@ class MetaDataHandler:
         # ... update or create udm object
         pass
 
+    def get_assignments_for_license(self, dn):  # type: (str) -> List[Assignment]
+        """Get all assignments which are placed as leaves under the license."""
+        assignments_from_license = self._assignments_mod.search(base=dn)
+        return [
+                self.ah.from_udm_obj(assignment)
+                for assignment in assignments_from_license
+            ]
+
+    def get_licenses_udm_object_by_product_id(self, product_id):  # type: (str) -> UdmObject
+        filter_s = filter_format("(&(vbmProductId=%s))", [product_id])
+        return [o for o in self._licenses_mod.search(filter_s)]
+
     def get_assignments_for_meta_data(self, meta_data):  # type: (MetaData) -> List[Assignment]
         """assignments of license with productID"""
         # get licenses objects from udm with the given product id.
-        filter_s = filter_format("(&(vbmProductId=%s))", [meta_data.product_id])
-        licenses_of_product = [o for o in self._licenses_mod.search(filter_s)]
+        licenses_of_product = self.get_licenses_udm_object_by_product_id(meta_data.product_id)
         assignments = []
         for udm_license in licenses_of_product:
-            # the assignments are placed below the licenses.
-            assignments_to_license = self._assignments_mod.search(base=udm_license.dn)
-            assignments.extend(
-                [
-                    AssignmentHandler.from_udm_obj(assignment, self.lo)
-                    for assignment in assignments_to_license
-                ]
-            )
+            # get the assignments placed below the licenses.
+            assignments.extend(self.get_assignments_for_license(udm_license.dn))
+
         return assignments
 
     def get_number_of_available_licenses(self, meta_data):  # type: (MetaData) -> int
@@ -148,13 +153,14 @@ class MetaDataHandler:
                 )
             )
 
+    def get_meta_data_by_product_id(self, product_id):  # type: (str) -> UdmObject
+        filter_s = filter_format("(&(vbmProductId=%s))", [product_id])
+        try:
+            return [o for o in self._meta_data_mod.search(filter_s)][0]
+        except KeyError:
+            print("Meta data object with product id {} does not exist!".format(product_id))
+
     def save(self, meta_data):  # type: (MetaData) -> None
-        filter_s = filter_format("(&(vbmProductId=%s))", [meta_data.product_id])
-        udm_meta_data = [o for o in self._meta_data_mod.search(filter_s)][0]
-        if not udm_meta_data:
-            print("Meta data object with product id {} does not exist!".format(meta_data.product_id))
-            return
-        # update udm_meta_data
+        udm_meta_data = self.get_meta_data_by_product_id(meta_data.product_id)
+        # todo update udm_meta_data
         udm_meta_data.save()
-        # todo
-        pass
