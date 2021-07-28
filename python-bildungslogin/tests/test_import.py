@@ -2,11 +2,11 @@ import json
 import time
 import pytest
 
-from univention.bildungslogin.licence_import import load_licence
-from univention.bildungslogin.licence import Licence
+from univention.bildungslogin.license_import import load_license
+from univention.bildungslogin.license import License
 
 
-test_licence_raw = {
+test_license_raw = {
     "lizenzcode": "VHT-7bd46a45-345c-4237-a451-4444736eb011",
     "product_id": "urn:bilo:medium:A0023#48-85-TZ",
     "lizenzanzahl": 25,
@@ -20,10 +20,10 @@ test_licence_raw = {
 }
 
 
-test_licence = Licence(
-    licence_code="VHT-7bd46a45-345c-4237-a451-4444736eb011",
+test_license = License(
+    license_code="VHT-7bd46a45-345c-4237-a451-4444736eb011",
     product_id="urn:bilo:medium:A0023#48-85-TZ",
-    licence_quantity=25,
+    license_quantity=25,
     licence_provider="VHT",
     purchasing_date="2014-04-11T03:28:16 -02:00 4572022",
     utilization_systems="Antolin",

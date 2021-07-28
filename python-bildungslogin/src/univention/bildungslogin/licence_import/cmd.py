@@ -29,20 +29,20 @@
 
 import argparse
 
-from univention.bildungslogin.licence_import import import_licences
+from univention.bildungslogin.license_import import import_licenses
 
 
 def parse_args():  # type: () -> argparse.Namespace
-    parser = argparse.ArgumentParser(description='Import media licences')
-    parser.add_argument('--licence-file', help='Path to the licence file which should be imported')
-    parser.add_argument('--school', help='School abbreviation for which the licence should be imported')
+    parser = argparse.ArgumentParser(description='Import media licenses')
+    parser.add_argument('--license-file', help='Path to the license file which should be imported')
+    parser.add_argument('--school', help='School abbreviation for which the license should be imported')
     args = parser.parse_args()
     return args
 
 
 def main():  # type: () -> None
     args = parse_args()
-    import_licences(args.licence_file, args.school)
+    import_licenses(args.license_file, args.school)
 
 
 if __name__ == '__main__':

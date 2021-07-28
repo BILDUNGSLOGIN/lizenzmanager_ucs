@@ -37,12 +37,12 @@ from hashlib import sha256
 translation = univention.admin.localization.translation("univention.admin.handlers.vbm")
 _ = translation.translate
 
-module = "vbm/licence"
+module = "vbm/license"
 childs = True
-object_name = _('Licences')
-object_name_plural = _('Licences')
+object_name = _('Licenses')
+object_name_plural = _('Licenses')
 short_description = _("License")
-long_description = _("Licence from the VBM Bildungslogin")
+long_description = _("License from the VBM Bildungslogin")
 operations = ["add", "edit", "remove", "search"]  # TODO: Do we want a remove operation or not?
 
 options = {

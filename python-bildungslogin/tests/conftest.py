@@ -2,12 +2,12 @@ import pytest
 
 
 @pytest.fixture()
-def licence_provider():
+def license_provider():
     return "abc"
 
 
 @pytest.fixture()
-def licence_code(provider):
+def license_code(provider):
     return "{}-{}".format(provider, "asdf-adf-g9")
 
 
@@ -17,8 +17,8 @@ def product_id():
 
 
 @pytest.fixture()
-def dummy_licence(licence_code, licence_provider):
-    licence = Licence(licence_code,
+def dummy_license(license_code, license_provider):
+    license = License(license_code,
                 product_id,
                 licence_quantity,
                 licence_provider,

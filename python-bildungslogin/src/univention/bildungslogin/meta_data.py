@@ -64,23 +64,23 @@ class MetaDataHandler:
         pass
 
     def _get_assignments(self, meta_data):  # type: (MetaData) -> List[Assignment]
-        """assignments of licence with productID"""
+        """assignments of license with productID"""
         # get licenses objects from udm with the given product id.
         filter_s = filter_format("(&(vbmProductId=%s))", [meta_data.product_id])
-        licences_of_product = [o for o in self._licenses_mod.search(filter_s)]
+        licenses_of_product = [o for o in self._licenses_mod.search(filter_s)]
         assignments = []
-        for udm_licence in licences_of_product:
+        for udm_license in licenses_of_product:
             # the assignments are placed below the licenses.
-            assignments_to_licence = self._assignments_mod.search(base=udm_licence.dn)
+            assignments_to_license = self._assignments_mod.search(base=udm_license.dn)
             assignments.extend(
                 [
                     Assignment.from_udm_obj(assignment)
-                    for assignment in assignments_to_licence
+                    for assignment in assignments_to_license
                 ]
             )
         return assignments
 
-    def number_of_available_licences(self, meta_data):  # type: (MetaData) -> int
+    def number_of_available_licenses(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status available"""
         return len(
             [
@@ -90,7 +90,7 @@ class MetaDataHandler:
             ]
         )
 
-    def number_of_provisioned_and_assigned_licences(
+    def number_of_provisioned_and_assigned_licenses(
         self, meta_data
     ):  # type: (MetaData) -> int
         """count the number of assignments with status provisioned or assigned"""
@@ -102,7 +102,7 @@ class MetaDataHandler:
             ]
         )
 
-    def number_of_expired_licences(self, meta_data):  # type: (MetaData) -> int
+    def number_of_expired_licenses(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status expired"""
         return len(
             [
@@ -112,7 +112,7 @@ class MetaDataHandler:
             ]
         )
 
-    def number_of_licences(self, meta_data):  # type: (MetaData) -> int
+    def number_of_licenses(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments"""
         return len(self._get_assignments(meta_data))
 

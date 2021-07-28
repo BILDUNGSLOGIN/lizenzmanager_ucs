@@ -44,12 +44,12 @@ setup(
 	packages=[
 		'univention',
 		'univention.bildungslogin',
-		'univention.bildungslogin.licence_import',
+		'univention.bildungslogin.license_import',
 	],
 	package_dir={'': 'src'},
 	entry_points={
 		'console_scripts': [
-			'bildungslogin-licence-import=univention.bildungslogin.licence_import.cmd:main',
+			'bildungslogin-license-import=univention.bildungslogin.license_import.cmd:main',
 		]
 	},
 

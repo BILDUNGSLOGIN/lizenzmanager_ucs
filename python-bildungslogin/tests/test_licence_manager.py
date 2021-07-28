@@ -7,13 +7,13 @@ def test_get_assignments_for_product_id_for_user(username):
     pass
 
 
-def test_assign_to_licence(licence, username):
+def test_assign_to_license(license, username):
     pass
 
 
-def test_assign_users_to_licences(licences, usernames):
+def test_assign_users_to_licenses(licenses, usernames):
     pass
 
 
-def test_change_licence_status(licence_id, username, status):
+def test_change_license_status(license_id, username, status):
     pass

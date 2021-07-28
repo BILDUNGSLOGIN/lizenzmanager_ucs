@@ -32,30 +32,30 @@ import time
 
 from typing import Dict
 
-from univention.bildungslogin.licence import Licence
+from univention.bildungslogin.license import License
 
 
-def load_licence(licence_raw, school):  # type: (Dict, str) -> Licence
-    return Licence(
-        licence_code=licence_raw['lizenzcode'],
-        product_id=licence_raw['product_id'],
-        licence_quantity=licence_raw['lizenzanzahl'],
-        licence_provider=licence_raw['lizenzgeber'],
-        purchasing_date=licence_raw['kaufreferenz'],
-        utilization_systems=licence_raw['nutzungssysteme'],
-        validity_start_date=licence_raw['gueltigkeitsbeginn'],
-        validity_end_date=licence_raw['gueltigkeitsende'],
-        validity_duration=licence_raw['gueltigkeitsdauer'],
-        licence_special_type=licence_raw['sonderlizenz'],
+def load_license(license_raw, school):  # type: (Dict, str) -> License
+    return License(
+        license_code=license_raw['lizenzcode'],
+        product_id=license_raw['product_id'],
+        license_quantity=license_raw['lizenzanzahl'],
+        license_provider=license_raw['lizenzgeber'],
+        purchasing_date=license_raw['kaufreferenz'],
+        utilization_systems=license_raw['nutzungssysteme'],
+        validity_start_date=license_raw['gueltigkeitsbeginn'],
+        validity_end_date=license_raw['gueltigkeitsende'],
+        validity_duration=license_raw['gueltigkeitsdauer'],
+        license_special_type=license_raw['sonderlizenz'],
         ignored_for_display=False,
         delivery_date=str(int(time.time())),
-        licence_school=school,
+        license_school=school,
     )
 
 
-def import_licences(licence_file, school):  # type: (str, str) -> None
-    with open(licence_file, 'r') as licence_file_fd:
-        licences_raw = json.load(licence_file_fd)
-    licences = [load_licence(licence_raw, school) for licence_raw in licences_raw]
-    for licence in licences:
-        licence.save()
+def import_licenses(license_file, school):  # type: (str, str) -> None
+    with open(license_file, 'r') as license_file_fd:
+        licenses_raw = json.load(license_file_fd)
+    licenses = [load_license(license_raw, school) for license_raw in licenses_raw]
+    for license in licenses:
+        license.save()
