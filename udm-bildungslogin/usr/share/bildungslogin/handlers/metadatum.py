@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH
@@ -166,7 +166,7 @@ class object(univention.admin.handlers.simpleLdap):
 
     def _ldap_pre_create(self):
         # The code, and thus the cn of any license must be unique in the domain
-        if self.lo.search(filter_format("(&(objectClass=vbmMetadatum)(cn=%s))", [self["cn"]]), attr=["dn"]):
+        if self.lo.searchDn(filter_format("(&(objectClass=vbmMetadatum)(cn=%s))", [self["cn"]])):
             raise univention.admin.uexceptions.valueError(_("A Metadatum with that product_id already exists"))
         super(object, self)._ldap_pre_create()
 
