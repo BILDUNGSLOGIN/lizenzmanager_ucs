@@ -30,12 +30,28 @@
 
 from uuid import uuid4
 import univention.admin.syntax
+import univention.admin.uexceptions
 import univention.admin.handlers
+import univention.admin.types
 import univention.admin.localization
 from univention.admin.layout import Tab
 
 translation = univention.admin.localization.translation("univention.admin.handlers.vbm")
 _ = translation.translate
+
+
+class StatusSyntax(univention.admin.syntax.simple):
+
+    type_class = univention.admin.types.StringType
+
+    @classmethod
+    def parse(cls, text):
+        if text not in ("AVAILABLE", "ASSIGNED", "PROVISIONED"):
+            raise univention.admin.uexceptions.valueInvalidSyntax(
+                _("The status must be one of AVAILABLE, ASSIGNED or PROVISIONED")
+            )
+        return text
+
 
 module = "vbm/assignment"
 childs = False
@@ -80,8 +96,9 @@ property_descriptions = {
     "status": univention.admin.property(
         short_description=_("Status"),
         long_description=_("Status of the assignment"),
-        syntax=univention.admin.syntax.string,
+        syntax=StatusSyntax,
         required=True,
+        default="AVAILABLE",
         may_change=True
     )
 }
@@ -108,9 +125,27 @@ class object(univention.admin.handlers.simpleLdap):
 
     module = module
 
+    def _validate_status_transition(self):
+        if not self.hasChanged("status"):
+            return
+        forbidden_transitions = {
+            ("AVAILABLE", "PROVISIONED"),
+            ("PROVISIONED", "ASSIGNED"),
+            ("PROVISIONED", "AVAILABLE")
+        }
+        transition = (self.oldinfo.get("status", ""), self["status"])
+        if transition in forbidden_transitions:
+            raise univention.admin.uexceptions.valueError(
+                _("Invalid status transition from {} to {}.").format(transition[0], transition[1])
+            )
+
     def _ldap_pre_ready(self):
         # The CN is *always* a random uid
-        self["cn"] = str(uuid4())
+        if not self["cn"]:
+            self["cn"] = str(uuid4())
+
+    def _ldap_pre_modify(self):
+        self._validate_status_transition()
 
 
 lookup = object.lookup

@@ -161,7 +161,7 @@ class object(univention.admin.handlers.simpleLdap):
     module = module
 
     def _ldap_pre_ready(self):
-        if self["product_id"]:
+        if self["product_id"] and not self["cn"]:
             self["cn"] = sha256(self["product_id"]).hexdigest()
 
     def _ldap_pre_create(self):

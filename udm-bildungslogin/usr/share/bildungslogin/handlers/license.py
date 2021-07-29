@@ -198,7 +198,7 @@ class object(univention.admin.handlers.simpleLdap):
 
     def _ldap_pre_ready(self):
         # The CN is *always* set to the hash256 of the license code
-        if self["code"]:
+        if self["code"] and not self["cn"]:
             self["cn"] = sha256(self["code"]).hexdigest()
 
     def _ldap_pre_create(self):
