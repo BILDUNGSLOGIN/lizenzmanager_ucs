@@ -1,3 +1,5 @@
+import logging
+
 from enum import Enum
 
 
@@ -19,3 +21,7 @@ class Assignment:
         self.time_of_assignment = time_of_assignment
         self.status = status
         self.license = license
+
+
+def get_logger():  # type: () -> logging.Logger
+    return logging.getLogger(__name__)

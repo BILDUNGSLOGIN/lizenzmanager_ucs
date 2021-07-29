@@ -30,9 +30,12 @@
 import json
 import time
 
+import datetime
 from typing import Dict
 
-from univention.bildungslogin.license import License
+from univention.admin.uldap import getAdminConnection
+from univention.bildungslogin.handler import LicenseHandler, BiloCreateError
+from univention.bildungslogin.models import License
 
 
 def load_license(license_raw, school):  # type: (Dict, str) -> License
@@ -41,21 +44,27 @@ def load_license(license_raw, school):  # type: (Dict, str) -> License
         product_id=license_raw['product_id'],
         license_quantity=license_raw['lizenzanzahl'],
         license_provider=license_raw['lizenzgeber'],
-        purchasing_date=license_raw['kaufreferenz'],
+        purchasing_reference=license_raw['kaufreferenz'],
         utilization_systems=license_raw['nutzungssysteme'],
         validity_start_date=license_raw['gueltigkeitsbeginn'],
         validity_end_date=license_raw['gueltigkeitsende'],
         validity_duration=license_raw['gueltigkeitsdauer'],
         license_special_type=license_raw['sonderlizenz'],
-        ignored_for_display=False,
-        delivery_date=str(int(time.time())),
+        ignored_for_display="0",
+        delivery_date=datetime.datetime.now().isoformat().split('T')[0],
         license_school=school,
     )
 
 
 def import_licenses(license_file, school):  # type: (str, str) -> None
+    lo, po = getAdminConnection()
     with open(license_file, 'r') as license_file_fd:
         licenses_raw = json.load(license_file_fd)
     licenses = [load_license(license_raw, school) for license_raw in licenses_raw]
+    lh = LicenseHandler(lo)
     for license in licenses:
-        license.save()
+        # todo remove me
+        try:
+            lh.create(license)
+        except BiloCreateError:
+            print("skipping for testing")
