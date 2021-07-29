@@ -52,12 +52,14 @@ attributetype ( vbmBildungslogin:107
         NAME 'vbmValidityStartDate'
         DESC 'The earliest possible date from which the license can be activated and used'
         EQUALITY caseIgnoreMatch
+        ORDERING caseIgnoreOrderingMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:108
         NAME 'vbmValidityEndDate'
         DESC 'The latest possible date from which the license can be activated and used'
         EQUALITY caseIgnoreMatch
+        ORDERING caseIgnoreOrderingMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:109
@@ -82,6 +84,7 @@ attributetype ( vbmBildungslogin:112
         NAME 'vbmDeliveryDate'
         DESC 'The date the license was created/imported/delivered in the system'
         EQUALITY caseIgnoreMatch
+        ORDERING caseIgnoreOrderingMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:113

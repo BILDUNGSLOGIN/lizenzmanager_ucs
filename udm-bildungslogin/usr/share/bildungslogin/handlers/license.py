@@ -111,14 +111,14 @@ property_descriptions = {
     "validity_start_date": univention.admin.property(
         short_description=_("Validity start date"),
         long_description=_("The date from which the license is valid"),
-        syntax=univention.admin.syntax.date,
+        syntax=univention.admin.syntax.iso8601Date,
         required=True,
         may_change=False
     ),
     "validity_end_date": univention.admin.property(
         short_description=_("Validity end date"),
         long_description=_("The date from which the license is not valid anymore"),
-        syntax=univention.admin.syntax.date,
+        syntax=univention.admin.syntax.iso8601Date,
         required=True,
         may_change=False
     ),
@@ -146,7 +146,7 @@ property_descriptions = {
     "delivery_date": univention.admin.property(
         short_description=_("Delivery date"),
         long_description=_("The delivery date"),
-        syntax=univention.admin.syntax.date,
+        syntax=univention.admin.syntax.iso8601Date,
         required=True,
         may_change=False
     ),
@@ -156,19 +156,55 @@ property_descriptions = {
         syntax=univention.admin.syntax.string,
         required=True,
         may_change=False
+    ),
+    "num_assigned": univention.admin.property(
+        short_description=_("Number of assigned"),
+        long_description=_("Number of assigned or provisioned licenses"),
+        syntax=univention.admin.syntax.integer,
+        dontsearch=True,
+        editable=False
+    ),
+    "num_invalid": univention.admin.property(
+        short_description=_("Number of invalid licenses"),
+        long_description=_("Number of invalid licenses"),
+        syntax=univention.admin.syntax.integer,
+        dontsearch=True,
+        editable=False
+    ),
+    "num_available": univention.admin.property(
+        short_description=_("Number of available licenses"),
+        long_description=_("Number of available licenses"),
+        syntax=univention.admin.syntax.integer,
+        dontsearch=True,
+        editable=False
+    ),
+    "assignments": univention.admin.property(
+        short_description=_("Assignments"),
+        long_description=_("The assignments belonging to this license"),
+        syntax=univention.admin.syntax.ldapDn,
+        multivalue=True,
+        editable=False
+        ),
+    "invalid": univention.admin.property(
+        short_description=_("Invalid"),
+        long_description=_("Is the license invalid or not"),
+        syntax=univention.admin.syntax.boolean,
+        dontsearch=True,
+        editable=False
     )
 }
 
 layout = [
     Tab(_("General"), _("Basic Settings"), layout=[
-        ["code"],
+        ["code", "product_id"],
         ["ignored"],
-        ["product_id", "quantity"],
+        ["quantity", "num_available"],
         ["provider", "purchasing_reference"],
         ["utilization_systems"],
         ["validity_start_date", "validity_end_date"],
         ["validity_duration", "special_type"],
         ["delivery_date", "school"],
+        ["num_assigned", "num_invalid"]
     ])
 ]
 
@@ -196,6 +232,39 @@ class object(univention.admin.handlers.simpleLdap):
 
     module = module
 
+    def _load_num_assigned(self):
+        if self.exists():
+            self.info["num_assigned"] = str(len(
+                self.lo.searchDn("(&(objectClass=vbmAssignment)"
+                                 "(|(vbmAssignmentStatus=ASSIGNED)(vbmAssignmentStatus=PROVISIONED)))",
+                                 base=str(self.dn))
+            ))
+
+    def _load_num_invalid(self):
+        if self.exists():
+            if self["invalid"] == "0":
+                self.info["num_invalid"] = "0"
+            else:
+                quantity = int(self["quantity"]) if self["quantity"] else 0
+                num_assigned = int(self["num_assigned"]) if self["num_assigned"] else 0
+                self.info["num_invalid"] = str(quantity - num_assigned)
+
+    def _load_assignments(self):
+        if self.exists():
+            self.info["assignments"] = self.lo.searchDn("(objectClass=vbmAssignment)", base=str(self.dn))
+
+    def _load_invalid(self):
+        self.info["invalid"] = "0"
+
+    def _load_num_available(self):
+        if self.exists():
+            if self["invalid"] == "0":
+                quantity = int(self["quantity"]) if self["quantity"] else 0
+                num_assigned = int(self["num_assigned"]) if self["num_assigned"] else 0
+                self.info["num_available"] = str(quantity - num_assigned)
+            else:
+                self.info["num_available"] = "0"
+
     def _ldap_pre_ready(self):
         super(object, self)._ldap_pre_ready()
         # The CN is *always* set to the hash256 of the license code
@@ -208,6 +277,15 @@ class object(univention.admin.handlers.simpleLdap):
         if self.lo.searchDn(filter_format("(&(objectClass=vbmLicense)(cn=%s))", [self["cn"]])):
             raise univention.admin.uexceptions.valueError(_("A license with that code already exists"))
         super(object, self)._ldap_pre_create()
+
+    def open(self):
+        super(object, self).open()
+        self._load_num_assigned()
+        self._load_assignments()
+        self._load_invalid()
+        self._load_num_available()
+        self._load_num_invalid()
+        self.save()
 
 
 lookup = object.lookup
