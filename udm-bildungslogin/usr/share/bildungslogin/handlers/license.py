@@ -197,11 +197,13 @@ class object(univention.admin.handlers.simpleLdap):
     module = module
 
     def _ldap_pre_ready(self):
+        super(object, self)._ldap_pre_ready()
         # The CN is *always* set to the hash256 of the license code
         if self["code"] and not self["cn"]:
             self["cn"] = sha256(self["code"]).hexdigest()
 
     def _ldap_pre_create(self):
+        super(object, self)._ldap_pre_create()
         # The code, and thus the cn of any license must be unique in the domain
         if self.lo.searchDn(filter_format("(&(objectClass=vbmLicense)(cn=%s))", [self["cn"]])):
             raise univention.admin.uexceptions.valueError(_("A license with that code already exists"))

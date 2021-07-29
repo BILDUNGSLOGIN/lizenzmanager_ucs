@@ -33,7 +33,7 @@
 import pytest
 from univention.admin.uexceptions import valueInvalidSyntax
 
-from univention.udm import NoSuperordinate, ModifyError
+from univention.udm import NoSuperordinate, ModifyError, CreateError
 
 
 def test_create_assignment(create_license, udm):
@@ -50,11 +50,16 @@ def test_wrong_superordinate(create_metadatum, udm):
         udm.get("vbm/assignment").new(metadatum.dn)
 
 
-@pytest.mark.parametrize("status", ("AVAILABLE", "ASSIGNED", "PROVISIONED"))
-def test_allowed_status(status, create_license, udm):
+@pytest.mark.parametrize("status,assignee", [
+    ("AVAILABLE", ""),
+    ("ASSIGNED", "USER"),
+    ("PROVISIONED", "USER")
+    ])
+def test_allowed_status(status, assignee, create_license, udm):
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
     assignment = udm.get("vbm/assignment").new(license_obj.dn)
     assignment.props.status = status
+    assignment.props.assignee = assignee
     assignment.save()
     assert assignment.position == license_obj.dn
 
@@ -67,31 +72,55 @@ def test_wrong_status(create_license, udm):
         assignment.save()
 
 
-@pytest.mark.parametrize("old_status,new_status", [
-    ("AVAILABLE", "ASSIGNED"),
-    ("ASSIGNED", "AVAILABLE"),
-    ("ASSIGNED", "PROVISIONED")
+@pytest.mark.parametrize("old_status,new_status,old_assignee,new_assignee", [
+    ("AVAILABLE", "ASSIGNED", "", "USER"),
+    ("ASSIGNED", "AVAILABLE", "USER", ""),
+    ("ASSIGNED", "PROVISIONED", "USER", "USER")
 ])
-def test_allowed_status_transitions(old_status, new_status, create_license, udm):
+def test_allowed_status_transitions(old_status, new_status, old_assignee, new_assignee, create_license, udm):
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
     assignment = udm.get("vbm/assignment").new(license_obj.dn)
     assignment.props.status = old_status
+    assignment.props.assignee = old_assignee
     assignment.save()
     assignment.props.status = new_status
+    assignment.props.assignee = new_assignee
     assignment.save()
 
 
-@pytest.mark.parametrize("old_status,new_status", [
-    ("AVAILABLE", "PROVISIONED"),
-    ("PROVISIONED", "ASSIGNED"),
-    ("PROVISIONED", "AVAILABLE")
+@pytest.mark.parametrize("old_status,new_status,old_assignee,new_assignee", [
+    ("AVAILABLE", "PROVISIONED", "", "USER"),
+    ("PROVISIONED", "ASSIGNED", "USER", "USER"),
+    ("PROVISIONED", "AVAILABLE", "USER", "")
 ])
-def test_wrong_status_transitions(old_status, new_status, create_license, udm):
+def test_wrong_status_transitions(old_status, new_status, old_assignee, new_assignee, create_license, udm):
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
     assignment = udm.get("vbm/assignment").new(license_obj.dn)
     assignment.props.status = old_status
+    assignment.props.assignee = old_assignee
     assignment.save()
     assignment.props.status = new_status
+    assignment.props.assignee = new_assignee
     with pytest.raises(ModifyError) as exinfo:
         assignment.save()
     assert "Invalid status transition" in exinfo.value.message
+
+
+@pytest.mark.parametrize("status", ("ASSIGNED", "PROVISIONED"))
+def test_status_require_assignee(status, create_license, udm):
+    license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
+    assignment = udm.get("vbm/assignment").new(license_obj.dn)
+    assignment.props.status = status
+    with pytest.raises(CreateError) as exinfo:
+        assignment.save()
+    assert "An assignment in status {} needs an assignee.".format(status) in exinfo.value.message
+
+
+def test_status_available_no_assignee(create_license, udm):
+    license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
+    assignment = udm.get("vbm/assignment").new(license_obj.dn)
+    assignment.props.status = "AVAILABLE"
+    assignment.props.assignee = "SOME_USER"
+    with pytest.raises(CreateError) as exinfo:
+        assignment.save()
+    assert "An assignment in status AVAILABLE must not have an assignee." in exinfo.value.message

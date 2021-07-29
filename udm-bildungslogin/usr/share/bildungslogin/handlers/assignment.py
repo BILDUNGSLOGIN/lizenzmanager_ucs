@@ -126,6 +126,9 @@ class object(univention.admin.handlers.simpleLdap):
     module = module
 
     def _validate_status_transition(self):
+        """
+        Checks if a status transition is allowed or not.
+        """
         if not self.hasChanged("status"):
             return
         forbidden_transitions = {
@@ -139,12 +142,34 @@ class object(univention.admin.handlers.simpleLdap):
                 _("Invalid status transition from {} to {}.").format(transition[0], transition[1])
             )
 
+    def _validate_status_assignee(self):
+        """
+        Checks if a status that needs an assignee has one and if a status that must not have an assignee
+        does not.
+        """
+        if self["status"] in ("ASSIGNED", "PROVISIONED") and not self["assignee"]:
+            raise univention.admin.uexceptions.valueError(
+                _("An assignment in status {} needs an assignee.").format(self["status"])
+            )
+        elif self["status"] == "AVAILABLE" and self["assignee"]:
+            raise univention.admin.uexceptions.valueError(
+                _("An assignment in status {} must not have an assignee.").format(self["status"])
+            )
+
+    def ready(self):
+        result = super(object, self).ready()
+        self._validate_status_assignee()
+        return result
+
     def _ldap_pre_ready(self):
+        super(object, self)._ldap_pre_ready()
         # The CN is *always* a random uid
         if not self["cn"]:
             self["cn"] = str(uuid4())
 
     def _ldap_pre_modify(self):
+        super(object, self)._ldap_pre_modify()
+        # A transition happens only on modifications.
         self._validate_status_transition()
 
 

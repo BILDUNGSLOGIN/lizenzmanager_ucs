@@ -161,10 +161,12 @@ class object(univention.admin.handlers.simpleLdap):
     module = module
 
     def _ldap_pre_ready(self):
+        super(object, self)._ldap_pre_ready()
         if self["product_id"] and not self["cn"]:
             self["cn"] = sha256(self["product_id"]).hexdigest()
 
     def _ldap_pre_create(self):
+        super(object, self)._ldap_pre_create()
         # The code, and thus the cn of any license must be unique in the domain
         if self.lo.searchDn(filter_format("(&(objectClass=vbmMetadatum)(cn=%s))", [self["cn"]])):
             raise univention.admin.uexceptions.valueError(_("A Metadatum with that product_id already exists"))
