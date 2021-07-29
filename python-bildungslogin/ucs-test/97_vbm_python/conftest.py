@@ -6,35 +6,68 @@ import random
 from univention.bildungslogin.models import License
 from univention.bildungslogin.handler import LicenseHandler, MetaDataHandler, AssignmentHandler
 from univention.admin.uldap import getAdminConnection
-from univention.udm import UDM
 
 import datetime
 
 
+def iso_format_date(my_date):
+    return my_date.isoformat().split('T')[0]
 
+
+def get_random_license():
+    today = datetime.datetime.now()
+    start = today + datetime.timedelta(days=random.randint(0, 365))
+    duration = random.randint(1, 365)
+    end = start + datetime.timedelta(duration)
+    return License(
+        license_code="VHT-{}".format(str(uuid.uuid4())),
+        product_id="urn:bilo:medium:A0023#48-85-TZ",
+        license_quantity=random.randint(10, 50),
+        license_provider="VHT",
+        purchasing_reference="2014-04-11T03:28:16 -02:00 4572022",
+        utilization_systems="Antolin",
+        validity_start_date="{}".format(iso_format_date(start)),
+        validity_end_date="{}".format(iso_format_date(end)),
+        validity_duration="{}".format(duration),
+        license_special_type=random.choice(["Lehrer", ""]),
+        ignored_for_display="0",
+        delivery_date=today.isoformat().split('T')[0],
+        license_school='test_schule',  # todo
+    )
+
+
+def get_expired_license():
+    # todo refactor me
+    today = datetime.datetime.now()
+    duration = random.randint(1, 365)
+    start = today - datetime.timedelta(duration)
+    end = today - datetime.timedelta(1)
+    return License(
+        license_code="VHT-{}".format(str(uuid.uuid4())),
+        product_id="urn:bilo:medium:A0023#48-85-TZ",
+        license_quantity=random.randint(10, 50),
+        license_provider="VHT",
+        purchasing_reference="2014-04-11T03:28:16 -02:00 4572022",
+        utilization_systems="Antolin",
+        validity_start_date="{}".format(iso_format_date(start)),
+        validity_end_date="{}".format(iso_format_date(end)),
+        validity_duration="{}".format(duration),
+        license_special_type=random.choice(["Lehrer", ""]),
+        ignored_for_display="0",
+        delivery_date=today.isoformat().split('T')[0],
+        license_school='test_schule',  # todo
+    )
 
 
 @pytest.fixture(scope="function")
 def random_license():
-    today = datetime.datetime.now()
-    # start = today + random.randint(0, 365)
-    # end = start + random.randint(1, 365)
-    license = License(
-    license_code="VHT-{}".format(str(uuid.uuid4())),
-    product_id="urn:bilo:medium:A0023#48-85-TZ",
-    license_quantity=random.randint(10, 50),
-    license_provider="VHT",
-    purchasing_reference="2014-04-11T03:28:16 -02:00 4572022",
-    utilization_systems="Antolin",
-    validity_start_date="15.08.21",
-    validity_end_date="14.08.22",
-    validity_duration="365",
-    license_special_type=random.choice(["Lehrer", ""]),
-    ignored_for_display="0",
-    delivery_date=datetime.datetime.now().isoformat().split('T')[0],
-    license_school='test_schule',
-)
-    return license
+    return get_random_license()
+
+
+@pytest.fixture(scope="function")
+def random_n_random_licenses():
+    n = random.randint(1, 10)
+    return [get_random_license() for _ in range(n)]
 
 
 @pytest.fixture()

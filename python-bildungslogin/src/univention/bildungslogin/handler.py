@@ -1,4 +1,4 @@
-# WIP, not tested (!)
+# WIP, not all tested (!)
 
 
 from typing import Optional
@@ -31,6 +31,8 @@ logger = get_logger()
 class BiloCreateError(CreateError):
     pass
 
+# we thought it would be nice to have at least some of this in a basehandler, maybe revisit for refactoring
+# -> recursion
 
 # class BaseHandler:
 #     def __init__(self, lo):  # type: (LoType) -> None
