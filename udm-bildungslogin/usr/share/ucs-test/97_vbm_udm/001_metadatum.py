@@ -50,7 +50,8 @@ def test_create_metadatum(create_metadatum):
 
 
 def test_unique_product_ids(create_metadatum):
-    create_metadatum("PRODUCT_ID", "2000-01-01")
+    product_id = "PRODUCT_ID"
+    create_metadatum(product_id, "2000-01-01")
     with pytest.raises(CreateError) as exinfo:
-        create_metadatum("PRODUCT_ID", "2000-01-01")
+        create_metadatum(product_id, "2000-01-02")
     assert "A Metadatum with that product_id already exists" in exinfo.value.message

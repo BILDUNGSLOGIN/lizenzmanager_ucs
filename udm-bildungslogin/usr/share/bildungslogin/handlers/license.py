@@ -182,8 +182,7 @@ property_descriptions = {
         short_description=_("Assignments"),
         long_description=_("The assignments belonging to this license"),
         syntax=univention.admin.syntax.ldapDn,
-        multivalue=True,
-        editable=False
+        multivalue=True
         ),
     "invalid": univention.admin.property(
         short_description=_("Invalid"),
@@ -251,7 +250,7 @@ class object(univention.admin.handlers.simpleLdap):
 
     def _load_assignments(self):
         if self.exists():
-            self.info["assignments"] = self.lo.searchDn("(objectClass=vbmAssignment)", base=str(self.dn))
+            self["assignments"] = self.lo.searchDn("(objectClass=vbmAssignment)", base=str(self.dn))
 
     def _load_invalid(self):
         self.info["invalid"] = "0"

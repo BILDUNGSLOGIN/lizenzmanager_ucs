@@ -105,7 +105,6 @@ property_descriptions = {
 
 layout = [
     Tab(_("General"), _("Basic Settings"), layout=[
-        ["cn"],
         ["assignee"],
         ["time_of_assignment", "status"]
     ])
@@ -131,13 +130,13 @@ class object(univention.admin.handlers.simpleLdap):
         """
         if not self.hasChanged("status"):
             return
-        forbidden_transitions = {
-            ("AVAILABLE", "PROVISIONED"),
-            ("PROVISIONED", "ASSIGNED"),
-            ("PROVISIONED", "AVAILABLE")
+        allowed_transitions = {
+            ("AVAILABLE", "ASSIGNED"),
+            ("ASSIGNED", "AVAILABLE"),
+            ("ASSIGNED", "PROVISIONED")
         }
         transition = (self.oldinfo.get("status", ""), self["status"])
-        if transition in forbidden_transitions:
+        if transition not in allowed_transitions:
             raise univention.admin.uexceptions.valueError(
                 _("Invalid status transition from {} to {}.").format(transition[0], transition[1])
             )

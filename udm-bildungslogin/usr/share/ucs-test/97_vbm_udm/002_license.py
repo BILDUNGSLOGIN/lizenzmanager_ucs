@@ -59,7 +59,8 @@ def test_create_license(create_license):
 
 
 def test_unique_codes(create_license):
-    create_license("CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
+    code = "CODE"
+    create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
     with pytest.raises(CreateError) as exinfo:
-        create_license("CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
+        create_license(code, "PRODUCT_ID2", 22, "SOME_SCHOOL")
     assert "A license with that code already exists" in exinfo.value.message
