@@ -24,3 +24,18 @@ Description: python libs for bildungslogin
  an integrated, directory driven solution for managing
  corporate environments. For more information about UCS,
  refer to: https://www.univention.de/
+
+Package: ucs-test-vbm-python
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ucs-test-framework,
+ python-pytest,
+ python-bildungslogin,
+ udm-bildungslogin,
+Description: test the python libs for bildungslogin
+ .
+ This package is part of Univention Corporate Server (UCS),
+ an integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/
