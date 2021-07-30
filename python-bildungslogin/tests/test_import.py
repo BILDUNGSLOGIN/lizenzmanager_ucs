@@ -1,9 +1,9 @@
 import json
-import time
+import datetime
 import pytest
 
 from univention.bildungslogin.license_import import load_license
-from univention.bildungslogin.license import License
+from univention.bildungslogin.models import License
 
 
 test_license_raw = {
@@ -25,14 +25,14 @@ test_license = License(
     product_id="urn:bilo:medium:A0023#48-85-TZ",
     license_quantity=25,
     license_provider="VHT",
-    purchasing_date="2014-04-11T03:28:16 -02:00 4572022",
+    purchasing_reference="2014-04-11T03:28:16 -02:00 4572022",
     utilization_systems="Antolin",
-    validity_start_date="15-08-2021",
-    validity_end_date="14-08-2022",
+    validity_start_date="2021-08-15",
+    validity_end_date="2022-08-14",
     validity_duration="365",
     license_special_type="Lehrer",
-    ignored_for_display=False,
-    delivery_date=int(time.time()),
+    ignored_for_display="0",
+    delivery_date=datetime.datetime.now().isoformat().split('T')[0],
     license_school='test_schule',
 )
 
@@ -47,9 +47,4 @@ def license_file(tmpdir_factory):
 
 def test_load_license():
     license = load_license(test_license_raw, 'test_schule')
-    assert license.delivery_date >= test_license.delivery_date and license.delivery_date <= int(time.time())
-    license_dict = license.__dict__
-    test_license_dict = test_license.__dict__
-    del license_dict["delivery_date"]
-    del test_license_dict["delivery_date"]
-    assert license_dict == test_license_dict
+    assert license.__dict__ == test_license.__dict__

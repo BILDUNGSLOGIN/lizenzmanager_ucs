@@ -28,9 +28,8 @@
 # <http://www.gnu.org/licenses/>.
 
 import json
-import time
 
-import datetime
+from datetime import datetime
 from typing import Dict
 
 from univention.admin.uldap import getAdminConnection
@@ -46,12 +45,12 @@ def load_license(license_raw, school):  # type: (Dict, str) -> License
         license_provider=license_raw['lizenzgeber'],
         purchasing_reference=license_raw['kaufreferenz'],
         utilization_systems=license_raw['nutzungssysteme'],
-        validity_start_date=license_raw['gueltigkeitsbeginn'],
-        validity_end_date=license_raw['gueltigkeitsende'],
+        validity_start_date=datetime.strptime(license_raw['gueltigkeitsbeginn'], '%d-%m-%Y').strftime('%Y-%m-%d'),
+        validity_end_date=datetime.strptime(license_raw['gueltigkeitsende'], '%d-%m-%Y').strftime('%Y-%m-%d'),
         validity_duration=license_raw['gueltigkeitsdauer'],
         license_special_type=license_raw['sonderlizenz'],
-        ignored_for_display="0",
-        delivery_date=datetime.datetime.now().isoformat().split('T')[0],
+        ignored_for_display='0',
+        delivery_date=datetime.now().strftime('%Y-%m-%d'),
         license_school=school,
     )
 
