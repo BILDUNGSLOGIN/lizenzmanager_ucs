@@ -1,6 +1,4 @@
-import json
-import datetime
-import pytest
+from datetime import datetime
 
 from univention.bildungslogin.license_import import load_license
 from univention.bildungslogin.models import License
@@ -32,17 +30,9 @@ test_license = License(
     validity_duration="365",
     license_special_type="Lehrer",
     ignored_for_display="0",
-    delivery_date=datetime.datetime.now().isoformat().split('T')[0],
+    delivery_date=datetime.now().strftime('%Y-%m-%d'),
     license_school='test_schule',
 )
-
-
-@pytest.fixture(scope='module')
-def license_file(tmpdir_factory):
-    fn = tmpdir_factory.mktemp("data").join('license.json')
-    with open(str(fn), 'w') as license_fd:
-        json.dump([test_license_raw], license_fd)
-    return fn
 
 
 def test_load_license():

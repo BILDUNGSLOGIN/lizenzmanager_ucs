@@ -3,6 +3,7 @@ import uuid
 import pytest
 import ldap
 import random
+import json
 from univention.bildungslogin.models import License
 from univention.bildungslogin.handler import LicenseHandler, MetaDataHandler, AssignmentHandler
 from univention.admin.uldap import getAdminConnection
@@ -100,3 +101,34 @@ def assignment_handler(lo):
 @pytest.fixture()
 def meta_data_handler(lo):
     return MetaDataHandler(lo)
+
+
+@pytest.fixture(scope='module')
+def license_file(tmpdir_factory):
+    test_licenses_raw = [{
+        "lizenzcode": "UNI-{}".format(uuid.uuid4()),
+        "product_id": "urn:bilo:medium:Test1",
+        "lizenzanzahl": 25,
+        "lizenzgeber": "UNI",
+        "kaufreferenz": "2014-04-11T03:28:16 -02:00 4572022",
+        "nutzungssysteme": "Antolin",
+        "gueltigkeitsbeginn": "15-08-2021",
+        "gueltigkeitsende": "14-08-2022",
+        "gueltigkeitsdauer": "365",
+        "sonderlizenz": "Lehrer",
+    }, {
+        "lizenzcode": "UNI-{}".format(uuid.uuid4()),
+        "product_id": "urn:bilo:medium:Test2",
+        "lizenzanzahl": 1,
+        "lizenzgeber": "UNI",
+        "kaufreferenz": "2014-04-11T03:28:16 -02:00 4572022",
+        "nutzungssysteme": "Antolin",
+        "gueltigkeitsbeginn": "15-08-2021",
+        "gueltigkeitsende": "14-08-2022",
+        "gueltigkeitsdauer": "365",
+        "sonderlizenz": "",
+    }]
+    fn = tmpdir_factory.mktemp("data").join('license.json')
+    with open(str(fn), 'w') as license_fd:
+        json.dump(test_licenses_raw, license_fd)
+    return fn
