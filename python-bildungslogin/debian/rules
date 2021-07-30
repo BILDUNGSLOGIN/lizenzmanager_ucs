@@ -38,12 +38,7 @@ export PYBUILD_NAME=bildungslogin
 override_dh_install:
 	# Namespace __init__.py is already installed
 	rm debian/python-bildungslogin/usr/lib/python2.*/dist-packages/univention/__init__.py
-	rm debian/python3-bildungslogin/usr/lib/python3.*/dist-packages/univention/__init__.py
-
-	# Only install python 2.7 cmd script
-	rm debian/python3-bildungslogin/usr/bin/bildungslogin-license-import
-
 	dh_install
 
 %:
-	dh $@ --with python2,python3 --buildsystem=pybuild
+	dh $@ --with python2 --buildsystem=pybuild

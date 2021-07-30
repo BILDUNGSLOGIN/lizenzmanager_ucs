@@ -10,10 +10,6 @@ Build-Depends:
  python-setuptools,
  python-debian,
  python-pytest,
- python3-all,
- python3-setuptools,
- python3-debian,
- python3-pytest,
 
 Package: python-bildungslogin
 Architecture: all
@@ -22,18 +18,6 @@ Provides:
 Depends:
  ${misc:Depends},
  ${python:Depends},
-Description: python libs for bildungslogin
- .
- This package is part of Univention Corporate Server (UCS),
- an integrated, directory driven solution for managing
- corporate environments. For more information about UCS,
- refer to: https://www.univention.de/
-
-Package: python3-bildungslogin
-Architecture: all
-Depends:
- ${misc:Depends},
- ${python3:Depends},
 Description: python libs for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),
