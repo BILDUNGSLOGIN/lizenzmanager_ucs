@@ -164,9 +164,9 @@ property_descriptions = {
         dontsearch=True,
         editable=False
     ),
-    "num_invalid": univention.admin.property(
-        short_description=_("Number of invalid licenses"),
-        long_description=_("Number of invalid licenses"),
+    "num_expired": univention.admin.property(
+        short_description=_("Number of expired licenses"),
+        long_description=_("Number of expired licenses"),
         syntax=univention.admin.syntax.integer,
         dontsearch=True,
         editable=False
@@ -184,9 +184,9 @@ property_descriptions = {
         syntax=univention.admin.syntax.ldapDn,
         multivalue=True
         ),
-    "invalid": univention.admin.property(
-        short_description=_("Invalid"),
-        long_description=_("Is the license invalid or not"),
+    "expired": univention.admin.property(
+        short_description=_("Expired"),
+        long_description=_("Is the license expired or not"),
         syntax=univention.admin.syntax.boolean,
         dontsearch=True,
         editable=False
@@ -203,7 +203,7 @@ layout = [
         ["validity_start_date", "validity_end_date"],
         ["validity_duration", "special_type"],
         ["delivery_date", "school"],
-        ["num_assigned", "num_invalid"]
+        ["num_assigned", "num_expired"]
     ])
 ]
 
@@ -239,25 +239,25 @@ class object(univention.admin.handlers.simpleLdap):
                                  base=str(self.dn))
             ))
 
-    def _load_num_invalid(self):
+    def _load_num_expired(self):
         if self.exists():
-            if self["invalid"] == "0":
-                self.info["num_invalid"] = "0"
+            if self["expired"] == "0":
+                self.info["num_expired"] = "0"
             else:
                 quantity = int(self["quantity"]) if self["quantity"] else 0
                 num_assigned = int(self["num_assigned"]) if self["num_assigned"] else 0
-                self.info["num_invalid"] = str(quantity - num_assigned)
+                self.info["num_expired"] = str(quantity - num_assigned)
 
     def _load_assignments(self):
         if self.exists():
             self["assignments"] = self.lo.searchDn("(objectClass=vbmAssignment)", base=str(self.dn))
 
-    def _load_invalid(self):
-        self.info["invalid"] = "0"
+    def _load_expired(self):
+        self.info["expired"] = "0"
 
     def _load_num_available(self):
         if self.exists():
-            if self["invalid"] == "0":
+            if self["expired"] == "0":
                 quantity = int(self["quantity"]) if self["quantity"] else 0
                 num_assigned = int(self["num_assigned"]) if self["num_assigned"] else 0
                 self.info["num_available"] = str(quantity - num_assigned)
@@ -281,9 +281,9 @@ class object(univention.admin.handlers.simpleLdap):
         super(object, self).open()
         self._load_num_assigned()
         self._load_assignments()
-        self._load_invalid()
+        self._load_expired()
         self._load_num_available()
-        self._load_num_invalid()
+        self._load_num_expired()
         self.save()
 
 
