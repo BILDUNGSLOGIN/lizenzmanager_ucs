@@ -62,9 +62,8 @@ def import_licenses(license_file, school):  # type: (str, str) -> None
     licenses = [load_license(license_raw, school) for license_raw in licenses_raw]
     lh = LicenseHandler(lo)
     for license in licenses:
-        # TODO: Should we just warn here?
         try:
             lh.create(license)
-        except BiloCreateError:
-            print("skipping for testing")
+        except BiloCreateError as exc:
+            print('Warning: License "{}" could not be imported due to the following error \n{}'.format(license.license_code, exc))
     # TODO: trigger metadata update
