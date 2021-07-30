@@ -62,8 +62,9 @@ def import_licenses(license_file, school):  # type: (str, str) -> None
     licenses = [load_license(license_raw, school) for license_raw in licenses_raw]
     lh = LicenseHandler(lo)
     for license in licenses:
-        # todo remove me
+        # TODO: Should we just warn here?
         try:
             lh.create(license)
         except BiloCreateError:
             print("skipping for testing")
+    # TODO: trigger metadata update
