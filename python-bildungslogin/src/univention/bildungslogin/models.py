@@ -1,3 +1,5 @@
+from typing import Optional
+
 from utils import Assignment, Status, LicenseType
 
 
@@ -17,7 +19,8 @@ class License:
         ignored_for_display,
         delivery_date,
         license_school,
-    ):  # type: (str, str, int, str, str, str, str, str, str, str, bool, str, str) -> None
+        num_available=None,
+    ):  # type: (str, str, int, str, str, str, str, str, str, str, str, str, str, Optional[int]) -> None
         self.license_code = license_code
         self.product_id = product_id
         self.license_quantity = license_quantity
@@ -31,6 +34,7 @@ class License:
         self.ignored_for_display = ignored_for_display
         self.delivery_date = delivery_date
         self.license_school = license_school
+        self.num_available = num_available
 
     @property
     def license_type(self):  # type: () -> LicenseType

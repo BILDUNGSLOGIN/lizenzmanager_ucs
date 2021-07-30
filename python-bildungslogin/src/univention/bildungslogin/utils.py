@@ -1,16 +1,15 @@
 import logging
 
-from enum import Enum
 
-
-class Status(Enum):
+class Status(object):
     ASSIGNED = "ASSIGNED"
     PROVISIONED = "PROVISIONED"
     AVAILABLE = "AVAILABLE"
-    EXPIRED = "EXPIRED"
+    # todo
+    #EXPIRED = "EXPIRED"
 
 
-class LicenseType(Enum):
+class LicenseType:
     VOLUME = "Volumenlizenz"
     SINGLE = "Einzellizenz"
 

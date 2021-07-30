@@ -5,14 +5,20 @@ import ldap
 import random
 import json
 from univention.bildungslogin.models import License
-from univention.bildungslogin.handler import LicenseHandler, MetaDataHandler, AssignmentHandler
+from univention.bildungslogin.handler import (
+    LicenseHandler,
+    MetaDataHandler,
+    AssignmentHandler,
+)
 from univention.admin.uldap import getAdminConnection
 
 import datetime
 
+from univention.testing.ucr import UCSTestConfigRegistry
+
 
 def iso_format_date(my_date):
-    return my_date.isoformat().split('T')[0]
+    return my_date.isoformat().split("T")[0]
 
 
 def get_random_license():
@@ -32,8 +38,8 @@ def get_random_license():
         validity_duration="{}".format(duration),
         license_special_type=random.choice(["Lehrer", ""]),
         ignored_for_display="0",
-        delivery_date=today.isoformat().split('T')[0],
-        license_school='test_schule',  # todo
+        delivery_date=today.isoformat().split("T")[0],
+        license_school="test_schule",  # todo
     )
 
 
@@ -55,8 +61,8 @@ def get_expired_license():
         validity_duration="{}".format(duration),
         license_special_type=random.choice(["Lehrer", ""]),
         ignored_for_display="0",
-        delivery_date=today.isoformat().split('T')[0],
-        license_school='test_schule',  # todo
+        delivery_date=today.isoformat().split("T")[0],
+        license_school="test_schule",  # todo
     )
 
 
@@ -132,3 +138,14 @@ def license_file(tmpdir_factory):
     with open(str(fn), 'w') as license_fd:
         json.dump(test_licenses_raw, license_fd)
     return fn
+
+
+@pytest.fixture
+def ucr():
+    with UCSTestConfigRegistry() as ucr_test:
+        return ucr_test
+
+
+@pytest.fixture
+def ldap_base(ucr):
+    return ucr["ldap/base"]

@@ -15,5 +15,11 @@
 #     pass
 #
 #
-# def test_change_license_status(license_id, username, status):
+# def test_change_license_status(username, status):
 #     pass
+
+def test_create_assignments_for_licence():
+    pass
+
+def test_is_valid_status_change():
+    pass
