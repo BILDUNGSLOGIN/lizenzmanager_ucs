@@ -1,9 +1,9 @@
 from typing import Optional
 
-from utils import Assignment, Status, LicenseType
+from utils import LicenseType
 
 
-class License:
+class License(object):
     def __init__(
         self,
         license_code,
@@ -44,7 +44,7 @@ class License:
             return LicenseType.SINGLE
 
 
-class MetaData:
+class MetaData(object):
     def __init__(
         self,
         product_id,

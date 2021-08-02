@@ -35,6 +35,7 @@ from typing import Dict
 from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.handler import LicenseHandler, BiloCreateError
 from univention.bildungslogin.models import License
+from univention.bildungslogin.utils import parse_raw_license_date
 
 
 def load_license(license_raw, school):  # type: (Dict, str) -> License
@@ -45,8 +46,8 @@ def load_license(license_raw, school):  # type: (Dict, str) -> License
         license_provider=license_raw['lizenzgeber'],
         purchasing_reference=license_raw['kaufreferenz'],
         utilization_systems=license_raw['nutzungssysteme'],
-        validity_start_date=datetime.strptime(license_raw['gueltigkeitsbeginn'], '%d-%m-%Y').strftime('%Y-%m-%d'),
-        validity_end_date=datetime.strptime(license_raw['gueltigkeitsende'], '%d-%m-%Y').strftime('%Y-%m-%d'),
+        validity_start_date=parse_raw_license_date(license_raw['gueltigkeitsbeginn']).strftime('%Y-%m-%d'),
+        validity_end_date=parse_raw_license_date(license_raw['gueltigkeitsende']).strftime('%Y-%m-%d'),
         validity_duration=license_raw['gueltigkeitsdauer'],
         license_special_type=license_raw['sonderlizenz'],
         ignored_for_display='0',

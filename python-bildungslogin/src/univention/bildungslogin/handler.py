@@ -1,7 +1,10 @@
 # WIP, not all tested (!)
 from datetime import datetime
 
+import univention
+import univention.admin.uexceptions
 from typing import Optional
+from ucsschool.lib.models import SchoolClass, WorkGroup, User
 from univention.admin.syntax import date
 
 from models import License
@@ -30,8 +33,15 @@ class BiloCreateError(CreateError):
     pass
 
 
-# todo
-class BiloStatusChange(Exception):
+class BiloAssignmentError(Exception):
+    pass
+
+
+class BiloProductNotFoundError(Exception):
+    pass
+
+
+class BiloLicenseNotFoundError(Exception):
     pass
 
 
@@ -83,10 +93,10 @@ class LicenseHandler:
             udm_obj.props.special_type = license.license_special_type
             udm_obj.props.purchasing_reference = license.purchasing_reference
             udm_obj.save()
+            # logger.debug("")
         except CreateError as e:
-            # todo
             raise BiloCreateError(
-                "Error creating license {}: {}".format(license.license_code, e)
+                "Error creating license \"{}\"!\n{}".format(license.license_code, e)
             )
         for i in range(license.license_quantity):
             self.ah.create_assignments_for_licence(license_code=license.license_code)
@@ -140,6 +150,8 @@ class LicenseHandler:
         """helper function to search in udm layer"""
         if type(license) is License:
             udm_obj = self.get_udm_license(license.license_code)
+        elif type(license) is str:
+            raise ValueError("Wrong type for get_assignments_for_license!")
         else:
             udm_obj = license
         assignment_dns = udm_obj.props.assignments
@@ -160,26 +172,27 @@ class LicenseHandler:
         """search for assignments in leaves of license"""
         return self.get_assignments_for_license(license=license)
 
-    def get_number_of_available_licenses(self, license):  # type: (License) -> int
+    def get_number_of_available_assignments(self, license):  # type: (License) -> int
         """count the number of assignments with status available"""
         udm_license = self.get_udm_license(license.license_code)
         return my_string_to_int(udm_license.props.num_available)
 
-    def get_number_of_provisioned_and_assigned_licenses(
+    def get_number_of_provisioned_and_assigned_assignments(
         self, license
     ):  # type: (License) -> int
-        """count the number of assignments with status provisioned or assigned"""
+        """count the number of assignments with status provisioned or assigned
+        provisioned is also assigned"""
         udm_license = self.get_udm_license(license.license_code)
         num_assigned = my_string_to_int(udm_license.num_assigned)
         return num_assigned
 
-    def get_number_of_expired_licenses(self, license):  # type: (License) -> int
+    def get_number_of_expired_assignments(self, license):  # type: (License) -> int
         """count the number of assignments with status expired
         todo comment: has to be fixed in udm"""
         udm_license = self.get_udm_license(license.license_code)
         return my_string_to_int(udm_license.props.num_expired)
 
-    def get_number_of_licenses(self, license):  # type: (License) -> int
+    def get_number_of_assignments(self, license):  # type: (License) -> int
         """count the number of assignments for this license"""
         udm_license = self.get_udm_license(license.license_code)
         return my_string_to_int(udm_license.props.quantity)
@@ -243,9 +256,11 @@ class MetaDataHandler:
             udm_obj.props.cover_small = meta_data.cover_small
             udm_obj.props.modified = meta_data.modified
             udm_obj.save()
+            print(udm_obj.dn)
         except CreateError as e:
-            print(
-                "Error creating meta datum for product id {}: {}".format(
+            # todo
+            BiloCreateError(
+                "Error creating meta datum for product id \"{}\"!\n{}".format(
                     meta_data.product_id, e
                 )
             )
@@ -300,7 +315,7 @@ class MetaDataHandler:
 
         return assignments
 
-    def get_number_of_available_licenses(self, meta_data):  # type: (MetaData) -> int
+    def get_number_of_available_assignments(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status available"""
         licenses_of_product = self.get_udm_licenses_by_product_id(meta_data.product_id)
         return sum(
@@ -310,7 +325,7 @@ class MetaDataHandler:
             ]
         )
 
-    def get_number_of_provisioned_and_assigned_licenses(
+    def get_number_of_provisioned_and_assigned_assignments(
         self, meta_data
     ):  # type: (MetaData) -> int
         """count the number of assignments with status provisioned or assigned"""
@@ -322,8 +337,9 @@ class MetaDataHandler:
             ]
         )
 
-    def get_number_of_expired_licenses(self, meta_data):  # type: (MetaData) -> int
-        """count the number of assignments with status expired"""
+    def get_number_of_expired_assignments(self, meta_data):  # type: (MetaData) -> int
+        """count the number of assignments with status expired
+        todo comment: has to be fixed in udm"""
         licenses_of_product = self.get_udm_licenses_by_product_id(meta_data.product_id)
         return sum(
             [
@@ -332,7 +348,7 @@ class MetaDataHandler:
             ]
         )
 
-    def get_number_of_licenses(self, meta_data):  # type: (MetaData) -> int
+    def get_number_of_assignments(self, meta_data):  # type: (MetaData) -> int
         """count the total number of assignments"""
         licenses_of_product = self.get_udm_licenses_by_product_id(meta_data.product_id)
         return sum(
@@ -347,7 +363,7 @@ class MetaDataHandler:
         try:
             return [o for o in self._meta_data_mod.search(filter_s)][0]
         except KeyError:
-            print(
+            raise BiloProductNotFoundError(
                 "Meta data object with product id {} does not exist!".format(product_id)
             )
 
@@ -366,8 +382,8 @@ class AssignmentHandler:
             return self._licenses_mod.get(dn)
         except UdmNoObject:
             # todo
-            raise BiloCreateError(
-                "There is no license for the assignment {}".format(dn)
+            raise BiloLicenseNotFoundError(
+                "There is no license for the assignment {}!".format(dn)
             )
 
     def from_udm_obj(self, udm_obj):  # type: (UdmObject) -> Assignment
@@ -402,7 +418,7 @@ class AssignmentHandler:
     def get_assignments_for_product_id_for_user(
         self, username, product_id
     ):  # type: (str, str) -> List[Assignment]
-        """get all sublicenses for a product, which are assigned to a user."""
+        """get all assignments for a product, which are assigned to a user."""
         # do we need this?
         filter_s = filter_format("(product_id=%s)", [product_id])
         udm_licenses = self._licenses_mod.search(filter_s)
@@ -424,8 +440,8 @@ class AssignmentHandler:
         # type: (str, List[str]) -> None
         """todo check is school multi-value in udm?"""
         if license_school not in ucsschool_school:
-            raise BiloCreateError(
-                "License can't be assigned to user in school {}".format(
+            raise BiloAssignmentError(
+                "License can't be assigned to user in school {}!".format(
                     ucsschool_school
                 )
             )
@@ -435,7 +451,7 @@ class AssignmentHandler:
         users = [u for u in self._users_mod.search(filter_s)]
         if not users:
             # todo
-            raise BiloCreateError("Not user with username {}".format(username))
+            raise BiloAssignmentError("No user with username {} exists!".format(username))
         return users[0]
 
     def get_license_by_license_code(self, license_code):  # type: (str) -> UdmObject
@@ -443,9 +459,9 @@ class AssignmentHandler:
         try:
             license = [o for o in self._licenses_mod.search(filter_s)][0]
             return license
-        except KeyError:
+        except IndexError:
             # todo
-            raise BiloCreateError(
+            raise BiloLicenseNotFoundError(
                 "No license with code {} was found!".format(license_code)
             )
 
@@ -459,10 +475,10 @@ class AssignmentHandler:
         except CreateError as e:
             # todo
             raise BiloCreateError(
-                "Error creating assignment for {} {}".format(license_code, e)
+                "Error creating assignment for \"{}\"!\n{}".format(license_code, e)
             )
 
-    def _get_available_licenses(self, dn):  # type: (str) -> List[UdmObject]
+    def _get_available_assignments(self, dn):  # type: (str) -> List[UdmObject]
         filter_s = filter_format(
             "(status=%s)", [Status.AVAILABLE]
         )
@@ -477,42 +493,35 @@ class AssignmentHandler:
         udm_license = self.get_license_by_license_code(license_code)
         user = self.get_user_by_username(username)
         self.check_license_can_be_assigned_to_school_user(
-            udm_license.props.vbmLicenseSchool, user.props.school
+            udm_license.props.school, user.props.school
         )
-        available_licenses = self._get_available_licenses(udm_license.dn)
+        available_licenses = self._get_available_assignments(udm_license.dn)
         if not available_licenses:
-            raise BiloStatusChange(
-                "No assignment left of license with code {}. Failed to assign {}.".format(
+            raise BiloAssignmentError(
+                "No assignment left of license with code {}. Failed to assign {}!".format(
                     license_code, username
                 )
             )
         date_of_today = datetime.now().isoformat().split("T")[0]
         # todo error handling
         udm_assignment = available_licenses[0]
-        udm_assignment.status = Status.ASSIGNED
-        udm_assignment.assignee = username
-        udm_assignment.time_of_assignment = date_of_today
+        udm_assignment.props.status = Status.ASSIGNED
+        udm_assignment.props.assignee = username
+        udm_assignment.props.time_of_assignment = date_of_today
+        # todo logging
+        print(udm_assignment.props)
         udm_assignment.save()
 
-    @staticmethod
-    def check_number_licenses_higher_then_assignees(licenses, usernames):
-        # type: (List[str], List[str]) -> None
-        if len(licenses) >= len(usernames):
-            raise BiloCreateError(
-                "The number of licenses must be >= the users the license codes!"
-            )
-
-    def assign_users_to_licenses(
+    def assign_users_to_license(
         self, licenses_code, usernames
-    ):  # type: (List[str], List[str]) -> None
+    ):  # type: (str, List[str]) -> None
         """A license can be assigned,
         if the amount of licenses is sufficient to assign it to all users.
         We do not check if the license is valid at this point. The valid licenses,
-        are passed from the frontend, right?
+        are passed from the frontend, right? todo
         """
-        self.check_number_licenses_higher_then_assignees(licenses_code, usernames)
-        for username, license in zip(usernames, licenses_code):
-            self.assign_to_license(license, username)
+        for username in usernames:
+            self.assign_to_license(licenses_code, username)
 
     def get_assignment_for_user_under_license(
         self, license_dn, username
@@ -524,21 +533,6 @@ class AssignmentHandler:
         return [
             a for a in self._assignments_mod.search(base=license_dn, filter_s=filter_s)
         ][0]
-
-    @staticmethod
-    def is_valid_status_change(new_status, current_status):
-        valid = True
-        if new_status == Status.AVAILABLE and current_status != Status.ASSIGNED:
-            valid = False
-        elif new_status == Status.ASSIGNED and current_status not in [
-            Status.PROVISIONED,
-            Status.AVAILABLE,
-        ]:
-            valid = False
-        if not valid:
-            raise BiloStatusChange(
-                "Invalid status change : {} -> {}".format(current_status, new_status)
-            )
 
     def change_license_status(
         self, license_code, username, status
@@ -556,8 +550,8 @@ class AssignmentHandler:
         udm_assignment = self.get_assignment_for_user_under_license(
             license_dn=udm_license.dn, username=username
         )
-        current_status = udm_assignment.props.status
-        self.is_valid_status_change(current_status=current_status, new_status=status)
         udm_assignment.props.status = status
-        # todo this screams for error handling
-        udm_assignment.save()
+        try:
+            udm_assignment.save()
+        except univention.admin.uexceptions.valueError as exc:
+            raise BiloAssignmentError("Assigment status change is not valid!\n{}".format(exc))

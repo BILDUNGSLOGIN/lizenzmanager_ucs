@@ -46,6 +46,7 @@ object_name_plural = _('Metadata')
 short_description = _("Metadatum")
 long_description = _("Metadatum for a product from the VBM Bildungslogin")
 operations = ["add", "edit", "remove", "search"]  # TODO: Do we want a remove operation or not?
+default_containers = ["cn=metadata,cn=bildungslogin,cn=vbm,cn=univention"]
 
 options = {
     "default": univention.admin.option(
@@ -83,7 +84,7 @@ property_descriptions = {
 
     "description": univention.admin.property(
         short_description=_("Description"),
-        long_description=_("The description of the  product described by the metadatum"),
+        long_description=_("The description of the product described by the metadatum"),
         syntax=univention.admin.syntax.string,
         required=False,
         may_change=True
@@ -91,7 +92,7 @@ property_descriptions = {
 
     "author": univention.admin.property(
         short_description=_("Author"),
-        long_description=_("The author of the  product described by the metadatum"),
+        long_description=_("The author of the product described by the metadatum"),
         syntax=univention.admin.syntax.string,
         required=False,
         may_change=True
@@ -123,8 +124,8 @@ property_descriptions = {
 
     "modified": univention.admin.property(
         short_description=_("Modified"),
-        long_description=_("Last modification as 2021-07-27 "),
-        syntax=univention.admin.syntax.date,  # TODO URL?
+        long_description=_("Last modification as 2021-07-27"),
+        syntax=univention.admin.syntax.iso8601Date,  # TODO URL?
         required=True,
         may_change=True
     ),

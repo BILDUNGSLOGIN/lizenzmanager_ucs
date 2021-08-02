@@ -47,6 +47,7 @@ object_name_plural = _('Licenses')
 short_description = _("License")
 long_description = _("License from the VBM Bildungslogin")
 operations = ["add", "edit", "remove", "search"]  # TODO: Do we want a remove operation or not?
+default_containers = ["cn=licenses,cn=bildungslogin,cn=vbm,cn=univention"]
 
 options = {
     "default": univention.admin.option(

@@ -5,14 +5,14 @@ import pytest
 
 from univention.bildungslogin.handler import BiloCreateError
 from univention.testing.utils import verify_ldap_object
+from univention.bildungslogin.utils import Status
 
 
-def test_create(licence_handler, random_license, ldap_base):
+def test_create(lo, licence_handler, random_license, ldap_base):
     licence_handler.create(random_license)
     # check license was created
     cn = sha256(random_license.license_code).hexdigest()
-    license_dn = "cn={},{}".format(cn, ldap_base)
-    # todo check if there is verify_udm_obj
+    license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention{}".format(cn, ldap_base)
     expected_attr = {
             "cn": [cn],
             "vbmLicenseCode": [random_license.license_code],
@@ -35,9 +35,14 @@ def test_create(licence_handler, random_license, ldap_base):
         expected_attr=expected_attr,
         strict=False,
     )
-    # todo check assignments were created
-    # i need to find the children of the license
-    # verify_ldap_object(ldap_hostdn, expected_attr=expected_attr, strict=False)
+    # check assignments were created
+    for dn in lo.searchDn(base=license_dn, scope="one"):
+        expected_attr = {
+            "vbmAssignmentStatus": [Status.AVAILABLE]
+        }
+        verify_ldap_object(dn,
+         expected_attr=expected_attr,
+          strict=False)
 
     # licenses are unique, duplicates produce errors
     with pytest.raises(BiloCreateError):
@@ -47,7 +52,7 @@ def test_create(licence_handler, random_license, ldap_base):
 def test_get_number_of_available_licenses(licence_handler, random_license):
     licence_handler.create(random_license)
     assert (
-        licence_handler.get_number_of_available_licenses(random_license)
+        licence_handler.get_number_of_available_assignments(random_license)
         == random_license.license_quantity
     )
 
@@ -63,18 +68,19 @@ def test_number_of_provisioned_and_assigned_licenses(
     pass
 
 
-#
-#
-# def test_number_of_expired_licenses(licence_handler, random_license):
-#     # todo create licenses which are already expired
-#     pass
-#
-#
-#
+@pytest.mark.skip(reason="num_expired has to be fixed in udm")
+def test_number_of_expired_licenses(licence_handler, expired_license):
+    licence_handler.create(expired_license)
+    assert (
+        licence_handler.get_number_of_expired_assignments(expired_license)
+        == expired_license.license_quantity
+    )
+
+
 def test_number_of_licenses(licence_handler, random_license):
     licence_handler.create(random_license)
     assert (
-        licence_handler.get_number_of_licenses(random_license)
+        licence_handler.get_number_of_assignments(random_license)
         == random_license.license_quantity
     )
     # todo change some stati -> for this i will also need users

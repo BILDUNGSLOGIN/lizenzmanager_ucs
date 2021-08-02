@@ -4,7 +4,8 @@ import pytest
 import ldap
 import random
 import json
-from univention.bildungslogin.models import License
+from univention.bildungslogin.models import License, MetaData
+from univention.bildungslogin.utils import parse_raw_license_date
 from univention.bildungslogin.handler import (
     LicenseHandler,
     MetaDataHandler,
@@ -15,6 +16,7 @@ from univention.admin.uldap import getAdminConnection
 import datetime
 
 from univention.testing.ucr import UCSTestConfigRegistry
+import univention.testing.strings as uts
 
 
 def iso_format_date(my_date):
@@ -33,8 +35,8 @@ def get_random_license():
         license_provider="VHT",
         purchasing_reference="2014-04-11T03:28:16 -02:00 4572022",
         utilization_systems="Antolin",
-        validity_start_date="{}".format(iso_format_date(start)),
-        validity_end_date="{}".format(iso_format_date(end)),
+        validity_start_date=iso_format_date(start),
+        validity_end_date=iso_format_date(end),
         validity_duration="{}".format(duration),
         license_special_type=random.choice(["Lehrer", ""]),
         ignored_for_display="0",
@@ -44,6 +46,8 @@ def get_random_license():
 
 
 def get_expired_license():
+    """"the end_date + duration < today
+    """
     # todo refactor me
     today = datetime.datetime.now()
     duration = random.randint(1, 365)
@@ -56,14 +60,26 @@ def get_expired_license():
         license_provider="VHT",
         purchasing_reference="2014-04-11T03:28:16 -02:00 4572022",
         utilization_systems="Antolin",
-        validity_start_date="{}".format(iso_format_date(start)),
-        validity_end_date="{}".format(iso_format_date(end)),
+        validity_start_date=iso_format_date(start),
+        validity_end_date=iso_format_date(end),
         validity_duration="{}".format(duration),
         license_special_type=random.choice(["Lehrer", ""]),
         ignored_for_display="0",
-        delivery_date=today.isoformat().split("T")[0],
+        delivery_date=today.isoformat().split("T")[0], # huhu hier todo
         license_school="test_schule",  # todo
     )
+
+
+@pytest.fixture(scope="function")
+def expired_license():
+    return get_expired_license()
+
+
+@pytest.fixture(scope="function")
+def random_n_expired_licenses():
+    n = random.randint(1, 10)
+    return [expired_license() for _ in range(n)]
+
 
 
 @pytest.fixture(scope="function")
@@ -75,6 +91,20 @@ def random_license():
 def random_n_random_licenses():
     n = random.randint(1, 10)
     return [get_random_license() for _ in range(n)]
+
+
+@pytest.fixture(scope="function")
+def random_meta_data():
+    return MetaData(
+            product_id=uts.random_name(),
+            title=uts.random_name(),
+            description="some description",
+            author=uts.random_name(),
+            publisher=uts.random_name(),
+            cover=uts.random_name(),
+            cover_small=uts.random_name(),
+            modified=datetime.datetime.now().strftime('%Y-%m-%d'),
+    )
 
 
 @pytest.fixture()
