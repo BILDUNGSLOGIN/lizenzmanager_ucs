@@ -1,30 +1,22 @@
 # WIP, not all tested (!)
+import logging
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, List, Optional, Union
 
-from models import License
+if TYPE_CHECKING:
+    from ucsschool.lib.models.base import LoType, UdmObject
+
+from ldap.filter import filter_format
 
 import univention
 import univention.admin.uexceptions
 from univention.admin.syntax import date
-
-try:
-    # todo
-    from ucsschool.lib.models.base import LoType, UdmObject
-except ImportError:
-    pass
-
-from typing import List, Union
-
-from ldap.filter import filter_format
-from models import MetaData
-
 from univention.udm import UDM, CreateError, NoObject as UdmNoObject
 
-from .utils import Assignment, Status, get_logger
+from .models import License, MetaData
+from .utils import Assignment, Status
 
-# todo
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 class BiloCreateError(CreateError):
@@ -92,8 +84,8 @@ class LicenseHandler:
             udm_obj.props.purchasing_reference = license.purchasing_reference
             udm_obj.save()
             # logger.debug("")
-        except CreateError as e:
-            raise BiloCreateError('Error creating license "{}"!\n{}'.format(license.license_code, e))
+        except CreateError as exc:
+            raise BiloCreateError('Error creating license "{}"!\n{}'.format(license.license_code, exc))
         for i in range(license.license_quantity):
             self.ah.create_assignments_for_licence(license_code=license.license_code)
 
@@ -140,9 +132,8 @@ class LicenseHandler:
         else:
             return MetaDataHandler.from_udm_obj(udm_meta_data)
 
-    def get_assignments_for_license(
-        self, license
-    ):  # type: (Union[License,UdmObject]) -> List[Assignment]
+    def get_assignments_for_license(self, license):
+        # type: (Union[License,UdmObject]) -> List[Assignment]
         """helper function to search in udm layer"""
         if type(license) is License:
             udm_obj = self.get_udm_license(license.license_code)
@@ -153,9 +144,8 @@ class LicenseHandler:
         assignment_dns = udm_obj.props.assignments
         return [self.ah.from_dn(dn) for dn in assignment_dns]
 
-    def assignments_search(
-        self, filter_s, license
-    ):  # type: (Optional[str], License) -> List[Assignment]
+    def assignments_search(self, filter_s, license):
+        # type: (Optional[str], License) -> List[Assignment]
         """search in assignments for filter_s
         todo meditate on usefulness"""
         udm_obj = self.get_udm_license(license.license_code)
@@ -381,9 +371,8 @@ class AssignmentHandler:
         udm_assignments = self._assignments_mod.search(filter_s)
         return [self.from_udm_obj(a) for a in udm_assignments]
 
-    def get_assignments_for_product_id_for_user(
-        self, username, product_id
-    ):  # type: (str, str) -> List[Assignment]
+    def get_assignments_for_product_id_for_user(self, username, product_id):
+        # type: (str, str) -> List[Assignment]
         """get all assignments for a product, which are assigned to a user."""
         # do we need this?
         filter_s = filter_format("(product_id=%s)", [product_id])
@@ -469,9 +458,8 @@ class AssignmentHandler:
         for username in usernames:
             self.assign_to_license(licenses_code, username)
 
-    def get_assignment_for_user_under_license(
-        self, license_dn, username
-    ):  # type: (str, str)  -> UdmObject
+    def get_assignment_for_user_under_license(self, license_dn, username):
+        # type: (str, str)  -> UdmObject
         """Search for license with license id and user with username and change the status
         If a user has more than one license with license code under license_dn,
         we take the first license we can find."""

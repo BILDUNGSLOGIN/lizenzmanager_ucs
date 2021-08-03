@@ -37,7 +37,7 @@ class License(object):
         self.num_available = num_available
 
     @property
-    def license_type(self):  # type: () -> LicenseType
+    def license_type(self):  # type: () -> str
         if self.license_quantity > 1:
             return LicenseType.VOLUME
         else:
