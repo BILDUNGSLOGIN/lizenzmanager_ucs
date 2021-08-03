@@ -1,22 +1,16 @@
+import datetime
+import json
+import random
 import uuid
 
-import pytest
 import ldap
-import random
-import json
-from univention.bildungslogin.models import License, MetaData
-from univention.bildungslogin.utils import parse_raw_license_date
-from univention.bildungslogin.handler import (
-    LicenseHandler,
-    MetaDataHandler,
-    AssignmentHandler,
-)
-from univention.admin.uldap import getAdminConnection
+import pytest
 
-import datetime
-
-from univention.testing.ucr import UCSTestConfigRegistry
 import univention.testing.strings as uts
+from univention.admin.uldap import getAdminConnection
+from univention.bildungslogin.handler import AssignmentHandler, LicenseHandler, MetaDataHandler
+from univention.bildungslogin.models import License, MetaData
+from univention.testing.ucr import UCSTestConfigRegistry
 
 
 def iso_format_date(my_date):
@@ -46,8 +40,7 @@ def get_random_license():
 
 
 def get_expired_license():
-    """"the end_date + duration < today
-    """
+    """ "the end_date + duration < today"""
     # todo refactor me
     today = datetime.datetime.now()
     duration = random.randint(1, 365)
@@ -65,7 +58,7 @@ def get_expired_license():
         validity_duration="{}".format(duration),
         license_special_type=random.choice(["Lehrer", ""]),
         ignored_for_display="0",
-        delivery_date=today.isoformat().split("T")[0], # huhu hier todo
+        delivery_date=today.isoformat().split("T")[0],  # huhu hier todo
         license_school="test_schule",  # todo
     )
 
@@ -79,7 +72,6 @@ def expired_license():
 def random_n_expired_licenses():
     n = random.randint(1, 10)
     return [expired_license() for _ in range(n)]
-
 
 
 @pytest.fixture(scope="function")
@@ -96,14 +88,14 @@ def random_n_random_licenses():
 @pytest.fixture(scope="function")
 def random_meta_data():
     return MetaData(
-            product_id=uts.random_name(),
-            title=uts.random_name(),
-            description="some description",
-            author=uts.random_name(),
-            publisher=uts.random_name(),
-            cover=uts.random_name(),
-            cover_small=uts.random_name(),
-            modified=datetime.datetime.now().strftime('%Y-%m-%d'),
+        product_id=uts.random_name(),
+        title=uts.random_name(),
+        description="some description",
+        author=uts.random_name(),
+        publisher=uts.random_name(),
+        cover=uts.random_name(),
+        cover_small=uts.random_name(),
+        modified=datetime.datetime.now().strftime("%Y-%m-%d"),
     )
 
 
@@ -139,33 +131,36 @@ def meta_data_handler(lo):
     return MetaDataHandler(lo)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def license_file(tmpdir_factory):
-    test_licenses_raw = [{
-        "lizenzcode": "UNI-{}".format(uuid.uuid4()),
-        "product_id": "urn:bilo:medium:Test1",
-        "lizenzanzahl": 25,
-        "lizenzgeber": "UNI",
-        "kaufreferenz": "2014-04-11T03:28:16 -02:00 4572022",
-        "nutzungssysteme": "Antolin",
-        "gueltigkeitsbeginn": "15-08-2021",
-        "gueltigkeitsende": "14-08-2022",
-        "gueltigkeitsdauer": "365",
-        "sonderlizenz": "Lehrer",
-    }, {
-        "lizenzcode": "UNI-{}".format(uuid.uuid4()),
-        "product_id": "urn:bilo:medium:Test2",
-        "lizenzanzahl": 1,
-        "lizenzgeber": "UNI",
-        "kaufreferenz": "2014-04-11T03:28:16 -02:00 4572022",
-        "nutzungssysteme": "Antolin",
-        "gueltigkeitsbeginn": "15-08-2021",
-        "gueltigkeitsende": "14-08-2022",
-        "gueltigkeitsdauer": "365",
-        "sonderlizenz": "",
-    }]
-    fn = tmpdir_factory.mktemp("data").join('license.json')
-    with open(str(fn), 'w') as license_fd:
+    test_licenses_raw = [
+        {
+            "lizenzcode": "UNI-{}".format(uuid.uuid4()),
+            "product_id": "urn:bilo:medium:Test1",
+            "lizenzanzahl": 25,
+            "lizenzgeber": "UNI",
+            "kaufreferenz": "2014-04-11T03:28:16 -02:00 4572022",
+            "nutzungssysteme": "Antolin",
+            "gueltigkeitsbeginn": "15-08-2021",
+            "gueltigkeitsende": "14-08-2022",
+            "gueltigkeitsdauer": "365",
+            "sonderlizenz": "Lehrer",
+        },
+        {
+            "lizenzcode": "UNI-{}".format(uuid.uuid4()),
+            "product_id": "urn:bilo:medium:Test2",
+            "lizenzanzahl": 1,
+            "lizenzgeber": "UNI",
+            "kaufreferenz": "2014-04-11T03:28:16 -02:00 4572022",
+            "nutzungssysteme": "Antolin",
+            "gueltigkeitsbeginn": "15-08-2021",
+            "gueltigkeitsende": "14-08-2022",
+            "gueltigkeitsdauer": "365",
+            "sonderlizenz": "",
+        },
+    ]
+    fn = tmpdir_factory.mktemp("data").join("license.json")
+    with open(str(fn), "w") as license_fd:
         json.dump(test_licenses_raw, license_fd)
     return fn
 

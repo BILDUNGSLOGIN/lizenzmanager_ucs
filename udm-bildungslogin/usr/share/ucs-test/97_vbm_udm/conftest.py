@@ -25,6 +25,7 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 import pytest
+
 from univention.udm import UDM
 
 
@@ -39,15 +40,15 @@ def create_metadata(udm):
     created_metadata = []
 
     def _create_metadata(
-            product_id,
-            modified="2000-01-01",
-            title="",
-            description="",
-            author="",
-            publisher="",
-            cover="",
-            cover_small=""
-        ):
+        product_id,
+        modified="2000-01-01",
+        title="",
+        description="",
+        author="",
+        publisher="",
+        cover="",
+        cover_small="",
+    ):
         metadata = udm.get("vbm/metadata").new()
         metadata.props.product_id = product_id
         metadata.props.modified = modified
@@ -73,20 +74,20 @@ def create_license(udm):
     created_licenses = []
 
     def _create_license(
-            code,
-            product_id,
-            quantity,
-            school,
-            validity_start_date="2000-01-01",
-            validity_end_date="2000-01-01",
-            delivery_date="2000-01-01",
-            ignored="0",
-            provider="",
-            purchasing_reference="",
-            utilization_systems="",
-            validity_duration="",
-            special_type=""
-        ):
+        code,
+        product_id,
+        quantity,
+        school,
+        validity_start_date="2000-01-01",
+        validity_end_date="2000-01-01",
+        delivery_date="2000-01-01",
+        ignored="0",
+        provider="",
+        purchasing_reference="",
+        utilization_systems="",
+        validity_duration="",
+        special_type="",
+    ):
         license_obj = udm.get("vbm/license").new()
         license_obj.props.code = code
         license_obj.props.product_id = product_id

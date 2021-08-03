@@ -30,4 +30,4 @@ repos:
     -   id: opa-fmt
     -   id: opa-check
     -   id: opa-test
-        args: ['opa/']
+        args: ['bildungslogin-plugin/opa/']

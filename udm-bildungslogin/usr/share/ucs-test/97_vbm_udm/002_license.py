@@ -33,19 +33,23 @@
 from hashlib import sha256
 
 import pytest
+
 from univention.udm import CreateError
 
 
-@pytest.mark.parametrize("attr_name", (
-    "cn",
-    "code",
-    "product_id",
-    "quantity",
-    "school",
-    "validity_start_date",
-    "validity_end_date",
-    "delivery_date",
-    ))
+@pytest.mark.parametrize(
+    "attr_name",
+    (
+        "cn",
+        "code",
+        "product_id",
+        "quantity",
+        "school",
+        "validity_start_date",
+        "validity_end_date",
+        "delivery_date",
+    ),
+)
 def test_required_attributes(attr_name, udm):
     with pytest.raises(CreateError) as exinfo:
         obj = udm.get("vbm/license").new()

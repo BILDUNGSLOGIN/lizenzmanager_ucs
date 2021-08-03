@@ -31,9 +31,9 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 import pytest
-from univention.admin.uexceptions import valueInvalidSyntax
 
-from univention.udm import NoSuperordinate, ModifyError, CreateError
+from univention.admin.uexceptions import valueInvalidSyntax
+from univention.udm import CreateError, ModifyError, NoSuperordinate
 
 
 def test_create_assignment(create_license, udm):
@@ -50,11 +50,9 @@ def test_wrong_superordinate(create_metadata, udm):
         udm.get("vbm/assignment").new(metadata.dn)
 
 
-@pytest.mark.parametrize("status,assignee", [
-    ("AVAILABLE", ""),
-    ("ASSIGNED", "USER"),
-    ("PROVISIONED", "USER")
-    ])
+@pytest.mark.parametrize(
+    "status,assignee", [("AVAILABLE", ""), ("ASSIGNED", "USER"), ("PROVISIONED", "USER")]
+)
 def test_allowed_status(status, assignee, create_license, udm):
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
     assignment = udm.get("vbm/assignment").new(license_obj.dn)
@@ -72,12 +70,17 @@ def test_wrong_status(create_license, udm):
         assignment.save()
 
 
-@pytest.mark.parametrize("old_status,new_status,old_assignee,new_assignee", [
-    ("AVAILABLE", "ASSIGNED", "", "USER"),
-    ("ASSIGNED", "AVAILABLE", "USER", ""),
-    ("ASSIGNED", "PROVISIONED", "USER", "USER")
-])
-def test_allowed_status_transitions(old_status, new_status, old_assignee, new_assignee, create_license, udm):
+@pytest.mark.parametrize(
+    "old_status,new_status,old_assignee,new_assignee",
+    [
+        ("AVAILABLE", "ASSIGNED", "", "USER"),
+        ("ASSIGNED", "AVAILABLE", "USER", ""),
+        ("ASSIGNED", "PROVISIONED", "USER", "USER"),
+    ],
+)
+def test_allowed_status_transitions(
+    old_status, new_status, old_assignee, new_assignee, create_license, udm
+):
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
     assignment = udm.get("vbm/assignment").new(license_obj.dn)
     assignment.props.status = old_status
@@ -88,12 +91,17 @@ def test_allowed_status_transitions(old_status, new_status, old_assignee, new_as
     assignment.save()
 
 
-@pytest.mark.parametrize("old_status,new_status,old_assignee,new_assignee", [
-    ("AVAILABLE", "PROVISIONED", "", "USER"),
-    ("PROVISIONED", "ASSIGNED", "USER", "USER"),
-    ("PROVISIONED", "AVAILABLE", "USER", "")
-])
-def test_wrong_status_transitions(old_status, new_status, old_assignee, new_assignee, create_license, udm):
+@pytest.mark.parametrize(
+    "old_status,new_status,old_assignee,new_assignee",
+    [
+        ("AVAILABLE", "PROVISIONED", "", "USER"),
+        ("PROVISIONED", "ASSIGNED", "USER", "USER"),
+        ("PROVISIONED", "AVAILABLE", "USER", ""),
+    ],
+)
+def test_wrong_status_transitions(
+    old_status, new_status, old_assignee, new_assignee, create_license, udm
+):
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
     assignment = udm.get("vbm/assignment").new(license_obj.dn)
     assignment.props.status = old_status

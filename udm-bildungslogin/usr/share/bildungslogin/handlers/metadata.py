@@ -27,22 +27,23 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
+from hashlib import sha256
+
 from ldap.filter import filter_format
 
-import univention.admin.syntax
 import univention.admin.handlers
 import univention.admin.localization
+import univention.admin.syntax
 import univention.admin.uexceptions
 from univention.admin.layout import Tab
-from hashlib import sha256
 
 translation = univention.admin.localization.translation("univention.admin.handlers.vbm")
 _ = translation.translate
 
 module = "vbm/metadata"
 childs = True
-object_name = _('Metadata')
-object_name_plural = _('Metadata')
+object_name = _("Metadata")
+object_name_plural = _("Metadata")
 short_description = _("Metadata")
 long_description = _("Metadata for a product from the VBM Bildungslogin")
 operations = ["add", "edit", "remove", "search"]  # TODO: Do we want a remove operation or not?
@@ -63,96 +64,94 @@ property_descriptions = {
         syntax=univention.admin.syntax.string,
         required=True,
         identifies=True,
-        may_change=False
+        may_change=False,
     ),
-
     "product_id": univention.admin.property(
         short_description=_("Product ID"),
         long_description=_("The product ID"),
         syntax=univention.admin.syntax.string,
         required=True,
-        may_change=False
+        may_change=False,
     ),
-
     "title": univention.admin.property(
         short_description=_("Title"),
         long_description=_("The title product described by the metadata"),
         syntax=univention.admin.syntax.string,
         required=False,
-        may_change=True
+        may_change=True,
     ),
-
     "description": univention.admin.property(
         short_description=_("Description"),
         long_description=_("The description of the product described by the metadata"),
         syntax=univention.admin.syntax.string,
         required=False,
-        may_change=True
+        may_change=True,
     ),
-
     "author": univention.admin.property(
         short_description=_("Author"),
         long_description=_("The author of the product described by the metadata"),
         syntax=univention.admin.syntax.string,
         required=False,
-        may_change=True
+        may_change=True,
     ),
-
     "publisher": univention.admin.property(
         short_description=_("Publisher"),
         long_description=_("The publisher of the  product described by the metadata"),
         syntax=univention.admin.syntax.string,
         required=False,
-        may_change=True
+        may_change=True,
     ),
-
     "cover": univention.admin.property(
         short_description=_("Cover"),
         long_description=_("The url for the cover of the  product described by the metadata"),
         syntax=univention.admin.syntax.string,  # TODO URL?
         required=False,
-        may_change=True
+        may_change=True,
     ),
-
     "cover_small": univention.admin.property(
         short_description=_("CoverSmall"),
         long_description=_("The url for the thumbnail of the  product described by the metadata"),
         syntax=univention.admin.syntax.string,  # TODO URL?
         required=False,
-        may_change=True
+        may_change=True,
     ),
-
     "modified": univention.admin.property(
         short_description=_("Modified"),
         long_description=_("Last modification as 2021-07-27"),
         syntax=univention.admin.syntax.iso8601Date,  # TODO URL?
         required=True,
-        may_change=True
+        may_change=True,
     ),
 }
 
 layout = [
-    Tab(_("General"), _("Basic Settings"), layout=[
-        ["title", ],
-        ["product_id"],
-        ["description"],
-        ["author", "publisher"],
-        ["cover", "cover_small"],
-        ["modified"],
-    ])
+    Tab(
+        _("General"),
+        _("Basic Settings"),
+        layout=[
+            [
+                "title",
+            ],
+            ["product_id"],
+            ["description"],
+            ["author", "publisher"],
+            ["cover", "cover_small"],
+            ["modified"],
+        ],
+    )
 ]
 
 mapping = univention.admin.mapping.mapping()
 for udm_name, ldap_name in [
-    ("cn","cn"),
-    ("product_id","vbmProductId"),
-    ("title","vbmMetaDataTitle"),
-    ("description","vbmMetaDataDescription"),
-    ("author","vbmMetaDataAuthor"),
-    ("publisher","vbmMetaDataPublisher"),
-    ("cover","vbmMetaDataCover"),
-    ("cover_small","vbmMetaDataCoverSmall"),
-    ("modified","vbmMetaDataModified")
+    ("cn", "cn"),
+    ("product_id", "vbmProductId"),
+    ("title", "vbmMetaDataTitle"),
+    ("description", "vbmMetaDataDescription"),
+    ("author", "vbmMetaDataAuthor"),
+    ("publisher", "vbmMetaDataPublisher"),
+    ("cover", "vbmMetaDataCover"),
+    ("cover_small", "vbmMetaDataCoverSmall"),
+    ("modified", "vbmMetaDataModified"),
 ]:
     mapping.register(udm_name, ldap_name, None, univention.admin.mapping.ListToString)
 
@@ -170,7 +169,9 @@ class object(univention.admin.handlers.simpleLdap):
         super(object, self)._ldap_pre_create()
         # The code, and thus the cn of any license must be unique in the domain
         if self.lo.searchDn(filter_format("(&(objectClass=vbmMetadata)(cn=%s))", [self["cn"]])):
-            raise univention.admin.uexceptions.valueError(_("A metadata object with that product_id already exists"))
+            raise univention.admin.uexceptions.valueError(
+                _("A metadata object with that product_id already exists")
+            )
         super(object, self)._ldap_pre_create()
 
 

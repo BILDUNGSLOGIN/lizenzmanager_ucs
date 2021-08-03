@@ -28,37 +28,38 @@
 # <http://www.gnu.org/licenses/>.
 
 import json
-
 from datetime import datetime
 from typing import Dict
 
 from univention.admin.uldap import getAdminConnection
-from univention.bildungslogin.handler import LicenseHandler, BiloCreateError
+from univention.bildungslogin.handler import BiloCreateError, LicenseHandler
 from univention.bildungslogin.models import License
 from univention.bildungslogin.utils import parse_raw_license_date
 
 
 def load_license(license_raw, school):  # type: (Dict, str) -> License
     return License(
-        license_code=license_raw['lizenzcode'],
-        product_id=license_raw['product_id'],
-        license_quantity=license_raw['lizenzanzahl'],
-        license_provider=license_raw['lizenzgeber'],
-        purchasing_reference=license_raw['kaufreferenz'],
-        utilization_systems=license_raw['nutzungssysteme'],
-        validity_start_date=parse_raw_license_date(license_raw['gueltigkeitsbeginn']).strftime('%Y-%m-%d'),
-        validity_end_date=parse_raw_license_date(license_raw['gueltigkeitsende']).strftime('%Y-%m-%d'),
-        validity_duration=license_raw['gueltigkeitsdauer'],
-        license_special_type=license_raw['sonderlizenz'],
-        ignored_for_display='0',
-        delivery_date=datetime.now().strftime('%Y-%m-%d'),
+        license_code=license_raw["lizenzcode"],
+        product_id=license_raw["product_id"],
+        license_quantity=license_raw["lizenzanzahl"],
+        license_provider=license_raw["lizenzgeber"],
+        purchasing_reference=license_raw["kaufreferenz"],
+        utilization_systems=license_raw["nutzungssysteme"],
+        validity_start_date=parse_raw_license_date(license_raw["gueltigkeitsbeginn"]).strftime(
+            "%Y-%m-%d"
+        ),
+        validity_end_date=parse_raw_license_date(license_raw["gueltigkeitsende"]).strftime("%Y-%m-%d"),
+        validity_duration=license_raw["gueltigkeitsdauer"],
+        license_special_type=license_raw["sonderlizenz"],
+        ignored_for_display="0",
+        delivery_date=datetime.now().strftime("%Y-%m-%d"),
         license_school=school,
     )
 
 
 def import_licenses(license_file, school):  # type: (str, str) -> None
     lo, po = getAdminConnection()
-    with open(license_file, 'r') as license_file_fd:
+    with open(license_file, "r") as license_file_fd:
         licenses_raw = json.load(license_file_fd)
     licenses = [load_license(license_raw, school) for license_raw in licenses_raw]
     lh = LicenseHandler(lo)
@@ -66,5 +67,9 @@ def import_licenses(license_file, school):  # type: (str, str) -> None
         try:
             lh.create(license)
         except BiloCreateError as exc:
-            print('Warning: License "{}" could not be imported due to the following error \n{}'.format(license.license_code, exc))
+            print(
+                'Warning: License "{}" could not be imported due to the following error \n{}'.format(
+                    license.license_code, exc
+                )
+            )
     # TODO: trigger metadata update

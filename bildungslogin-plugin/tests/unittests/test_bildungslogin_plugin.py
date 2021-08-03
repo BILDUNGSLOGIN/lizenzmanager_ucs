@@ -2,12 +2,12 @@ from typing import Callable, Mapping
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-
 from bildungslogin_plugin import bildungslogin_plugin
 from bildungslogin_plugin.bildungslogin_plugin import kelvin_session, router
 from bildungslogin_plugin.models import sample_user
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 from ucsschool.apis.plugins.auth import oauth2_scheme
 
 

@@ -3,7 +3,6 @@ from datetime import datetime
 from univention.bildungslogin.license_import import load_license
 from univention.bildungslogin.models import License
 
-
 test_license_raw = {
     "lizenzcode": "VHT-7bd46a45-345c-4237-a451-4444736eb011",
     "product_id": "urn:bilo:medium:A0023#48-85-TZ",
@@ -30,11 +29,11 @@ test_license = License(
     validity_duration="365",
     license_special_type="Lehrer",
     ignored_for_display="0",
-    delivery_date=datetime.now().strftime('%Y-%m-%d'),
-    license_school='test_schule',
+    delivery_date=datetime.now().strftime("%Y-%m-%d"),
+    license_school="test_schule",
 )
 
 
 def test_load_license():
-    license = load_license(test_license_raw, 'test_schule')
+    license = load_license(test_license_raw, "test_schule")
     assert license.__dict__ == test_license.__dict__

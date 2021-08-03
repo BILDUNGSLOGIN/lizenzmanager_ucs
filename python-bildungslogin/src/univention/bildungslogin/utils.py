@@ -15,7 +15,9 @@ class LicenseType:
 
 # todo move me
 class Assignment(object):
-    def __init__(self, username, license, time_of_assignment, status):  # type: (str, str, str, Status) -> None
+    def __init__(
+        self, username, license, time_of_assignment, status
+    ):  # type: (str, str, str, Status) -> None
         self.assignee = username
         self.time_of_assignment = time_of_assignment
         self.status = status
@@ -27,4 +29,4 @@ def get_logger():  # type: () -> logging.Logger
 
 
 def parse_raw_license_date(date_str):  # type: (str) -> datetime.date()
-    return datetime.strptime(date_str, '%d-%m-%Y')
+    return datetime.strptime(date_str, "%d-%m-%Y")

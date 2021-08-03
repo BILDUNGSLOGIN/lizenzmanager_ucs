@@ -1,11 +1,11 @@
 from typing import Any, Dict, List
 
+from bildungslogin_plugin.models import User, user_id_description
 from fastapi import APIRouter, Depends, HTTPException, Path
 from id_broker_plugin.id_broker_plugin import load_kelvin_session_kwargs
 from starlette import status
 
 import ucsschool.kelvin.client.exceptions
-from bildungslogin_plugin.models import User, user_id_description
 from ucsschool.apis.models import Plugin
 from ucsschool.apis.plugins.auth import oauth2_scheme
 from ucsschool.apis.utils import get_logger
