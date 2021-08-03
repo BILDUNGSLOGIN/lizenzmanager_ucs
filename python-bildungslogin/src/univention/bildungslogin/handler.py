@@ -54,7 +54,7 @@ class BiloLicenseNotFoundError(Exception):
 #         udm = UDM(lo).version(1)
 #         self._licenses_mod = udm.get("vbm/license")
 #         self._assignments_mod = udm.get("vbm/assignment")
-#         self._meta_data_mod = udm.get("vbm/metadatum")
+#         self._meta_data_mod = udm.get("vbm/metadata")
 #         if type(self) is not LicenseHandler:
 #             self.lh = LicenseHandler(lo)
 #         if type(self) is not AssignmentHandler:
@@ -72,7 +72,7 @@ class LicenseHandler:
         udm = UDM(lo).version(1)
         self._licenses_mod = udm.get("vbm/license")
         self._assignments_mod = udm.get("vbm/assignment")
-        self._meta_data_mod = udm.get("vbm/metadatum")
+        self._meta_data_mod = udm.get("vbm/metadata")
         self.ah = AssignmentHandler(lo)
 
     def create(self, license):  # type: (License) -> None
@@ -240,7 +240,7 @@ class MetaDataHandler:
         udm = UDM(lo).version(1)
         self._licenses_mod = udm.get("vbm/license")
         self._assignments_mod = udm.get("vbm/assignment")
-        self._meta_data_mod = udm.get("vbm/metadatum")
+        self._meta_data_mod = udm.get("vbm/metadata")
         self.ah = AssignmentHandler(lo)
         self.lh = LicenseHandler(lo)
 
@@ -260,7 +260,7 @@ class MetaDataHandler:
         except CreateError as e:
             # todo
             BiloCreateError(
-                "Error creating meta datum for product id \"{}\"!\n{}".format(
+                "Error creating meta data for product id \"{}\"!\n{}".format(
                     meta_data.product_id, e
                 )
             )

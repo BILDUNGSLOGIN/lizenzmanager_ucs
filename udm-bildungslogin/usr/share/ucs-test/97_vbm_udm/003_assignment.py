@@ -44,10 +44,10 @@ def test_create_assignment(create_license, udm):
     assert assignment.position == license_obj.dn
 
 
-def test_wrong_superordinate(create_metadatum, udm):
-    metadatum = create_metadatum(product_id="PRODUCT")
+def test_wrong_superordinate(create_metadata, udm):
+    metadata = create_metadata(product_id="PRODUCT")
     with pytest.raises(NoSuperordinate):
-        udm.get("vbm/assignment").new(metadatum.dn)
+        udm.get("vbm/assignment").new(metadata.dn)
 
 
 @pytest.mark.parametrize("status,assignee", [

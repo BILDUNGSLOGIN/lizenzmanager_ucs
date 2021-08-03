@@ -71,7 +71,7 @@ ucs_registerLDAPExtension "$@" \
 
 ucs_registerLDAPExtension "$@" \
   --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
-  --udm_module "/usr/share/bildungslogin/handlers/metadatum.py" || die
+  --udm_module "/usr/share/bildungslogin/handlers/metadata.py" || die
 
 ucs_registerLDAPExtension "$@" \
   --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \

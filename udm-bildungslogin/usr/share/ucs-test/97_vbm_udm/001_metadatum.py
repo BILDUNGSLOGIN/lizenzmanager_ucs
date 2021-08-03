@@ -1,5 +1,5 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
-## desc: Run tests for the udm module vbm/metadatum
+## desc: Run tests for the udm module vbm/metadata
 ## exposure: dangerous
 ## tags: [vbm]
 ## packages: [udm-bildungslogin]
@@ -39,19 +39,19 @@ from univention.udm import CreateError
 @pytest.mark.parametrize("attr_name", ("cn", "product_id"))
 def test_required_attributes(attr_name, udm):
     with pytest.raises(CreateError) as exinfo:
-        obj = udm.get("vbm/metadatum").new()
+        obj = udm.get("vbm/metadata").new()
         obj.save()
     assert "\n{}".format(attr_name) in exinfo.value.message
 
 
-def test_create_metadatum(create_metadatum):
-    datum = create_metadatum("PRODUCT_ID", "2000-01-01")
-    assert datum.props.cn == sha256("PRODUCT_ID").hexdigest()
+def test_create_metadata(create_metadata):
+    metadata = create_metadata("PRODUCT_ID", "2000-01-01")
+    assert metadata.props.cn == sha256("PRODUCT_ID").hexdigest()
 
 
-def test_unique_product_ids(create_metadatum):
+def test_unique_product_ids(create_metadata):
     product_id = "PRODUCT_ID"
-    create_metadatum(product_id, "2000-01-01")
+    create_metadata(product_id, "2000-01-01")
     with pytest.raises(CreateError) as exinfo:
-        create_metadatum(product_id, "2000-01-02")
-    assert "A Metadatum with that product_id already exists" in exinfo.value.message
+        create_metadata(product_id, "2000-01-02")
+    assert "A metadata object with that product_id already exists" in exinfo.value.message

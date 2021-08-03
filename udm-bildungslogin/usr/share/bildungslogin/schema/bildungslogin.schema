@@ -167,7 +167,7 @@ objectclass ( vbmBildungslogin:1
         MAY ( vbmLicenseProvider $ vbmPurchasingReference $ vbmUtilizationSystems $ vbmLicenseSpecialType $ vbmValidityDuration ) )
 
 objectclass ( vbmBildungslogin:2
-        NAME 'vbmMetaDatum'
+        NAME 'vbmMetaData'
         DESC 'Metadata describing a product'
         SUP top STRUCTURAL
         MUST ( cn $ vbmProductId $ vbmMetaDataModified )

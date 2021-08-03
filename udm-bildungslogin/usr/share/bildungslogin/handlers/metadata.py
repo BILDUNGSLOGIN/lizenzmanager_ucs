@@ -39,12 +39,12 @@ from hashlib import sha256
 translation = univention.admin.localization.translation("univention.admin.handlers.vbm")
 _ = translation.translate
 
-module = "vbm/metadatum"
+module = "vbm/metadata"
 childs = True
-object_name = _('Metadatum')
+object_name = _('Metadata')
 object_name_plural = _('Metadata')
-short_description = _("Metadatum")
-long_description = _("Metadatum for a product from the VBM Bildungslogin")
+short_description = _("Metadata")
+long_description = _("Metadata for a product from the VBM Bildungslogin")
 operations = ["add", "edit", "remove", "search"]  # TODO: Do we want a remove operation or not?
 default_containers = ["cn=metadata,cn=bildungslogin,cn=vbm,cn=univention"]
 
@@ -52,14 +52,14 @@ options = {
     "default": univention.admin.option(
         short_description=short_description,
         default=True,
-        objectClasses=["top", "vbmMetaDatum"],
+        objectClasses=["top", "vbmMetaData"],
     )
 }
 
 property_descriptions = {
     "cn": univention.admin.property(
         short_description=_("CN"),
-        long_description=_("CN of the metadatum"),
+        long_description=_("CN of the metadata"),
         syntax=univention.admin.syntax.string,
         required=True,
         identifies=True,
@@ -76,7 +76,7 @@ property_descriptions = {
 
     "title": univention.admin.property(
         short_description=_("Title"),
-        long_description=_("The title product described by the metadatum"),
+        long_description=_("The title product described by the metadata"),
         syntax=univention.admin.syntax.string,
         required=False,
         may_change=True
@@ -84,7 +84,7 @@ property_descriptions = {
 
     "description": univention.admin.property(
         short_description=_("Description"),
-        long_description=_("The description of the product described by the metadatum"),
+        long_description=_("The description of the product described by the metadata"),
         syntax=univention.admin.syntax.string,
         required=False,
         may_change=True
@@ -92,7 +92,7 @@ property_descriptions = {
 
     "author": univention.admin.property(
         short_description=_("Author"),
-        long_description=_("The author of the product described by the metadatum"),
+        long_description=_("The author of the product described by the metadata"),
         syntax=univention.admin.syntax.string,
         required=False,
         may_change=True
@@ -100,7 +100,7 @@ property_descriptions = {
 
     "publisher": univention.admin.property(
         short_description=_("Publisher"),
-        long_description=_("The publisher of the  product described by the metadatum"),
+        long_description=_("The publisher of the  product described by the metadata"),
         syntax=univention.admin.syntax.string,
         required=False,
         may_change=True
@@ -108,7 +108,7 @@ property_descriptions = {
 
     "cover": univention.admin.property(
         short_description=_("Cover"),
-        long_description=_("The url for the cover of the  product described by the metadatum"),
+        long_description=_("The url for the cover of the  product described by the metadata"),
         syntax=univention.admin.syntax.string,  # TODO URL?
         required=False,
         may_change=True
@@ -116,7 +116,7 @@ property_descriptions = {
 
     "cover_small": univention.admin.property(
         short_description=_("CoverSmall"),
-        long_description=_("The url for the thumbnail of the  product described by the metadatum"),
+        long_description=_("The url for the thumbnail of the  product described by the metadata"),
         syntax=univention.admin.syntax.string,  # TODO URL?
         required=False,
         may_change=True
@@ -169,8 +169,8 @@ class object(univention.admin.handlers.simpleLdap):
     def _ldap_pre_create(self):
         super(object, self)._ldap_pre_create()
         # The code, and thus the cn of any license must be unique in the domain
-        if self.lo.searchDn(filter_format("(&(objectClass=vbmMetadatum)(cn=%s))", [self["cn"]])):
-            raise univention.admin.uexceptions.valueError(_("A Metadatum with that product_id already exists"))
+        if self.lo.searchDn(filter_format("(&(objectClass=vbmMetadata)(cn=%s))", [self["cn"]])):
+            raise univention.admin.uexceptions.valueError(_("A metadata object with that product_id already exists"))
         super(object, self)._ldap_pre_create()
 
 

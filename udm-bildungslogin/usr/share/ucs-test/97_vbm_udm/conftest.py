@@ -34,11 +34,11 @@ def udm():
 
 
 @pytest.fixture()
-def create_metadatum(udm):
+def create_metadata(udm):
 
     created_metadata = []
 
-    def _create_metadatum(
+    def _create_metadata(
             product_id,
             modified="2000-01-01",
             title="",
@@ -48,23 +48,23 @@ def create_metadatum(udm):
             cover="",
             cover_small=""
         ):
-        metadatum = udm.get("vbm/metadatum").new()
-        metadatum.props.product_id = product_id
-        metadatum.props.modified = modified
-        metadatum.props.title = title
-        metadatum.props.description = description
-        metadatum.props.author = author
-        metadatum.props.publisher = publisher
-        metadatum.props.cover = cover
-        metadatum.props.cover_small = cover_small
-        metadatum.save()
-        created_metadata.append(metadatum)
-        return metadatum
+        metadata = udm.get("vbm/metadata").new()
+        metadata.props.product_id = product_id
+        metadata.props.modified = modified
+        metadata.props.title = title
+        metadata.props.description = description
+        metadata.props.author = author
+        metadata.props.publisher = publisher
+        metadata.props.cover = cover
+        metadata.props.cover_small = cover_small
+        metadata.save()
+        created_metadata.append(metadata)
+        return metadata
 
-    yield _create_metadatum
+    yield _create_metadata
 
-    for metadatum_obj in created_metadata:
-        metadatum_obj.delete()
+    for metadata_obj in created_metadata:
+        metadata_obj.delete()
 
 
 @pytest.fixture()
