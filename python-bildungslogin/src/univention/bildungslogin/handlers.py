@@ -59,9 +59,6 @@ from .utils import LicenseType, Status, my_string_to_int
 # todo clarify: brauchen wir das auch fuer die zuweisung?
 # todo parameter workgroup, schoolclass, pattern -> user discuss
 
-# DONE zuweisungs-ansicht + anzahl der zugewiesenen user zurueckgeben
-# DONE usern lizenz wegnehmen remove_assignment_from_users
-
 
 class LicenseHandler:
     def __init__(self, lo):  # type: (LoType) -> None

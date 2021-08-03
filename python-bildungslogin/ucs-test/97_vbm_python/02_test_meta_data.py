@@ -56,7 +56,6 @@ def check_meta_data_is_correct(meta_data_obj, ldap_base):
         "vbmMetaDataCoverSmall": [meta_data_obj.cover_small],
         "vbmMetaDataModified": [meta_data_obj.modified],
     }
-
     dn = "cn={},cn=metadata,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
     verify_ldap_object(
         dn,
@@ -98,7 +97,9 @@ def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_
         # comment: we do not have to create the actual meta-data object for this.
         lic.product_id = meta_data.product_id
         license_handler.create(lic)
-        total_amount_of_licenses_for_product += lic.license_quantity
+        if lic.ignored_for_display == "0":
+            # licenses with this attribute set are not counted.
+            total_amount_of_licenses_for_product += lic.license_quantity
     assert (
         meta_data_handler.get_total_number_of_assignments(meta_data)
         == total_amount_of_licenses_for_product
@@ -120,6 +121,7 @@ def test_number_of_provisioned_and_assigned_licenses(
         ou, _ = schoolenv.create_ou()
         license.product_id = meta_data.product_id
         license.license_school = ou
+        license.ignored_for_display = "0"  # we only want correct assignments here
         license_handler.create(license)
         student_usernames = [schoolenv.create_student(ou)[0] for _ in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
