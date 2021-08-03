@@ -1,0 +1,34 @@
+Source: ucs-school-umc-licenses
+Section: univention
+Priority: optional
+Maintainer: Univention GmbH <packages@univention.de>
+Build-Depends:
+ debhelper (>= 10),
+ dh-python,
+ ucslint,
+ univention-config-dev,
+ univention-management-console-dev (>= 11.0.4-37),
+Standards-Version: 3.8.2
+
+Package: ucs-school-umc-licenses
+Architecture: all
+Depends:
+ python-ucs-school (>= 12.1.9),
+ python-univention-directory-manager,
+ shell-ucs-school,
+ ucs-school-umc-common,
+ univention-config-registry,
+ univention-management-console,
+ ${misc:Depends},
+ ${python3:Depends},
+ ${python:Depends},
+Provides:
+ ${python:Provides},
+ ${python3:Provides},
+Description: UMC module to administrate licenses
+ This package contains a module for managing product licenses
+ .
+ It is part of Univention Corporate Server (UCS), an
+ integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: http://www.univention.de/

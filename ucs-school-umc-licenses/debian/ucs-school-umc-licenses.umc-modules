@@ -1,0 +1,6 @@
+Module: licenses
+Python: umc/python
+Definition: umc/licenses.xml
+Category: umc/categories/licenses.xml
+Javascript: umc/js
+Icons: umc/icons

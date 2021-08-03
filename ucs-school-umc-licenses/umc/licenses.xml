@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<umc version="2.0">
+	<module id="licenses" version="1.0">
+		<categories>
+			<category name="ucs-school-admin"/>
+		</categories>
+		<flavor id="licenses/licenses" priority="53">
+			<name>Licenses</name>
+			<description>Manage licenses</description>
+		</flavor>
+		<flavor id="licenses/allocation" priority="52">
+			<name>Allocate licenses</name>
+			<description>Manage allocation of licenses</description>
+		</flavor>
+		<command name="licenses/query" function="query"></command>
+		<command name="licenses/get" function="get"></command>
+		<command name="licenses/publishers" function="publishers"></command>
+		<command name="licenses/license_types" function="license_types"></command>
+		<command name="licenses/classes" function="classes"></command>
+		<command name="licenses/workgroups" function="workgroups"></command>
+		<command name="licenses/set_ignore" function="set_ignore"></command>
+		<command name="licenses/remove_from_users" function="remove_from_users"></command>
+		<command name="licenses/schools" function="schools"></command>
+		<command name="licenses/users/query" function="users_query"></command>
+	</module>
+</umc>
