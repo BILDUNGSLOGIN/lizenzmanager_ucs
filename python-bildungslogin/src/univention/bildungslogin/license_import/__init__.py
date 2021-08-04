@@ -29,10 +29,10 @@
 
 import json
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List
 
 from univention.admin.uldap import getAdminConnection
-from univention.bildungslogin.handlers import BiloCreateError, LicenseHandler
+from univention.bildungslogin.handlers import LicenseHandler
 from univention.bildungslogin.models import License
 from univention.bildungslogin.utils import parse_raw_license_date
 
@@ -57,19 +57,15 @@ def load_license(license_raw, school):  # type: (Dict, str) -> License
     )
 
 
-def import_licenses(license_file, school):  # type: (str, str) -> None
-    lo, po = getAdminConnection()
+def load_license_file(license_file, school):  # type: (str) -> List(License)
     with open(license_file, "r") as license_file_fd:
         licenses_raw = json.load(license_file_fd)
     licenses = [load_license(license_raw, school) for license_raw in licenses_raw]
+    return licenses
+
+
+def import_license(license):  # type: (License) -> None
+    lo, po = getAdminConnection()
     lh = LicenseHandler(lo)
-    for license in licenses:
-        try:
-            lh.create(license)
-        except BiloCreateError as exc:
-            print(
-                'Warning: License "{}" could not be imported due to the following error \n{}'.format(
-                    license.license_code, exc
-                )
-            )
-    # TODO: trigger metadata update
+    lh.create(license)
+    # TODO: trigger metadata update (listener?)

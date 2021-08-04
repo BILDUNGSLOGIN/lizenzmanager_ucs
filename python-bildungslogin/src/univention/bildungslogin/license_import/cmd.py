@@ -27,9 +27,13 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
 
-import argparse
+from __future__ import print_function
 
-from univention.bildungslogin.license_import import import_licenses
+import argparse
+import sys
+
+from univention.bildungslogin.handlers import BiloCreateError
+from univention.bildungslogin.license_import import import_license, load_license_file
 
 
 def parse_args():  # type: () -> argparse.Namespace
@@ -38,6 +42,25 @@ def parse_args():  # type: () -> argparse.Namespace
     parser.add_argument("--school", help="School abbreviation for which the license should be imported")
     args = parser.parse_args()
     return args
+
+
+def import_licenses(license_file, school):
+    licenses = load_license_file(license_file, school)
+    errors = False
+    for license in licenses:
+        try:
+            import_license(license)
+        except BiloCreateError as exc:
+            errors = True
+            print(
+                'Warning: License "{}" could not be imported due to the following error \n{}'.format(
+                    license.license_code, exc
+                ),
+                file=sys.stderr,
+            )
+    if errors:
+        print("Error: Not all licenses were imported successful", file=sys.stderr)
+        sys.exit(1)
 
 
 def main():  # type: () -> None
