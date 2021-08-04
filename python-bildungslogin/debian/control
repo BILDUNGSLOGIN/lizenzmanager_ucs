@@ -13,6 +13,7 @@ Build-Depends:
  python-typing,
  python-ldap,
  python-univention-directory-manager,
+ python-ucsschool-lib,
 
 Package: python-bildungslogin
 Architecture: all
@@ -24,6 +25,7 @@ Depends:
  python-typing,
  python-univention-directory-manager,
  python-ldap,
+ python-ucsschool-lib,
 Description: python libs for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),
