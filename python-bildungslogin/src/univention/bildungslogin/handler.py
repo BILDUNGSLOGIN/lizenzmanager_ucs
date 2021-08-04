@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # WIP, not all tested (!)
 import logging
 from datetime import datetime

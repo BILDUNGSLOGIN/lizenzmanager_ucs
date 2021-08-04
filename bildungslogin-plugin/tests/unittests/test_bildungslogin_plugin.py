@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from typing import Callable, Mapping
 from unittest.mock import AsyncMock, MagicMock
 

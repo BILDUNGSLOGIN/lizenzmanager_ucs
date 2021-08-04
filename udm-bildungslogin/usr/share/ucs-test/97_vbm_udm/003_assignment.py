@@ -1,4 +1,5 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
+# -*- coding: utf-8 -*-
 ## desc: Run tests for the udm module vbm/assignment
 ## exposure: dangerous
 ## tags: [vbm]

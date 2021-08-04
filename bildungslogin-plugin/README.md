@@ -1,6 +1,6 @@
 # bildungslogin plugin
 
-This package contains a bildungslogin resource for the ucsschool-apis app. It is just a stub to create the api spec for now.
+This package contains a plugin for the ucsschool-apis app. It creates a REST API resource for `bildungslogin.de` to retrieve user data from.
 
 ## pyproject.toml
 

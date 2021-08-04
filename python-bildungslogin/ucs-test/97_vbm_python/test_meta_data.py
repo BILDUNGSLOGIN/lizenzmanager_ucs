@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import itertools
 from hashlib import sha256
 

@@ -19,7 +19,7 @@ PLUGIN_VERSION: str = "1.0.0"
 PLUGIN_TAGS: List[str] = ["bildungslogin"]
 # the router that will be mounted as the resource under the plugins name:
 router: APIRouter = APIRouter()
-PLUGIN_SETTINGS_FILE = Path("/etc/ucsschool/apis/id_broker/settings.json")
+PLUGIN_SETTINGS_FILE = Path(f"/etc/ucsschool/apis/{PLUGIN_NAME}/settings.json")
 _kelvin_session_kwargs: Dict[str, Any] = {}
 _kelvin_session: Session = None
 

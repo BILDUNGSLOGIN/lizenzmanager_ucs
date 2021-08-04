@@ -2,32 +2,49 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.4.0
+    rev: v4.0.1
     hooks:
     -   id: check-added-large-files
+    -   id: check-case-conflict
     -   id: check-json
+    -   id: check-symlinks
+    -   id: check-toml
     -   id: check-xml
     -   id: check-yaml
+    -   id: fix-encoding-pragma
+    -   id: pretty-format-json
+        args: ["--autofix", "--indent=4"]
+    -   id: requirements-txt-fixer
     -   id: trailing-whitespace
+-   repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.9.0
+    hooks:
+    -   id: python-check-blanket-noqa
+    -   id: python-check-blanket-type-ignore
+    -   id: python-no-eval
+    -   id: python-no-log-warn
+    -   id: rst-backticks
 -   repo: https://github.com/timothycrosley/isort
-    rev: 5.8.0
+    rev: 5.9.3
     hooks:
     -   id: isort
         entry: isort
 -   repo: https://github.com/psf/black
-    rev: 21.5b0
+    rev: 21.7b0
     hooks:
     -   id: black
         entry: black --config .black
 -   repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.1
+    rev: 3.9.2
     hooks:
     -   id: flake8
         language_version: python3.9
 -   repo: https://github.com/anderseknert/pre-commit-opa
-    rev: v1.4.0
+    rev: v1.4.1
     hooks:
     -   id: opa-fmt
+        args: ["bildungslogin-plugin/opa/"]
     -   id: opa-check
+        args: ["bildungslogin-plugin/opa/"]
     -   id: opa-test
-        args: ['bildungslogin-plugin/opa/']
+        args: ["bildungslogin-plugin/opa/"]
