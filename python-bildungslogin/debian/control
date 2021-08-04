@@ -11,7 +11,6 @@ Build-Depends:
  python-debian,
  python-pytest,
  python-typing,
- python-enum34,
  python-ldap,
  python-univention-directory-manager,
 
@@ -25,7 +24,6 @@ Depends:
  python-typing,
  python-univention-directory-manager,
  python-ldap,
- python-enum34,
 Description: python libs for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),
