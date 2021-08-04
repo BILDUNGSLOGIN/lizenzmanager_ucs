@@ -96,7 +96,6 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
     # the number of provisioned licenses is included in the number of assigned licenses
     num_students = 3
     num_teachers = 3
-    # todo refactor me to a fixture
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license.license_school = ou
@@ -156,6 +155,38 @@ def test_get_time_of_last_assignment(license_handler, assignment_handler, licens
         assert license_handler.get_time_of_last_assignment(license) == datetime.datetime.now().strftime(
             "%Y-%m-%d"
         )
+
+
+def _set_license_ignore(license_handler, license, ldap_base):
+    license.ignored_for_display = "0"
+    license_handler.create(license)
+    cn = sha256(license.license_code).hexdigest()
+    license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
+    verify_ldap_object(
+        license_dn,
+        expected_attr={
+            "vbmIgnoredForDisplay": ["0"],
+        },
+        strict=False,
+    )
+    license_handler.set_license_ignore(license_code=license.license_code, ignore=True)
+    verify_ldap_object(
+        license_dn,
+        expected_attr={
+            "vbmIgnoredForDisplay": ["1"],
+        },
+        strict=False,
+    )
+
+
+def test_set_license_ignore(license_handler, license, ldap_base):
+    _set_license_ignore(license_handler, license, ldap_base)
+
+
+def test_licenses_with_status_ignores_dont_show_up_in_search():
+    # todo clarify: for which search is this relevant
+    # todo check license assignment not possible
+    pass
 
 
 def test_get_license_types(license_handler):

@@ -68,11 +68,21 @@ from .utils import LicenseType, Status, my_string_to_int
 #
 # DONE MetaDataHandler save + test @tobi
 # DONE get_publishers +test @tobias
-# todo get_license_types -> klaeren volumen|massenlizenzen
+# DONE get_license_types -> klaeren volumen|massenlizenzen
 # DONE get_all_product_ids -> @juern -> Test
 
 # DONE test special type ?
-# todo-> in change status assign license
+# DONE-> in change status assign license
+# DONE set_ignore + test -> tobi
+# todo clarify: ignorefordisplay -> for which search is this relevant
+
+
+# todo parameter workgroup, schoolclass, pattern -> user discuss
+# todo suche nach lizenen zusammenbasteln
+# todo zuweisungs-asicht + anzahl der zugewiesenen user zurueckgeben
+# todo ignore darf nur gesetzt werden, wenn es keine zuweisungen gibt
+# todo product sicht: ignore-flags nicht mit einrechnen
+# todo usern lizenz wegnehmen
 
 
 class LicenseHandler:
@@ -102,11 +112,18 @@ class LicenseHandler:
             udm_obj.props.special_type = license.license_special_type
             udm_obj.props.purchasing_reference = license.purchasing_reference
             udm_obj.save()
-            self.logger.info("Created License object {}: {}".format(udm_obj.dn, udm_obj.props))
+            self.logger.debug("Created License object {}: {}".format(udm_obj.dn, udm_obj.props))
         except CreateError as e:
             raise BiloCreateError('Error creating license "{}"!\n{}'.format(license.license_code, e))
         for i in range(license.license_quantity):
             self.ah.create_assignment_for_license(license_code=license.license_code)
+
+    def set_license_ignore(self, license_code, ignore):  # type: (str, bool) -> None
+        udm_obj = self.get_udm_license_by_code(license_code)
+        ignore = "1" if ignore else "0"
+        udm_obj.props.ignored = ignore
+        udm_obj.save()
+        self.logger.debug("Set License status {}: {}".format(udm_obj.dn, udm_obj.props))
 
     @staticmethod
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> License
