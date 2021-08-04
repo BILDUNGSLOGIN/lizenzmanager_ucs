@@ -88,7 +88,7 @@ property_descriptions = {
     "time_of_assignment": univention.admin.property(
         short_description=_("Time of assignment"),
         long_description=_("The time of the assignment"),
-        syntax=univention.admin.syntax.date,
+        syntax=univention.admin.syntax.iso8601Date,
         required=False,
         may_change=True,
     ),

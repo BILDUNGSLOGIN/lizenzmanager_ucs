@@ -32,7 +32,7 @@ from datetime import datetime
 from typing import Dict
 
 from univention.admin.uldap import getAdminConnection
-from univention.bildungslogin.handler import BiloCreateError, LicenseHandler
+from univention.bildungslogin.handlers import BiloCreateError, LicenseHandler
 from univention.bildungslogin.models import License
 from univention.bildungslogin.utils import parse_raw_license_date
 

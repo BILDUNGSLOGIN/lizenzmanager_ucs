@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-# -*- coding: utf-8 -*-
-import datetime
-
-
-class Status:
-=======
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
 #
 # Copyright 2021 Univention GmbH
@@ -34,29 +27,20 @@ class Status:
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 
-import logging
-from datetime import datetime
+from univention.udm import CreateError
 
 
-class Status(object):
->>>>>>> issue #7: python-layer
-    ASSIGNED = "ASSIGNED"
-    PROVISIONED = "PROVISIONED"
-    AVAILABLE = "AVAILABLE"
+class BiloCreateError(CreateError):
+    pass
 
 
-class LicenseType:
-    VOLUME = "Volumenlizenz"
-    SINGLE = "Einzellizenz"
+class BiloAssignmentError(Exception):
+    pass
 
 
-def get_logger():  # type: () -> logging.Logger
-    return logging.getLogger(__name__)
+class BiloProductNotFoundError(Exception):
+    pass
 
 
-def my_string_to_int(num):  # type: (str) -> int
-    return int(num) if num else 0
-
-
-def parse_raw_license_date(date_str):  # type: (str) -> datetime
-    return datetime.strptime(date_str, "%d-%m-%Y")
+class BiloLicenseNotFoundError(Exception):
+    pass

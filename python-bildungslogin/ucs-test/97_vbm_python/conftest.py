@@ -1,7 +1,37 @@
+#!/usr/share/ucs-test/runner /usr/bin/py.test -s
 # -*- coding: utf-8 -*-
+#
+# Copyright 2021 Univention GmbH
+#
+# https://www.univention.de/
+#
+# All rights reserved.
+#
+# The source code of this program is made available
+# under the terms of the GNU Affero General Public License version 3
+# (GNU AGPL V3) as published by the Free Software Foundation.
+#
+# Binary versions of this program provided by Univention to you as
+# well as other copyrighted, protected or trademarked materials like
+# Logos, graphics, fonts, specific documentations and configurations,
+# cryptographic keys etc. are subject to a license agreement between
+# you and Univention and not subject to the GNU AGPL V3.
+#
+# In the case you use this program under the terms of the GNU AGPL V3,
+# the program is provided in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License with the Debian GNU/Linux or Univention distribution in file
+# /usr/share/common-licenses/AGPL-3; if not, see
+# <https://www.gnu.org/licenses/>.
+
 import datetime
 import json
 import random
+import string
 import uuid
 
 import ldap
@@ -9,59 +39,59 @@ import pytest
 
 import univention.testing.strings as uts
 from univention.admin.uldap import getAdminConnection
-from univention.bildungslogin.handler import AssignmentHandler, LicenseHandler, MetaDataHandler
+from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.bildungslogin.models import License, MetaData
 from univention.testing.ucr import UCSTestConfigRegistry
 
 
 def iso_format_date(my_date):
-    return my_date.isoformat().split("T")[0]
+    return my_date.strftime("%Y-%m-%d")
 
 
-def get_random_license():
+def random_string(n):  # type: (int) -> str
+    return "".join([random.choice(string.ascii_uppercase + string.digits) for _ in range(n)])
+
+
+def product_id():
+    return "urn:bilo:medium:{}#{}-{}-{}".format(
+        random_string(5), random_string(2), random_string(2), random_string(2)
+    )
+
+
+def get_license():
     today = datetime.datetime.now()
     start = today + datetime.timedelta(days=random.randint(0, 365))
     duration = random.randint(1, 365)
     end = start + datetime.timedelta(duration)
+    provider = uts.random_username()
     return License(
-        license_code="VHT-{}".format(str(uuid.uuid4())),
-        product_id="urn:bilo:medium:A0023#48-85-TZ",
+        license_code="{}-{}".format(provider, str(uuid.uuid4())),
+        product_id=product_id(),
         license_quantity=random.randint(10, 50),
-        license_provider="VHT",
-        purchasing_reference="2014-04-11T03:28:16 -02:00 4572022",
-        utilization_systems="Antolin",
+        license_provider=provider,
+        # todo this is not excactly equal to this format: "2014-04-11T03:28:16 -02:00 4572022",
+        purchasing_reference=today.isoformat(),
+        utilization_systems=uts.random_username(),
         validity_start_date=iso_format_date(start),
         validity_end_date=iso_format_date(end),
-        validity_duration="{}".format(duration),
+        validity_duration=str(duration),
         license_special_type=random.choice(["Lehrer", ""]),
-        ignored_for_display="0",
-        delivery_date=today.isoformat().split("T")[0],
-        license_school="test_schule",  # todo
+        ignored_for_display=random.choice(["0", "1"]),
+        delivery_date=iso_format_date(today),
+        license_school=uts.random_name(),
     )
 
 
 def get_expired_license():
     """ "the end_date + duration < today"""
-    # todo refactor me
     today = datetime.datetime.now()
     duration = random.randint(1, 365)
     start = today - datetime.timedelta(duration)
-    end = today - datetime.timedelta(1)
-    return License(
-        license_code="VHT-{}".format(str(uuid.uuid4())),
-        product_id="urn:bilo:medium:A0023#48-85-TZ",
-        license_quantity=random.randint(10, 50),
-        license_provider="VHT",
-        purchasing_reference="2014-04-11T03:28:16 -02:00 4572022",
-        utilization_systems="Antolin",
-        validity_start_date=iso_format_date(start),
-        validity_end_date=iso_format_date(end),
-        validity_duration="{}".format(duration),
-        license_special_type=random.choice(["Lehrer", ""]),
-        ignored_for_display="0",
-        delivery_date=today.isoformat().split("T")[0],  # huhu hier todo
-        license_school="test_schule",  # todo
-    )
+    license = get_license()
+    license.validity_start_date = start
+    license.validity_end_date = today - datetime.timedelta(1)
+    license.validity_duration = duration
+    return license
 
 
 @pytest.fixture(scope="function")
@@ -70,24 +100,23 @@ def expired_license():
 
 
 @pytest.fixture(scope="function")
-def random_n_expired_licenses():
+def n_expired_licenses():
     n = random.randint(1, 10)
     return [expired_license() for _ in range(n)]
 
 
 @pytest.fixture(scope="function")
-def random_license():
-    return get_random_license()
+def license():
+    return get_license()
 
 
 @pytest.fixture(scope="function")
-def random_n_random_licenses():
+def n_licenses():
     n = random.randint(1, 10)
-    return [get_random_license() for _ in range(n)]
+    return [get_license() for _ in range(n)]
 
 
-@pytest.fixture(scope="function")
-def random_meta_data():
+def get_meta_data():
     return MetaData(
         product_id=uts.random_name(),
         title=uts.random_name(),
@@ -100,8 +129,22 @@ def random_meta_data():
     )
 
 
+@pytest.fixture(scope="function")
+def meta_data():
+    return get_meta_data()
+
+
+@pytest.fixture(scope="function")
+def n_meta_data():
+    n = random.randint(1, 10)
+    return [get_meta_data() for _ in range(n)]
+
+
 @pytest.fixture()
 def lo():
+    """this is to simplify some of our tests with the simple udm api,
+    so we do not have to use the ucs-test school env all the time."""
+
     def add_temp(_dn, *args, **kwargs):
         lo.add_orig(_dn, *args, **kwargs)
         created_objs.append(_dn)
