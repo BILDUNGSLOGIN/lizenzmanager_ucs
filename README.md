@@ -6,6 +6,8 @@ Projektordner mit dem Kunden: https://projects.univention.de/owncloud/f/14912
 
 Guter Gesamtüberblick geht aus dem CR Dokument hervor: https://projects.univention.de/owncloud/f/14912
 
+[Dokuwiki](https://hutten.knut.univention.de/dokuwiki/kunden:service-center_bildungslogin_bei_der_vbm_service_gmbh)
+
 ## Kundenkonto:
 
 Service-Center BILDUNGSLOGIN bei der VBM Service GmbH (172906)
