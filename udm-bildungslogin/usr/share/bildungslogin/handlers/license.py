@@ -287,6 +287,19 @@ class object(univention.admin.handlers.simpleLdap):
             raise univention.admin.uexceptions.valueError(_("A license with that code already exists"))
         super(object, self)._ldap_pre_create()
 
+    def ready(self):
+        school_filter = "(objectClass=ucsschoolOrganizationalUnit)"
+        schools = [item[1]["ou"][0] for item in self.lo.search(school_filter, attr=["ou"])]
+        if self["school"].lower() not in [school.lower() for school in schools]:
+            raise univention.admin.uexceptions.valueError(
+                _(
+                    'The school "{}" does not exist. Choose from: \n{}'.format(
+                        self["school"], "\n".join(schools)
+                    )
+                )
+            )
+        super(object, self).ready()
+
     def open(self):
         super(object, self).open()
         self._load_num_assigned()
