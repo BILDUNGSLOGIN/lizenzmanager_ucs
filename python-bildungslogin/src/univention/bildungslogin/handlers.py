@@ -30,7 +30,7 @@
 
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from ucsschool.lib.roles import get_role_info
 
@@ -48,6 +48,7 @@ from univention.udm import UDM, CreateError, ModifyError, NoObject as UdmNoObjec
 from .execptions import (
     BiloAssignmentError,
     BiloCreateError,
+    BiloLicenseInvalidError,
     BiloLicenseNotFoundError,
     BiloProductNotFoundError,
 )
@@ -55,12 +56,21 @@ from .models import License, MetaData
 from .utils import LicenseType, Status, my_string_to_int
 
 #
+# done ignore darf nur gesetzt werden, wenn es keine zuweisungen gibt
+# done suche nach lizenen zusammenbasteln
+# -> siehe git
+# done einfacher test fuer suche
+#
+# done product sicht: ignore-flags nicht mit einrechnen
+
+
 # todo clarify: ignorefordisplay -> for which search is this relevant
+# todo clarify: brauchen wir das auch fuer die zuweisung?
+
+
 # todo parameter workgroup, schoolclass, pattern -> user discuss
-# todo suche nach lizenen zusammenbasteln
-# todo zuweisungs-asicht + anzahl der zugewiesenen user zurueckgeben
-# todo ignore darf nur gesetzt werden, wenn es keine zuweisungen gibt
-# todo product sicht: ignore-flags nicht mit einrechnen
+
+# todo zuweisungs-ansicht + anzahl der zugewiesenen user zurueckgeben (?)
 # DONE usern lizenz wegnehmen remove_assignment_from_users
 
 
@@ -99,6 +109,11 @@ class LicenseHandler:
 
     def set_license_ignore(self, license_code, ignore):  # type: (str, bool) -> None
         udm_obj = self.get_udm_license_by_code(license_code)
+        if my_string_to_int(udm_obj.props.num_assigned) != 0:
+            raise BiloLicenseInvalidError(
+                "License with code {} already has {} assignments. "
+                "It can't be the set to ignored!".format(license_code, udm_obj.props.num_assigned)
+            )
         ignore = "1" if ignore else "0"
         udm_obj.props.ignored = ignore
         udm_obj.save()
@@ -140,17 +155,18 @@ class LicenseHandler:
         except IndexError:
             raise BiloLicenseNotFoundError("License with code {} does not exist".format(license_code))
 
-    def get_meta_data_for_license(self, license):  # type: (License) -> MetaData
+    def get_meta_data_for_license(self, license):  # type: (UdmObject) -> MetaData
         """search for the product of the license. If this there is none
         yet, return an empty object.
         """
         # here we have to use the mod directly to prevent recursion
-        filter_s = filter_format("(product_id=%s)", [license.product_id])
-        udm_meta_data = [o for o in self._meta_data_mod.search(filter_s)][0]
+        filter_s = filter_format("(product_id=%s)", [license.props.product_id])
+
+        udm_meta_data = [o for o in self._meta_data_mod.search(filter_s)]
         if not udm_meta_data:
-            return MetaData(product_id=license.product_id)
+            return MetaData(product_id=license.props.product_id)
         else:
-            return MetaDataHandler.from_udm_obj(udm_meta_data)
+            return MetaDataHandler.from_udm_obj(udm_meta_data[0])
 
     def get_assignments_for_license(self, license):
         # type: (Union[License,UdmObject]) -> List[Assignment]
@@ -212,6 +228,46 @@ class LicenseHandler:
     @staticmethod
     def get_license_types():  # type: () -> List[str]
         return [LicenseType.SINGLE, LicenseType.VOLUME]
+
+    def search_for_license_code(self, license_code):  # type: (str) -> List[Dict[str, str]]
+        """this search can be extended for search for products (name, publisher, etc.)
+        and user (username, firstname, lastname)"""
+        rows = []
+        # todo this only returns the exact match of the license code
+        # todo we need a fuzzy search
+        for license in [self.get_udm_license_by_code(license_code=license_code)]:
+            meta_data = self.get_meta_data_for_license(license)
+            license = self.from_udm_obj(license)
+            rows.append(
+                {
+                    "licenseId": 0,  # todo what is this?
+                    "productId": license.product_id,
+                    "productName": meta_data.title,
+                    "publisher": meta_data.publisher,
+                    "licenseCode": license.license_code,
+                    "licenseType": license.license_type,
+                    "countAquired": self.get_total_number_of_assignments(license),
+                    "countAssigned": self.get_number_of_provisioned_and_assigned_assignments(license),
+                    # todo has to be fixed in udm
+                    "countExpired": 0,  # self.get_number_of_expired_assignments(license),
+                    "countAvailable": self.get_number_of_available_assignments(license),  # ???
+                    "importDate": license.delivery_date,
+                    "author": meta_data.author,
+                    "platform": "All",
+                    "reference": "reference",
+                    "specialLicense": license.license_special_type,
+                    "usage": "http://schule.de",
+                    "validityStart": license.validity_start_date,
+                    "validityEnd": license.validity_end_date,
+                    "validitySpan": license.validity_duration,
+                    "ignore": True if license.ignored_for_display == "1" else False,
+                    "coverSmall": meta_data.cover_small,
+                    "cover": meta_data.cover,
+                    # noqa: E501
+                    "users": [],  # todo
+                }
+            )
+        return rows
 
 
 class MetaDataHandler:
@@ -293,16 +349,20 @@ class MetaDataHandler:
 
         return assignments
 
+    def get_non_ignored_licenses_for_product_id(self, product_id):  # type: (str) -> List[UdmObject]
+        licenses_of_product = self.get_udm_licenses_by_product_id(product_id)
+        return [udm_license for udm_license in licenses_of_product if udm_license.props.ignored != "1"]
+
     def get_number_of_available_assignments(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status available"""
-        licenses_of_product = self.get_udm_licenses_by_product_id(meta_data.product_id)
+        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
         return sum(
             [my_string_to_int(udm_license.props.num_available) for udm_license in licenses_of_product]
         )
 
     def get_number_of_provisioned_and_assigned_assignments(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status provisioned or assigned"""
-        licenses_of_product = self.get_udm_licenses_by_product_id(meta_data.product_id)
+        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
         return sum(
             [my_string_to_int(udm_license.props.num_assigned) for udm_license in licenses_of_product]
         )
@@ -310,14 +370,14 @@ class MetaDataHandler:
     def get_number_of_expired_assignments(self, meta_data):  # type: (MetaData) -> int
         """count the number of assignments with status expired
         todo comment: has to be fixed in udm"""
-        licenses_of_product = self.get_udm_licenses_by_product_id(meta_data.product_id)
+        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
         return sum(
             [my_string_to_int(udm_license.props.num_expired) for udm_license in licenses_of_product]
         )
 
     def get_total_number_of_assignments(self, meta_data):  # type: (MetaData) -> int
         """count the total number of assignments"""
-        licenses_of_product = self.get_udm_licenses_by_product_id(meta_data.product_id)
+        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
         return sum([my_string_to_int(udm_license.props.quantity) for udm_license in licenses_of_product])
 
     def get_meta_data_by_product_id(self, product_id):  # type: (str) -> UdmObject

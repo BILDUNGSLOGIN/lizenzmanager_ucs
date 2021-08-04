@@ -38,7 +38,7 @@ from hashlib import sha256
 import pytest
 
 import univention.testing.ucsschool.ucs_test_school as utu
-from univention.bildungslogin.handlers import BiloCreateError
+from univention.bildungslogin.handlers import BiloCreateError, BiloLicenseInvalidError
 from univention.bildungslogin.utils import Status
 from univention.testing.utils import verify_ldap_object
 
@@ -179,8 +179,15 @@ def _set_license_ignore(license_handler, license, ldap_base):
     )
 
 
-def test_set_license_ignore(license_handler, license, ldap_base):
-    _set_license_ignore(license_handler, license, ldap_base)
+def test_set_license_ignore(license_handler, assignment_handler, license, ldap_base):
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        username = schoolenv.create_student(ou)[0]
+        license.license_school = ou
+        _set_license_ignore(license_handler, license, ldap_base)
+        assignment_handler.assign_to_license(username=username, license_code=license.license_code)
+        with pytest.raises(BiloLicenseInvalidError):
+            license_handler.set_license_ignore(license_code=license.license_code, ignore=True)
 
 
 def test_licenses_with_status_ignores_dont_show_up_in_search():
