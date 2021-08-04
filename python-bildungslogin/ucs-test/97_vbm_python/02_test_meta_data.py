@@ -1,4 +1,5 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
+# -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH
 #
@@ -82,21 +83,21 @@ def test_save_meta_data(meta_data_handler, meta_data, ldap_base):
     check_meta_data_is_correct(meta_data, ldap_base)
 
 
-def test_get_assignments_for_meta_data(licence_handler, meta_data_handler, license, meta_data):
+def test_get_assignments_for_meta_data(license_handler, meta_data_handler, license, meta_data):
     license.product_id = meta_data.product_id
-    licence_handler.create(license)
+    license_handler.create(license)
     assignments = meta_data_handler.get_assignments_for_meta_data(meta_data)
     for assignment in assignments:
         assert assignment.status == Status.AVAILABLE
         assert assignment.license == license.license_code
 
 
-def test_total_number_licenses(licence_handler, meta_data_handler, meta_data, n_licenses):
+def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_licenses):
     total_amount_of_licenses_for_product = 0
     for lic in n_licenses:
         # comment: we do not have to create the actual meta-data object for this.
         lic.product_id = meta_data.product_id
-        licence_handler.create(lic)
+        license_handler.create(lic)
         total_amount_of_licenses_for_product += lic.license_quantity
     assert (
         meta_data_handler.get_total_number_of_assignments(meta_data)
@@ -105,7 +106,7 @@ def test_total_number_licenses(licence_handler, meta_data_handler, meta_data, n_
 
 
 def test_number_of_provisioned_and_assigned_licenses(
-    licence_handler,
+    license_handler,
     meta_data_handler,
     assignment_handler,
     meta_data,
@@ -119,7 +120,7 @@ def test_number_of_provisioned_and_assigned_licenses(
         ou, _ = schoolenv.create_ou()
         license.product_id = meta_data.product_id
         license.license_school = ou
-        licence_handler.create(license)
+        license_handler.create(license)
         student_usernames = [schoolenv.create_student(ou)[0] for _ in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
         users = student_usernames + teacher_usernames
@@ -142,13 +143,13 @@ def test_number_of_provisioned_and_assigned_licenses(
 
 
 @pytest.mark.skip(reason="num_expired has to be fixed in udm")
-def test_number_of_expired_licenses(licence_handler, meta_data_handler, meta_data, n_expired_licenses):
+def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_data, n_expired_licenses):
     total_amount_of_licenses_for_product = 0
     # a assignment is not expired if end_date + duration < today
     for lic in n_expired_licenses:
         lic.product_id = meta_data.product_id
-        licence_handler.create(lic)
-        total_amount_of_licenses_for_product += licence_handler.get_number_of_expired_assignments(lic)
+        license_handler.create(lic)
+        total_amount_of_licenses_for_product += license_handler.get_number_of_expired_assignments(lic)
     assert (
         meta_data_handler.get_number_of_expired_assignments(meta_data)
         == total_amount_of_licenses_for_product

@@ -1,4 +1,5 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
+# -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH
 #
@@ -42,8 +43,8 @@ from univention.bildungslogin.utils import Status
 from univention.testing.utils import verify_ldap_object
 
 
-def test_create(lo, licence_handler, license, ldap_base):
-    licence_handler.create(license)
+def test_create(lo, license_handler, license, ldap_base):
+    license_handler.create(license)
     cn = sha256(license.license_code).hexdigest()
     license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
     expected_attr = {
@@ -74,23 +75,23 @@ def test_create(lo, licence_handler, license, ldap_base):
         verify_ldap_object(dn, expected_attr=expected_attr, strict=False)
     # licenses are unique, duplicates produce errors
     with pytest.raises(BiloCreateError):
-        licence_handler.create(license)
+        license_handler.create(license)
 
 
-def test_get_assignments_for_license(licence_handler, license):
-    licence_handler.create(license)
-    assignments = licence_handler.get_assignments_for_license(license)
+def test_get_assignments_for_license(license_handler, license):
+    license_handler.create(license)
+    assignments = license_handler.get_assignments_for_license(license)
     for assignment in assignments:
         assert assignment.status == Status.AVAILABLE
         assert assignment.license == license.license_code
 
 
-def test_get_total_number_of_licenses(licence_handler, license):
-    licence_handler.create(license)
-    assert licence_handler.get_total_number_of_assignments(license) == license.license_quantity
+def test_get_total_number_of_licenses(license_handler, license):
+    license_handler.create(license)
+    assert license_handler.get_total_number_of_assignments(license) == license.license_quantity
 
 
-def test_number_of_provisioned_and_assigned_licenses(licence_handler, assignment_handler, license):
+def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment_handler, license):
     # 00_vbm_test_assignments
     # the number of provisioned licenses is included in the number of assigned licenses
     num_students = 3
@@ -99,12 +100,12 @@ def test_number_of_provisioned_and_assigned_licenses(licence_handler, assignment
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license.license_school = ou
-        licence_handler.create(license)
+        license_handler.create(license)
         student_usernames = [schoolenv.create_student(ou)[0] for _ in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
         users = student_usernames + teacher_usernames
         assignment_handler.assign_users_to_license(usernames=users, licenses_code=license.license_code)
-        num_assigned = licence_handler.get_number_of_provisioned_and_assigned_assignments(license)
+        num_assigned = license_handler.get_number_of_provisioned_and_assigned_assignments(license)
         assert num_assigned == num_students + num_teachers
         for user_name in users[:2]:
             assignment_handler.change_license_status(
@@ -113,28 +114,28 @@ def test_number_of_provisioned_and_assigned_licenses(licence_handler, assignment
                 status=Status.PROVISIONED,
             )
         # after provisioning the code to some users, the number should still be the same.
-        num_assigned = licence_handler.get_number_of_provisioned_and_assigned_assignments(license)
+        num_assigned = license_handler.get_number_of_provisioned_and_assigned_assignments(license)
         assert num_assigned == num_students + num_teachers
         # the number of available license-assignments for this license should be the total number - the number
         # of users which just a license-assignment for this license
-        total_num = licence_handler.get_total_number_of_assignments(license)
-        assert licence_handler.get_number_of_available_assignments(license) == total_num - len(users)
+        total_num = license_handler.get_total_number_of_assignments(license)
+        assert license_handler.get_number_of_available_assignments(license) == total_num - len(users)
 
 
 @pytest.mark.skip(reason="num_expired has to be fixed in udm")
-def test_number_of_expired_licenses(licence_handler, expired_license):
-    licence_handler.create(expired_license)
+def test_number_of_expired_licenses(license_handler, expired_license):
+    license_handler.create(expired_license)
     assert (
-        licence_handler.get_number_of_expired_assignments(expired_license)
+        license_handler.get_number_of_expired_assignments(expired_license)
         == expired_license.license_quantity
     )
 
 
-def test_get_meta_data_for_license(licence_handler, meta_data_handler, license, meta_data):
+def test_get_meta_data_for_license(license_handler, meta_data_handler, license, meta_data):
     license.product_id = meta_data.product_id
-    licence_handler.create(license)
+    license_handler.create(license)
     meta_data_handler.create(meta_data)
-    meta_data = licence_handler.get_meta_data_for_license(license)
+    meta_data = license_handler.get_meta_data_for_license(license)
     assert meta_data.product_id == meta_data.product_id
     assert meta_data.title == meta_data.title
     assert meta_data.description == meta_data.description
@@ -145,13 +146,17 @@ def test_get_meta_data_for_license(licence_handler, meta_data_handler, license, 
     assert meta_data.modified == meta_data.modified
 
 
-def test_get_time_of_last_assignment(licence_handler, assignment_handler, license):
+def test_get_time_of_last_assignment(license_handler, assignment_handler, license):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license.license_school = ou
-        licence_handler.create(license)
+        license_handler.create(license)
         username, _ = schoolenv.create_student(ou)
         assignment_handler.assign_to_license(username=username, license_code=license.license_code)
-        assert licence_handler.get_time_of_last_assignment(license) == datetime.datetime.now().strftime(
+        assert license_handler.get_time_of_last_assignment(license) == datetime.datetime.now().strftime(
             "%Y-%m-%d"
         )
+
+
+def test_get_license_types(license_handler):
+    assert {"Volumenlizenz", "Einzellizenz"} == set(license_handler.get_license_types())

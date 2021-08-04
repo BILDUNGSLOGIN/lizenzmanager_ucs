@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-# -*- coding: utf-8 -*-
-import datetime
-
-
-class Status:
-=======
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
+# -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH
 #
@@ -39,7 +33,6 @@ from datetime import datetime
 
 
 class Status(object):
->>>>>>> issue #7: python-layer
     ASSIGNED = "ASSIGNED"
     PROVISIONED = "PROVISIONED"
     AVAILABLE = "AVAILABLE"

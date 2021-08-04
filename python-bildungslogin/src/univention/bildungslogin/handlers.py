@@ -1,8 +1,5 @@
-<<<<<<< HEAD:python-bildungslogin/src/univention/bildungslogin/handler.py
-# -*- coding: utf-8 -*-
-# WIP, not all tested (!)
-=======
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
+# -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH
 #
@@ -31,10 +28,11 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 
->>>>>>> issue #7: python-layer:python-bildungslogin/src/univention/bildungslogin/handlers.py
 import logging
 from datetime import datetime
 from typing import TYPE_CHECKING
+
+from ucsschool.lib.roles import get_role_info
 
 if TYPE_CHECKING:
     from ucsschool.lib.models.base import LoType, UdmObject
@@ -54,7 +52,7 @@ from .execptions import (
     BiloProductNotFoundError,
 )
 from .models import License, MetaData
-from .utils import Status, my_string_to_int
+from .utils import LicenseType, Status, my_string_to_int
 
 # DONE license position is not set correct @juern -> DONE (typo)
 
@@ -70,11 +68,11 @@ from .utils import Status, my_string_to_int
 #
 # DONE MetaDataHandler save + test @tobi
 # DONE get_publishers +test @tobias
-# todo get_license_types -> klaeren
+# todo get_license_types -> klaeren volumen|massenlizenzen
 # DONE get_all_product_ids -> @juern -> Test
 
-# todo test special type ?
-# -> in change status assign license
+# DONE test special type ?
+# todo-> in change status assign license
 
 
 class LicenseHandler:
@@ -108,7 +106,7 @@ class LicenseHandler:
         except CreateError as e:
             raise BiloCreateError('Error creating license "{}"!\n{}'.format(license.license_code, e))
         for i in range(license.license_quantity):
-            self.ah.create_assignment_for_licence(license_code=license.license_code)
+            self.ah.create_assignment_for_license(license_code=license.license_code)
 
     @staticmethod
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> License
@@ -214,6 +212,10 @@ class LicenseHandler:
         assignments = self.get_assignments_for_license_with_filter(filter_s=filter_s, license=license)
         max_datetime = max([date.to_datetime(a.time_of_assignment) for a in assignments])
         return date.from_datetime(max_datetime)
+
+    @staticmethod
+    def get_license_types():  # type: () -> List[str]
+        return [LicenseType.SINGLE, LicenseType.VOLUME]
 
 
 class MetaDataHandler:
@@ -347,7 +349,7 @@ class AssignmentHandler:
         self._users_mod = udm.get("users/user")
         self.logger = logging.getLogger(__name__)
 
-    def get_licence_of_assignment(self, dn):  # type: (str) -> UdmObject
+    def get_license_of_assignment(self, dn):  # type: (str) -> UdmObject
         """Return the udm object of the license which is placed
         above the assignment. This is like 'get_parent'."""
         try:
@@ -363,7 +365,7 @@ class AssignmentHandler:
         :param udm_obj: of assignment
         :return: assignment object
         """
-        udm_license = self.get_licence_of_assignment(udm_obj.position)
+        udm_license = self.get_license_of_assignment(udm_obj.position)
         return Assignment(
             username=udm_obj.props.assignee,
             license=udm_license.props.code,
@@ -423,7 +425,7 @@ class AssignmentHandler:
         except IndexError:
             raise BiloLicenseNotFoundError("No license with code {} was found!".format(license_code))
 
-    def create_assignment_for_licence(self, license_code):  # type: (str) -> bool
+    def create_assignment_for_license(self, license_code):  # type: (str) -> bool
         udm_license = self.get_license_by_license_code(license_code)
         try:
             assignment = self._assignments_mod.new(superordinate=udm_license.dn)
@@ -437,10 +439,27 @@ class AssignmentHandler:
         filter_s = filter_format("(status=%s)", [Status.AVAILABLE])
         return self._get_all(base=dn, filter_s=filter_s)
 
+    @staticmethod
+    def check_license_type_is_correct(
+        username, user_roles, license_type
+    ):  # type: (str, List[str], str) -> None
+        # todo check if we need this in mvb
+        if license_type == "Lehrer":
+            roles = [get_role_info(role)[0] for role in user_roles]
+            if "student" in roles:
+                raise BiloAssignmentError(
+                    "License with special type 'Lehrer' can't be assigned to user {} with roles {}!".format(
+                        username, roles
+                    )
+                )
+
     def assign_to_license(self, license_code, username):  # type: (str, str) -> None
         udm_license = self.get_license_by_license_code(license_code)
         user = self.get_user_by_username(username)
         self.check_license_can_be_assigned_to_school_user(udm_license.props.school, user.props.school)
+        self.check_license_type_is_correct(
+            username, user.props.ucsschoolRole, udm_license.props.special_type
+        )
         assigned_to_user = self.get_all_assignments_for_user(base=udm_license.dn, username=username)
         if assigned_to_user:
             raise BiloAssignmentError(

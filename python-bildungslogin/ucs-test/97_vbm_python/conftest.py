@@ -161,7 +161,7 @@ def lo():
 
 
 @pytest.fixture()
-def licence_handler(lo):
+def license_handler(lo):
     return LicenseHandler(lo)
 
 

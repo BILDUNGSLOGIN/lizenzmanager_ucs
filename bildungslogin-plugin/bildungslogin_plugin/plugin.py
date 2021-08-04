@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from typing import Any, Dict, List
 
 from bildungslogin_plugin.models import User, user_id_description

@@ -1,15 +1,16 @@
+# -*- coding: utf-8 -*-
 from __future__ import annotations
+
 from typing import Any, Dict, List, Set
 
 from fastapi import APIRouter, Depends, HTTPException
+from id_broker_plugin.id_broker_plugin import kelvin_session
 from pydantic import BaseModel, ValidationError, constr, validator
 from starlette import status
 
-from id_broker_plugin.id_broker_plugin import kelvin_session
 from ucsschool.apis.opa import OPAClient, opa_instance
 from ucsschool.apis.plugins.auth import get_token
 from ucsschool.kelvin.client import InvalidRequest, Session, User as KelvinUser, UserResource
-
 
 NonEmptyStr = constr(min_length=1)
 NoStarStr = constr(regex=r"^[^*]+$")
@@ -38,6 +39,7 @@ class User(BaseModel):
                 "context": {"School1": {"classes": ["1a"], "roles": ["teacher", "staff"]}},
             }
         }
+
     @validator("context")
     def context_not_empty(cls, value: Dict[str, SchoolContext]):
         if not value:
@@ -124,8 +126,7 @@ class User(BaseModel):
         user_data = user.dict()
         user_data["user_name"] = user.user_name
         user_data["context"] = {
-            school: school_context
-            for school, school_context in user.context.items()
+            school: school_context for school, school_context in user.context.items()
         }
         return cls(**user_data)
 

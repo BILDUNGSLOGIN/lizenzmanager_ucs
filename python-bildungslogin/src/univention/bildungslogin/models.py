@@ -1,7 +1,5 @@
-<<<<<<< HEAD
-# -*- coding: utf-8 -*-
-=======
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
+# -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH
 #
@@ -30,7 +28,6 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 
->>>>>>> issue #7: python-layer
 from typing import Optional
 
 from utils import LicenseType, Status
@@ -84,6 +81,7 @@ class License(object):
 
     @property
     def license_type(self):  # type: () -> str
+        """we only have volume and single-licenses, not mass-licenses"""
         if self.license_quantity > 1:
             return LicenseType.VOLUME
         else:
