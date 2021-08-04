@@ -54,35 +54,14 @@ from .execptions import (
 from .models import License, MetaData
 from .utils import LicenseType, Status, my_string_to_int
 
-# DONE license position is not set correct @juern -> DONE (typo)
-
 #
-# DONE Mehrfachzuweisung einer Lizenz soll nicht moeglich sein
-# (user, license) should be unique
-#
-# DONE create factory method for from_udm_obj lassen wir das mal
-#
-#
-# DONE refactoring handlers @tobi
-# DONE assignments in models ziehen
-#
-# DONE MetaDataHandler save + test @tobi
-# DONE get_publishers +test @tobias
-# DONE get_license_types -> klaeren volumen|massenlizenzen
-# DONE get_all_product_ids -> @juern -> Test
-
-# DONE test special type ?
-# DONE-> in change status assign license
-# DONE set_ignore + test -> tobi
 # todo clarify: ignorefordisplay -> for which search is this relevant
-
-
 # todo parameter workgroup, schoolclass, pattern -> user discuss
 # todo suche nach lizenen zusammenbasteln
 # todo zuweisungs-asicht + anzahl der zugewiesenen user zurueckgeben
 # todo ignore darf nur gesetzt werden, wenn es keine zuweisungen gibt
 # todo product sicht: ignore-flags nicht mit einrechnen
-# todo usern lizenz wegnehmen
+# DONE usern lizenz wegnehmen remove_assignment_from_users
 
 
 class LicenseHandler:
@@ -482,7 +461,6 @@ class AssignmentHandler:
             raise BiloAssignmentError(
                 "License with code {} has already been assigned to {}".format(license_code, username)
             )
-
         available_licenses = self._get_available_assignments(udm_license.dn)
         if not available_licenses:
             raise BiloAssignmentError(
@@ -498,9 +476,9 @@ class AssignmentHandler:
         udm_assignment.save()
         logging.debug("Assigned license with license code {} to {}".format(license_code, username))
 
-    def assign_users_to_license(self, licenses_code, usernames):  # type: (str, List[str]) -> None
+    def assign_users_to_license(self, license_code, usernames):  # type: (str, List[str]) -> None
         for username in usernames:
-            self.assign_to_license(licenses_code, username)
+            self.assign_to_license(license_code, username)
 
     def get_assignment_for_user_under_license(self, license_dn, username):
         # type: (str, str)  -> UdmObject
@@ -517,12 +495,19 @@ class AssignmentHandler:
 
     def change_license_status(self, license_code, username, status):  # type: (str, str, str) -> None
         """
-        AVAILABLE -> ASSIGNED
+        AVAILABLE -> ASSIGNED -> use assign_to_license instead
         ASSIGNED -> AVAILABLE
         AVAILABLE -> EXPIRED -> is calculated
         ASSIGNED -> PROVISIONED
-        handled at the license object AVAILABLE -> IGNORED
+        AVAILABLE -> IGNORED -> handled at the license object
+        todo
         """
+        if status == Status.ASSIGNED:
+            # comment: fallback for AVAILABLE -> ASSIGNED
+            self.assign_to_license(license_code=license_code, username=username)
+        if status not in [Status.PROVISIONED, Status.AVAILABLE]:
+            raise BiloAssignmentError("Illegal status change to {}".format(status))
+
         udm_license = self.get_license_by_license_code(license_code)
         udm_assignment = self.get_assignment_for_user_under_license(
             license_dn=udm_license.dn, username=username
@@ -539,7 +524,6 @@ class AssignmentHandler:
             # assignments which are available do not have an assignee
             udm_assignment.props.assignee = None
         udm_assignment.props.status = status
-
         try:
             udm_assignment.save()
             logging.debug(
@@ -549,3 +533,9 @@ class AssignmentHandler:
             )
         except ModifyError as exc:
             raise BiloAssignmentError("Assignment status change is not valid!\n{}".format(exc))
+
+    def remove_assignment_from_users(self, license_code, usernames):  # type: (str, List[str]) -> None
+        for username in usernames:
+            self.change_license_status(
+                license_code=license_code, username=username, status=Status.AVAILABLE
+            )

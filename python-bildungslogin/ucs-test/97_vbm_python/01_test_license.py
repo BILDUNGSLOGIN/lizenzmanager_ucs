@@ -103,7 +103,7 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
         student_usernames = [schoolenv.create_student(ou)[0] for _ in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
         users = student_usernames + teacher_usernames
-        assignment_handler.assign_users_to_license(usernames=users, licenses_code=license.license_code)
+        assignment_handler.assign_users_to_license(usernames=users, license_code=license.license_code)
         num_assigned = license_handler.get_number_of_provisioned_and_assigned_assignments(license)
         assert num_assigned == num_students + num_teachers
         for user_name in users[:2]:

@@ -33,6 +33,7 @@
 ## roles: [domaincontroller_master]
 
 import datetime
+import random
 
 import pytest
 
@@ -83,17 +84,44 @@ def test_check_license_can_be_assigned_to_school_user():
         )
 
 
+def test_remove_assignment_from_users(assignment_handler, license_handler, license):
+    # 00_vbm_test_assignments
+    with utu.UCSTestSchool() as schoolenv:
+        license.license_special_type = ""
+        ou, _ = schoolenv.create_ou()
+        license.license_school = ou
+        license_handler.create(license)
+        n = random.randint(0, 10)
+        usernames = [schoolenv.create_student(ou)[0] for _ in range(n)]
+        usernames.append(schoolenv.create_teacher(ou)[0])
+        assignment_handler.assign_users_to_license(
+            usernames=usernames, license_code=license.license_code
+        )
+        assignments = license_handler.get_assignments_for_license(license)
+        for username in usernames:
+            license_was_assigned_correct_to_user(assignments, username)
+        assignment_handler.remove_assignment_from_users(
+            usernames=usernames, license_code=license.license_code
+        )
+        assignments = license_handler.get_assignments_for_license(license)
+        assignees = [a.assignee for a in assignments]
+        for username in usernames:
+            assert username not in assignees
+
+
 def test_assign_users_to_licenses(assignment_handler, license_handler, license):
     # 00_vbm_test_assignments
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license.license_school = ou
         license_handler.create(license)
-        users = [schoolenv.create_student(ou)[0] for _ in range(license.license_quantity)]
-        assignment_handler.assign_users_to_license(usernames=users, licenses_code=license.license_code)
+        usernames = [schoolenv.create_student(ou)[0] for _ in range(license.license_quantity)]
+        assignment_handler.assign_users_to_license(
+            usernames=usernames, license_code=license.license_code
+        )
         assignments = license_handler.get_assignments_for_license(license)
-        for user in users:
-            license_was_assigned_correct_to_user(assignments, user)
+        for username in usernames:
+            license_was_assigned_correct_to_user(assignments, username)
 
 
 def test_get_assignments_for_product_id_for_user(license_handler, assignment_handler, license):

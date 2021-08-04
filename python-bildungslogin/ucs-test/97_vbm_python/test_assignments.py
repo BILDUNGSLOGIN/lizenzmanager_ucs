@@ -48,7 +48,7 @@ def test_assign_users_to_licenses(assignment_handler, licence_handler, random_li
         licence_handler.create(random_license)
         users = [schoolenv.create_student(ou)[0] for _ in range(random_license.license_quantity)]
         assignment_handler.assign_users_to_license(
-            usernames=users, licenses_code=random_license.license_code
+            usernames=users, license_code=random_license.license_code
         )
         assignments = licence_handler.get_assignments_for_license(random_license)
         for user in users:

@@ -62,7 +62,7 @@ def test_number_of_provisioned_and_assigned_licenses(
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
         users = student_usernames + teacher_usernames
         assignment_handler.assign_users_to_license(
-            usernames=users, licenses_code=random_license.license_code
+            usernames=users, license_code=random_license.license_code
         )
         num_assigned = meta_data_handler.get_number_of_provisioned_and_assigned_assignments(
             random_meta_data
