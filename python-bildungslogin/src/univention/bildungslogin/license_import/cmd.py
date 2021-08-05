@@ -38,8 +38,12 @@ from univention.bildungslogin.license_import import import_license, load_license
 
 def parse_args():  # type: () -> argparse.Namespace
     parser = argparse.ArgumentParser(description="Import media licenses")
-    parser.add_argument("--license-file", help="Path to the license file which should be imported")
-    parser.add_argument("--school", help="School abbreviation for which the license should be imported")
+    parser.add_argument(
+        "--license-file", required=True, help="Path to the license file which should be imported"
+    )
+    parser.add_argument(
+        "--school", required=True, help="School abbreviation for which the license should be imported"
+    )
     args = parser.parse_args()
     return args
 
