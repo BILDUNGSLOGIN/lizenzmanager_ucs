@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "bildungslogin-plugin"
 version = "1.0.0"
-description = "This is a plugin for bildungslogin"
-authors = ["Joerg Baach <baach@univention.de>"]
+description = "This is a plugin for the ucsschool-apis app to create a REST API resource for use by bildungslogin.de."
+authors = ["Joerg Baach <baach@univention.de>", "Daniel Troeder <troeder@univention.de"]
 license = "AGPL V3"
 maintainers = ["Univention GmbH <packages@univention.de>"]
 homepage = "https://univention.de"
@@ -23,11 +23,11 @@ classifiers=[
 ]
 
 [tool.poetry.plugins."ucsschool_apis.plugins"]
-"bildungslogin" = "bildungslogin_plugin.bildungslogin_plugin:BildungsloginPlugin"
+"bildungslogin" = "bildungslogin_plugin.plugin:BildungsloginPlugin"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-#ucsschool-apis = "^0.1"
+udm-rest-client = "^1.0.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
