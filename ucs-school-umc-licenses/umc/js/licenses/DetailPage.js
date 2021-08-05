@@ -97,7 +97,7 @@ define([
 				[_('Platform'),        e('platform'),       _('Validity span'),  e('validitySpan')],
 				[_('License code'),    e('licenseCode'),    _('Ignore'),         ignore()],
 				[_('License type'),    e('licenseType'),    _('Aquired'),        e('countAquired')],
-				[_('Reference'),       e('reference'),      _('Allocated'),      e('countAllocated')],
+				[_('Reference'),       e('reference'),      _('Assigned'),      e('countAllocated')],
 				[_('Special license'), e('specialLicense'), _('Expired'),        e('countExpired')],
 				['',                   '',                  _('Available'),      e('countAllocatable')],
 			];
@@ -128,6 +128,9 @@ define([
 
 
 		//// self
+		_table: null,
+		_grid: null,
+
 		license: null,
 		_setLicenseAttr: function(license) {
 			this._table.set('license', license);
@@ -136,8 +139,17 @@ define([
 			this._set('license', license);
 		},
 
-		_table: null,
-		_grid: null,
+		load: function(licenseId) {
+			return this.standbyDuring(
+				tools.umcpCommand('licenses/get', {
+					licenseId: licenseId,
+				}).then(lang.hitch(this, function(response) {
+					const license = response.result;
+					this.set('license', license);
+					return license.licenseCode;
+				}))
+			);
+		},
 
 		save: function() {
 			if (!this._table.ignoreChanged()) {
@@ -217,15 +229,12 @@ define([
 			const columns = [{
 				name: 'username',
 				label: _('User'),
-				width: 'auto',
 			}, {
 				name: 'status',
 				label: _('Status'),
-				width: 'auto',
 			}, {
 				name: 'allocationDate',
-				label: _('Allocation date'),
-				width: 'auto',
+				label: _('Date of assignment'),
 			}];
 			this._grid = new Grid({
 				actions: actions,

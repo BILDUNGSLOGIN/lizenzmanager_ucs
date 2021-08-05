@@ -36,19 +36,21 @@ define([
 	"umc/store",
 	"umc/tools",
 	"umc/widgets/Module",
+	"umc/widgets/Text",
 	"./licenses/ChooseSchoolPage",
 	"./licenses/DetailPage",
 	"./licenses/SearchPage",
 	"./licenses/UserSelectionPage",
 	"umc/i18n!umc/modules/licenses",
 	"xstyle/css!./licenses.css"
-], function(declare, lang, on, entities, store, tools, Module, ChooseSchoolPage, DetailPage, SearchPage, UserSelectionPage, _) {
+], function(declare, lang, on, entities, store, tools, Module, Text, ChooseSchoolPage, DetailPage, SearchPage, UserSelectionPage, _) {
 
 	return declare("umc.modules.licenses", [ Module ], {
 		//// overwrites
 		selectablePagesToLayoutMapping: {
 			_searchPage: 'searchpage-grid',
 			_detailPage: 'searchpage-grid',
+			_userSelectionPage: 'searchpage-grid',
 		},
 
 
@@ -58,71 +60,113 @@ define([
 		_detailPage: null,
 		_userSelectionPage: null,
 
-		_schools: null,
+		_buildLicenses: function(schoolId, hasMultipleSchools) {
+			if (this._searchPage) {
+				this._searchPage.destroyRecursive();
+			}
+			if (this._detailPage) {
+				this._detailPage.destroyRecursive();
+			}
 
-
-
-		_buildRendering: function(schoolId, hasMultipleSchools) {
 			this._searchPage = new SearchPage({
 				standbyDuring: lang.hitch(this, 'standbyDuring'),
 				schoolId: schoolId,
-				hasMultipleSchools: hasMultipleSchools,
+				showChangeSchoolButton: hasMultipleSchools,
+				moduleFlavor: this.moduleFlavor,
 			});
+			on(this._searchPage, 'chooseDifferentSchool', lang.hitch(this, function() {
+				this._chooseDifferentSchool();
+			}));
+			on(this._searchPage, 'editLicense', lang.hitch(this, function(licenseId) {
+				this._detailPage.load(licenseId).then(lang.hitch(this, function(licenseCode) {
+					this.set('title', this.defaultTitle + ': ' + entities.encode(licenseCode));
+					this.selectChild(this._detailPage);
+				}));
+			}));
+
 			this._detailPage = new DetailPage({
 				standbyDuring: lang.hitch(this, 'standbyDuring'),
 			});
-
-			this._userSelectionPage = new UserSelectionPage({
-				standbyDuring: lang.hitch(this, 'standbyDuring'),
-				schoolId: schoolId,
-			});
-
-			on(this._searchPage, 'editLicense', lang.hitch(this, function(licenseId) {
-				// TODO move to DetailPage
-				const request = tools.umcpCommand('licenses/get', {
-					licenseId: licenseId,
-				}).then(lang.hitch(this, function(response) {
-					const license = response.result;
-					this.set('title', this.defaultTitle + ': ' + entities.encode(license.licenseCode));
-					this._detailPage.set('license', license);
-					this.selectChild(this._detailPage);
-				}));
-				this.standbyDuring(request);
-			}));
-			on(this._searchPage, 'chooseDifferentSchool', lang.hitch(this, function() {
-				this.selectChild(this._chooseSchoolPage);
-			}));
-
 			on(this._detailPage, 'back', lang.hitch(this, function() {
-				this.resetTitle();
-				this.selectChild(this._searchPage);
-			}));
-			on(this._userSelectionPage, 'back', lang.hitch(this, function() {
 				this.resetTitle();
 				this.selectChild(this._searchPage);
 			}));
 
 			this.addChild(this._searchPage);
 			this.addChild(this._detailPage);
-			this.addChild(this._userSelectionPage);
 
-			if (this.moduleFlavor === 'licenses/allocation') {
-				this.selectChild(this._userSelectionPage);
-			} else {
-				this.selectChild(this._searchPage);
+			this.selectChild(this._searchPage);
+		},
+
+		_schoolLabelWidget: null,
+		schoolLabel: '&nbsp;',
+		_setSchoolLabelAttr: function(schoolLabel) {
+			if (!this._schoolLabelWidget) {
+				this._schoolLabelWidget = new Text({
+					content: '',
+				});
+				// FIXME usage of private variables
+				this._top._left.addChild(this._schoolLabelWidget);
 			}
+			this._schoolLabelWidget.set('content', schoolLabel);
+			this._set('schoolLabel', schoolLabel);
+		},
+
+		_chooseDifferentSchool: function() {
+			this.set('schoolLabel', '&nbsp;');
+			this.selectChild(this._chooseSchoolPage);
+		},
+
+		_buildAllocation: function(schoolId, hasMultipleSchools) {
+			if (this._userSelectionPage) {
+				this._userSelectionPage.destroyRecursive();
+			}
+			if (this._searchPage) {
+				this._searchPage.destroyRecursive();
+			}
+
+			this._userSelectionPage = new UserSelectionPage({
+				standbyDuring: lang.hitch(this, 'standbyDuring'),
+				schoolId: schoolId,
+				showChangeSchoolButton: hasMultipleSchools,
+			});
+			on(this._userSelectionPage, 'chooseDifferentSchool', lang.hitch(this, function() {
+				this._chooseDifferentSchool();
+			}));
+
+			this._searchPage = new SearchPage({
+				standbyDuring: lang.hitch(this, 'standbyDuring'),
+				schoolId: schoolId,
+				moduleFlavor: this.moduleFlavor,
+			});
+
+
+			this.addChild(this._userSelectionPage);
+			this.addChild(this._searchPage);
+
+			this.selectChild(this._userSelectionPage);
 		},
 
 
 		//// lifecycle
 		buildRendering: function() {
 			this.inherited(arguments);
+
 			this._chooseSchoolPage = new ChooseSchoolPage({
 				standbyDuring: lang.hitch(this, 'standbyDuring'),
 			});
-			on(this._chooseSchoolPage, 'schoolChosen', lang.hitch(this, function(schoolId, hasMultipleSchools) {
-				this._buildRendering(schoolId, hasMultipleSchools);
+			on(this._chooseSchoolPage, 'schoolChosen', lang.hitch(this, function(school, hasMultipleSchools) {
+				this.set('schoolLabel', _('for ') + entities.encode(school.label));
+				switch (this.moduleFlavor) {
+					case 'licenses/licenses':
+						this._buildLicenses(school.id, hasMultipleSchools);
+						break;
+					case 'licenses/allocation':
+						this._buildAllocation(school.id, hasMultipleSchools);
+						break;
+				}
 			}));
+
 			this.addChild(this._chooseSchoolPage);
 		},
 	});

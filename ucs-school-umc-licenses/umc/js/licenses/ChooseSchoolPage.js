@@ -46,7 +46,7 @@ define([
 
 
 		//// self
-		onSchoolChosen: function(schoolId) {
+		onSchoolChosen: function(school) {
 			// event stub
 		},
 
@@ -60,7 +60,7 @@ define([
 					const hasMultipleSchools = schools.length > 1;
 
 					if (schools.length === 1) {
-						this.onSchoolChosen(schools[0].id, hasMultipleSchools);
+						this.onSchoolChosen(schools[0], hasMultipleSchools);
 					} else {
 						const form = new Form({
 							widgets: [{
@@ -86,7 +86,11 @@ define([
 							],
 						});
 						form.on('submit', lang.hitch(this, function() {
-							this.onSchoolChosen(form.get('value').school, hasMultipleSchools);
+							const schoolId = form.get('value').school;
+							const school = schools.find(function(school) {
+								return school.id === schoolId;
+							});
+							this.onSchoolChosen(school, hasMultipleSchools);
 						}));
 
 						this.addChild(form);

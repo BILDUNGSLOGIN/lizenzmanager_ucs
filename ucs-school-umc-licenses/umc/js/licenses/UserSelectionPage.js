@@ -46,21 +46,30 @@ define([
 
 
 		//// self
-		// standbyDuring: null, // required
+		standbyDuring: null, // required parameter
+		schoolId: null, // required parameter
+		showChangeSchoolButton: false,
 
 		onBack: function() {
 			// event stub
 		},
 
+		onChooseDifferentSchool: function() {
+			// event stub
+		},
+
 
 		//// lifecycle
-		// postMixInProperties: function() {
-			// this.headerButtons = [{
-				// name: 'close',
-				// label: _('Back'),
-				// callback: lang.hitch(this, 'onBack'),
-			// }];
-		// },
+		postMixInProperties: function() {
+			this.inherited(arguments);
+			if (this.showChangeSchoolButton) {
+				this.headerButtons = [{
+					name: 'changeSchool',
+					label: _('Change school'),
+					callback: lang.hitch(this, 'onChooseDifferentSchool'),
+				}];
+			}
+		},
 
 		buildRendering: function() {
 			this.inherited(arguments);
@@ -103,13 +112,14 @@ define([
 				],
 				hideSubmitButton: true,
 				onSearch: lang.hitch(this, function(values) {
+					values.school =
 					this._grid.filter(values);
 				}),
 			});
 
 			const actions = [{
 				name: 'allocate',
-				label: _('Allocate licenses'),
+				label: _('Assign licenses'),
 				isStandardAction: true,
 				isContextAction: true,
 				isMultiAction: true,

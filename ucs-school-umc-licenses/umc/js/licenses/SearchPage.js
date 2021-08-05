@@ -51,9 +51,20 @@ define([
 		//// overwrites
 		fullWidth: true,
 
+		_onShow: function() {
+			this.standbyDuring(
+				this._searchForm.ready().then(lang.hitch(this, function() {
+					this._searchForm.submit();
+				}))
+			);
+		},
+
 
 		//// self
-		standbyDuring: null, // required
+		standbyDuring: null, // required parameter
+		schoolId: null, // required parameter
+		moduleFlavor: null, // required parameter
+		showChangeSchoolButton: false,
 
 		_grid: null,
 		_searchForm: null,
@@ -89,6 +100,9 @@ define([
 				this._searchForm.getWidget(widgetName).set('visible', this._isAdvancedSearch);
 			}));
 			this._searchForm.getWidget('pattern').set('visible', !this._isAdvancedSearch);
+			if (this.moduleFlavor === 'licenses/allocation') {
+				this._searchForm.getWidget('onlyAllocatableLicenses').set('visible', false);
+			}
 
 			// update toggle button
 			const button = this._searchForm.getButton('toggleSearch');
@@ -105,11 +119,11 @@ define([
 			// event stub
 		},
 
-		onAllocateLicenses: function() {
+		onChooseDifferentSchool: function() {
 			// event stub
 		},
 
-		onChooseDifferentSchool: function() {
+		onBack: function() {
 			// event stub
 		},
 
@@ -117,13 +131,22 @@ define([
 		//// lifecycle
 		postMixInProperties: function() {
 			this.inherited(arguments);
-			if (this.hasMultipleSchools) {
-				this.headerButtons = [{
+			const headerButtons = [];
+			if (this.showChangeSchoolButton) {
+				headerButtons.push({
 					name: 'changeSchool',
 					label: _('Change school'),
 					callback: lang.hitch(this, 'onChooseDifferentSchool'),
-				}];
+				});
 			}
+			if (this.moduleFlavor === 'licenses/allocation') {
+				headerButtons.push({
+					name: 'close',
+					label: _('Back'),
+					callback: lang.hitch(this, 'onBack'),
+				});
+			}
+			this.headerButtons = headerButtons;
 		},
 
 		buildRendering: function() {
@@ -134,25 +157,17 @@ define([
 				name: 'timeFrom',
 				visible: false,
 				label: _('Start import period'),
-				// value: null,
 				size: 'TwoThirds',
-				// onChange: lang.hitch(this, function() {
-					// this._searchForm.submit();
-				// }),
 			}, {
 				type: DateBox,
 				name: 'timeTo',
 				label: _('End import period'),
-				// value: null,
 				size: 'TwoThirds',
 				visible: false,
-				// onChange: lang.hitch(this, function() {
-					// this._searchForm.submit();
-				// }),
 			}, {
 				type: CheckBox,
 				name: 'onlyAllocatableLicenses',
-				label: _('Only allocatable licenses'),
+				label: _('Only assignable licenses'),
 				value: false,
 				size: 'TwoThirds',
 				visible: false,
@@ -227,20 +242,15 @@ define([
 				],
 				onSearch: lang.hitch(this, function(values) {
 					values.school = this.schoolId;
+					if (this.moduleFlavor === 'licenses/allocation') {
+						values.onlyAllocatableLicenses = true;
+					}
 					this._grid.filter(values);
 				}),
 			});
 			domClass.add(this._searchForm.getWidget('licenseCode').$refLabel$.domNode, 'umcSearchFormElementBeforeSubmitButton');
 
 			const actions = [{
-				// name: 'allocate',
-				// label: _('Allocate license'),
-				// isStandardAction: true,
-				// isContextAction: false,
-				// callback: lang.hitch(this, function() {
-					// this.onAllocateLicenses();
-				// }),
-			// }, {
 				name: 'edit',
 				label: _('Edit'),
 				iconClass: 'umcIconEdit',
@@ -272,7 +282,7 @@ define([
 				width: '60px',
 			}, {
 				name: 'countAllocated',
-				label: _('Allocated'),
+				label: _('Assigned'),
 				width: '60px',
 			}, {
 				name: 'countExpired',
@@ -280,11 +290,11 @@ define([
 				width: '60px',
 			}, {
 				name: 'countAllocatable',
-				label: _('Allocatable'),
+				label: _('Available'),
 				width: '60px',
 			}, {
 				name: 'importDate',
-				label: _('License delivery'),
+				label: _('Delivery'),
 			}];
 			this._grid = new Grid({
 				actions: actions,
@@ -311,11 +321,11 @@ define([
 			this.addChild(this._grid);
 
 			// initial query
-			this.standbyDuring(
-				this._searchForm.ready().then(lang.hitch(this, function() {
-					this._searchForm.submit();
-				}))
-			);
+			// this.standbyDuring(
+				// this._searchForm.ready().then(lang.hitch(this, function() {
+					// this._searchForm.submit();
+				// }))
+			// );
 		},
 	});
 });
