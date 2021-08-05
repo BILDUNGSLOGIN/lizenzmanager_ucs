@@ -83,7 +83,7 @@ def create_license(udm):
         validity_end_date="2000-01-01",
         delivery_date="2000-01-01",
         ignored="0",
-        provider="",
+        provider="univention",
         purchasing_reference="",
         utilization_systems="",
         validity_duration="",

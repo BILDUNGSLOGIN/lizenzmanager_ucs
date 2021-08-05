@@ -39,6 +39,11 @@ import pytest
 from univention.udm import CreateError
 
 
+def test_create_license(create_license):
+    license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "demoSCHOOL")
+    assert license_obj.props.cn == sha256("LICENSE_CODE").hexdigest()
+
+
 @pytest.mark.parametrize(
     "attr_name",
     (
@@ -46,9 +51,8 @@ from univention.udm import CreateError
         "code",
         "product_id",
         "quantity",
+        "provider",
         "school",
-        "validity_start_date",
-        "validity_end_date",
         "delivery_date",
     ),
 )
@@ -59,9 +63,22 @@ def test_required_attributes(attr_name, udm):
     assert "\n{}".format(attr_name) in exinfo.value.message
 
 
-def test_create_license(create_license):
-    license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "demoSCHOOL")
-    assert license_obj.props.cn == sha256("LICENSE_CODE").hexdigest()
+@pytest.mark.parametrize(
+    "attr_name",
+    (
+        "purchasing_reference",
+        "utilization_systems",
+        "validity_start_date",
+        "validity_end_date",
+        "validity_duration",
+        "special_type",
+    ),
+)
+def test_unrequired_attributes(attr_name, udm):
+    with pytest.raises(CreateError) as exinfo:
+        obj = udm.get("vbm/license").new()
+        obj.save()
+    assert "\n{}".format(attr_name) not in exinfo.value.message
 
 
 def test_unique_codes(create_license):

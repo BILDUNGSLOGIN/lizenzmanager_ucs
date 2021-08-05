@@ -93,7 +93,7 @@ property_descriptions = {
         short_description=_("Provider"),
         long_description=_("The provider of the license"),
         syntax=univention.admin.syntax.string,
-        required=False,
+        required=True,
         may_change=False,
     ),
     "purchasing_reference": univention.admin.property(
@@ -114,14 +114,14 @@ property_descriptions = {
         short_description=_("Validity start date"),
         long_description=_("The date from which the license is valid"),
         syntax=univention.admin.syntax.iso8601Date,
-        required=True,
+        required=False,
         may_change=False,
     ),
     "validity_end_date": univention.admin.property(
         short_description=_("Validity end date"),
         long_description=_("The date from which the license is not valid anymore"),
         syntax=univention.admin.syntax.iso8601Date,
-        required=True,
+        required=False,
         may_change=False,
     ),
     "validity_duration": univention.admin.property(
