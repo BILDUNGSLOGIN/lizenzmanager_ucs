@@ -56,8 +56,8 @@ from .models import License, MetaData
 from .utils import LicenseType, Status, my_string_to_int
 
 # todo clarify: ignorefordisplay -> for which search is this relevant
-# todo clarify: brauchen wir das auch fuer die zuweisung?
 # todo parameter workgroup, schoolclass, pattern -> user discuss
+# todo username -> entry-uuid
 
 
 class LicenseHandler:
@@ -507,10 +507,24 @@ class AssignmentHandler:
                     )
                 )
 
+    @staticmethod
+    def check_is_ignored(ignored):  # type: (str) -> None
+        # todo make me more robust -> udm
+        if ignored != "0":
+            raise BiloAssignmentError(
+                "License is 'ignored for display' is set to {} and thus can't be assigned!".format(
+                    ignored
+                )
+            )
+
     def assign_to_license(self, license_code, username):  # type: (str, str) -> Optional[bool]
         """Returns true if the license could be assigned to the user,
-        else raises an error."""
+        else raises an error.
+        If the ignored-flag is set an error is raised. This should not happen,
+        because only 'non-ignored' license codes should be passed to this method.
+        """
         udm_license = self.get_license_by_license_code(license_code)
+        self.check_is_ignored(udm_license.props.ignored)
         user = self.get_user_by_username(username)
         self.check_license_can_be_assigned_to_school_user(udm_license.props.school, user.props.school)
         self.check_license_type_is_correct(
@@ -581,6 +595,8 @@ class AssignmentHandler:
             raise BiloAssignmentError("Illegal status change to {}!".format(status))
 
         udm_license = self.get_license_by_license_code(license_code)
+        self.check_is_ignored(udm_license.props.ignored)
+
         udm_assignment = self.get_assignment_for_user_under_license(
             license_dn=udm_license.dn, username=username
         )

@@ -77,6 +77,27 @@ def test_assign_user_to_license(assignment_handler, license_handler, license, us
             assignment_handler.assign_to_license(username=username, license_code=license.license_code)
 
 
+@pytest.mark.parametrize("ignored", ["0", "1", True, False])
+def test_check_is_ignored(ignored):
+    if ignored != "0":
+        with pytest.raises(BiloAssignmentError):
+            AssignmentHandler.check_is_ignored(ignored)
+    else:
+        AssignmentHandler.check_is_ignored(ignored)
+
+
+def test_assign_user_to_ignored_license_fails(assignment_handler, license_handler, license):
+    # 00_vbm_test_assignments
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        license.license_school = ou
+        license.ignored_for_display = "1"
+        license_handler.create(license)
+        username = schoolenv.create_student(ou)[0]
+        with pytest.raises(BiloAssignmentError):
+            assignment_handler.assign_to_license(username=username, license_code=license.license_code)
+
+
 @pytest.mark.parametrize(
     "license_school,ucsschool_school",
     [("demoschool", "demoschool"), ("demOSchool", "DEMOSCHOOL"), ("demoschool", "demoschool2")],

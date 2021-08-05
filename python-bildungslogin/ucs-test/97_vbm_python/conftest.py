@@ -75,9 +75,8 @@ def get_license():
         validity_start_date=iso_format_date(start),
         validity_end_date=iso_format_date(end),
         validity_duration=str(duration),
-        # as default, set 'Lehrer' in test or create a new fixture for that
         license_special_type="",
-        ignored_for_display=random.choice(["0", "1"]),
+        ignored_for_display="0",
         delivery_date=iso_format_date(today),
         license_school=uts.random_name(),
     )
