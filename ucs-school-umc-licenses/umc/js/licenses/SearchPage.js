@@ -89,7 +89,7 @@ define([
 			[
 				'timeFrom',
 				'timeTo',
-				'onlyAllocatableLicenses',
+				'onlyAvailableLicenses',
 				'publisher',
 				'licenseType',
 				'userPattern',
@@ -101,7 +101,7 @@ define([
 			}));
 			this._searchForm.getWidget('pattern').set('visible', !this._isAdvancedSearch);
 			if (this.moduleFlavor === 'licenses/allocation') {
-				this._searchForm.getWidget('onlyAllocatableLicenses').set('visible', false);
+				this._searchForm.getWidget('onlyAvailableLicenses').set('visible', false);
 			}
 
 			// update toggle button
@@ -166,7 +166,7 @@ define([
 				visible: false,
 			}, {
 				type: CheckBox,
-				name: 'onlyAllocatableLicenses',
+				name: 'onlyAvailableLicenses',
 				label: _('Only assignable licenses'),
 				value: false,
 				size: 'TwoThirds',
@@ -236,14 +236,14 @@ define([
 				widgets: widgets,
 				buttons: buttons,
 				layout: [
-					['timeFrom', 'timeTo', 'onlyAllocatableLicenses'],
+					['timeFrom', 'timeTo', 'onlyAvailableLicenses'],
 					['publisher', 'licenseType', 'userPattern'],
 					['productId', 'product', 'licenseCode', 'pattern', 'submit', 'toggleSearch'],
 				],
 				onSearch: lang.hitch(this, function(values) {
 					values.school = this.schoolId;
 					if (this.moduleFlavor === 'licenses/allocation') {
-						values.onlyAllocatableLicenses = true;
+						values.onlyAvailableLicenses = true;
 					}
 					this._grid.filter(values);
 				}),
@@ -281,7 +281,7 @@ define([
 				label: _('Aquired'),
 				width: '60px',
 			}, {
-				name: 'countAllocated',
+				name: 'countAssigned',
 				label: _('Assigned'),
 				width: '60px',
 			}, {
@@ -289,7 +289,7 @@ define([
 				label: _('Expired'),
 				width: '60px',
 			}, {
-				name: 'countAllocatable',
+				name: 'countAvailable',
 				label: _('Available'),
 				width: '60px',
 			}, {
@@ -319,13 +319,6 @@ define([
 
 			this.addChild(this._searchForm);
 			this.addChild(this._grid);
-
-			// initial query
-			// this.standbyDuring(
-				// this._searchForm.ready().then(lang.hitch(this, function() {
-					// this._searchForm.submit();
-				// }))
-			// );
 		},
 	});
 });

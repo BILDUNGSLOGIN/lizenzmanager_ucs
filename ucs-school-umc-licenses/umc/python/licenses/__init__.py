@@ -33,122 +33,53 @@
 
 
 from ucsschool.lib.school_umc_base import SchoolBaseModule
+from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
+from univention.bildungslogin.handlers import LicenseHandler
 from univention.lib.i18n import Translation
 from univention.management.console.log import MODULE
-from univention.management.console.modules.decorators import sanitize, simple_response
-from univention.management.console.modules.sanitizers import PatternSanitizer
+from univention.management.console.modules.decorators import simple_response
+
+#  from univention.management.console.modules.decorators import sanitize, simple_response
+#  from univention.management.console.modules.sanitizers import PatternSanitizer
 
 _ = Translation("ucs-school-umc-licenses").translate
 
-licenses = [
-    {
-        "licenseId": 0,
-        "productId": "xxx-x-xxxxx-xxx-x",
-        "productName": "Produkt A",
-        "publisher": "Verlag XYZ",
-        "licenseCode": "XYZ-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx",
-        "licenseType": "Volumenlizenz",
-        "countAquired": 25,
-        "countAllocated": 15,
-        "countExpired": 0,
-        "countAllocatable": 10,
-        "importDate": "2021-05-12",
-    },
-    {
-        "licenseId": 1,
-        "productId": "xxx-x-xxxxx-xxx-x",
-        "productName": "Produkt A",
-        "publisher": "Verlag ABC",
-        "licenseCode": "ABC-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx",
-        "licenseType": "Volumenlizenz",
-        "countAquired": 5,
-        "countAllocated": 0,
-        "countExpired": 0,
-        "countAllocatable": 5,
-        "importDate": "2021-05-12",
-    },
-    {
-        "licenseId": 2,
-        "productId": "xxx-x-xxxxx-xxx-x",
-        "productName": "Produkt D",
-        "publisher": "Verlag KLM",
-        "licenseCode": "KLM-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx",
-        "licenseType": "Volumenlizenz",
-        "countAquired": 5,
-        "countAllocated": 0,
-        "countExpired": 0,
-        "countAllocatable": 5,
-        "importDate": "2021-05-12",
-    },
-    {
-        "licenseId": 3,
-        "productId": "xxx-x-xxxxx-xxx-x",
-        "productName": "Produkt D",
-        "publisher": "Verlag KLM",
-        "licenseCode": "KLM-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx",
-        "licenseType": "Volumenlizenz",
-        "countAquired": 5,
-        "countAllocated": 5,
-        "countExpired": 0,
-        "countAllocatable": 0,
-        "importDate": "2021-05-12",
-    },
-    {
-        "licenseId": 4,
-        "productId": "xxx-x-xxxxx-xxx-x",
-        "productName": "Produkt E",
-        "publisher": "Verlag KLM",
-        "licenseCode": "KLM-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx",
-        "licenseType": "Einzellizenz",
-        "countAquired": 5,
-        "countAllocated": 5,
-        "countExpired": 0,
-        "countAllocatable": 0,
-        "importDate": "2021-05-08",
-    },
-]
-
 
 class Instance(SchoolBaseModule):
-    @sanitize(pattern=PatternSanitizer(default=".*"))
-    def query(self, request):
+
+    #  @sanitize(pattern=PatternSanitizer(default=".*")) # TODO
+    @LDAP_Connection(USER_WRITE)
+    def query(self, request, ldap_user_write=None):
         """Searches for licenses
         requests.options = {
-                school
-                timeFrom
-                timeTo
-                onlyAllocatableLicenses
-                publisher
-                licenseType
-                userPattern
-                productId
-                product
-                licenseCode
-                pattern
+                        school -- schoolId
+                        timeFrom -- ISO 8601 date string
+                        timeTo -- ISO 8601 date string
+                        onlyAllocatableLicenses -- boolean
+                        publisher -- string
+                        licenseType -- string
+                        userPattern -- string TODO use PatternSanitizer
+                        productId -- string
+                        product -- string
+                        licenseCode -- string
+                        pattern -- string TODO use PatternSanitizer
         }
         """
         MODULE.info("licenses.query: options: %s" % str(request.options))
-        pattern = request.options.get("pattern")
-        fields = ["productId", "productName", "publisher", "licenseCode"]
-        only_allocatable_licenses = request.options.get("onlyAllocatableLicenses")
-        publisher = request.options.get("publisher")
-        license_type = request.options.get("licenseType")
-        time_from = request.options.get("timeFrom")
-        time_to = request.options.get("timeTo")
-
-        result = [
-            lic
-            for lic in licenses
-            if (
-                any(pattern.match(lic[field]) for field in fields)
-                and (True if not only_allocatable_licenses else lic["countAllocatable"] > 0)
-                and (True if publisher == "__all__" else lic["publisher"] == publisher)
-                and (True if license_type == "__all__" else lic["licenseType"] == license_type)
-                and (True if not time_from else lic["importDate"] >= time_from)
-                and (True if not time_to else lic["importDate"] <= time_to)
-            )
-        ]
-
+        lh = LicenseHandler(ldap_user_write)
+        result = lh.search_for_licenses(
+            school=request.options.get("school"),
+            time_from=request.options.get("timeFrom"),
+            time_to=request.options.get("timeTo"),
+            only_available_licenses=request.options.get("onlyAvailableLicenses"),
+            publisher=request.options.get("publisher"),
+            license_type=request.options.get("licenseType"),
+            user_pattern=request.options.get("userPattern"),
+            product_id=request.options.get("productId"),
+            product=request.options.get("product"),
+            license_code=request.options.get("licenseCode"),
+            pattern=request.options.get("pattern"),
+        )
         MODULE.info("licenses.query: results: %s" % str(result))
         self.finished(request.id, result)
 
@@ -255,9 +186,9 @@ class Instance(SchoolBaseModule):
     def users_query(self, request):
         """Searches for users
         requests.options = {
-                class
-                workgroup
-                pattern
+                        class
+                        workgroup
+                        pattern
         }
         """
         MODULE.info("licenses.query: options: %s" % str(request.options))
