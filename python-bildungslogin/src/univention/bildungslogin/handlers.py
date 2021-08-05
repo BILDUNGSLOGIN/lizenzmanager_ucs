@@ -30,7 +30,7 @@
 
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from ucsschool.lib.roles import get_role_info
 
@@ -143,12 +143,8 @@ class LicenseHandler:
         """
         if type(license) is License:
             product_id = license.product_id
-        elif type(license) is UdmObject:
-            product_id = license.props.product_id
         else:
-            raise ValueError(
-                "Invalid input type for get_meta_data_for_license: {}".format(type(license))
-            )
+            product_id = license.props.product_id
 
         # here we have to use the mod directly to prevent recursion
         filter_s = filter_format("(product_id=%s)", [product_id])
@@ -219,19 +215,30 @@ class LicenseHandler:
     def get_license_types():  # type: () -> List[str]
         return [LicenseType.SINGLE, LicenseType.VOLUME]
 
-    def search_for_license_code(self, license_code):  # type: (str) -> List[Dict[str, str]]
-        """this search can be extended for search for products (name, publisher, etc.)
-        and user (username, firstname, lastname)"""
-        rows = []
+    def search_for_licenses(
+        self,
+        school=None,
+        time_from=None,
+        time_to=None,
+        only_available_licenses=None,
+        publisher="",
+        license_type="",
+        user_pattern=None,
+        product_id="",
+        product="",
+        license_code="",
+        pattern=None,
+    ):
         # todo this only returns the exact match of the license code
         # todo we need a fuzzy search
-        # todo this also should include school, right?
+        # todo school
+        rows = []
         for license in [self.get_udm_license_by_code(license_code=license_code)]:
             meta_data = self.get_meta_data_for_license(license)
             license = self.from_udm_obj(license)
             rows.append(
                 {
-                    "licenseId": 0,  # todo what is this?
+                    "licenseId": license.license_code,
                     "productId": license.product_id,
                     "productName": meta_data.title,
                     "publisher": meta_data.publisher,
@@ -239,26 +246,52 @@ class LicenseHandler:
                     "licenseType": license.license_type,
                     "countAquired": self.get_total_number_of_assignments(license),
                     "countAssigned": self.get_number_of_provisioned_and_assigned_assignments(license),
-                    # todo has to be fixed in udm
                     "countExpired": 0,  # self.get_number_of_expired_assignments(license),
-                    "countAvailable": self.get_number_of_available_assignments(license),  # ???
+                    "countAvailable": self.get_number_of_available_assignments(license),
                     "importDate": license.delivery_date,
-                    "author": meta_data.author,
-                    "platform": "All",
-                    "reference": "reference",
-                    "specialLicense": license.license_special_type,
-                    "usage": "http://schule.de",
-                    "validityStart": license.validity_start_date,
-                    "validityEnd": license.validity_end_date,
-                    "validitySpan": license.validity_duration,
-                    "ignore": True if license.ignored_for_display == "1" else False,
-                    "coverSmall": meta_data.cover_small,
-                    "cover": meta_data.cover,
-                    # noqa: E501
-                    "users": [],  # todo
                 }
             )
         return rows
+
+    # def search_for_license_code(self, license_code):  # type: (str) -> List[Dict[str, str]]
+    #     """
+    #     -> this is for the special view, later
+    #     this search can be extended for search for products (name, publisher, etc.)
+    #     and user (username, firstname, lastname)"""
+    #     rows = []
+    #     for license in [self.get_udm_license_by_code(license_code=license_code)]:
+    #         meta_data = self.get_meta_data_for_license(license)
+    #         license = self.from_udm_obj(license)
+    #         rows.append(
+    #             {
+    #                 "licenseId": license.license_code,
+    #                 "productId": license.product_id,
+    #                 "productName": meta_data.title,
+    #                 "publisher": meta_data.publisher,
+    #                 "licenseCode": license.license_code,
+    #                 "licenseType": license.license_type,
+    #                 "countAquired": self.get_total_number_of_assignments(license),
+    #                 "countAssigned": self.get_number_of_provisioned_and_assigned_assignments(license),
+    #                 # todo has to be fixed in udm
+    #                 "countExpired": 0,  # self.get_number_of_expired_assignments(license),
+    #                 "countAvailable": self.get_number_of_available_assignments(license),
+    #                 "importDate": license.delivery_date,
+    #                 "author": meta_data.author,
+    #                 "platform": "All",
+    #                 "reference": "reference",
+    #                 "specialLicense": license.license_special_type,
+    #                 "usage": "http://schule.de",
+    #                 "validityStart": license.validity_start_date,
+    #                 "validityEnd": license.validity_end_date,
+    #                 "validitySpan": license.validity_duration,
+    #                 "ignore": True if license.ignored_for_display == "1" else False,
+    #                 "coverSmall": meta_data.cover_small,
+    #                 "cover": meta_data.cover,
+    #                 # noqa: E501
+    #                 "users": [],
+    #             }
+    #         )
+    #     return rows
 
 
 class MetaDataHandler:

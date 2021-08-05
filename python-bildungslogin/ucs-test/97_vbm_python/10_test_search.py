@@ -37,10 +37,10 @@ def test_search_for_license_code(license_handler, meta_data_handler, meta_data, 
     license.product_id = meta_data.product_id
     license_handler.create(license)
     meta_data_handler.create(meta_data)
-    res = license_handler.search_for_license_code(license.license_code)
+    res = license_handler.search_for_licenses(license_code=license.license_code)
     assert len(res) == 1
     assert res[0] == {
-        "licenseId": 0,
+        "licenseId": license.license_code,
         "productId": license.product_id,
         "productName": meta_data.title,
         "publisher": meta_data.publisher,
@@ -48,20 +48,7 @@ def test_search_for_license_code(license_handler, meta_data_handler, meta_data, 
         "licenseType": license.license_type,
         "countAquired": license_handler.get_total_number_of_assignments(license),
         "countAssigned": license_handler.get_number_of_provisioned_and_assigned_assignments(license),
-        "countExpired": 0,  # self.get_number_of_expired_assignments(license), # todo has to be fixed in udm
-        "countAvailable": license_handler.get_number_of_available_assignments(license),  # ???
+        "countExpired": 0,  # self.get_number_of_expired_assignments(license),
+        "countAvailable": license_handler.get_number_of_available_assignments(license),
         "importDate": license.delivery_date,
-        "author": meta_data.author,
-        "platform": "All",
-        "reference": "reference",
-        "specialLicense": license.license_special_type,
-        "usage": "http://schule.de",
-        "validityStart": license.validity_start_date,
-        "validityEnd": license.validity_end_date,
-        "validitySpan": license.validity_duration,
-        "ignore": True if license.ignored_for_display == "1" else False,
-        "coverSmall": meta_data.cover_small,
-        "cover": meta_data.cover,
-        # noqa: E501
-        "users": [],  # todo
     }
