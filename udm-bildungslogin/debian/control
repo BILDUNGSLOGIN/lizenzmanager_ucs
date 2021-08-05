@@ -17,3 +17,17 @@ Description: UCS directory integration for bildungslogin
  an integrated, directory driven solution for managing
  corporate environments. For more information about UCS,
  refer to: https://www.univention.de/
+
+Package: ucs-test-vbm-udm
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ucs-test-framework,
+ python-pytest,
+ udm-bildungslogin,
+Description: test the udm modules for bildungslogin
+ .
+ This package is part of Univention Corporate Server (UCS),
+ an integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/
