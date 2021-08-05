@@ -83,27 +83,33 @@ def test_save_meta_data(meta_data_handler, meta_data, ldap_base):
 
 
 def test_get_assignments_for_meta_data(license_handler, meta_data_handler, license, meta_data):
-    license.product_id = meta_data.product_id
-    license_handler.create(license)
-    assignments = meta_data_handler.get_assignments_for_meta_data(meta_data)
-    for assignment in assignments:
-        assert assignment.status == Status.AVAILABLE
-        assert assignment.license == license.license_code
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        license.license_school = ou
+        license.product_id = meta_data.product_id
+        license_handler.create(license)
+        assignments = meta_data_handler.get_assignments_for_meta_data(meta_data)
+        for assignment in assignments:
+            assert assignment.status == Status.AVAILABLE
+            assert assignment.license == license.license_code
 
 
 def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_licenses):
-    total_amount_of_licenses_for_product = 0
-    for lic in n_licenses:
-        # comment: we do not have to create the actual meta-data object for this.
-        lic.product_id = meta_data.product_id
-        license_handler.create(lic)
-        if lic.ignored_for_display == "0":
-            # licenses with this attribute set are not counted.
-            total_amount_of_licenses_for_product += lic.license_quantity
-    assert (
-        meta_data_handler.get_total_number_of_assignments(meta_data)
-        == total_amount_of_licenses_for_product
-    )
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        total_amount_of_licenses_for_product = 0
+        for lic in n_licenses:
+            # comment: we do not have to create the actual meta-data object for this.
+            lic.product_id = meta_data.product_id
+            lic.license_school = ou
+            license_handler.create(lic)
+            if lic.ignored_for_display == "0":
+                # licenses with this attribute set are not counted.
+                total_amount_of_licenses_for_product += lic.license_quantity
+        assert (
+            meta_data_handler.get_total_number_of_assignments(meta_data)
+            == total_amount_of_licenses_for_product
+        )
 
 
 def test_number_of_provisioned_and_assigned_licenses(

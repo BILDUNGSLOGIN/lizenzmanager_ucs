@@ -44,51 +44,60 @@ from univention.testing.utils import verify_ldap_object
 
 
 def test_create(lo, license_handler, license, ldap_base):
-    license_handler.create(license)
-    cn = sha256(license.license_code).hexdigest()
-    license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
-    expected_attr = {
-        "cn": [cn],
-        "vbmLicenseCode": [license.license_code],
-        "vbmProductId": [license.product_id],
-        "vbmLicenseQuantity": [str(license.license_quantity)],
-        "vbmLicenseProvider": [license.license_provider],
-        "vbmPurchasingReference": [license.purchasing_reference],
-        "vbmUtilizationSystems": [license.utilization_systems],
-        "vbmValidityStartDate": [license.validity_start_date],
-        "vbmValidityEndDate": [license.validity_end_date],
-        "vbmValidityDuration": [license.validity_duration],
-        "vbmDeliveryDate": [license.delivery_date],
-        "vbmLicenseSchool": [license.license_school],
-        "vbmIgnoredForDisplay": [license.ignored_for_display],
-    }
-    if license.license_special_type:
-        expected_attr["vbmLicenseSpecialType"] = [license.license_special_type]
-    verify_ldap_object(
-        license_dn,
-        expected_attr=expected_attr,
-        strict=False,
-    )
-    # check assignments were created
-    for dn in lo.searchDn(base=license_dn, scope="one"):
-        expected_attr = {"vbmAssignmentStatus": [Status.AVAILABLE]}
-        verify_ldap_object(dn, expected_attr=expected_attr, strict=False)
-    # licenses are unique, duplicates produce errors
-    with pytest.raises(BiloCreateError):
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        license.license_school = ou
         license_handler.create(license)
+        cn = sha256(license.license_code).hexdigest()
+        license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
+        expected_attr = {
+            "cn": [cn],
+            "vbmLicenseCode": [license.license_code],
+            "vbmProductId": [license.product_id],
+            "vbmLicenseQuantity": [str(license.license_quantity)],
+            "vbmLicenseProvider": [license.license_provider],
+            "vbmPurchasingReference": [license.purchasing_reference],
+            "vbmUtilizationSystems": [license.utilization_systems],
+            "vbmValidityStartDate": [license.validity_start_date],
+            "vbmValidityEndDate": [license.validity_end_date],
+            "vbmValidityDuration": [license.validity_duration],
+            "vbmDeliveryDate": [license.delivery_date],
+            "vbmLicenseSchool": [license.license_school],
+            "vbmIgnoredForDisplay": [license.ignored_for_display],
+        }
+        if license.license_special_type:
+            expected_attr["vbmLicenseSpecialType"] = [license.license_special_type]
+        verify_ldap_object(
+            license_dn,
+            expected_attr=expected_attr,
+            strict=False,
+        )
+        # check assignments were created
+        for dn in lo.searchDn(base=license_dn, scope="one"):
+            expected_attr = {"vbmAssignmentStatus": [Status.AVAILABLE]}
+            verify_ldap_object(dn, expected_attr=expected_attr, strict=False)
+        # licenses are unique, duplicates produce errors
+        with pytest.raises(BiloCreateError):
+            license_handler.create(license)
 
 
 def test_get_assignments_for_license(license_handler, license):
-    license_handler.create(license)
-    assignments = license_handler.get_assignments_for_license(license)
-    for assignment in assignments:
-        assert assignment.status == Status.AVAILABLE
-        assert assignment.license == license.license_code
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        license.license_school = ou
+        license_handler.create(license)
+        assignments = license_handler.get_assignments_for_license(license)
+        for assignment in assignments:
+            assert assignment.status == Status.AVAILABLE
+            assert assignment.license == license.license_code
 
 
 def test_get_total_number_of_licenses(license_handler, license):
-    license_handler.create(license)
-    assert license_handler.get_total_number_of_assignments(license) == license.license_quantity
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        license.license_school = ou
+        license_handler.create(license)
+        assert license_handler.get_total_number_of_assignments(license) == license.license_quantity
 
 
 def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment_handler, license):
@@ -123,26 +132,32 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
 
 @pytest.mark.skip(reason="num_expired has to be fixed in udm")
 def test_number_of_expired_licenses(license_handler, expired_license):
-    license_handler.create(expired_license)
-    assert (
-        license_handler.get_number_of_expired_assignments(expired_license)
-        == expired_license.license_quantity
-    )
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        expired_license.license_school = ou
+        license_handler.create(expired_license)
+        assert (
+            license_handler.get_number_of_expired_assignments(expired_license)
+            == expired_license.license_quantity
+        )
 
 
 def test_get_meta_data_for_license(license_handler, meta_data_handler, license, meta_data):
-    license.product_id = meta_data.product_id
-    license_handler.create(license)
-    meta_data_handler.create(meta_data)
-    meta_data = license_handler.get_meta_data_for_license(license)
-    assert meta_data.product_id == meta_data.product_id
-    assert meta_data.title == meta_data.title
-    assert meta_data.description == meta_data.description
-    assert meta_data.author == meta_data.author
-    assert meta_data.publisher == meta_data.publisher
-    assert meta_data.cover == meta_data.cover
-    assert meta_data.cover_small == meta_data.cover_small
-    assert meta_data.modified == meta_data.modified
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        license.product_id = meta_data.product_id
+        license.license_school = ou
+        license_handler.create(license)
+        meta_data_handler.create(meta_data)
+        meta_data = license_handler.get_meta_data_for_license(license)
+        assert meta_data.product_id == meta_data.product_id
+        assert meta_data.title == meta_data.title
+        assert meta_data.description == meta_data.description
+        assert meta_data.author == meta_data.author
+        assert meta_data.publisher == meta_data.publisher
+        assert meta_data.cover == meta_data.cover
+        assert meta_data.cover_small == meta_data.cover_small
+        assert meta_data.modified == meta_data.modified
 
 
 def test_get_time_of_last_assignment(license_handler, assignment_handler, license):
@@ -185,12 +200,6 @@ def test_set_license_ignore(license_handler, assignment_handler, license, ldap_b
         assignment_handler.assign_to_license(username=username, license_code=license.license_code)
         with pytest.raises(BiloLicenseInvalidError):
             license_handler.set_license_ignore(license_code=license.license_code, ignore=True)
-
-
-def test_licenses_with_status_ignores_dont_show_up_in_search():
-    # todo clarify: for which search is this relevant
-    # todo check license assignment not possible
-    pass
 
 
 def test_get_license_types(license_handler):
