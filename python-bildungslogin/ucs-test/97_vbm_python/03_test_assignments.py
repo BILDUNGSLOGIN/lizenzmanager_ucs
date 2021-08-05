@@ -74,14 +74,20 @@ def test_assign_user_to_license(assignment_handler, license_handler, license, us
             assignment_handler.assign_to_license(username=username, license_code=license.license_code)
 
 
-def test_check_license_can_be_assigned_to_school_user():
-    AssignmentHandler.check_license_can_be_assigned_to_school_user(
-        license_school="valid", ucsschool_schools=["valid"]
-    )
-    with pytest.raises(BiloAssignmentError):
+@pytest.mark.parametrize(
+    "license_school,ucsschool_school",
+    [("demoschool", "demoschool"), ("demOSchool", "DEMOSCHOOL"), ("demoschool", "demoschool2")],
+)
+def test_check_license_can_be_assigned_to_school_user(license_school, ucsschool_school):
+    if license_school.lower() == ucsschool_school.lower():
         AssignmentHandler.check_license_can_be_assigned_to_school_user(
-            license_school="invalid", ucsschool_schools=["valid"]
+            license_school=license_school, ucsschool_schools=[ucsschool_school]
         )
+    else:
+        with pytest.raises(BiloAssignmentError):
+            AssignmentHandler.check_license_can_be_assigned_to_school_user(
+                license_school=license_school, ucsschool_schools=[ucsschool_school]
+            )
 
 
 def test_remove_assignment_from_users(assignment_handler, license_handler, license):
@@ -134,8 +140,6 @@ def test_get_assignments_for_product_id_for_user(license_handler, assignment_han
         assignments = assignment_handler.get_assignments_for_product_id_for_user(
             username=username, product_id=license.product_id
         )
-        for a in assignments:
-            print(a.assignee)
         assert len(assignments) == 1
         license_was_assigned_correct_to_user(assignments, username)
 

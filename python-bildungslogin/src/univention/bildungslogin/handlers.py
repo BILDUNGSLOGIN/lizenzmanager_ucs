@@ -461,7 +461,9 @@ class AssignmentHandler:
     @staticmethod
     def check_license_can_be_assigned_to_school_user(license_school, ucsschool_schools):
         # type: (str, List[str]) -> None
-        if license_school not in ucsschool_schools:
+        # here
+        ucsschool_schools = [s.lower() for s in ucsschool_schools]
+        if license_school.lower() not in ucsschool_schools:
             raise BiloAssignmentError(
                 "License can't be assigned to user in school {}!".format(ucsschool_schools)
             )
