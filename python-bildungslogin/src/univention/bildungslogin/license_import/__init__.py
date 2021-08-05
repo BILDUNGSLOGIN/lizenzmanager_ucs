@@ -29,15 +29,18 @@
 
 import json
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.handlers import LicenseHandler
 from univention.bildungslogin.models import License
 
 
-def parse_raw_license_date(date_str):  # type: (str) -> datetime
-    return datetime.strptime(date_str, "%d-%m-%Y")
+def convert_raw_license_date(date_str):  # type: (str) -> Optional[str]
+    if date_str:
+        return datetime.strptime(date_str, "%d-%m-%Y").strftime("%Y-%m-%d")
+    else:
+        return None
 
 
 def load_license(license_raw, school):  # type: (Dict, str) -> License
@@ -48,10 +51,8 @@ def load_license(license_raw, school):  # type: (Dict, str) -> License
         license_provider=license_raw["lizenzgeber"],
         purchasing_reference=license_raw["kaufreferenz"],
         utilization_systems=license_raw["nutzungssysteme"],
-        validity_start_date=parse_raw_license_date(license_raw["gueltigkeitsbeginn"]).strftime(
-            "%Y-%m-%d"
-        ),
-        validity_end_date=parse_raw_license_date(license_raw["gueltigkeitsende"]).strftime("%Y-%m-%d"),
+        validity_start_date=convert_raw_license_date(license_raw["gueltigkeitsbeginn"]),
+        validity_end_date=convert_raw_license_date(license_raw["gueltigkeitsende"]),
         validity_duration=license_raw["gueltigkeitsdauer"],
         license_special_type=license_raw["sonderlizenz"],
         ignored_for_display="0",
