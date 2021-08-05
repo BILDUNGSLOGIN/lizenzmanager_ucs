@@ -156,7 +156,7 @@ define([
 				standbyDuring: lang.hitch(this, 'standbyDuring'),
 			});
 			on(this._chooseSchoolPage, 'schoolChosen', lang.hitch(this, function(school, hasMultipleSchools) {
-				this.set('schoolLabel', _('for ') + entities.encode(school.label));
+				this.set('schoolLabel', _('for %(school)s', {school: entities.encode(school.label)}));
 				switch (this.moduleFlavor) {
 					case 'licenses/licenses':
 						this._buildLicenses(school.id, hasMultipleSchools);
