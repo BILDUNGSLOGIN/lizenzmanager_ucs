@@ -167,8 +167,8 @@ objectclass ( vbmBildungslogin:1
         NAME 'vbmLicense'
         DESC 'A volume license provided by VBM'
         SUP top STRUCTURAL
-        MUST ( cn $ vbmLicenseCode $ vbmProductId $ vbmLicenseQuantity $ vbmValidityStartDate $ vbmValidityEndDate $ vbmIgnoredForDisplay $ vbmDeliveryDate $ vbmLicenseSchool )
-        MAY ( vbmLicenseProvider $ vbmPurchasingReference $ vbmUtilizationSystems $ vbmLicenseSpecialType $ vbmValidityDuration ) )
+        MUST ( cn $ vbmLicenseCode $ vbmProductId $ vbmLicenseQuantity $ vbmIgnoredForDisplay $ vbmDeliveryDate $ vbmLicenseSchool $ vbmLicenseProvider )
+        MAY ( vbmPurchasingReference $ vbmUtilizationSystems $ vbmLicenseSpecialType $ vbmValidityDuration $ vbmValidityStartDate $ vbmValidityEndDate ) )
 
 objectclass ( vbmBildungslogin:2
         NAME 'vbmMetaData'
