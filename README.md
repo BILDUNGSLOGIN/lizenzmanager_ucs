@@ -27,3 +27,7 @@ deb [trusted=yes] http://192.168.0.10/build2/ ucs_4.4-0-vbm/$(ARCH)/
 ## Jenkins:
 
 A [Jenkins Job](https://jenkins.knut.univention.de:8181/job/Customers/job/172906_vbm/job/VBM%20-%20Development%20QA%20Test/) will deploy a school environment with scope `vbm` and run the tests. The [configuration files](https://git.knut.univention.de/univention/prof-services/jenkins-cfgs/-/tree/master/vbm-project) are in a separate repository.
+
+## Getting started:
+
+[Installation and usage](getting_started.md)
