@@ -61,8 +61,8 @@ def product_id():
 def get_license():
     today = datetime.datetime.now()
     start = today + datetime.timedelta(days=random.randint(0, 365))
-    duration = random.randint(1, 365)
-    end = start + datetime.timedelta(duration)
+    duration = "Unbeschränkt"
+    end = start + datetime.timedelta(days=random.randint(0, 365))
     provider = uts.random_username()
     return License(
         license_code="{}-{}".format(provider, str(uuid.uuid4())),
@@ -74,7 +74,7 @@ def get_license():
         utilization_systems=uts.random_username(),
         validity_start_date=iso_format_date(start),
         validity_end_date=iso_format_date(end),
-        validity_duration=str(duration),
+        validity_duration=duration,
         license_special_type="",
         ignored_for_display="0",
         delivery_date=iso_format_date(today),
@@ -83,10 +83,10 @@ def get_license():
 
 
 def get_expired_license():
-    """ "the end_date + duration < today"""
+    """ "the end_date < today"""
     today = datetime.datetime.now()
-    duration = random.randint(1, 365)
-    start = today - datetime.timedelta(duration)
+    duration = "Ein Schuljahr"
+    start = today - datetime.timedelta(days=random.randint(2, 365))
     license = get_license()
     license.validity_start_date = start
     license.validity_end_date = today - datetime.timedelta(1)

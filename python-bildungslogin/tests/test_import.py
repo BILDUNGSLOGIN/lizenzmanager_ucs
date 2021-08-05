@@ -13,7 +13,7 @@ test_license_raw = {
     "nutzungssysteme": "Antolin",
     "gueltigkeitsbeginn": "",
     "gueltigkeitsende": "14-08-2022",
-    "gueltigkeitsdauer": "365",
+    "gueltigkeitsdauer": "Ein Jahr",
     "sonderlizenz": "Lehrer",
 }
 
@@ -27,7 +27,7 @@ test_license = License(
     utilization_systems="Antolin",
     validity_start_date=None,
     validity_end_date="2022-08-14",
-    validity_duration="365",
+    validity_duration="Ein Jahr",
     license_special_type="Lehrer",
     ignored_for_display="0",
     delivery_date=datetime.now().strftime("%Y-%m-%d"),
