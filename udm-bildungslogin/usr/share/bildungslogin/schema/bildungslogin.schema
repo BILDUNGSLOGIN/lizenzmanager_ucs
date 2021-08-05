@@ -92,7 +92,7 @@ attributetype ( vbmBildungslogin:112
 attributetype ( vbmBildungslogin:113
         NAME 'vbmLicenseSchool'
         DESC 'The school this license belongs to'
-        EQUALITY caseExactMatch
+        EQUALITY caseIgnoreMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 # Metadata attributes, OIDs from 200
