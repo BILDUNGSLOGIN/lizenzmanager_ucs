@@ -129,8 +129,8 @@ def test_number_of_provisioned_and_assigned_licenses(
         license.license_school = ou
         license.ignored_for_display = "0"  # we only want correct assignments here
         license_handler.create(license)
-        student_usernames = [schoolenv.create_student(ou)[0] for _ in range(num_students)]
-        teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
+        student_usernames = [schoolenv.create_student(ou)[0] for i in range(num_students)]
+        teacher_usernames = [schoolenv.create_teacher(ou)[0] for i in range(num_teachers)]
         users = student_usernames + teacher_usernames
         assignment_handler.assign_users_to_license(usernames=users, license_code=license.license_code)
         num_assigned = meta_data_handler.get_number_of_provisioned_and_assigned_assignments(meta_data)
@@ -169,7 +169,7 @@ def test_get_all_product_ids(meta_data_handler, n_meta_data):
     for m in n_meta_data:
         meta_data_handler.create(m)
         product_ids_expected.add(m.product_id)
-    assert set(meta_data_handler.get_all_product_ids()).issubset(product_ids_expected)
+    assert product_ids_expected.issubset(set(meta_data_handler.get_all_product_ids()))
 
 
 def test_get_all_publishers(meta_data_handler, n_meta_data):
