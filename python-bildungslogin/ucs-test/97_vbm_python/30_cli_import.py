@@ -37,33 +37,36 @@ import subprocess
 
 from ldap.filter import filter_format
 
+import univention.testing.ucsschool.ucs_test_school as utu
 from univention.admin.uldap import getAdminConnection
 
 
-def test_cli_import(license_file, licence_handler):
+def test_cli_import(license_file, license_handler):
     with open(str(license_file), "r") as license_file_fd:
         licenses_raw = json.load(license_file_fd)
     filter_s = filter_format(
-        "(|{})".format("".join(["(vbmLicenseCode=%s)"] * len(licenses_raw))),
+        "(|{})".format("".join(["(code=%s)"] * len(licenses_raw))),
         [license_raw["lizenzcode"] for license_raw in licenses_raw],
     )
     lo, po = getAdminConnection()
     print("filter for licenses: {}".format(filter_s))
-    try:
-        subprocess.check_call(
-            [
-                "bildungslogin-license-import",
-                "--license-file",
-                str(license_file),
-                "--school",
-                "Test-school",
-            ]
-        )
-        licenses = licence_handler.get_all(filter_s=filter_s)
-        licenses_dn = lo.searchDn(filter=filter_s)
-    finally:
-        for dn in licenses_dn:
-            subprocess.check_call(["udm", "vbm/license", "remove", "--dn", dn, "--recursive"])
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        try:
+            subprocess.check_call(
+                [
+                    "bildungslogin-license-import",
+                    "--license-file",
+                    str(license_file),
+                    "--school",
+                    ou,
+                ]
+            )
+            licenses = license_handler.get_all(filter_s=filter_s)
+        finally:
+            licenses_dn = lo.searchDn(filter=filter_s)
+            for dn in licenses_dn:
+                subprocess.check_call(["udm", "vbm/license", "remove", "--dn", dn, "--recursive"])
     assert set(license.license_code for license in licenses) == set(
         license_raw["lizenzcode"] for license_raw in licenses_raw
     )
