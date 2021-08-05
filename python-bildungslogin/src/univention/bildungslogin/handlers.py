@@ -53,11 +53,7 @@ from .exceptions import (
     BiloProductNotFoundError,
 )
 from .models import License, MetaData
-from .utils import LicenseType, Status, my_string_to_int
-
-# todo clarify: ignorefordisplay -> for which search is this relevant
-# todo parameter workgroup, schoolclass, pattern -> user discuss
-# todo username -> entry-uuid
+from .utils import LicenseType, Status, get_entry_uuid, my_string_to_int
 
 
 class LicenseHandler:
@@ -398,6 +394,7 @@ class AssignmentHandler:
         self._licenses_mod = udm.get("vbm/license")
         self._assignments_mod = udm.get("vbm/assignment")
         self._users_mod = udm.get("users/user")
+        self._lo = lo
         self.logger = logging.getLogger(__name__)
 
     def get_license_of_assignment(self, dn):  # type: (str) -> UdmObject
@@ -416,10 +413,10 @@ class AssignmentHandler:
         :param udm_obj: of assignment
         :return: assignment object
         """
-        udm_license = self.get_license_of_assignment(udm_obj.position)
+        udm_assignment = self.get_license_of_assignment(udm_obj.position)
         return Assignment(
             username=udm_obj.props.assignee,
-            license=udm_license.props.code,
+            license=udm_assignment.props.code,
             time_of_assignment=udm_obj.props.time_of_assignment,
             status=udm_obj.props.status,
         )
@@ -436,21 +433,34 @@ class AssignmentHandler:
         return [self.from_udm_obj(a) for a in udm_assignments]
 
     def get_all_assignments_for_user(
-        self, username, base=None
+        self, assignee, base=None
     ):  # type: (str, Optional[str]) -> List[Assignment]
-        """if the base is equal to the dn of a license, this can be used to
-        find all assignments for this license"""
-        filter_s = filter_format("(assignee=%s)", [username])
+        """
+        if the base is equal to the dn of a license, this can be used to
+        find all assignments for this license
+
+        :param assignee: entry-uuid of user
+        :param base: dn of license object
+        :return:
+        """
+        filter_s = filter_format("(assignee=%s)", [assignee])
         return self.get_all(base=base, filter_s=filter_s)
+
+    def _get_entry_uuid_by_username(self, username):  # type: (str) -> str
+        udm_user = self.get_user_by_username(username)
+        return get_entry_uuid(self._lo, dn=udm_user.dn)
 
     def get_assignments_for_product_id_for_user(self, username, product_id):
         # type: (str, str) -> List[Assignment]
         """get all assignments for a product, which are assigned to a user."""
+        user_entry_uuid = self._get_entry_uuid_by_username(username)
         filter_s = filter_format("(product_id=%s)", [product_id])
         udm_licenses = self._licenses_mod.search(filter_s)
         assignments = []
         for udm_license in udm_licenses:
-            assignments.extend(self.get_all_assignments_for_user(username=username, base=udm_license.dn))
+            assignments.extend(
+                self.get_all_assignments_for_user(assignee=user_entry_uuid, base=udm_license.dn)
+            )
         return assignments
 
     @staticmethod
@@ -497,7 +507,7 @@ class AssignmentHandler:
     def check_license_type_is_correct(
         username, user_roles, license_type
     ):  # type: (str, List[str], str) -> None
-        # todo check if we need this in mvb
+        # todo check if we need this in mvb, also make this more robust
         if license_type == "Lehrer":
             roles = [get_role_info(role)[0] for role in user_roles]
             if "student" in roles:
@@ -525,12 +535,17 @@ class AssignmentHandler:
         """
         udm_license = self.get_license_by_license_code(license_code)
         self.check_is_ignored(udm_license.props.ignored)
-        user = self.get_user_by_username(username)
-        self.check_license_can_be_assigned_to_school_user(udm_license.props.school, user.props.school)
-        self.check_license_type_is_correct(
-            username, user.props.ucsschoolRole, udm_license.props.special_type
+        udm_user = self.get_user_by_username(username)
+        self.check_license_can_be_assigned_to_school_user(
+            udm_license.props.school, udm_user.props.school
         )
-        assigned_to_user = self.get_all_assignments_for_user(base=udm_license.dn, username=username)
+        self.check_license_type_is_correct(
+            username, udm_user.props.ucsschoolRole, udm_license.props.special_type
+        )
+        user_entry_uuid = get_entry_uuid(self._lo, dn=udm_user.dn)
+        assigned_to_user = self.get_all_assignments_for_user(
+            base=udm_license.dn, assignee=user_entry_uuid
+        )
         if assigned_to_user:
             raise BiloAssignmentError(
                 "License with code {} has already been assigned to {}!".format(license_code, username)
@@ -545,7 +560,7 @@ class AssignmentHandler:
         date_of_today = datetime.now().strftime("%Y-%m-%d")
         udm_assignment = available_licenses[0]
         udm_assignment.props.status = Status.ASSIGNED
-        udm_assignment.props.assignee = username
+        udm_assignment.props.assignee = user_entry_uuid
         udm_assignment.props.time_of_assignment = date_of_today
         udm_assignment.save()
         logging.debug("Assigned license with license code {} to {}.".format(license_code, username))
@@ -564,17 +579,17 @@ class AssignmentHandler:
         )
         return num_assigned_correct
 
-    def get_assignment_for_user_under_license(self, license_dn, username):
+    def get_assignment_for_user_under_license(self, license_dn, assignee):
         # type: (str, str)  -> UdmObject
         """Search for license with license id and user with username and change the status
         If a user has more than one license with license code under license_dn,
         we take the first license we can find."""
-        filter_s = filter_format("(assignee=%s)", [username])
+        filter_s = filter_format("(assignee=%s)", [assignee])
         try:
             return [a for a in self._assignments_mod.search(base=license_dn, filter_s=filter_s)][0]
         except IndexError:
             raise BiloAssignmentError(
-                "No assignment for license with {} was found for user {}".format(license_dn, username)
+                "No assignment for license with {} was found for user {}".format(license_dn, assignee)
             )
 
     def change_license_status(self, license_code, username, status):  # type: (str, str, str) -> bool
@@ -596,9 +611,10 @@ class AssignmentHandler:
 
         udm_license = self.get_license_by_license_code(license_code)
         self.check_is_ignored(udm_license.props.ignored)
+        user_entry_uuid = self._get_entry_uuid_by_username(username)
 
         udm_assignment = self.get_assignment_for_user_under_license(
-            license_dn=udm_license.dn, username=username
+            license_dn=udm_license.dn, assignee=user_entry_uuid
         )
         old_status = udm_assignment.props.status
         if status == old_status:

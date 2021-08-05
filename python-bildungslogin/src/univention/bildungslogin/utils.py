@@ -28,8 +28,10 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 
-import logging
-from datetime import datetime
+import re
+from typing import List
+
+from ldap.filter import escape_filter_chars
 
 
 class Status(object):
@@ -43,13 +45,33 @@ class LicenseType:
     SINGLE = "Einzellizenz"
 
 
-def get_logger():  # type: () -> logging.Logger
-    return logging.getLogger(__name__)
-
-
 def my_string_to_int(num):  # type: (str) -> int
     return int(num) if num else 0
 
 
-def parse_raw_license_date(date_str):  # type: (str) -> datetime
-    return datetime.strptime(date_str, "%d-%m-%Y")
+def get_entry_uuid(lo, dn):
+    """entryUUID can't be used in simple udm so we have to use ldap here."""
+    return lo.get(dn, attr=["entryUUID"])["entryUUID"][0]
+
+
+def get_special_filter(pattern, attribute_names):  # type: (str, List[str]) -> str
+    """this is bluntly copied from school_umc_base but only uses the submatch part.
+    todo use this in search"""
+    expressions = []
+    reg_white_spaces = re.compile(r"\s+")
+    for iword in reg_white_spaces.split(pattern or ""):
+        # evaluate the subexpression (search word over different attributes)
+        sub_expr = []
+        # all expressions for a full string match
+        iword = escape_filter_chars(iword)
+        # all expressions for a substring match
+        if not iword:
+            iword = "*"
+        elif "*" not in iword:
+            iword = "*%s*" % iword
+        sub_expr += ["(%s=%s)" % (attr, iword) for attr in attribute_names]
+        # append to list of all search expressions
+        expressions.append("(|%s)" % "".join(sub_expr))
+    if not expressions:
+        return ""
+    return "(&%s)" % "".join(expressions)

@@ -157,34 +157,31 @@ def test_get_time_of_last_assignment(license_handler, assignment_handler, licens
         )
 
 
-def _set_license_ignore(license_handler, license, ldap_base):
-    license.ignored_for_display = "0"
-    license_handler.create(license)
-    cn = sha256(license.license_code).hexdigest()
-    license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
-    verify_ldap_object(
-        license_dn,
-        expected_attr={
-            "vbmIgnoredForDisplay": ["0"],
-        },
-        strict=False,
-    )
-    license_handler.set_license_ignore(license_code=license.license_code, ignore=True)
-    verify_ldap_object(
-        license_dn,
-        expected_attr={
-            "vbmIgnoredForDisplay": ["1"],
-        },
-        strict=False,
-    )
-
-
 def test_set_license_ignore(license_handler, assignment_handler, license, ldap_base):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         username = schoolenv.create_student(ou)[0]
         license.license_school = ou
-        _set_license_ignore(license_handler, license, ldap_base)
+        license.ignored_for_display = "0"
+        license_handler.create(license)
+        cn = sha256(license.license_code).hexdigest()
+        license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
+        verify_ldap_object(
+            license_dn,
+            expected_attr={
+                "vbmIgnoredForDisplay": ["0"],
+            },
+            strict=False,
+        )
+        license_handler.set_license_ignore(license_code=license.license_code, ignore=True)
+        verify_ldap_object(
+            license_dn,
+            expected_attr={
+                "vbmIgnoredForDisplay": ["1"],
+            },
+            strict=False,
+        )
+        license_handler.set_license_ignore(license_code=license.license_code, ignore=False)
         assignment_handler.assign_to_license(username=username, license_code=license.license_code)
         with pytest.raises(BiloLicenseInvalidError):
             license_handler.set_license_ignore(license_code=license.license_code, ignore=True)
