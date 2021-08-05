@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 from typing import List, Optional, Set, Union
 
-from ldap.filter import filter_format
+from ldap.filter import escape_filter_chars, filter_format
 from models import Assignment
 
 from univention.admin.syntax import date
@@ -53,7 +53,7 @@ from .exceptions import (
     BiloProductNotFoundError,
 )
 from .models import License, MetaData
-from .utils import LicenseType, Status, get_entry_uuid, my_string_to_int
+from .utils import LicenseType, Status, get_entry_uuid, get_special_filter, my_string_to_int
 
 
 class LicenseHandler:
@@ -128,7 +128,7 @@ class LicenseHandler:
 
     def get_all(self, filter_s=None):  # type: (Optional[str]) -> List[License]
         """get all licenses"""
-        return self._get_all(filter_s=filter_s)
+        return [self.from_udm_obj(udm_obj) for udm_obj in self._get_all(filter_s=filter_s)]
 
     def get_udm_license_by_code(self, license_code):  # type: (str) -> UdmObject
         filter_s = filter_format("(code=%s)", [license_code])
@@ -139,8 +139,7 @@ class LicenseHandler:
 
     def get_meta_data_for_license(self, license):  # type: (Union[UdmObject, License]) -> MetaData
         """search for the product of the license. If this there is none
-        yet, return an empty object.
-        """
+        yet, return an empty object."""
         if type(license) is License:
             product_id = license.product_id
         else:
@@ -217,7 +216,7 @@ class LicenseHandler:
 
     def search_for_licenses(
         self,
-        school=None,
+        school="",
         time_from=None,
         time_to=None,
         only_available_licenses=None,
@@ -227,15 +226,15 @@ class LicenseHandler:
         product_id="",
         product="",
         license_code="",
-        pattern=None,
+        pattern="",
     ):
-        # todo this only returns the exact match of the license code
-        # todo we need a fuzzy search
-        # todo school
+        # todo fuzzy search does not work yet: substring searches need an index.
         rows = []
-        for license in [self.get_udm_license_by_code(license_code=license_code)]:
+        filter_s = get_special_filter(pattern=pattern, attribute_names=["code"])
+        school = escape_filter_chars(school)
+        filter_s = "(&{}(school={}))".format(filter_s, school)
+        for license in self.get_all(filter_s=filter_s):
             meta_data = self.get_meta_data_for_license(license)
-            license = self.from_udm_obj(license)
             rows.append(
                 {
                     "licenseId": license.license_code,
@@ -252,46 +251,6 @@ class LicenseHandler:
                 }
             )
         return rows
-
-    # def search_for_license_code(self, license_code):  # type: (str) -> List[Dict[str, str]]
-    #     """
-    #     -> this is for the special view, later
-    #     this search can be extended for search for products (name, publisher, etc.)
-    #     and user (username, firstname, lastname)"""
-    #     rows = []
-    #     for license in [self.get_udm_license_by_code(license_code=license_code)]:
-    #         meta_data = self.get_meta_data_for_license(license)
-    #         license = self.from_udm_obj(license)
-    #         rows.append(
-    #             {
-    #                 "licenseId": license.license_code,
-    #                 "productId": license.product_id,
-    #                 "productName": meta_data.title,
-    #                 "publisher": meta_data.publisher,
-    #                 "licenseCode": license.license_code,
-    #                 "licenseType": license.license_type,
-    #                 "countAquired": self.get_total_number_of_assignments(license),
-    #                 "countAssigned": self.get_number_of_provisioned_and_assigned_assignments(license),
-    #                 # todo has to be fixed in udm
-    #                 "countExpired": 0,  # self.get_number_of_expired_assignments(license),
-    #                 "countAvailable": self.get_number_of_available_assignments(license),
-    #                 "importDate": license.delivery_date,
-    #                 "author": meta_data.author,
-    #                 "platform": "All",
-    #                 "reference": "reference",
-    #                 "specialLicense": license.license_special_type,
-    #                 "usage": "http://schule.de",
-    #                 "validityStart": license.validity_start_date,
-    #                 "validityEnd": license.validity_end_date,
-    #                 "validitySpan": license.validity_duration,
-    #                 "ignore": True if license.ignored_for_display == "1" else False,
-    #                 "coverSmall": meta_data.cover_small,
-    #                 "cover": meta_data.cover,
-    #                 # noqa: E501
-    #                 "users": [],
-    #             }
-    #         )
-    #     return rows
 
 
 class MetaDataHandler:
@@ -602,9 +561,13 @@ class AssignmentHandler:
     def assign_users_to_license(self, license_code, usernames):  # type: (str, List[str]) -> int
         num_assigned_correct = 0
         for username in usernames:
-            assigned_correct = self.assign_to_license(license_code, username)
-            if assigned_correct:
-                num_assigned_correct += 1
+            try:
+                assigned_correct = self.assign_to_license(license_code, username)
+                if assigned_correct:
+                    num_assigned_correct += 1
+            except BiloAssignmentError:
+                # Error handling should be done in the umc - layer
+                pass
         self.logger.info(
             "Assigned {}/{} users to license with code {}.".format(
                 num_assigned_correct, len(usernames), license_code
@@ -675,11 +638,16 @@ class AssignmentHandler:
     def remove_assignment_from_users(self, license_code, usernames):  # type: (str, List[str]) -> int
         num_removed_correct = 0
         for username in usernames:
-            removed_correct = self.change_license_status(
-                license_code=license_code, username=username, status=Status.AVAILABLE
-            )
-            if removed_correct:
-                num_removed_correct += 1
+            try:
+                success = self.change_license_status(
+                    license_code=license_code, username=username, status=Status.AVAILABLE
+                )
+                if success:
+                    num_removed_correct += 1
+            except BiloAssignmentError:
+                # Error handling should be done in the umc - layer
+                pass
+
         self.logger.info(
             "Removed {}/{} user-assignment to license code {}.".format(
                 num_removed_correct, len(usernames), license_code

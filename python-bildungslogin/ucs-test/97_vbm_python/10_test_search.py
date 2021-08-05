@@ -33,22 +33,35 @@
 ## roles: [domaincontroller_master]
 
 
+import univention.testing.ucsschool.ucs_test_school as utu
+
+
 def test_search_for_license_code(license_handler, meta_data_handler, meta_data, license):
-    license.product_id = meta_data.product_id
-    license_handler.create(license)
-    meta_data_handler.create(meta_data)
-    res = license_handler.search_for_licenses(license_code=license.license_code)
-    assert len(res) == 1
-    assert res[0] == {
-        "licenseId": license.license_code,
-        "productId": license.product_id,
-        "productName": meta_data.title,
-        "publisher": meta_data.publisher,
-        "licenseCode": license.license_code,
-        "licenseType": license.license_type,
-        "countAquired": license_handler.get_total_number_of_assignments(license),
-        "countAssigned": license_handler.get_number_of_provisioned_and_assigned_assignments(license),
-        "countExpired": 0,  # self.get_number_of_expired_assignments(license),
-        "countAvailable": license_handler.get_number_of_available_assignments(license),
-        "importDate": license.delivery_date,
-    }
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+
+        license.product_id = meta_data.product_id
+        license.license_school = ou
+        license_handler.create(license)
+        meta_data_handler.create(meta_data)
+        res = license_handler.search_for_licenses(pattern=license.license_code, school=ou)
+        assert len(res) == 1
+        expected_res = {
+            "licenseId": license.license_code,
+            "productId": license.product_id,
+            "productName": meta_data.title,
+            "publisher": meta_data.publisher,
+            "licenseCode": license.license_code,
+            "licenseType": license.license_type,
+            "countAquired": license_handler.get_total_number_of_assignments(license),
+            "countAssigned": license_handler.get_number_of_provisioned_and_assigned_assignments(license),
+            "countExpired": 0,  # self.get_number_of_expired_assignments(license),
+            "countAvailable": license_handler.get_number_of_available_assignments(license),
+            "importDate": license.delivery_date,
+        }
+        assert expected_res in res
+        # todo fuzzy search does not work yet: substring searches need an index.
+        # for i in range(len(license.license_code)):
+        #     pattern = license.license_code[:i]
+        #     res = license_handler.search_for_licenses(pattern=pattern, school=ou)
+        #     assert expected_res in res

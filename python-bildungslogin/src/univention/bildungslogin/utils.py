@@ -55,19 +55,22 @@ def get_entry_uuid(lo, dn):
 
 
 def get_special_filter(pattern, attribute_names):  # type: (str, List[str]) -> str
-    """this is bluntly copied from school_umc_base but only uses the submatch part.
-    todo use this in search"""
+    """this is bluntly copied from school_umc_base: all attributes are searched
+    as substring + exact match.
+    """
     expressions = []
     reg_white_spaces = re.compile(r"\s+")
     for iword in reg_white_spaces.split(pattern or ""):
         # evaluate the subexpression (search word over different attributes)
         sub_expr = []
-        # all expressions for a full string match
         iword = escape_filter_chars(iword)
+        # all expressions for a full string match
+        if iword:
+            sub_expr += ["(%s=%s)" % (attr, iword) for attr in attribute_names]
         # all expressions for a substring match
         if not iword:
             iword = "*"
-        elif "*" not in iword:
+        elif iword.find("*") < 0:
             iword = "*%s*" % iword
         sub_expr += ["(%s=%s)" % (attr, iword) for attr in attribute_names]
         # append to list of all search expressions
