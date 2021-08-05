@@ -288,6 +288,7 @@ class object(univention.admin.handlers.simpleLdap):
         super(object, self)._ldap_pre_create()
 
     def ready(self):
+        super(object, self).ready()
         school_filter = "(objectClass=ucsschoolOrganizationalUnit)"
         schools = [item[1]["ou"][0] for item in self.lo.search(school_filter, attr=["ou"])]
         if self["school"].lower() not in [school.lower() for school in schools]:
@@ -298,7 +299,6 @@ class object(univention.admin.handlers.simpleLdap):
                     )
                 )
             )
-        super(object, self).ready()
 
     def open(self):
         super(object, self).open()
