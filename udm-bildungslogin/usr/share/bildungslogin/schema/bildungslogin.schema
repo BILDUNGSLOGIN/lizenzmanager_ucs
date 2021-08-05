@@ -16,12 +16,14 @@ attributetype ( vbmBildungslogin:101
         NAME 'vbmLicenseCode'
         DESC 'The code of the license as provided by the publisher'
         EQUALITY caseExactMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:102
         NAME 'vbmProductId'
         DESC 'The product id of the product the license entitles to use'
         EQUALITY caseExactMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:103
@@ -99,6 +101,7 @@ attributetype ( vbmBildungslogin:201
         NAME 'vbmMetaDataTitle'
         DESC 'The title of the product'
         EQUALITY caseExactMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:202
@@ -117,6 +120,7 @@ attributetype ( vbmBildungslogin:204
         NAME 'vbmMetaDataPublisher'
         DESC 'The publisher of the product'
         EQUALITY caseExactMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:205
