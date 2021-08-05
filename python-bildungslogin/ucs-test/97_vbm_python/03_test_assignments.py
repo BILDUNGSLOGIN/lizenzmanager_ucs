@@ -66,7 +66,10 @@ def test_assign_user_to_license(assignment_handler, license_handler, license, us
             username = schoolenv.create_student(ou)[0]
         elif user_type == "teacher":
             username = schoolenv.create_teacher(ou)[0]
-        assignment_handler.assign_to_license(username=username, license_code=license.license_code)
+        success = assignment_handler.assign_to_license(
+            username=username, license_code=license.license_code
+        )
+        assert success is True
         assignments = license_handler.get_assignments_for_license(license)
         license_was_assigned_correct_to_user(assignments, username)
         # (username, license_code) is unique
@@ -106,9 +109,10 @@ def test_remove_assignment_from_users(assignment_handler, license_handler, licen
         assignments = license_handler.get_assignments_for_license(license)
         for username in usernames:
             license_was_assigned_correct_to_user(assignments, username)
-        assignment_handler.remove_assignment_from_users(
+        num_removed = assignment_handler.remove_assignment_from_users(
             usernames=usernames, license_code=license.license_code
         )
+        assert num_removed == len(usernames)
         assignments = license_handler.get_assignments_for_license(license)
         assignees = [a.assignee for a in assignments]
         for username in usernames:
@@ -122,9 +126,10 @@ def test_assign_users_to_licenses(assignment_handler, license_handler, license):
         license.license_school = ou
         license_handler.create(license)
         usernames = [schoolenv.create_student(ou)[0] for _ in range(license.license_quantity)]
-        assignment_handler.assign_users_to_license(
+        num_correct = assignment_handler.assign_users_to_license(
             usernames=usernames, license_code=license.license_code
         )
+        assert num_correct == len(usernames)
         assignments = license_handler.get_assignments_for_license(license)
         for username in usernames:
             license_was_assigned_correct_to_user(assignments, username)
@@ -155,32 +160,40 @@ def test_positive_change_license_status(license_handler, assignment_handler, use
             username = schoolenv.create_student(ou)[0]
         elif user_type == "teacher":
             username = schoolenv.create_teacher(ou)[0]
-        assignment_handler.assign_to_license(username=username, license_code=license.license_code)
+        success = assignment_handler.assign_to_license(
+            username=username, license_code=license.license_code
+        )
+        assert success is True
         assignments = assignment_handler.get_assignments_for_product_id_for_user(
             username=username, product_id=license.product_id
         )
         assignment = assignments[0]
         assert assignment.status == Status.ASSIGNED
-        assignment_handler.change_license_status(
+        success = assignment_handler.change_license_status(
             username=username,
             license_code=license.license_code,
             status=Status.AVAILABLE,
         )
+        assert success is True
         assignments = assignment_handler.get_assignments_for_product_id_for_user(
             username=username, product_id=license.product_id
         )
         assert len(assignments) == 0
         # license has to be reassigned to also have a username at the assignment
-        assignment_handler.assign_to_license(username=username, license_code=license.license_code)
+        success = assignment_handler.assign_to_license(
+            username=username, license_code=license.license_code
+        )
+        assert success is True
         assignment = assignment_handler.get_assignments_for_product_id_for_user(
             username=username, product_id=license.product_id
         )[0]
         assert assignment.status == Status.ASSIGNED
-        assignment_handler.change_license_status(
+        success = assignment_handler.change_license_status(
             username=username,
             license_code=license.license_code,
             status=Status.PROVISIONED,
         )
+        assert success is True
         assignment = assignment_handler.get_assignments_for_product_id_for_user(
             username=username, product_id=license.product_id
         )[0]
