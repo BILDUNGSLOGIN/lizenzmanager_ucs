@@ -34,7 +34,10 @@ from typing import Dict, List
 from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.handlers import LicenseHandler
 from univention.bildungslogin.models import License
-from univention.bildungslogin.utils import parse_raw_license_date
+
+
+def parse_raw_license_date(date_str):  # type: (str) -> datetime
+    return datetime.strptime(date_str, "%d-%m-%Y")
 
 
 def load_license(license_raw, school):  # type: (Dict, str) -> License
