@@ -31,6 +31,7 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
+import uuid
 from hashlib import sha256
 
 import pytest
@@ -59,7 +60,7 @@ def test_required_attributes(attr_name, udm):
 
 
 def test_create_license(create_license):
-    license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
+    license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "demoSCHOOL")
     assert license_obj.props.cn == sha256("LICENSE_CODE").hexdigest()
 
 
@@ -67,5 +68,13 @@ def test_unique_codes(create_license):
     code = "CODE"
     create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
     with pytest.raises(CreateError) as exinfo:
-        create_license(code, "PRODUCT_ID2", 22, "SOME_SCHOOL")
+        create_license(code, "PRODUCT_ID2", 22, "DEMOSCHOOL")
     assert "A license with that code already exists" in exinfo.value.message
+
+
+def test_existing_school(create_license):
+    code = "CODE"
+    non_existing_school = "DEMOSCHOOL" + str(uuid.uuid4())
+    with pytest.raises(CreateError) as exinfo:
+        create_license(code, "PRODUCT_ID", 10, non_existing_school)
+    assert 'The school "{}" does not exist.'.format(non_existing_school) in exinfo.value.message
