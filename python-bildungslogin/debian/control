@@ -40,6 +40,7 @@ Architecture: all
 Depends:
  ${misc:Depends},
  ucs-test-framework,
+ ucs-test-ucsschool,
  python-pytest,
  python-bildungslogin,
  udm-bildungslogin,

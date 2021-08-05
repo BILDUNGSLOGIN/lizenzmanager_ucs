@@ -228,7 +228,7 @@ class LicenseHandler:
         license_code="",
         pattern="",
     ):
-        # todo fuzzy search does not work yet: substring search must be set in schema
+        """search only works for license-code yet"""
         rows = []
         filter_s = get_special_filter(pattern=pattern, attribute_names=["code"])
         school = escape_filter_chars(school)

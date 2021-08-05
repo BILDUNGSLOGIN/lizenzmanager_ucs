@@ -60,8 +60,7 @@ def test_search_for_license_code(license_handler, meta_data_handler, meta_data, 
             "importDate": license.delivery_date,
         }
         assert expected_res in res
-        # todo fuzzy search does not work yet: substring searches must be set in schema
-        # for i in range(len(license.license_code)):
-        #     pattern = license.license_code[:i]
-        #     res = license_handler.search_for_licenses(pattern=pattern, school=ou)
-        #     assert expected_res in res
+        for i in range(len(license.license_code)):
+            substring = license.license_code[:i]
+            res = license_handler.search_for_licenses(pattern=substring, school=ou)
+            assert expected_res in res
