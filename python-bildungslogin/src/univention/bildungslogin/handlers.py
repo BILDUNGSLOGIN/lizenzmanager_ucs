@@ -216,19 +216,19 @@ class LicenseHandler:
 
     def search_for_licenses(
         self,
-        school="",
-        time_from=None,
-        time_to=None,
-        only_available_licenses=None,
+        school,
+        time_from="",
+        time_to="",
+        only_available_licenses=False,
         publisher="",
         license_type="",
-        user_pattern=None,
+        user_pattern="",
         product_id="",
         product="",
         license_code="",
         pattern="",
     ):
-        # todo fuzzy search does not work yet: substring searches need an index.
+        # todo fuzzy search does not work yet: substring search must be set in schema
         rows = []
         filter_s = get_special_filter(pattern=pattern, attribute_names=["code"])
         school = escape_filter_chars(school)
