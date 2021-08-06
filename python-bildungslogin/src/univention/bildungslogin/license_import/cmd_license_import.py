@@ -32,7 +32,8 @@ from __future__ import print_function
 import argparse
 import sys
 
-from univention.bildungslogin.handlers import BiloCreateError
+from univention.admin.uldap import getAdminConnection
+from univention.bildungslogin.handlers import BiloCreateError, LicenseHandler
 from univention.bildungslogin.license_import import import_license, load_license_file
 
 
@@ -50,10 +51,12 @@ def parse_args():  # type: () -> argparse.Namespace
 
 def import_licenses(license_file, school):
     licenses = load_license_file(license_file, school)
+    lo, po = getAdminConnection()
+    license_handler = LicenseHandler(lo)
     errors = False
     for license in licenses:
         try:
-            import_license(license)
+            import_license(license_handler, license)
         except BiloCreateError as exc:
             errors = True
             print(

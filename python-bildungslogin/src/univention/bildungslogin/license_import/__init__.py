@@ -31,7 +31,6 @@ import json
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.handlers import LicenseHandler
 from univention.bildungslogin.models import License
 
@@ -68,8 +67,6 @@ def load_license_file(license_file, school):  # type: (str) -> List(License)
     return licenses
 
 
-def import_license(license):  # type: (License) -> None
-    lo, po = getAdminConnection()
-    lh = LicenseHandler(lo)
-    lh.create(license)
+def import_license(license_handler, license):  # type: (LicenseHandler, License) -> None
+    license_handler.create(license)
     # TODO: trigger metadata update (listener?)
