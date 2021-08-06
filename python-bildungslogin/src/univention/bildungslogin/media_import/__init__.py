@@ -78,12 +78,11 @@ def get_all_media_data(client_id, client_secret, scope, auth_server, resource_se
     ).json()
 
 
-def import_single_media_data(meta_data_handler, raw_media_data):
-    # type: (MetaDataHandler, List[dict]) -> None
+def load_media(raw_media_data):  # type: (dict) -> MetaData
     if raw_media_data["status"] == 200:
         data = raw_media_data["data"]
         try:
-            md = MetaData(
+            return MetaData(
                 product_id=data["id"],
                 title=data["title"],
                 description=data["description"],
@@ -97,9 +96,14 @@ def import_single_media_data(meta_data_handler, raw_media_data):
             )
         except (KeyError, ValueError) as exc:
             raise MediaImportError(str(exc))
-        try:
-            meta_data_handler.create(md)
-        except BiloCreateError as exc:
-            raise MediaImportError(str(exc))
     else:
         raise MediaNotFoundError()
+
+
+def import_single_media_data(meta_data_handler, raw_media_data):
+    # type: (MetaDataHandler, List[dict]) -> None
+    md = load_media(raw_media_data)
+    try:
+        meta_data_handler.create(md)
+    except BiloCreateError as exc:
+        raise MediaImportError(str(exc))
