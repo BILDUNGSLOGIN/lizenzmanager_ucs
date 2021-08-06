@@ -84,8 +84,6 @@ class UdmRestApiBackend(DbBackend):
         """Regex to match 'cn=DEMOSCHOOL-1a,cn=klassen,cn=schueler,cn=groups,ou=DEMOSCHOOL,...'."""
         # copied from ucsschool-id-connector/src/ucsschool_id_connector/utils.py
         base_dn = os.environ["LDAP_BASE"]
-        # TODO: copy UCRV from host into container: ucsschool/ldap/default/container/class
-        # TODO: copy UCRV from host into container: ucsschool/ldap/default/container/pupils
         c_class = os.environ.get(UCR_CONTAINER_CLASS[0]) or UCR_CONTAINER_CLASS[1]
         c_student = os.environ.get(UCR_CONTAINER_PUPILS[0]) or UCR_CONTAINER_PUPILS[1]
         return re.compile(

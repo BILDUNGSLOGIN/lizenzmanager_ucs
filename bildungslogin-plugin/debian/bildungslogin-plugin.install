@@ -1,0 +1,3 @@
+bildungslogin_plugin var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/
+opa var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/
+pyproject.toml var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/

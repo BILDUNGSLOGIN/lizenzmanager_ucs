@@ -1,0 +1,128 @@
+#!/bin/sh
+
+# Copyright 2021 Univention GmbH
+#
+# http://www.univention.de/
+#
+# All rights reserved.
+#
+# The source code of this program is made available
+# under the terms of the GNU Affero General Public License version 3
+# (GNU AGPL V3) as published by the Free Software Foundation.
+#
+# Binary versions of this program provided by Univention to you as
+# well as other copyrighted, protected or trademarked materials like
+# Logos, graphics, fonts, specific documentations and configurations,
+# cryptographic keys etc. are subject to a license agreement between
+# you and Univention and not subject to the GNU AGPL V3.
+#
+# In the case you use this program under the terms of the GNU AGPL V3,
+# the program is provided in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License with the Debian GNU/Linux or Univention distribution in file
+# /usr/share/common-licenses/AGPL-3; if not, see
+# <http://www.gnu.org/licenses/>.
+
+## joinscript api: bindpwdfile
+
+VERSION=1
+
+. /usr/share/univention-lib/all.sh
+. /usr/share/univention-join/joinscripthelper.lib
+
+joinscript_init
+
+if  ! univention-app status ucsschool-apis 1>/dev/null 2>/dev/null; then
+    echo "ERROR: -------------------------------------------------------------------------"
+    echo "ERROR: The app 'UCS@school APIs' (ucsschool-apis) has to be installed."
+    echo "ERROR: Please install the app manually."
+    echo "ERROR: -------------------------------------------------------------------------"
+    exit 1
+fi
+
+eval "$(ucr shell ldap/base appcenter/apps/ucsschool-apis/hostdn appcenter/apps/ucsschool-apis/container)"
+
+SETTINGS_FILE="/etc/ucsschool/apis/bildungslogin/settings.json"
+UDM_REST_GROUP="UDM-API-enabled-machines"
+
+create_settings_file() {
+  if [ ! -f $SETTINGS_FILE ]; then
+    echo "Creating empty configuration file '$SETTINGS_FILE'..."
+    echo '{}' > $SETTINGS_FILE
+    chown root:root $SETTINGS_FILE
+    chmod 640 $SETTINGS_FILE
+  fi
+}
+
+set_ucrvs() {
+  if ! docker exec $appcenter_apps_ucsschool_apis_container /usr/bin/test -x /usr/local/bin/univention-config-registry; then
+    echo "Installing UCR into Docker container..."
+    docker exec $appcenter_apps_ucsschool_apis_container python3 -m pip install --no-cache-dir --compile -i https://test.pypi.org/simple/ univention-config-registry
+    docker exec $appcenter_apps_ucsschool_apis_container ln -sv /usr/local/bin/univention-config-registry /usr/local/bin/ucr
+  fi
+
+  echo "Setting UCRVs..."
+  docker exec $appcenter_apps_ucsschool_apis_container univention-config-registry set \
+    ucsschool/ldap/default/container/class="$(ucr get ucsschool/ldap/default/container/class)" \
+    ucsschool/ldap/default/container/pupils="$(ucr get ucsschool/ldap/default/container/pupils)"
+  echo "Ignore error message above: 'E: your request could not be fulfilled'."
+}
+
+setup_udm_rest_api_access() {
+  echo "Creating group '$UDM_REST_GROUP' for machine accounts that are allowed to access the UDM REST API..."
+  univention-directory-manager groups/group create "$@" --ignore_exists \
+    --position "cn=groups,$ldap_base" \
+    --set name="$UDM_REST_GROUP" \
+    --set description="Machine accounts that are allowed to connect to the UDM REST API." || die
+
+  UDM_REST_GROUP_DN="cn=$UDM_REST_GROUP,cn=groups,$ldap_base"
+
+  echo "Adding UCS@school APIs machine account '$appcenter_apps_ucsschool_apis_container' to group '$UDM_REST_GROUP'..."
+  univention-directory-manager groups/group modify "$@" \
+    --dn "$UDM_REST_GROUP_DN" \
+    --append users="$appcenter_apps_ucsschool_apis_hostdn" || die
+
+  echo "Whitelisting new group for UDM REST API."
+  ucr set directory/manager/rest/authorized-groups/udm-api-enabled-machines="$UDM_REST_GROUP_DN" || die
+
+  echo "Restarting UDM REST API service."
+  systemctl restart univention-directory-manager-rest.service || die
+  sleep 5  # prevent [502] Proxy Error, in case of access before UDM REST API is ready
+}
+
+check_openapi_client_knows_vbm_modules() {
+  OPENAPI_TEST_CODE="from openapi_client_udm import VbmAssignment, VbmLicense, VbmMetadata"
+  echo "Checking OpenAPI client library is installed and knows VBM UDM modules..."
+  if docker exec $appcenter_apps_ucsschool_apis_container python3 -c "$OPENAPI_TEST_CODE"; then
+    echo "OK: OpenAPI client library already knows VBM UDM modules."
+  else
+    echo "Building OpenAPI client library for UDM REST API access in Docker container..."
+    echo "==> This requires network access to Debians repositories! <=="
+    echo "Please allow outgoing TCP connections to 141.76.2.4:80 (ftp.de.debian.org)."
+    docker exec $appcenter_apps_ucsschool_apis_container /var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/install_udm_rest_api_client
+    if docker exec $appcenter_apps_ucsschool_apis_container python3 -c "$OPENAPI_TEST_CODE"; then
+      echo "OK: OpenAPI client library now knows VBM UDM modules."
+    else
+      die "FAIL: OpenAPI client library in Docker container still not usable!"
+    fi
+  fi
+}
+
+restart_ucsschool_apis_app() {
+  echo "Restarting the UCS@school APIs app..."
+  univention-app restart ucsschool-apis
+}
+
+create_settings_file
+set_ucrvs
+setup_udm_rest_api_access "$@"
+check_openapi_client_knows_vbm_modules
+restart_ucsschool_apis_app
+
+joinscript_save_current_version
+
+exit 0

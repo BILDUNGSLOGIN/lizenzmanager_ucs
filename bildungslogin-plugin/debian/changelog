@@ -1,0 +1,5 @@
+bildungslogin-plugin (1.0.0) unstable; urgency=low
+
+  * Issue #21: initial release
+
+ -- Daniel Troeder <troeder@univention.de>  Thu, 05 Aug 2021 15:34:46 +0200

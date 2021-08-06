@@ -1,0 +1,28 @@
+Source: bildungslogin-plugin
+Section: univention
+Priority: optional
+Maintainer: Univention GmbH <packages@univention.de>
+Build-Depends: debhelper (>= 9),
+ ucslint
+Standards-Version: 3.8.2
+
+Package: bildungslogin-plugin
+Architecture: all
+Depends:
+ ${misc:Depends},
+ bildungslogin-plugin-openapi-client (= ${binary:Version}),
+Description: This package provides the bildungslogin plugin for the univention ucsschool-api.
+ It is part of Univention Corporate Server (UCS), an
+ integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: http://www.univention.de/
+
+Package: bildungslogin-plugin-openapi-client
+Architecture: all
+Depends:
+ ${misc:Depends},
+Description: This package provides the JAR used to build the OpenAPI client used by bildungslogin-plugin.
+ It is part of Univention Corporate Server (UCS), an
+ integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: http://www.univention.de/
