@@ -11,6 +11,7 @@ Package: bildungslogin-plugin
 Architecture: all
 Depends:
  ${misc:Depends},
+ makepasswd,
  bildungslogin-plugin-openapi-client (= ${binary:Version}),
 Description: This package provides the bildungslogin plugin for the univention ucsschool-api.
  It is part of Univention Corporate Server (UCS), an

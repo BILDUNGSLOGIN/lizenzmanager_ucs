@@ -1,4 +1,4 @@
 39bildungslogin-plugin-openapi-client.inst  usr/lib/univention-install/
-64bildungslogin-plugin-openapi-client.uinst usr/lib/univention-uninstall/
+61bildungslogin-plugin-openapi-client.uinst usr/lib/univention-uninstall/
 install_udm_rest_api_client var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/
 openapi-generator-cli-5.0.0.jar var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/

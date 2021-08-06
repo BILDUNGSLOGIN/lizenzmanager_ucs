@@ -2,6 +2,25 @@
 
 This package contains a plugin for the ucsschool-apis app. It creates a REST API resource for `bildungslogin.de` to retrieve user data from.
 
+## Installation:
+
+```
+# add customer repository to sources list
+apt install bildungslogin-plugin
+```
+
+Add `"bildungslogin"` to list of `enabled_plugins` in `/etc/ucsschool/apis/settings.json`:
+
+```json
+{"enabled_plugins": ["auth", "bildungslogin"]}
+```
+
+Restart UCS@school APIs app:
+
+```bash
+univention-app restart ucsschool-apis
+```
+
 ## pyproject.toml
 
 The configuration file of this python project and its entry point. A modern alternative to the setup.py workflow.

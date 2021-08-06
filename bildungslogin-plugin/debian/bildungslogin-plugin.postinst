@@ -29,10 +29,13 @@
 
 #DEBHELPER#
 
-if [ "$1" = "remove" ]
+if [ "$1" = "configure" ]
 then
-	cp /usr/lib/univention-uninstall/61bildungslogin-plugin-openapi-client.uinst \
-		/usr/lib/univention-install/
+	uinst=/usr/lib/univention-install/60bildungslogin-plugin.uinst
+	[ -e "$uinst" ] && rm "$uinst"
 fi
+
+. /usr/share/univention-lib/base.sh
+call_joinscript 40bildungslogin-plugin.inst
 
 exit 0

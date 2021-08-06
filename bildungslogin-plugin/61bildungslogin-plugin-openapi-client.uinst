@@ -27,12 +27,14 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
 
-#DEBHELPER#
+## joinscript api: bindpwdfile
 
-if [ "$1" = "remove" ]
-then
-	cp /usr/lib/univention-uninstall/61bildungslogin-plugin-openapi-client.uinst \
-		/usr/lib/univention-install/
-fi
+VERSION=1
+
+. /usr/share/univention-join/joinscripthelper.lib
+
+joinscript_init
+
+joinscript_remove_script_from_status_file bildungslogin-plugin-openapi-client
 
 exit 0

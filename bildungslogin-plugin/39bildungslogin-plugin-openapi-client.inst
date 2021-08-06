@@ -46,31 +46,7 @@ fi
 
 eval "$(ucr shell ldap/base appcenter/apps/ucsschool-apis/hostdn appcenter/apps/ucsschool-apis/container)"
 
-SETTINGS_FILE="/etc/ucsschool/apis/bildungslogin/settings.json"
 UDM_REST_GROUP="UDM-API-enabled-machines"
-
-create_settings_file() {
-  if [ ! -f $SETTINGS_FILE ]; then
-    echo "Creating empty configuration file '$SETTINGS_FILE'..."
-    echo '{}' > $SETTINGS_FILE
-    chown root:root $SETTINGS_FILE
-    chmod 640 $SETTINGS_FILE
-  fi
-}
-
-set_ucrvs() {
-  if ! docker exec $appcenter_apps_ucsschool_apis_container /usr/bin/test -x /usr/local/bin/univention-config-registry; then
-    echo "Installing UCR into Docker container..."
-    docker exec $appcenter_apps_ucsschool_apis_container python3 -m pip install --no-cache-dir --compile -i https://test.pypi.org/simple/ univention-config-registry
-    docker exec $appcenter_apps_ucsschool_apis_container ln -sv /usr/local/bin/univention-config-registry /usr/local/bin/ucr
-  fi
-
-  echo "Setting UCRVs..."
-  docker exec $appcenter_apps_ucsschool_apis_container univention-config-registry set \
-    ucsschool/ldap/default/container/class="$(ucr get ucsschool/ldap/default/container/class)" \
-    ucsschool/ldap/default/container/pupils="$(ucr get ucsschool/ldap/default/container/pupils)"
-  echo "Ignore error message above: 'E: your request could not be fulfilled'."
-}
 
 setup_udm_rest_api_access() {
   echo "Creating group '$UDM_REST_GROUP' for machine accounts that are allowed to access the UDM REST API..."
@@ -102,8 +78,8 @@ check_openapi_client_knows_vbm_modules() {
   else
     echo "Building OpenAPI client library for UDM REST API access in Docker container..."
     echo "==> This requires network access to Debians repositories! <=="
-    echo "Please allow outgoing TCP connections to 141.76.2.4:80 (ftp.de.debian.org)."
-    docker exec $appcenter_apps_ucsschool_apis_container /var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/install_udm_rest_api_client
+    echo "If the installation fails, make sure the server can open outgoing TCP connections to 141.76.2.4:80 (ftp.de.debian.org)."
+    docker exec $appcenter_apps_ucsschool_apis_container /var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/install_udm_rest_api_client || die
     if docker exec $appcenter_apps_ucsschool_apis_container python3 -c "$OPENAPI_TEST_CODE"; then
       echo "OK: OpenAPI client library now knows VBM UDM modules."
     else
@@ -117,8 +93,6 @@ restart_ucsschool_apis_app() {
   univention-app restart ucsschool-apis
 }
 
-create_settings_file
-set_ucrvs
 setup_udm_rest_api_access "$@"
 check_openapi_client_knows_vbm_modules
 restart_ucsschool_apis_app

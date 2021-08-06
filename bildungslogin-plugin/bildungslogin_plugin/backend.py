@@ -179,7 +179,8 @@ class UdmRestApiBackend(DbBackend):
         async for assignment in self.assignment_mod.search(f"(vbmAssignmentAssignee={user.uuid})"):
             if assignment.props.status == AssignmentStatus.AVAILABLE.name:
                 logger.error(
-                    "License assignment for user %r has status 'AVAILABLE', setting to 'PROVISIONED': %r.",
+                    "License assignment for user %r has invalid status 'AVAILABLE', setting to "
+                    "'PROVISIONED': %r.",
                     user.props.username,
                     assignment.dn,
                 )

@@ -1,0 +1,115 @@
+#!/bin/sh
+
+# Copyright 2021 Univention GmbH
+#
+# http://www.univention.de/
+#
+# All rights reserved.
+#
+# The source code of this program is made available
+# under the terms of the GNU Affero General Public License version 3
+# (GNU AGPL V3) as published by the Free Software Foundation.
+#
+# Binary versions of this program provided by Univention to you as
+# well as other copyrighted, protected or trademarked materials like
+# Logos, graphics, fonts, specific documentations and configurations,
+# cryptographic keys etc. are subject to a license agreement between
+# you and Univention and not subject to the GNU AGPL V3.
+#
+# In the case you use this program under the terms of the GNU AGPL V3,
+# the program is provided in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License with the Debian GNU/Linux or Univention distribution in file
+# /usr/share/common-licenses/AGPL-3; if not, see
+# <http://www.gnu.org/licenses/>.
+
+## joinscript api: bindpwdfile
+
+VERSION=1
+
+. /usr/share/univention-lib/all.sh
+. /usr/share/univention-join/joinscripthelper.lib
+
+joinscript_init
+
+if  ! univention-app status ucsschool-apis 1>/dev/null 2>/dev/null; then
+    echo "ERROR: -------------------------------------------------------------------------"
+    echo "ERROR: The app 'UCS@school APIs' (ucsschool-apis) has to be installed."
+    echo "ERROR: Please install the app manually."
+    echo "ERROR: -------------------------------------------------------------------------"
+    exit 1
+fi
+
+eval "$(ucr shell ldap/base appcenter/apps/ucsschool-apis/hostdn appcenter/apps/ucsschool-apis/container)"
+
+API_ACCESS_USER="bildungslogin-api-user"
+
+
+create_settings_file() {
+  if [ ! -f $SETTINGS_FILE ]; then
+    echo "Creating empty configuration file '$SETTINGS_FILE'..."
+    echo '{}' > $SETTINGS_FILE
+    chown root:root $SETTINGS_FILE
+    chmod 640 $SETTINGS_FILE
+  fi
+}
+
+set_ucrvs() {
+  if ! docker exec $appcenter_apps_ucsschool_apis_container /usr/bin/test -x /usr/local/bin/univention-config-registry; then
+    echo "Installing UCR into Docker container..."
+    docker exec $appcenter_apps_ucsschool_apis_container python3 -m pip install --no-cache-dir --compile -i https://test.pypi.org/simple/ univention-config-registry || die
+    docker exec $appcenter_apps_ucsschool_apis_container ln -sv /usr/local/bin/univention-config-registry /usr/local/bin/ucr || die
+  fi
+
+  echo "Setting UCRVs..."
+  docker exec $appcenter_apps_ucsschool_apis_container univention-config-registry set \
+    ucsschool/ldap/default/container/class="$(ucr get ucsschool/ldap/default/container/class)" \
+    ucsschool/ldap/default/container/pupils="$(ucr get ucsschool/ldap/default/container/pupils)" || true
+  echo "Ignore error message above: 'E: your request could not be fulfilled'."
+}
+
+setup_provisioning_api_access() {
+  echo "Creating user '$API_ACCESS_USER' to allow access to the Bildungslogin Provisioning API..."
+  echo "The user will be created deactivated and with a random password."
+  univention-directory-manager users/user create "$@" --ignore_exists \
+    --position "cn=users,$ldap_base" \
+    --set username="$API_ACCESS_USER" \
+    --set firstname="Bildungslogin" \
+    --set lastname="API user" \
+    --set description="Account that is allowed to access the Bildungslogin Provisioning API." \
+    --set password="$(makepasswd --chars=20)" \
+    --set disabled=1 || die
+}
+
+enable_ucsschool_apis_plugin() {
+  echo "Enabling 'bildungslogin' plugin for ucsschool-apis..."
+  python -c '
+import json
+conf = json.load(open("/etc/ucsschool/apis/settings.json"))
+enabled_plugins = set(conf["enabled_plugins"])
+enabled_plugins.add("auth")
+enabled_plugins.add("bildungslogin")
+conf["enabled_plugins"] = sorted(enabled_plugins)
+json.dump(conf, open("/etc/ucsschool/apis/settings.json", "w"))
+'
+}
+
+restart_ucsschool_apis_app() {
+  echo "Restarting the UCS@school APIs app..."
+  univention-app restart ucsschool-apis
+}
+
+
+create_settings_file
+set_ucrvs
+setup_provisioning_api_access "$@"
+enable_ucsschool_apis_plugin
+restart_ucsschool_apis_app
+
+joinscript_save_current_version
+
+exit 0

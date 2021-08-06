@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import ValidationError, constr
 from starlette import status
 
+from ucsschool.apis.opa import OPAClient, opa_instance
 from bildungslogin_plugin.backend import DbBackend, DbConnectionError, UserNotFound
 from bildungslogin_plugin.models import User
 from ucsschool.apis.plugins.auth import get_token
@@ -37,9 +38,11 @@ def get_backend() -> DbBackend:
 async def get(
     user_id: NonEmptyStr = Path(..., alias="id", description="User ID", title="User ID"),
     backend: DbBackend = Depends(get_backend),
-    _token: str = Depends(get_token),
+    policy_instance: OPAClient = Depends(opa_instance),
+    token: str = Depends(get_token),
 ) -> User:
     """Retrieve a users name, license, role, class and school information."""
+    await policy_instance.check_policy_true_or_raise("bildungslogin_plugin/user", token)
     logger.debug(
         "Retrieving user with user_id=%r and backend=%r...", user_id, backend.__class__.__name__
     )

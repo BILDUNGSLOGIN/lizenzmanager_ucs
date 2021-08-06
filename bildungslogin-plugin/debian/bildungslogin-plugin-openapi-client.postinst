@@ -31,7 +31,7 @@
 
 if [ "$1" = "configure" ]
 then
-	uinst=/usr/lib/univention-install/64bildungslogin-plugin-openapi-client.uinst
+	uinst=/usr/lib/univention-install/61bildungslogin-plugin-openapi-client.uinst
 	[ -e "$uinst" ] && rm "$uinst"
 fi
 

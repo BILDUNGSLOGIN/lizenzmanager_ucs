@@ -39,8 +39,9 @@ deb http://141.76.2.4/debian-security buster/updates main
 fi
 
 echo "Installing 'default-jre' Debian package..."
+mkdir -pv /usr/share/man/man1/
 apt update
-apt install default-jre
+apt install --yes default-jre
 
 echo "Generating OpenAPI client for the UDM REST API..."
 update_openapi_client \
