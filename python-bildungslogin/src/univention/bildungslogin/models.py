@@ -30,7 +30,7 @@
 
 from typing import Optional
 
-from utils import LicenseType, Status
+from utils import LicenseType, Status, my_string_to_int
 
 
 class Assignment(object):
@@ -63,7 +63,7 @@ class License(object):
         delivery_date,
         license_school,
         num_available=None,
-    ):  # type: (str, str, int, str, str, str, str, str, str, str, str, str, str, Optional[int]) -> None
+    ):  # type: (str, str, str, str, str, str, str, str, str, str, str, str, str, Optional[int]) -> None
         self.license_code = license_code
         self.product_id = product_id
         self.license_quantity = license_quantity
@@ -82,7 +82,7 @@ class License(object):
     @property
     def license_type(self):  # type: () -> str
         """we only have volume and single-licenses, not mass-licenses"""
-        if self.license_quantity > 1:
+        if my_string_to_int(self.license_quantity) > 1:
             return LicenseType.VOLUME
         else:
             return LicenseType.SINGLE

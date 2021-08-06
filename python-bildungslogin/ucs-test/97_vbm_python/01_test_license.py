@@ -39,8 +39,15 @@ import pytest
 
 import univention.testing.ucsschool.ucs_test_school as utu
 from univention.bildungslogin.handlers import BiloCreateError, BiloLicenseInvalidError
-from univention.bildungslogin.utils import Status
+from univention.bildungslogin.utils import LicenseType, Status
 from univention.testing.utils import verify_ldap_object
+
+
+def test_license_type(license):
+    license.license_quantity = 10
+    assert license.license_type == LicenseType.VOLUME
+    license.license_quantity = 1
+    assert license.license_type == LicenseType.SINGLE
 
 
 def test_create(lo, license_handler, license, ldap_base):

@@ -83,7 +83,7 @@ def get_license():
 
 
 def get_expired_license():
-    """ "the end_date < today"""
+    """the validity_end_date < today"""
     today = datetime.datetime.now()
     duration = "Ein Schuljahr"
     start = today - datetime.timedelta(days=random.randint(2, 365))
