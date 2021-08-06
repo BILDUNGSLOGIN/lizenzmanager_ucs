@@ -145,19 +145,6 @@ def get_config(args):
     return config
 
 
-def main(args):
-    # type: (argparse.Namespace) -> None
-    config = get_config(args)
-    import_all_media_data(
-        config["client_id"],
-        config["client_secret"],
-        config["scope"],
-        config["auth_server"],
-        config["resource_server"],
-        args.product_ids,
-    )
-
-
 def parse_args(args=None):
     # type: (Optional[List[str]]) -> argparse.Namespace
     parser = argparse.ArgumentParser(description="Import media data for given product ids")
@@ -182,8 +169,22 @@ def parse_args(args=None):
     return parser.parse_args(args)
 
 
+def main():
+    # type: () -> None
+    args = parse_args()
+    config = get_config(args)
+    import_all_media_data(
+        config["client_id"],
+        config["client_secret"],
+        config["scope"],
+        config["auth_server"],
+        config["resource_server"],
+        args.product_ids,
+    )
+
+
 if __name__ == "__main__":
     try:
-        main(parse_args())
+        main()
     except ScriptError as err:
         print("Error: %s" % (err,), file=sys.stderr)
