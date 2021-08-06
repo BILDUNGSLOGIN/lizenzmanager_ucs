@@ -150,14 +150,17 @@ def parse_args(args=None):
     parser = argparse.ArgumentParser(description="Import media data for given product ids")
     parser.add_argument(
         "--config-file",
-        help="A path to a file which contains all config options for this command. See TODO for example.",
+        help=(
+            "A path to a file which contains all config options for this command. "
+            "See /etc/bildungslogin/config.ini for an example."
+        ),
     )
     parser.add_argument("--client-id", help="client id used for authentication against --auth-server")
     parser.add_argument(
         "--client-secret", help="client secret used for authentication against --auth-server"
     )
-    parser.add_argument("--scope", help="TODO")
-    parser.add_argument("--auth-server", help="")
+    parser.add_argument("--scope", help="OpenID scope")
+    parser.add_argument("--auth-server", help="The server against the authentication happens")
     parser.add_argument(
         "--resource-server", help="The server from which the media data should be downloaded"
     )
