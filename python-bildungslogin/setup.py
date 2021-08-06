@@ -50,7 +50,8 @@ setup(
     package_dir={"": "src"},
     entry_points={
         "console_scripts": [
-            "bildungslogin-license-import=univention.bildungslogin.license_import.cmd:main",
+            "bildungslogin-license-import=univention.bildungslogin.license_import.cmd_license_import:main",
+            "bildungslogin-media-import=univention.bildungslogin.media_import.cmd_media_import:main",
         ]
     },
     url="https://www.univention.de/",
