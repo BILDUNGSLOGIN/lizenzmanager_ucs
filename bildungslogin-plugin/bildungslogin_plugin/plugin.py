@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import asyncio
-import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import List
 
 from fastapi import APIRouter
 
 from ucsschool.apis.models import Plugin
+from ucsschool.apis.plugins.auth import ldap_auth
 
 from .backend import UdmRestApiBackend
 from .routes.v1 import users as users_routes_v1
@@ -29,13 +29,15 @@ logger = logging.getLogger(__name__)
 def setup():
     logger.info(f"Setup of {PLUGIN_NAME!r} with version {PLUGIN_VERSION!r}...")
     # load config now to raise exception about errors as early as possible
-    with SETTINGS_FILE.open() as fp:
-        plugin_settings = json.load(fp)
-    setup_db_backend(plugin_settings)
+    setup_db_backend(
+        username=ldap_auth.credentials.cn_admin,
+        password=ldap_auth.credentials.cn_admin_password,
+        url=f"https://{ldap_auth.settings.master_fqdn}/univention/udm",
+    )
 
 
-def setup_db_backend(plugin_settings: Dict[str, Any]) -> None:
-    backend = UdmRestApiBackend(**plugin_settings["udm_rest_api"])
+def setup_db_backend(**plugin_settings) -> None:
+    backend = UdmRestApiBackend(**plugin_settings)
     # setup() is not async, so setup_db_backend() isn't either.
     # We use the event loop created by FastAPI.
     loop = asyncio.get_running_loop()
