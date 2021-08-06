@@ -30,9 +30,10 @@
 from __future__ import print_function
 
 import argparse
+import configparser
 import sys
 from datetime import datetime
-from typing import List, NoReturn, Optional
+from typing import List, Optional
 
 import requests
 
@@ -40,60 +41,43 @@ from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.handlers import BiloCreateError, MetaDataHandler
 from univention.bildungslogin.models import MetaData
 
-AUTHENTICATION_SERVER = "https://global.telekom.com/gcp-web-api/oauth"
-RESOURCE_SERVER = "https://www.bildungslogin-test.de/api"
-
 
 class ScriptError(Exception):
     pass
 
 
-def error(msg):
-    # type: (str) -> NoReturn
-    raise ScriptError(msg)
-
-
-def get_access_token(user, password, scope):
+def get_access_token(client_id, client_secret, scope, auth_server):
     response = requests.post(
-        AUTHENTICATION_SERVER,
+        auth_server,
         data={"grant_type": "client_credentials", "scope": scope},
         auth=(
-            user,
-            password,
+            client_id,
+            client_secret,
         ),
     )
     if response.status_code != 200:
-        try:
-            json = response.json()
-            msg = json.get("error_description", "")
-        except ValueError:
-            msg = ""
-        error("Authorization failed: %s" % (msg,))
-    # TODO do we have to check that the api returns what we expect here?
+        raise ScriptError("Authorization failed: %s" % (response.json()["error_description"],))
     return response.json()["access_token"]
 
 
-def get_media_data(product_ids, user, password, scope):
-    at = get_access_token(user, password, scope)
+def get_media_data(client_id, client_secret, scope, auth_server, resource_server, product_ids):
+    access_token = get_access_token(client_id, client_secret, scope, auth_server)
 
     response = requests.post(
-        RESOURCE_SERVER + "/external/univention/media/query",
-        json=[{"id": pid} for pid in product_ids],
+        resource_server + "/external/univention/media/query",
+        json=[{"id": product_id} for product_id in product_ids],
         headers={
-            "Authorization": "Bearer " + at,
+            "Authorization": "Bearer " + access_token,
             "Content-Type": "application/vnd.de.bildungslogin.mediaquery+json",
         },
     )
-    #  if response.status_code != 200:
-    #  msg = response.json().get('error_description', '')
-    #  error("Getting media data failed: %s" % (msg,))
+
     lo, po = getAdminConnection()
     mh = MetaDataHandler(lo)
 
     not_found = []
     import_errors = []
     for ro in response.json():
-        print(ro)
         if ro["status"] == 200:
             data = ro["data"]
             try:
@@ -107,20 +91,22 @@ def get_media_data(product_ids, user, password, scope):
                         "href"
                     ],  # TODO what does data['cover'] look like if there is no cover
                     cover_small=data["coverSmall"]["href"],
-                    modified=datetime.utcfromtimestamp(data["modified"]).strftime(
-                        "%Y-%m-%d"
-                    ),  # TODO this can fail, e.g. with the data from minimal.py
+                    modified=datetime.utcfromtimestamp(data["modified"] // 1).strftime("%Y-%m-%d"),
                 )
-            except Exception as exc:
-                print(data)
-                print(exc)
-                import_errors.append("%s")
+            except (KeyError, ValueError) as exc:
+                import_errors.append(
+                    "%s -- %s"
+                    % (
+                        data["id"],
+                        exc,
+                    )
+                )
             else:
                 try:
                     mh.create(md)
                 except BiloCreateError as exc:
                     import_errors.append(
-                        "%s: %s"
+                        "%s -- %s"
                         % (
                             data.get("id"),
                             str(exc),
@@ -129,30 +115,101 @@ def get_media_data(product_ids, user, password, scope):
         else:
             not_found.append(ro["query"]["id"])
 
+    err = ""
+    if not_found or import_errors:
+        err += "Not all media data could be downloadeda:\n"
     if not_found:
-        print("The following product ids did not yield metadata:")
+        err += "  The following product ids did not yield metadata:\n"
         for e in not_found:
-            print(e)
-        print(" ")
+            err += "    %s\n" % (e,)
+        err += "\n"
     if import_errors:
-        print("The media data for the following product ids could not be imported:")
+        err += "  The media data for the following product ids could not be imported:\n"
         for e in import_errors:
-            print(e)
+            err += "    %s\n" % (e,)
+    if err:
+        raise ScriptError(err)
 
 
 def main(args):
     # type: (argparse.Namespace) -> None
-    print(args)
-    get_media_data(args.product_ids, args.user, args.password, args.scope)
+    config = {
+        "auth_server": "https://global.telekom.com/gcp-web-api/oauth",
+        "resource_server": "https://www.bildungslogin-test.de/api",
+    }
+
+    if args.config_file:
+        cp = configparser.ConfigParser()
+        try:
+            with open(args.config_file, "r") as fd:
+                cp.read_file(fd)
+        except EnvironmentError as exc:
+            raise ScriptError(
+                "Failed to load config from --config-file (%s): %s"
+                % (
+                    args.config_file,
+                    exc,
+                )
+            )
+
+    if cp.has_option("Auth", "ClientId"):
+        config["client_id"] = cp["Auth"]["ClientId"]
+    if cp.has_option("Auth", "ClientSecret"):
+        config["client_secret"] = cp["Auth"]["ClientSecret"]
+    if cp.has_option("Auth", "Scope"):
+        config["scope"] = cp["Auth"]["Scope"]
+    if cp.has_option("APIEndpoint", "AuthServer"):
+        config["auth_server"] = cp["APIEndpoint"]["AuthServer"]
+    if cp.has_option("APIEndpoint", "ResourceServer"):
+        config["resource_server"] = cp["APIEndpoint"]["ResourceServer"]
+
+    if args.client_id:
+        config["client_id"] = args.client_id
+    if args.client_secret:
+        config["client_secret"] = args.client_secret
+    if args.scope:
+        config["scope"] = args.scope
+    if args.auth_server:
+        config["auth_server"] = args.auth_server
+    if args.resource_server:
+        config["resource_server"] = args.resource_server
+    for required_field in ["client_id", "client_secret", "scope"]:
+        if not config.get(required_field):
+            print(
+                "'%s' is missing. Add it via --config-file or --%s"
+                % (required_field, required_field.replace("_", "-"))
+            )
+    get_media_data(
+        config["client_id"],
+        config["client_secret"],
+        config["scope"],
+        config["auth_server"],
+        config["resource_server"],
+        args.product_ids,
+    )
 
 
 def parse_args(args=None):
     # type: (Optional[List[str]]) -> argparse.Namespace
     parser = argparse.ArgumentParser(description="Import media data for given product ids")
-    parser.add_argument("--user", required=True, help="TODO")
-    parser.add_argument("--password", required=True, help="TODO")
-    parser.add_argument("--scope", required=True, help="TODO")
-    parser.add_argument("product_ids", nargs="+", help="One or multiple product ids")
+    parser.add_argument(
+        "--config-file",
+        help="A path to a file which contains all config options for this command. See TODO for example.",
+    )
+    parser.add_argument("--client-id", help="client id used for authentication against --auth-server")
+    parser.add_argument(
+        "--client-secret", help="client secret used for authentication against --auth-server"
+    )
+    parser.add_argument("--scope", help="TODO")
+    parser.add_argument("--auth-server", help="")
+    parser.add_argument(
+        "--resource-server", help="The server from which the media data should be downloaded"
+    )
+    parser.add_argument(
+        "product_ids",
+        nargs="+",
+        help="One or multiple product ids whose media data should be downloaded",
+    )
     return parser.parse_args(args)
 
 
