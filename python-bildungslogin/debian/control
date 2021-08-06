@@ -26,6 +26,7 @@ Depends:
  python-typing,
  python-univention-directory-manager,
  python-ldap,
+ python-configparser,
  python-ucsschool-lib,
  python-ucs-school,
 Description: python libs for bildungslogin
