@@ -277,7 +277,7 @@ class MetaDataHandler:
             udm_obj.save()
             self.logger.info("Created MetaData object {}: {}".format(udm_obj.dn, udm_obj.props))
         except CreateError as e:
-            BiloCreateError(
+            raise BiloCreateError(
                 'Error creating meta data for product id "{}"!\n{}'.format(meta_data.product_id, e)
             )
 
