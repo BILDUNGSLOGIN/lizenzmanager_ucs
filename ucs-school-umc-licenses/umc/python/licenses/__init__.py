@@ -150,9 +150,9 @@ class Instance(SchoolBaseModule):
     def publishers(self):
         MODULE.info("licenses.publishers")
         result = [
-            {"id": "Verlag XYZ", "label": "Verlag XYZ"},
-            {"id": "Verlag ABC", "label": "Verlag ABC"},
-            {"id": "Verlag KLM", "label": "Verlag KLM"},
+            #  {"id": "Verlag XYZ", "label": "Verlag XYZ"},
+            #  {"id": "Verlag ABC", "label": "Verlag ABC"},
+            #  {"id": "Verlag KLM", "label": "Verlag KLM"},
         ]
         MODULE.info("licenses.publishers: results: %s" % str(result))
         return result
@@ -161,8 +161,8 @@ class Instance(SchoolBaseModule):
     def license_types(self):
         MODULE.info("licenses.license_types")
         result = [
-            {"id": "Volumenlizenz", "label": _("Volumenlizenz")},
-            {"id": "Einzellizenz", "label": _("Einzellizenz")},
+            #  {"id": "Volumenlizenz", "label": _("Volumenlizenz")},
+            #  {"id": "Einzellizenz", "label": _("Einzellizenz")},
         ]
         MODULE.info("licenses.license_types: results: %s" % str(result))
         return result
