@@ -9,9 +9,9 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import ValidationError, constr
 from starlette import status
 
-from ucsschool.apis.opa import OPAClient, opa_instance
 from bildungslogin_plugin.backend import DbBackend, DbConnectionError, UserNotFound
 from bildungslogin_plugin.models import User
+from ucsschool.apis.opa import OPAClient, opa_instance
 from ucsschool.apis.plugins.auth import get_token
 
 NonEmptyStr = constr(min_length=1)

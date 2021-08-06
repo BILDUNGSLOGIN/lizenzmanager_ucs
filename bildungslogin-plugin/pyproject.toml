@@ -30,6 +30,9 @@ python = "^3.9"
 udm-rest-client = "^1.0.3"
 
 [tool.poetry.dev-dependencies]
+factory_boy = "^3.2.0"
+Faker = "^8.11.0"
+kelvin-rest-api-client = "^0.3.0"
 pytest = "^6.2"
 pytest-asyncio = "^0.15.1"
 toml = "^0.10.2"

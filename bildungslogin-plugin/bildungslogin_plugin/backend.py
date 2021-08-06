@@ -180,10 +180,12 @@ class UdmRestApiBackend(DbBackend):
             if assignment.props.status == AssignmentStatus.AVAILABLE.name:
                 logger.error(
                     "License assignment for user %r has invalid status 'AVAILABLE', setting to "
-                    "'PROVISIONED': %r.",
+                    "'ASSIGNED' (and then to 'PROVISIONED'): %r.",
                     user.props.username,
                     assignment.dn,
                 )
+                assignment.props.status = AssignmentStatus.ASSIGNED.name
+                await assignment.save()
             if assignment.props.status != AssignmentStatus.PROVISIONED.name:
                 logger.debug("Setting assignment status to 'PROVISIONED': %r.", assignment.dn)
                 assignment.props.status = AssignmentStatus.PROVISIONED.name
