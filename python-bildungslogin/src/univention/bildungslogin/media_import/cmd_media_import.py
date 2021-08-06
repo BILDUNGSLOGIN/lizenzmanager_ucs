@@ -32,107 +32,66 @@ from __future__ import print_function
 import argparse
 import configparser
 import sys
-from datetime import datetime
 from typing import List, Optional
 
-import requests
-
 from univention.admin.uldap import getAdminConnection
-from univention.bildungslogin.handlers import BiloCreateError, MetaDataHandler
-from univention.bildungslogin.models import MetaData
+from univention.bildungslogin.handlers import MetaDataHandler
+from univention.bildungslogin.media_import import (
+    MediaImportError,
+    MediaNotFoundError,
+    get_all_media_data,
+    import_single_media_data,
+)
 
 
 class ScriptError(Exception):
     pass
 
 
-def get_access_token(client_id, client_secret, scope, auth_server):
-    response = requests.post(
-        auth_server,
-        data={"grant_type": "client_credentials", "scope": scope},
-        auth=(
-            client_id,
-            client_secret,
-        ),
+def import_all_media_data(client_id, client_secret, scope, auth_server, resource_server, product_ids):
+    # type: (str, str, str, str, str, str, List[str]) -> None
+    raw_media_data = get_all_media_data(
+        client_id, client_secret, scope, auth_server, resource_server, product_ids
     )
-    if response.status_code != 200:
-        raise ScriptError("Authorization failed: %s" % (response.json()["error_description"],))
-    return response.json()["access_token"]
 
-
-def get_media_data(client_id, client_secret, scope, auth_server, resource_server, product_ids):
-    access_token = get_access_token(client_id, client_secret, scope, auth_server)
-
-    response = requests.post(
-        resource_server + "/external/univention/media/query",
-        json=[{"id": product_id} for product_id in product_ids],
-        headers={
-            "Authorization": "Bearer " + access_token,
-            "Content-Type": "application/vnd.de.bildungslogin.mediaquery+json",
-        },
-    )
+    not_found_errors = []
+    import_errors = []
 
     lo, po = getAdminConnection()
     mh = MetaDataHandler(lo)
-
-    not_found = []
-    import_errors = []
-    for ro in response.json():
-        if ro["status"] == 200:
-            data = ro["data"]
-            try:
-                md = MetaData(
-                    product_id=data["id"],
-                    title=data["title"],
-                    description=data["description"],
-                    author=data["author"],
-                    publisher=data["publisher"],
-                    cover=data["cover"][
-                        "href"
-                    ],  # TODO what does data['cover'] look like if there is no cover
-                    cover_small=data["coverSmall"]["href"],
-                    modified=datetime.utcfromtimestamp(data["modified"] // 1).strftime("%Y-%m-%d"),
+    for raw_data in raw_media_data:
+        try:
+            import_single_media_data(mh, raw_data)
+        except MediaImportError as exc:
+            print(raw_data)
+            import_errors.append(
+                "%s -- %s"
+                % (
+                    raw_data["query"]["id"],
+                    exc,
                 )
-            except (KeyError, ValueError) as exc:
-                import_errors.append(
-                    "%s -- %s"
-                    % (
-                        data["id"],
-                        exc,
-                    )
-                )
-            else:
-                try:
-                    mh.create(md)
-                except BiloCreateError as exc:
-                    import_errors.append(
-                        "%s -- %s"
-                        % (
-                            data.get("id"),
-                            str(exc),
-                        )
-                    )
-        else:
-            not_found.append(ro["query"]["id"])
+            )
+        except MediaNotFoundError:
+            not_found_errors.append(raw_data["query"]["id"])
 
     err = ""
-    if not_found or import_errors:
+    if not_found_errors or import_errors:
         err += "Not all media data could be downloadeda:\n"
-    if not_found:
+    if not_found_errors:
         err += "  The following product ids did not yield metadata:\n"
-        for e in not_found:
-            err += "    %s\n" % (e,)
+        for e in not_found_errors:
+            err += "	%s\n" % (e,)
         err += "\n"
     if import_errors:
         err += "  The media data for the following product ids could not be imported:\n"
         for e in import_errors:
-            err += "    %s\n" % (e,)
+            err += "	%s\n" % (e,)
     if err:
         raise ScriptError(err)
 
 
-def main(args):
-    # type: (argparse.Namespace) -> None
+def get_config(args):
+    # type: (argparse.Namespace) -> dict
     config = {
         "auth_server": "https://global.telekom.com/gcp-web-api/oauth",
         "resource_server": "https://www.bildungslogin-test.de/api",
@@ -151,17 +110,17 @@ def main(args):
                     exc,
                 )
             )
-
-    if cp.has_option("Auth", "ClientId"):
-        config["client_id"] = cp["Auth"]["ClientId"]
-    if cp.has_option("Auth", "ClientSecret"):
-        config["client_secret"] = cp["Auth"]["ClientSecret"]
-    if cp.has_option("Auth", "Scope"):
-        config["scope"] = cp["Auth"]["Scope"]
-    if cp.has_option("APIEndpoint", "AuthServer"):
-        config["auth_server"] = cp["APIEndpoint"]["AuthServer"]
-    if cp.has_option("APIEndpoint", "ResourceServer"):
-        config["resource_server"] = cp["APIEndpoint"]["ResourceServer"]
+        else:
+            if cp.has_option("Auth", "ClientId"):
+                config["client_id"] = cp["Auth"]["ClientId"]
+            if cp.has_option("Auth", "ClientSecret"):
+                config["client_secret"] = cp["Auth"]["ClientSecret"]
+            if cp.has_option("Auth", "Scope"):
+                config["scope"] = cp["Auth"]["Scope"]
+            if cp.has_option("APIEndpoint", "AuthServer"):
+                config["auth_server"] = cp["APIEndpoint"]["AuthServer"]
+            if cp.has_option("APIEndpoint", "ResourceServer"):
+                config["resource_server"] = cp["APIEndpoint"]["ResourceServer"]
 
     if args.client_id:
         config["client_id"] = args.client_id
@@ -173,13 +132,23 @@ def main(args):
         config["auth_server"] = args.auth_server
     if args.resource_server:
         config["resource_server"] = args.resource_server
+    has_missing_args = False
     for required_field in ["client_id", "client_secret", "scope"]:
         if not config.get(required_field):
+            has_missing_args = True
             print(
                 "'%s' is missing. Add it via --config-file or --%s"
                 % (required_field, required_field.replace("_", "-"))
             )
-    get_media_data(
+    if has_missing_args:
+        sys.exit(1)
+    return config
+
+
+def main(args):
+    # type: (argparse.Namespace) -> None
+    config = get_config(args)
+    import_all_media_data(
         config["client_id"],
         config["client_secret"],
         config["scope"],
