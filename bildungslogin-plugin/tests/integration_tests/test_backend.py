@@ -1,33 +1,26 @@
+# -*- coding: utf-8 -*-
 import datetime
 import itertools
 import zlib
 
 import pytest
-from bildungslogin_plugin.backend import UdmRestApiBackend
+
+from bildungslogin_plugin.backend_udm_rest_api import UdmRestApiBackend
 from bildungslogin_plugin.models import AssignmentStatus, User as ProvUser
 from ucsschool.kelvin.client import User as KelvinUser
-from ucsschool.apis.plugins.auth import ldap_auth
-from udm_rest_client import UDM, UdmObject
-
-
-@pytest.fixture(scope="session")
-def backend() -> UdmRestApiBackend:
-    return UdmRestApiBackend(
-        username=ldap_auth.credentials.cn_admin,
-        password=ldap_auth.credentials.cn_admin_password,
-        url=f"https://{ldap_auth.settings.master_fqdn}/univention/udm",
-    )
+from udm_rest_client import UdmObject
 
 
 def compare_kelvin_user_and_prov_user(kelvin_user: KelvinUser, prov_user: ProvUser) -> None:
     assert f"Vorname ({zlib.crc32(kelvin_user.firstname.encode('UTF-8'))})" == prov_user.first_name
     assert f"Nachname ({zlib.crc32(kelvin_user.lastname.encode('UTF-8'))})" == prov_user.last_name
     assert set(kelvin_user.schools) == set(prov_user.context.keys())
-    for ou, context in prov_user.context.items():
-        assert set(kelvin_user.school_classes[ou]) == context.classes
     prov_user_roles = set(itertools.chain(*(c.roles for c in prov_user.context.values())))
     kelvin_user_roles = {r.rsplit("/", 1)[-1] for r in kelvin_user.roles}
     assert prov_user_roles == kelvin_user_roles
+    for ou, context in prov_user.context.items():
+        if kelvin_user_roles != {"staff"}:
+            assert set(kelvin_user.school_classes[ou]) == context.classes
 
 
 @pytest.mark.asyncio
@@ -45,32 +38,36 @@ async def test_get_user_no_licenses(backend: UdmRestApiBackend, create_test_user
 
 @pytest.mark.asyncio
 async def test_get_user_with_licenses(
-        backend: UdmRestApiBackend, create_test_user, create_license_and_assignments, udm_kwargs
+    backend: UdmRestApiBackend, create_test_user, create_license_and_assignments, udm
 ):
     kelvin_user: KelvinUser = await create_test_user()
-    license_obj1, assignment_objs1 = await create_license_and_assignments()
-    license_obj2, assignment_objs2 = await create_license_and_assignments()
-    _, _ = await create_license_and_assignments()  # will not be assigned
+    license_obj1, assignment_objs1 = await create_license_and_assignments(quantity=1)
+    license_obj2, assignment_objs2 = await create_license_and_assignments(quantity=1)
+    _, _ = await create_license_and_assignments(quantity=1)  # will not be assigned
 
     # assign licenses 1+2 to user, but not 3
-    async with UDM(**udm_kwargs) as udm:
-        udm_user = await udm.get("users/user").get(kelvin_user.dn)
-        assignment_obj1: UdmObject = assignment_objs1[0]
-        assignment_obj1.props.assignee = udm_user.uuid
-        assignment_obj1.props.status = AssignmentStatus.ASSIGNED.name  # see below why ASSIGNED
-        assignment_obj1.props.time_of_assignment = datetime.datetime.now().strftime("%Y-%m-%d")
-        await assignment_obj1.save()
-        # allowed status changes are controlled by UDM module,
-        # cannot change from AVAILABLE directly to PROVISIONED
-        assignment_obj1.props.status = AssignmentStatus.PROVISIONED.name
-        await assignment_obj1.save()
-        assignment_obj2: UdmObject = assignment_objs2[0]
-        assignment_obj2.props.assignee = udm_user.uuid
-        assignment_obj2.props.status = AssignmentStatus.ASSIGNED.name
-        assignment_obj2.props.time_of_assignment = datetime.datetime.now().strftime("%Y-%m-%d")
-        await assignment_obj2.save()
-        assignment_obj2.props.status = AssignmentStatus.PROVISIONED.name
-        await assignment_obj2.save()
+    udm_user = await udm.get("users/user").get(kelvin_user.dn)
+    assignment_obj1: UdmObject = assignment_objs1[0]
+    assert assignment_obj1.position == license_obj1.dn
+    assert assignment_obj1.props.status == AssignmentStatus.AVAILABLE.name
+    assert not assignment_obj1.props.assignee
+    assert not assignment_obj1.props.time_of_assignment
+    assignment_obj1.props.assignee = udm_user.uuid
+    # allowed status changes are controlled by UDM module,
+    # cannot change from AVAILABLE directly to PROVISIONED, so setting to ASSIGNED first
+    assignment_obj1.props.status = AssignmentStatus.ASSIGNED.name
+    assignment_obj1.props.time_of_assignment = datetime.datetime.now().strftime("%Y-%m-%d")
+    await assignment_obj1.save()
+    # now set it to PROVISIONED
+    assignment_obj1.props.status = AssignmentStatus.PROVISIONED.name
+    await assignment_obj1.save()
+    assignment_obj2: UdmObject = assignment_objs2[0]
+    assignment_obj2.props.assignee = udm_user.uuid
+    assignment_obj2.props.status = AssignmentStatus.ASSIGNED.name
+    assignment_obj2.props.time_of_assignment = datetime.datetime.now().strftime("%Y-%m-%d")
+    await assignment_obj2.save()
+    assignment_obj2.props.status = AssignmentStatus.PROVISIONED.name
+    await assignment_obj2.save()
 
     prov_user: ProvUser = await backend.get_user(kelvin_user.name)
     compare_kelvin_user_and_prov_user(kelvin_user, prov_user)
