@@ -1,0 +1,6 @@
+
+# 64bildungslogin-license.acl
+access to dn.children="cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,@%@ldap/base@%@"
+	by group/univentionGroup/uniqueMember.expand="cn=DC Backup Hosts,cn=groups,@%@ldap/base@%@" write
+	by * none stop
+

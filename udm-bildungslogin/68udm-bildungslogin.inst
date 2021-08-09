@@ -34,7 +34,7 @@
 ## joinscript api: bindpwdfile
 
 # shellcheck disable=SC2034
-VERSION=1
+VERSION=2
 
 . /usr/share/univention-join/joinscripthelper.lib
 . /usr/share/univention-lib/ldap.sh
@@ -67,10 +67,12 @@ univention-directory-manager container/cn create "$@" \
 ucs_registerLDAPExtension "$@" \
   --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
   --schema "/usr/share/bildungslogin/schema/bildungslogin.schema" \
+  --acl "/usr/share/bildungslogin/acl/64bildungslogin-license.acl" \
   --udm_module "/usr/share/bildungslogin/handlers/license.py" || die
 
 ucs_registerLDAPExtension "$@" \
   --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
+  --acl "/usr/share/bildungslogin/acl/64bildungslogin-metadata.acl" \
   --udm_module "/usr/share/bildungslogin/handlers/metadata.py" || die
 
 ucs_registerLDAPExtension "$@" \
