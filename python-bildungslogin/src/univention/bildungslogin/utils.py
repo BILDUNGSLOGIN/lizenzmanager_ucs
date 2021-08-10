@@ -33,6 +33,8 @@ from typing import List
 
 from ldap.filter import escape_filter_chars
 
+_reg_white_spaces = re.compile(r"\s+")
+
 
 class Status(object):
     ASSIGNED = "ASSIGNED"
@@ -59,8 +61,7 @@ def get_special_filter(pattern, attribute_names):  # type: (str, List[str]) -> s
     as substring + exact match.
     """
     expressions = []
-    reg_white_spaces = re.compile(r"\s+")
-    for iword in reg_white_spaces.split(pattern or ""):
+    for iword in _reg_white_spaces.split(pattern or ""):
         # evaluate the subexpression (search word over different attributes)
         sub_expr = []
         iword = escape_filter_chars(iword)

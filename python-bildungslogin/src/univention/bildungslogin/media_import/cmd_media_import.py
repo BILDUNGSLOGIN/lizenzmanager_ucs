@@ -32,7 +32,7 @@ from __future__ import print_function
 import argparse
 import configparser
 import sys
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.handlers import MetaDataHandler
@@ -90,8 +90,7 @@ def import_all_media_data(client_id, client_secret, scope, auth_server, resource
         raise ScriptError(err)
 
 
-def get_config(args):
-    # type: (argparse.Namespace) -> dict
+def get_config(args):  # type: (argparse.Namespace) -> Dict[str, Any]
     config = {
         "auth_server": "https://global.telekom.com/gcp-web-api/oauth",
         "resource_server": "https://www.bildungslogin-test.de/api",
@@ -145,8 +144,7 @@ def get_config(args):
     return config
 
 
-def parse_args(args=None):
-    # type: (Optional[List[str]]) -> argparse.Namespace
+def parse_args(args=None):  # type: (Optional[List[str]]) -> argparse.Namespace
     parser = argparse.ArgumentParser(description="Import media data for given product ids")
     parser.add_argument(
         "--config-file",

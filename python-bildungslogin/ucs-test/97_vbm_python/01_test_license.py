@@ -142,9 +142,8 @@ def test_number_of_expired_licenses(license_handler, expired_license):
         ou, _ = schoolenv.create_ou()
         expired_license.license_school = ou
         license_handler.create(expired_license)
-        assert (
-            license_handler.get_number_of_expired_assignments(expired_license)
-            == int(expired_license.license_quantity)
+        assert license_handler.get_number_of_expired_assignments(expired_license) == int(
+            expired_license.license_quantity
         )
 
 

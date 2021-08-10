@@ -30,18 +30,14 @@
 
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING
-
-from ucsschool.lib.roles import get_role_info
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 if TYPE_CHECKING:
     from ucsschool.lib.models.base import LoType, UdmObject
 
-from typing import List, Optional, Set, Union
-
 from ldap.filter import escape_filter_chars, filter_format
-from models import Assignment
 
+from ucsschool.lib.roles import get_role_info
 from univention.admin.syntax import date
 from univention.udm import UDM, CreateError, ModifyError, NoObject as UdmNoObject
 
@@ -52,7 +48,7 @@ from .exceptions import (
     BiloLicenseNotFoundError,
     BiloProductNotFoundError,
 )
-from .models import License, MetaData
+from .models import Assignment, License, MetaData
 from .utils import LicenseType, Status, get_entry_uuid, get_special_filter, my_string_to_int
 
 
@@ -138,8 +134,7 @@ class LicenseHandler:
             raise BiloLicenseNotFoundError("License with code {} does not exist".format(license_code))
 
     def get_meta_data_for_license(self, license):  # type: (Union[UdmObject, License]) -> MetaData
-        """search for the product of the license. If this there is none
-        yet, return an empty object."""
+        """search for the product of the license. If there is none yet, return an empty object."""
         if type(license) is License:
             product_id = license.product_id
         else:
@@ -165,9 +160,8 @@ class LicenseHandler:
         assignment_dns = udm_obj.props.assignments
         return [self.ah.from_dn(dn) for dn in assignment_dns]
 
-    def get_assignments_for_license_with_filter(
-        self, license, filter_s
-    ):  # type: (License, str) -> List[Assignment]
+    def get_assignments_for_license_with_filter(self, license, filter_s):
+        # type: (License, str) -> List[Assignment]
         """search in assignments for license with license_code for filter_s e.g. for status"""
         udm_obj = self.get_udm_license_by_code(license.license_code)
         return [
@@ -215,18 +209,19 @@ class LicenseHandler:
 
     def search_for_licenses(
         self,
-        school,
-        time_from="",
-        time_to="",
-        only_available_licenses=False,
-        publisher="",
-        license_type="",
-        user_pattern="",
-        product_id="",
-        product="",
-        license_code="",
-        pattern="",
+        school,  # type: str
+        time_from="",  # type: Optional[str]
+        time_to="",  # type: Optional[str]
+        only_available_licenses=False,  # type: Optional[bool]
+        publisher="",  # type: Optional[str]
+        license_type="",  # type: Optional[str]
+        user_pattern="",  # type: Optional[str]
+        product_id="",  # type: Optional[str]
+        product="",  # type: Optional[str]
+        license_code="",  # type: Optional[str]
+        pattern="",  # type: Optional[str]
     ):
+        # type: (...) -> List[Dict[str, Any]]
         """search only works for license-code yet"""
         rows = []
         filter_s = get_special_filter(pattern=pattern, attribute_names=["code"])
@@ -422,9 +417,8 @@ class AssignmentHandler:
         udm_assignments = self._get_all(base=base, filter_s=filter_s)
         return [self.from_udm_obj(a) for a in udm_assignments]
 
-    def get_all_assignments_for_user(
-        self, assignee, base=None
-    ):  # type: (str, Optional[str]) -> List[Assignment]
+    def get_all_assignments_for_user(self, assignee, base=None):
+        # type: (str, Optional[str]) -> List[Assignment]
         """
         if the base is equal to the dn of a license, this can be used to
         find all assignments for this license
@@ -494,9 +488,8 @@ class AssignmentHandler:
         return self._get_all(base=dn, filter_s=filter_s)
 
     @staticmethod
-    def check_license_type_is_correct(
-        username, user_roles, license_type
-    ):  # type: (str, List[str], str) -> None
+    def check_license_type_is_correct(username, user_roles, license_type):
+        # type: (str, List[str], str) -> None
         # todo check if we need this in mvb, also make this more robust
         if license_type == "Lehrer":
             roles = [get_role_info(role)[0] for role in user_roles]
@@ -517,11 +510,18 @@ class AssignmentHandler:
                 )
             )
 
-    def assign_to_license(self, license_code, username):  # type: (str, str) -> Optional[bool]
-        """Returns true if the license could be assigned to the user,
-        else raises an error.
-        If the ignored-flag is set an error is raised. This should not happen,
-        because only 'non-ignored' license codes should be passed to this method.
+    def assign_to_license(self, license_code, username):  # type: (str, str) -> bool
+        """
+        Assigne license with code `license_code` to `username`.
+
+        :param str license_code:
+        :param str username:
+        :return: true if the license could be assigned to the user, else raises an error.
+        :rtype: bool
+        :raises BiloAssignmentError: 1. If the `ignored` property is set. This should not happen,
+            because only 'non-ignored' license codes should be passed to this method. 2. If the license
+            was already assigned. 3. If no unassigned `vbm/assignment` objects are available for the
+            license.
         """
         udm_license = self.get_license_by_license_code(license_code)
         self.check_is_ignored(udm_license.props.ignored)

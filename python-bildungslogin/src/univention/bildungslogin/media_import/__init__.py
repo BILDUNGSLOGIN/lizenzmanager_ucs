@@ -30,7 +30,7 @@
 from __future__ import print_function
 
 from datetime import datetime
-from typing import List
+from typing import Any, Dict, List
 
 import requests
 
@@ -78,7 +78,7 @@ def get_all_media_data(client_id, client_secret, scope, auth_server, resource_se
     ).json()
 
 
-def load_media(raw_media_data):  # type: (dict) -> MetaData
+def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
     if raw_media_data["status"] == 200:
         data = raw_media_data["data"]
         try:

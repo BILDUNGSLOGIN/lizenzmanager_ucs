@@ -34,9 +34,8 @@ from utils import LicenseType, Status, my_string_to_int
 
 
 class Assignment(object):
-    def __init__(
-        self, username, license, time_of_assignment, status
-    ):  # type: (str, str, str, Status) -> None
+    def __init__(self, username, license, time_of_assignment, status):
+        # type: (str, str, str, Status) -> None
         self.assignee = username
         self.time_of_assignment = time_of_assignment
         self.status = status

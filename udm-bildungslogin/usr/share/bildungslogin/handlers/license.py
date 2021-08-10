@@ -30,6 +30,7 @@
 
 import datetime
 from hashlib import sha256
+from typing import Optional
 
 from ldap.filter import filter_format
 
