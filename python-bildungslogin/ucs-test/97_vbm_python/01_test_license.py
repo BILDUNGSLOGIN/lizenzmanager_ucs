@@ -44,9 +44,9 @@ from univention.testing.utils import verify_ldap_object
 
 
 def test_license_type(license):
-    license.license_quantity = 10
+    license.license_quantity = "10"
     assert license.license_type == LicenseType.VOLUME
-    license.license_quantity = 1
+    license.license_quantity = "1"
     assert license.license_type == LicenseType.SINGLE
 
 
@@ -61,7 +61,7 @@ def test_create(lo, license_handler, license, ldap_base):
             "cn": [cn],
             "vbmLicenseCode": [license.license_code],
             "vbmProductId": [license.product_id],
-            "vbmLicenseQuantity": [str(license.license_quantity)],
+            "vbmLicenseQuantity": [license.license_quantity],
             "vbmLicenseProvider": [license.license_provider],
             "vbmPurchasingReference": [license.purchasing_reference],
             "vbmUtilizationSystems": [license.utilization_systems],
@@ -104,7 +104,7 @@ def test_get_total_number_of_licenses(license_handler, license):
         ou, _ = schoolenv.create_ou()
         license.license_school = ou
         license_handler.create(license)
-        assert license_handler.get_total_number_of_assignments(license) == license.license_quantity
+        assert license_handler.get_total_number_of_assignments(license) == int(license.license_quantity)
 
 
 def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment_handler, license):
@@ -144,7 +144,7 @@ def test_number_of_expired_licenses(license_handler, expired_license):
         license_handler.create(expired_license)
         assert (
             license_handler.get_number_of_expired_assignments(expired_license)
-            == expired_license.license_quantity
+            == int(expired_license.license_quantity)
         )
 
 

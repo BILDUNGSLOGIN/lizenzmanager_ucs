@@ -146,7 +146,7 @@ def test_assign_users_to_licenses(assignment_handler, license_handler, license):
         ou, _ = schoolenv.create_ou()
         license.license_school = ou
         license_handler.create(license)
-        usernames = [schoolenv.create_student(ou)[0] for _ in range(license.license_quantity)]
+        usernames = [schoolenv.create_student(ou)[0] for _ in range(int(license.license_quantity))]
         num_correct = assignment_handler.assign_users_to_license(
             usernames=usernames, license_code=license.license_code
         )

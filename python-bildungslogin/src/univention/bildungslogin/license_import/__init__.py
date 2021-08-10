@@ -46,7 +46,7 @@ def load_license(license_raw, school):  # type: (Dict, str) -> License
     return License(
         license_code=license_raw["lizenzcode"],
         product_id=license_raw["product_id"],
-        license_quantity=license_raw["lizenzanzahl"],
+        license_quantity=str(license_raw["lizenzanzahl"]),
         license_provider=license_raw["lizenzgeber"],
         purchasing_reference=license_raw["kaufreferenz"],
         utilization_systems=license_raw["nutzungssysteme"],

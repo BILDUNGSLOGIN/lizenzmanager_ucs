@@ -86,7 +86,7 @@ class LicenseHandler:
             self.logger.debug("Created License object {}: {}".format(udm_obj.dn, udm_obj.props))
         except CreateError as e:
             raise BiloCreateError('Error creating license "{}"!\n{}'.format(license.license_code, e))
-        for i in range(license.license_quantity):
+        for i in range(int(license.license_quantity)):
             self.ah.create_assignment_for_license(license_code=license.license_code)
 
     def set_license_ignore(self, license_code, ignore):  # type: (str, bool) -> None
@@ -313,8 +313,8 @@ class MetaDataHandler:
         return self.from_udm_obj(udm_license)
 
     def get_all(self, filter_s=None):  # type: (str) -> List[MetaData]
-        assignments = self._meta_data_mod.search(filter_s=filter_s)
-        return [MetaDataHandler.from_udm_obj(a) for a in assignments]
+        meta_data_objs = self._meta_data_mod.search(filter_s=filter_s)
+        return [MetaDataHandler.from_udm_obj(obj) for obj in meta_data_objs]
 
     def get_udm_licenses_by_product_id(self, product_id):  # type: (str) -> List[UdmObject]
         filter_s = filter_format("(product_id=%s)", [product_id])

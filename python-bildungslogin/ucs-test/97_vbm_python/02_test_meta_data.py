@@ -103,7 +103,7 @@ def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_
             license_handler.create(lic)
             if lic.ignored_for_display == "0":
                 # licenses with this attribute set are not counted.
-                total_amount_of_licenses_for_product += lic.license_quantity
+                total_amount_of_licenses_for_product += int(lic.license_quantity)
         assert (
             meta_data_handler.get_total_number_of_assignments(meta_data)
             == total_amount_of_licenses_for_product

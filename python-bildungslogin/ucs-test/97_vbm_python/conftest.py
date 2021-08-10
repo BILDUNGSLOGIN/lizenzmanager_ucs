@@ -70,7 +70,7 @@ def get_license():
     return License(
         license_code="{}-{}".format(provider, str(uuid.uuid4())),
         product_id=product_id(),
-        license_quantity=random.randint(10, 50),
+        license_quantity=str(random.randint(10, 50)),
         license_provider=provider,
         # todo this is not exactly equal to this format: "2014-04-11T03:28:16 -02:00 4572022",
         purchasing_reference=today.isoformat(),
