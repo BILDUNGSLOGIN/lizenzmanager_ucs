@@ -35,3 +35,5 @@ CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugi
 echo "Running in container: sh -c \"$CMD\""
 
 univention-app shell "$APP" sh -c "$CMD"
+
+exit 0
