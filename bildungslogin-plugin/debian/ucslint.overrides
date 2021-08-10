@@ -4,3 +4,5 @@
 0009-1: tests/*.py
 0009-10: tests/*.py
 0008-7: tests/integration_tests/conftest.py
+0010-2: ucs-test/97_vbm_prov_api/02_in_container_integration_tests
+0010-2: ucs-test/97_vbm_prov_api/01_in_container_unittests
