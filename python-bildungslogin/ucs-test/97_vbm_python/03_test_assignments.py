@@ -86,6 +86,19 @@ def test_check_is_ignored(ignored):
         AssignmentHandler.check_is_ignored(ignored)
 
 
+def test_assign_user_to_expired_license_fails(assignment_handler, license_handler, license):
+    # 00_vbm_test_assignments
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        license.license_school = ou
+        license.validity_end_date = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        license_handler.create(license)
+        username = schoolenv.create_student(ou)[0]
+        with pytest.raises(BiloAssignmentError, match="License is expired") as excinfo:
+            assignment_handler.assign_to_license(username=username, license_code=license.license_code)
+        assert "License is expired" in str(excinfo.value)
+
+
 def test_assign_user_to_ignored_license_fails(assignment_handler, license_handler, license):
     # 00_vbm_test_assignments
     with utu.UCSTestSchool() as schoolenv:

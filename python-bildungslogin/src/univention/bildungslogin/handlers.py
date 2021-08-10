@@ -510,6 +510,11 @@ class AssignmentHandler:
                 )
             )
 
+    @staticmethod
+    def check_is_expired(expired):  # type: (str) -> None
+        if expired != "0":
+            raise BiloAssignmentError("License is expired and thus can't be assigned!")
+
     def assign_to_license(self, license_code, username):  # type: (str, str) -> bool
         """
         Assigne license with code `license_code` to `username`.
@@ -525,6 +530,7 @@ class AssignmentHandler:
         """
         udm_license = self.get_license_by_license_code(license_code)
         self.check_is_ignored(udm_license.props.ignored)
+        self.check_is_expired(udm_license.props.expired)
         udm_user = self.get_user_by_username(username)
         self.check_license_can_be_assigned_to_school_user(
             udm_license.props.school, udm_user.props.school
