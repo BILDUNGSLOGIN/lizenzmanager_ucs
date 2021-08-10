@@ -27,6 +27,8 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
+
+import datetime
 from hashlib import sha256
 
 from ldap.filter import filter_format
@@ -263,7 +265,11 @@ class object(univention.admin.handlers.simpleLdap):
             self["assignments"] = self.lo.searchDn("(objectClass=vbmAssignment)", base=str(self.dn))
 
     def _load_expired(self):
-        self.info["expired"] = "0"
+        """The license is expired, when `validity_end_date` is later than 'today'."""
+        if not self.get("validity_end_date"):
+            return "0"
+        validity_end_date = self._iso8601_to_python(self.get("validity_end_date"))
+        self.info["expired"] = "1" if validity_end_date < datetime.date.today() else "0"
 
     def _load_num_available(self):
         if self.exists():
@@ -273,6 +279,12 @@ class object(univention.admin.handlers.simpleLdap):
                 self.info["num_available"] = str(quantity - num_assigned)
             else:
                 self.info["num_available"] = "0"
+
+    @staticmethod
+    def _iso8601_to_python(iso_date):  # type: (str) -> datetime.date
+        dt = datetime.datetime.strptime(iso_date, "%Y-%m-%d")
+        dt.strftime("%Y-%m-%d")
+        return datetime.date(year=dt.year, month=dt.month, day=dt.day)
 
     def _ldap_pre_ready(self):
         super(object, self)._ldap_pre_ready()

@@ -137,7 +137,6 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
         assert license_handler.get_number_of_available_assignments(license) == total_num - len(users)
 
 
-@pytest.mark.skip(reason="num_expired has to be fixed in udm")
 def test_number_of_expired_licenses(license_handler, expired_license):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()

@@ -12,11 +12,11 @@ import factory
 import faker
 import pytest
 
+from bildungslogin_plugin.backend_udm_rest_api import UdmRestApiBackend
 from bildungslogin_plugin.models import AssignmentStatus
 from ucsschool.apis.plugins.auth import ldap_auth
 from ucsschool.kelvin.client import Session, User
 from udm_rest_client import UDM, NoObject as UdmNoObject, UdmObject
-from bildungslogin_plugin.backend_udm_rest_api import UdmRestApiBackend
 
 fake = faker.Faker()
 

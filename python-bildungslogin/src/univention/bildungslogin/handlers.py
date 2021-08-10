@@ -192,8 +192,7 @@ class LicenseHandler:
         return num_assigned
 
     def get_number_of_expired_assignments(self, license):  # type: (License) -> int
-        """count the number of assignments with status expired
-        todo comment: has to be fixed in udm"""
+        """count the number of assignments with status expired"""
         udm_license = self.get_udm_license_by_code(license.license_code)
         return my_string_to_int(udm_license.props.num_expired)
 
@@ -351,8 +350,7 @@ class MetaDataHandler:
         )
 
     def get_number_of_expired_assignments(self, meta_data):  # type: (MetaData) -> int
-        """count the number of assignments with status expired
-        todo comment: has to be fixed in udm"""
+        """count the number of assignments with status expired"""
         licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
         return sum(
             [my_string_to_int(udm_license.props.num_expired) for udm_license in licenses_of_product]

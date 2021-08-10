@@ -35,8 +35,6 @@
 import datetime
 from hashlib import sha256
 
-import pytest
-
 import univention.testing.strings as uts
 import univention.testing.ucsschool.ucs_test_school as utu
 from univention.bildungslogin.utils import Status
@@ -150,7 +148,6 @@ def test_number_of_provisioned_and_assigned_licenses(
         assert meta_data_handler.get_number_of_available_assignments(meta_data) == total_num - len(users)
 
 
-@pytest.mark.skip(reason="num_expired has to be fixed in udm")
 def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_data, n_expired_licenses):
     total_amount_of_licenses_for_product = 0
     # a assignment is not expired if end_date + duration < today

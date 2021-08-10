@@ -38,6 +38,7 @@ import ldap
 import pytest
 
 import univention.testing.strings as uts
+import univention.testing.ucsschool.ucs_test_school as utu
 from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.bildungslogin.models import License, MetaData
@@ -59,6 +60,8 @@ def product_id():
 
 
 def get_license():
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
     today = datetime.datetime.now()
     start = today + datetime.timedelta(days=random.randint(0, 365))
     duration = "Unbeschränkt"
@@ -78,7 +81,7 @@ def get_license():
         license_special_type="",
         ignored_for_display="0",
         delivery_date=iso_format_date(today),
-        license_school=uts.random_name(),
+        license_school=ou,
     )
 
 
@@ -88,8 +91,8 @@ def get_expired_license():
     duration = "Ein Schuljahr"
     start = today - datetime.timedelta(days=random.randint(2, 365))
     license = get_license()
-    license.validity_start_date = start
-    license.validity_end_date = today - datetime.timedelta(1)
+    license.validity_start_date = iso_format_date(start)
+    license.validity_end_date = iso_format_date(today - datetime.timedelta(1))
     license.validity_duration = duration
     return license
 
