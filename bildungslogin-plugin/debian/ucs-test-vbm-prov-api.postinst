@@ -30,9 +30,9 @@
 #DEBHELPER#
 
 APP="ucsschool-apis"
-CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/; python3 -m pip install -U pip poetry; poetry export --dev --without-hashes -f requirements.txt --output requirements.txt; python3 -m pip install -U -r requirements.txt"
+CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/ && python3 -m pip install -U pip poetry && poetry export --dev --without-hashes -f requirements.txt --output requirements.txt && python3 -m pip install -U -r requirements.txt"
 
-echo "Running in container: sh -c \"$CMD\""
+echo "Installing test dependencies. Executing in container: sh -c \"$CMD\""
 
 univention-app shell "$APP" sh -c "$CMD"
 

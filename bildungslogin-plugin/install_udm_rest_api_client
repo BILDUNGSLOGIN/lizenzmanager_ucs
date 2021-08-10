@@ -42,9 +42,10 @@ echo "Installing 'default-jre' Debian package..."
 mkdir -pv /usr/share/man/man1/
 apt update
 apt install --yes default-jre
+apt clean
 
 echo "Installing Python package 'udm-rest-client'..."
-python3 -m pip install -U udm-rest-client
+python3 -m pip install -U pip udm-rest-client
 
 echo "Generating OpenAPI client for the UDM REST API..."
 update_openapi_client \
