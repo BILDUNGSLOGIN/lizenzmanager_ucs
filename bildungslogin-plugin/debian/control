@@ -28,3 +28,16 @@ Description: This package provides the JAR used to build the OpenAPI client used
  integrated, directory driven solution for managing
  corporate environments. For more information about UCS,
  refer to: http://www.univention.de/
+
+Package: ucs-test-vbm-prov-api
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ucs-test-framework,
+ bildungslogin-plugin (= ${binary:Version}),
+Description: Runs the tests of the bildungslogin plugin in the Docker container.
+ .
+ This package is part of Univention Corporate Server (UCS),
+ an integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/

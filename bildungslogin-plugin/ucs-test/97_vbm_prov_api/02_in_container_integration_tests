@@ -1,0 +1,12 @@
+#!/usr/share/ucs-test/runner bash
+## desc: In-container integration tests
+## exposure: dangerous
+## tags: [vbm]
+## packages: [bildungslogin-plugin]
+
+APP="ucsschool-apis"
+CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/; python3 -m pytest -l -v tests/integration_tests"
+
+echo "Running in container: sh -c \"$CMD\""
+
+univention-app shell "$APP" sh -c "$CMD"
