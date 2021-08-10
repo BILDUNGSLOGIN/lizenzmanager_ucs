@@ -52,7 +52,7 @@ def my_string_to_int(num):  # type: (str) -> int
 
 
 def get_entry_uuid(lo, dn):
-    """entryUUID can't be used in simple udm so we have to use ldap here."""
+    """UDM doesn't expose the `entryUUID` attribute, so we have to use ldap here."""
     return lo.get(dn, attr=["entryUUID"])["entryUUID"][0]
 
 

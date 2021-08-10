@@ -1,4 +1,4 @@
-#!/usr/share/ucs-test/runner /usr/bin/py.test -s
+#!/usr/share/ucs-test/runner /usr/bin/py.test -slv
 # -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH

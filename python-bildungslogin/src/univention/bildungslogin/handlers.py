@@ -483,9 +483,9 @@ class AssignmentHandler:
         except CreateError as e:
             raise BiloCreateError('Error creating assignment for "{}"!\n{}'.format(license_code, e))
 
-    def _get_available_assignments(self, dn):  # type: (str) -> List[UdmObject]
+    def _get_available_assignments(self, license_dn):  # type: (str) -> List[UdmObject]
         filter_s = filter_format("(status=%s)", [Status.AVAILABLE])
-        return self._get_all(base=dn, filter_s=filter_s)
+        return self._get_all(base=license_dn, filter_s=filter_s)
 
     @staticmethod
     def check_license_type_is_correct(username, user_roles, license_type):
@@ -519,8 +519,8 @@ class AssignmentHandler:
         """
         Assigne license with code `license_code` to `username`.
 
-        :param str license_code:
-        :param str username:
+        :param str license_code: license code
+        :param str username: user name of user to assigne license to
         :return: true if the license could be assigned to the user, else raises an error.
         :rtype: bool
         :raises BiloAssignmentError: 1. If the `ignored` property is set. This should not happen,
@@ -563,6 +563,17 @@ class AssignmentHandler:
         return True
 
     def assign_users_to_license(self, license_code, usernames):  # type: (str, List[str]) -> int
+        """
+        Assigne license to multiple users.
+
+        Errors during assignment will be ignored. The caller has to calculate:
+        `len(usernames) - returned_value` and handle the error if >0.
+
+        :param str license_code: license code
+        :param list(str) usernames: user names of users to assigne license to
+        :return: number of assigned licenses
+        :rtype: int
+        """
         num_assigned_correct = 0
         for username in usernames:
             try:

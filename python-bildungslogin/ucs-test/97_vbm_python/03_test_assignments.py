@@ -1,4 +1,4 @@
-#!/usr/share/ucs-test/runner /usr/bin/py.test -s
+#!/usr/share/ucs-test/runner /usr/bin/py.test -slv
 # -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH
@@ -73,15 +73,17 @@ def test_assign_user_to_license(assignment_handler, license_handler, license, us
         assignments = license_handler.get_assignments_for_license(license)
         license_was_assigned_correct_to_user(assignments, username)
         # (username, license_code) is unique
-        with pytest.raises(BiloAssignmentError):
+        with pytest.raises(BiloAssignmentError) as excinfo:
             assignment_handler.assign_to_license(username=username, license_code=license.license_code)
+        assert "has already been assigned to" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("ignored", ["0", "1", True, False])
 def test_check_is_ignored(ignored):
     if ignored != "0":
-        with pytest.raises(BiloAssignmentError):
+        with pytest.raises(BiloAssignmentError) as excinfo:
             AssignmentHandler.check_is_ignored(ignored)
+        assert "License is 'ignored for display' is set to" in str(excinfo.value)
     else:
         AssignmentHandler.check_is_ignored(ignored)
 
@@ -107,8 +109,9 @@ def test_assign_user_to_ignored_license_fails(assignment_handler, license_handle
         license.ignored_for_display = "1"
         license_handler.create(license)
         username = schoolenv.create_student(ou)[0]
-        with pytest.raises(BiloAssignmentError):
+        with pytest.raises(BiloAssignmentError) as excinfo:
             assignment_handler.assign_to_license(username=username, license_code=license.license_code)
+        assert "License is 'ignored for display' is set to" in str(excinfo.value)
 
 
 @pytest.mark.parametrize(
@@ -121,10 +124,11 @@ def test_check_license_can_be_assigned_to_school_user(license_school, ucsschool_
             license_school=license_school, ucsschool_schools=[ucsschool_school]
         )
     else:
-        with pytest.raises(BiloAssignmentError):
+        with pytest.raises(BiloAssignmentError) as excinfo:
             AssignmentHandler.check_license_can_be_assigned_to_school_user(
                 license_school=license_school, ucsschool_schools=[ucsschool_school]
             )
+        assert "License can't be assigned to user in school" in str(excinfo.value)
 
 
 def test_remove_assignment_from_users(assignment_handler, license_handler, license):
@@ -246,12 +250,13 @@ def test_negative_change_license_status(license_handler, assignment_handler, use
         elif user_type == "teacher":
             username = schoolenv.create_teacher(ou)[0]
         # the status can only be changed for assignments which already have an assignee
-        with pytest.raises(BiloAssignmentError):
+        with pytest.raises(BiloAssignmentError) as excinfo:
             assignment_handler.change_license_status(
                 username=username,
                 license_code=license.license_code,
                 status=Status.PROVISIONED,
             )
+        assert "No assignment for license with" in str(excinfo.value)
         assignment_handler.assign_to_license(username=username, license_code=license.license_code)
         assignment_handler.change_license_status(
             username=username,
@@ -259,7 +264,7 @@ def test_negative_change_license_status(license_handler, assignment_handler, use
             status=Status.PROVISIONED,
         )
         # license-assignments which have the status provisioned can't change their status.
-        with pytest.raises(BiloAssignmentError):
+        with pytest.raises(BiloAssignmentError) as excinfo:
             assignment_handler.change_license_status(
                 username=username,
                 license_code=license.license_code,
@@ -270,6 +275,7 @@ def test_negative_change_license_status(license_handler, assignment_handler, use
                 license_code=license.license_code,
                 status=Status.ASSIGNED,
             )
+        assert "Invalid status transition from PROVISIONED to AVAILABLE." in str(excinfo.value)
 
 
 @pytest.mark.parametrize(
@@ -284,7 +290,8 @@ def test_negative_change_license_status(license_handler, assignment_handler, use
 def test_check_license_type_is_correct(assignment_handler, user_roles, license_type):
     roles = [get_role_info(role)[0] for role in user_roles]
     if license_type == "Lehrer" and "student" in roles:
-        with pytest.raises(BiloAssignmentError):
+        with pytest.raises(BiloAssignmentError) as excinfo:
             assignment_handler.check_license_type_is_correct("dummyusername", user_roles, license_type)
+        assert "License with special type 'Lehrer' can't be assigned to user" in str(excinfo.value)
     else:
         assignment_handler.check_license_type_is_correct("dummyusername", user_roles, license_type)
