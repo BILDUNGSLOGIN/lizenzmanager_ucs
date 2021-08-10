@@ -256,8 +256,8 @@ class object(univention.admin.handlers.simpleLdap):
             if self["expired"] == "0":
                 self.info["num_expired"] = "0"
             else:
-                quantity = int(self["quantity"]) if self["quantity"] else 0
-                num_assigned = int(self["num_assigned"]) if self["num_assigned"] else 0
+                quantity = self._to_int(self["quantity"])
+                num_assigned = self._to_int(self["num_assigned"])
                 self.info["num_expired"] = str(quantity - num_assigned)
 
     def _load_assignments(self):
@@ -274,8 +274,8 @@ class object(univention.admin.handlers.simpleLdap):
     def _load_num_available(self):
         if self.exists():
             if self["expired"] == "0":
-                quantity = int(self["quantity"]) if self["quantity"] else 0
-                num_assigned = int(self["num_assigned"]) if self["num_assigned"] else 0
+                quantity = self._to_int(self["quantity"])
+                num_assigned = self._to_int(self["num_assigned"])
                 self.info["num_available"] = str(quantity - num_assigned)
             else:
                 self.info["num_available"] = "0"
@@ -285,6 +285,10 @@ class object(univention.admin.handlers.simpleLdap):
         dt = datetime.datetime.strptime(iso_date, "%Y-%m-%d")
         dt.strftime("%Y-%m-%d")
         return datetime.date(year=dt.year, month=dt.month, day=dt.day)
+
+    @staticmethod
+    def _to_int(value):  # type: (Optional[str]) -> int
+        return int(value) if value else 0
 
     def _ldap_pre_ready(self):
         super(object, self)._ldap_pre_ready()
