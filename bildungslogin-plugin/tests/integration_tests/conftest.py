@@ -246,8 +246,6 @@ def create_license_and_assignments(
             await assignment_obj.save()
             # delete the assignment isn't necessary, as it's deleted together with the license
             assignments.append(assignment_obj)
-        license_obj.props.assignments = [assignment.dn for assignment in assignments]
-        await license_obj.save()
 
         return license_obj, assignments
 
