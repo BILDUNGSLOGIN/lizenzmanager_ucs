@@ -43,6 +43,9 @@ mkdir -pv /usr/share/man/man1/
 apt update
 apt install --yes default-jre
 
+echo "Installing Python package 'udm-rest-client'..."
+python3 -m pip install -U udm-rest-client
+
 echo "Generating OpenAPI client for the UDM REST API..."
 update_openapi_client \
   --generator java \
