@@ -24,7 +24,6 @@ Depends:
  ${misc:Depends},
  ucs-test-framework,
  python-pytest,
- udm-bildungslogin,
 Description: test the udm modules for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),

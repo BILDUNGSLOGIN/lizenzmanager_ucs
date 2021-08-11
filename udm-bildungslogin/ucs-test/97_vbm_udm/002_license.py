@@ -1,6 +1,7 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
 # -*- coding: utf-8 -*-
 ## desc: Run tests for the udm module vbm/license
+## roles: [domaincontroller_master, domaincontroller_backup]
 ## exposure: dangerous
 ## tags: [vbm]
 ## packages: [udm-bildungslogin]
@@ -36,9 +37,6 @@ from hashlib import sha256
 
 import pytest
 
-import univention.testing.udm as udm_test
-from univention.admin.uexceptions import noObject
-from univention.admin.uldap import access, getMachineConnection
 from univention.config_registry import ConfigRegistry
 from univention.udm import CreateError
 
@@ -102,25 +100,3 @@ def test_existing_school(create_license):
     with pytest.raises(CreateError) as exinfo:
         create_license(code, "PRODUCT_ID", 10, non_existing_school)
     assert 'The school "{}" does not exist.'.format(non_existing_school) in exinfo.value.message
-
-
-def test_acl_machine(create_license):
-    code = "CODE"
-    license = create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
-    lo, _ = getMachineConnection()
-    if ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"]:
-        assert lo.searchDn(base=license.dn)
-    else:
-        with pytest.raises(noObject):
-            lo.searchDn(base=license.dn)
-
-
-def test_acl_user(create_license):
-    code = "CODE"
-    license = create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
-    user_pw = "univention"
-    with udm_test.UCSTestUDM() as udm:
-        userdn, username = udm.create_user(password=user_pw)
-        lo = access(binddn=userdn, bindpw=user_pw, base=ucr.get("ldap/base"))
-        with pytest.raises(noObject):
-            lo.searchDn(base=license.dn)

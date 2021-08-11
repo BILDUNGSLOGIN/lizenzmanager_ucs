@@ -1,6 +1,7 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -s
 # -*- coding: utf-8 -*-
 ## desc: Run tests for the udm module vbm/assignment
+## roles: [domaincontroller_master, domaincontroller_backup]
 ## exposure: dangerous
 ## tags: [vbm]
 ## packages: [udm-bildungslogin]
