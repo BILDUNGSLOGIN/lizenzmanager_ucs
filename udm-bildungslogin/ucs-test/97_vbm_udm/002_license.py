@@ -110,28 +110,6 @@ def test_existing_school(create_license):
     assert 'The school "{}" does not exist.'.format(non_existing_school) in exinfo.value.message
 
 
-def test_acl_machine(create_license):
-    code = "CODE"
-    license = create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
-    lo, _ = getMachineConnection()
-    if ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"]:
-        assert lo.searchDn(base=license.dn)
-    else:
-        with pytest.raises(noObject):
-            lo.searchDn(base=license.dn)
-
-
-def test_acl_user(create_license):
-    code = "CODE"
-    license = create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
-    user_pw = "univention"
-    with udm_test.UCSTestUDM() as udm:
-        userdn, username = udm.create_user(password=user_pw)
-        lo = access(binddn=userdn, bindpw=user_pw, base=ucr.get("ldap/base"))
-        with pytest.raises(noObject):
-            lo.searchDn(base=license.dn)
-
-
 def test_assignments(create_license, udm):
     num_licenses = random.randint(2, 10)
     with utu.UCSTestSchool() as schoolenv:
