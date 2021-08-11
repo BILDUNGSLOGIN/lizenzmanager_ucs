@@ -39,6 +39,7 @@ import univention.admin.localization
 import univention.admin.syntax
 import univention.admin.uexceptions
 from univention.admin.layout import Tab
+from univention.admin.syntax import iso8601Date
 
 translation = univention.admin.localization.translation("univention.admin.handlers.vbm")
 _ = translation.translate
@@ -269,7 +270,7 @@ class object(univention.admin.handlers.simpleLdap):
         """The license is expired, when `validity_end_date` is later than 'today'."""
         if not self.get("validity_end_date"):
             return "0"
-        validity_end_date = self._iso8601_to_python(self.get("validity_end_date"))
+        validity_end_date = iso8601Date.to_datetime(self.get("validity_end_date"))
         self.info["expired"] = "1" if validity_end_date < datetime.date.today() else "0"
 
     def _load_num_available(self):
@@ -280,12 +281,6 @@ class object(univention.admin.handlers.simpleLdap):
                 self.info["num_available"] = str(quantity - num_assigned)
             else:
                 self.info["num_available"] = "0"
-
-    @staticmethod
-    def _iso8601_to_python(iso_date):  # type: (str) -> datetime.date
-        dt = datetime.datetime.strptime(iso_date, "%Y-%m-%d")
-        dt.strftime("%Y-%m-%d")
-        return datetime.date(year=dt.year, month=dt.month, day=dt.day)
 
     @staticmethod
     def _to_int(value):  # type: (Optional[str]) -> int
