@@ -13,6 +13,7 @@ Standards-Version: 3.8.2
 Package: ucs-school-umc-licenses
 Architecture: all
 Depends:
+ python-bildungslogin,
  python-ucs-school (>= 12.1.9),
  python-univention-directory-manager,
  shell-ucs-school,
