@@ -110,5 +110,5 @@ def create_license(udm):
     yield _create_license
 
     for license_obj in created_licenses:
-        # TODO: Change if https://forge.univention.org/bugzilla/show_bug.cgi?id=53620 is CLOSED
+        # TODO: Change when https://forge.univention.org/bugzilla/show_bug.cgi?id=53620 is CLOSED.
         license_obj._orig_udm_object.remove(True)

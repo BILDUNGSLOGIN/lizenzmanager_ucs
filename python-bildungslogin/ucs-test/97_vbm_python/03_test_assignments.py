@@ -93,7 +93,9 @@ def test_assign_user_to_expired_license_fails(assignment_handler, license_handle
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license.license_school = ou
-        license.validity_end_date = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        license.validity_end_date = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
+            "%Y-%m-%d"
+        )
         license_handler.create(license)
         username = schoolenv.create_student(ou)[0]
         with pytest.raises(BiloAssignmentError, match="License is expired") as excinfo:

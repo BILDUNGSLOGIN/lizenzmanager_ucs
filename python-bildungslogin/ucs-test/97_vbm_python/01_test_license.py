@@ -41,6 +41,7 @@ import univention.testing.ucsschool.ucs_test_school as utu
 from univention.bildungslogin.handlers import BiloCreateError, BiloLicenseInvalidError
 from univention.bildungslogin.utils import LicenseType, Status
 from univention.testing.utils import verify_ldap_object
+from univention.udm import UDM
 
 
 def test_license_type(license):
@@ -137,14 +138,22 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
         assert license_handler.get_number_of_available_assignments(license) == total_num - len(users)
 
 
-def test_number_of_expired_licenses(license_handler, expired_license):
+def test_get_number_of_expired_assignments(lo, license_handler, expired_license):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         expired_license.license_school = ou
         license_handler.create(expired_license)
-        assert license_handler.get_number_of_expired_assignments(expired_license) == int(
-            expired_license.license_quantity
-        )
+        license_obj = license_handler.get_udm_license_by_code(expired_license.license_code)
+        udm = UDM(lo).version(1)
+        assignment_mod = udm.get("vbm/assignment")
+        for assignment_dn in license_obj.props.assignments[:2]:
+            assignment_obj = assignment_mod.get(assignment_dn)
+            assignment_obj.props.assignee = "foo"
+            assignment_obj.props.time_of_assignment = datetime.datetime.now().strftime("%Y-%m-%d")
+            assignment_obj.props.status = Status.ASSIGNED
+            assignment_obj.save()
+        expected_num = int(expired_license.license_quantity) - 2  # assigned 2 licenses in for loop above
+        assert license_handler.get_number_of_expired_assignments(expired_license) == expected_num
 
 
 def test_get_meta_data_for_license(license_handler, meta_data_handler, license, meta_data):
