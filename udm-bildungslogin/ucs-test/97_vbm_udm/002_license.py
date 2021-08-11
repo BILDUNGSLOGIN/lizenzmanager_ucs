@@ -42,9 +42,6 @@ import pytest
 
 import univention.testing.strings as uts
 import univention.testing.ucsschool.ucs_test_school as utu
-import univention.testing.udm as udm_test
-from univention.admin.uexceptions import noObject
-from univention.admin.uldap import access, getMachineConnection
 from univention.config_registry import ConfigRegistry
 from univention.udm import CreateError
 
