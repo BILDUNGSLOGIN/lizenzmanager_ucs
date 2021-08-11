@@ -95,7 +95,7 @@ enabled_plugins.add("auth")
 enabled_plugins.add("bildungslogin")
 conf["enabled_plugins"] = sorted(enabled_plugins)
 json.dump(conf, open("/etc/ucsschool/apis/settings.json", "w"))
-'
+' || die
 }
 
 restart_ucsschool_apis_app() {
