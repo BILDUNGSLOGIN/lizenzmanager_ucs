@@ -242,6 +242,9 @@ define([
 				],
 				onSearch: lang.hitch(this, function(values) {
 					values.school = this.schoolId;
+					if (this._isAdvancedSearch) {
+						values.pattern = null;
+					}
 					if (this.moduleFlavor === 'licenses/allocation') {
 						values.onlyAvailableLicenses = true;
 					}

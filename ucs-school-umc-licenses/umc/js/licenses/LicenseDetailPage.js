@@ -283,7 +283,7 @@ define([
 				name: 'username',
 				label: _('User'),
 			}, {
-				name: 'statusName',
+				name: 'statusLabel',
 				label: _('Status'),
 			}, {
 				name: 'dateOfAssignment',

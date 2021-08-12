@@ -33,9 +33,10 @@ import itertools
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
-from ldap.filter import escape_filter_chars, filter_format
+from ldap.filter import filter_format
 
 from ucsschool.lib.roles import get_role_info
+from univention.admin.syntax import iso8601Date
 from univention.lib.i18n import Translation
 from univention.udm import UDM, CreateError, ModifyError, NoObject as UdmNoObject
 
@@ -46,7 +47,7 @@ from .exceptions import (
     BiloProductNotFoundError,
 )
 from .models import Assignment, License, MetaData
-from .utils import LicenseType, Status, get_entry_uuid, get_special_filter
+from .utils import LicenseType, Status, get_entry_uuid, ldap_escape
 
 if TYPE_CHECKING:
     from ucsschool.lib.models.base import LoType, UdmObject
@@ -97,7 +98,7 @@ class LicenseHandler:
             {
                 "username": a.assignee,
                 "status": a.status,
-                "statusName": Status.name(a.status),
+                "statusLabel": Status.label(a.status),
                 "dateOfAssignment": a.time_of_assignment,
             }
             for a in self.get_assignments_for_license_with_filter(license, "(assignee=*)")
@@ -223,13 +224,33 @@ class LicenseHandler:
         assignments = self.get_assignments_for_license_with_filter(filter_s=filter_s, license=license)
         return max(a.time_of_assignment for a in assignments)
 
+    def get_licenses_for_user(self, filter_s):  # type: (str) -> List[License]
+        users = self._users_mod.search(filter_s)
+        licenses = set()
+        for user in users:
+            entry_uuid = get_entry_uuid(self._users_mod.connection, user.dn)
+            assignments = self.ah.get_all_assignments_for_user(entry_uuid)
+            for assignment in assignments:
+                licenses.add(self.ah.get_license_by_license_code(assignment.license))
+        return licenses
+
     @staticmethod
-    def get_license_types():  # type: () -> List[str]
-        return [LicenseType.SINGLE, LicenseType.VOLUME]
+    def get_license_types():  # type: () -> List[dict]
+        return [
+            {
+                "id": LicenseType.SINGLE,
+                "label": LicenseType.label(LicenseType.SINGLE),
+            },
+            {
+                "id": LicenseType.VOLUME,
+                "label": LicenseType.label(LicenseType.VOLUME),
+            },
+        ]
 
     def search_for_licenses(
         self,
         school,  # type: str
+        is_advanced_search,  # type: bool
         time_from=None,  # type: Optional[datetime.date]
         time_to=None,  # type: Optional[datetime.date]
         only_available_licenses=False,  # type: Optional[bool]
@@ -241,29 +262,140 @@ class LicenseHandler:
         license_code="",  # type: Optional[str]
         pattern="",  # type: Optional[str]
     ):
-        # type: (...) -> List[Dict[str, Any]]
-        """search only works for license-code yet"""
+        def __get_possible_product_ids(search_values, search_combo="|"):
+            filter_parts = []
+            for attr, pattern in search_values:
+                filter_parts.append("({attr}={pattern})".format(attr=attr, pattern=ldap_escape(pattern)))
+            if not filter_parts:
+                filter_s = ""
+            elif len(filter_parts) == 1:
+                filter_s = filter_parts[0]
+            else:
+                filter_s = "({}{})".format(search_combo, "".join(filter_parts))
+            possible_products = self._meta_data_mod.search(filter_s)
+            return [product.props.product_id for product in possible_products]
+
+        def __get_pattern_filter():  # type: () -> str
+            possible_product_ids = __get_possible_product_ids(
+                [
+                    (
+                        "title",
+                        pattern,
+                    ),
+                    ("publisher", pattern),
+                ]
+            )
+            filter_s = "(|(code={})(product_id={}){})".format(
+                ldap_escape(pattern),
+                ldap_escape(pattern),
+                "".join(
+                    [
+                        filter_format("(product_id=%s)", (_product_id,))
+                        for _product_id in possible_product_ids
+                    ]
+                ),
+            )
+            return filter_s
+
+        def __get_advanced_filter():
+            # return either None, if the search for matching vbm/metadata did not yield results
+            # or a ldap search filter str which is further used
+            filter_parts = []
+            if time_from:
+                filter_parts.append(
+                    filter_format("(vbmDeliveryDate>=%s)", (iso8601Date.from_datetime(time_from),))
+                )
+            if time_to:
+                filter_parts.append(
+                    filter_format("(vbmDeliveryDate<=%s)", (iso8601Date.from_datetime(time_to),))
+                )
+            if license_type == LicenseType.SINGLE:
+                filter_parts.append("(vbmLicenseQuantity=1)")
+            elif license_type == LicenseType.VOLUME:
+                filter_parts.append("(!(vbmLicenseQuantity=1))")
+            if product_id != "*":
+                filter_parts.append("(product_id={})".format(ldap_escape(product_id)))
+            if license_code != "*":
+                filter_parts.append("(code={})".format(ldap_escape(license_code)))
+            product_search = []
+            if product != "*":
+                product_search.append(("title", product))
+            if publisher:
+                product_search.append(("publisher", publisher))
+            if product_search:
+                possible_product_ids = __get_possible_product_ids(product_search, search_combo="&")
+                if not possible_product_ids:
+                    return None
+                else:
+                    filter_parts.append(
+                        "(|{})".format(
+                            "".join(
+                                [
+                                    filter_format("(product_id=%s)", (_product_id,))
+                                    for _product_id in possible_product_ids
+                                ]
+                            )
+                        )
+                    )
+            if user_pattern != "*":
+                possible_licenses = self.get_licenses_for_user(
+                    "(|(firstname={user_pattern})(sn={user_pattern})(uid={user_pattern}))".format(
+                        user_pattern=ldap_escape(user_pattern)
+                    )
+                )
+                if not possible_licenses:
+                    return None
+                else:
+                    filter_parts.append(
+                        "(|{})".format(
+                            "".join(
+                                [
+                                    filter_format("(code=%s)", (p_license.props.code,))
+                                    for p_license in possible_licenses
+                                ]
+                            )
+                        )
+                    )
+            if not filter_parts:
+                filter_s = ""
+            elif len(filter_parts) == 1:
+                filter_s = filter_parts[0]
+            else:
+                filter_s = "(&{})".format("".join(filter_parts))
+            return filter_s
+
         rows = []
-        filter_s = get_special_filter(pattern=pattern, attribute_names=["code"])
-        school = escape_filter_chars(school)
-        filter_s = "(&{}(school={}))".format(filter_s, school)
+        if is_advanced_search:
+            filter_s = __get_advanced_filter()
+            if filter_s is None:
+                return []
+        else:
+            filter_s = __get_pattern_filter()
+        school_filter = filter_format("(school=%s)", (school,))
+        if filter_s:
+            filter_s = "(&{}{})".format(school_filter, filter_s)
+        else:
+            filter_s = school_filter
         for license in self.get_all(filter_s=filter_s):
             meta_data = self.get_meta_data_for_license(license)
-            rows.append(
-                {
-                    "licenseId": license.license_code,
-                    "productId": license.product_id,
-                    "productName": meta_data.title,
-                    "publisher": meta_data.publisher,
-                    "licenseCode": license.license_code,
-                    "licenseType": license.license_type,
-                    "countAquired": self.get_total_number_of_assignments(license),
-                    "countAssigned": self.get_number_of_provisioned_and_assigned_assignments(license),
-                    "countExpired": 0,  # self.get_number_of_expired_assignments(license),
-                    "countAvailable": self.get_number_of_available_assignments(license),
-                    "importDate": license.delivery_date,
-                }
-            )
+            if not only_available_licenses or self.get_number_of_available_assignments(license) > 0:
+                rows.append(
+                    {
+                        "licenseId": license.license_code,
+                        "productId": license.product_id,
+                        "productName": meta_data.title,
+                        "publisher": meta_data.publisher,
+                        "licenseCode": license.license_code,
+                        "licenseTypeLabel": LicenseType.label(license.license_type),
+                        "countAquired": self.get_total_number_of_assignments(license),
+                        "countAssigned": self.get_number_of_provisioned_and_assigned_assignments(
+                            license
+                        ),
+                        "countExpired": self.get_number_of_expired_assignments(license),
+                        "countAvailable": self.get_number_of_available_assignments(license),
+                        "importDate": license.delivery_date,
+                    }
+                )
         return rows
 
 

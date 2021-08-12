@@ -71,17 +71,6 @@ define([
 		_toggleSearch: function() {
 			this._isAdvancedSearch = !this._isAdvancedSearch;
 
-			// reset widgets
-			if (this._isAdvancedSearch) {
-				this._searchForm.getWidget('pattern').reset();
-			} else {
-				this._searchForm.widgets.forEach(lang.hitch(this, function(widget) {
-					if (widget.name !== 'pattern') {
-						this._searchForm.getWidget(widget.name).reset();
-					}
-				}));
-			}
-
 			// toggle visibility
 			[
 				'timeFrom',
@@ -183,7 +172,7 @@ define([
 				type: ComboBox,
 				name: 'publisher',
 				label: _('Publisher'),
-				staticValues: [{id: '__all__', label: _('All publishers')}],
+				staticValues: [{id: '', label: ''}],
 				dynamicValues: 'licenses/publishers',
 				size: 'TwoThirds',
 				visible: false,
@@ -191,7 +180,7 @@ define([
 				type: ComboBox,
 				name: 'licenseType',
 				label: _('License type'),
-				staticValues: [{id: '__all__', label: _('All license types')}],
+				staticValues: [{id: '', label: ''}],
 				dynamicValues: 'licenses/license_types',
 				size: 'TwoThirds',
 				visible: false,
@@ -249,6 +238,7 @@ define([
 					['productId', 'product', 'licenseCode', 'pattern', 'submit', 'toggleSearch'],
 				],
 				onSearch: lang.hitch(this, function(values) {
+					values.isAdvancedSearch = this._isAdvancedSearch;
 					values.school = this.schoolId;
 					if (this.moduleFlavor === 'licenses/allocation') {
 						values.onlyAvailableLicenses = true;
@@ -282,7 +272,7 @@ define([
 				name: 'publisher',
 				label: _('Publisher'),
 			}, {
-				name: 'licenseType',
+				name: 'licenseTypeLabel',
 				label: _('License type'),
 			}, {
 				name: 'countAquired',

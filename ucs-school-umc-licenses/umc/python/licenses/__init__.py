@@ -38,7 +38,7 @@ from univention.admin.syntax import iso8601Date
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.lib.i18n import Translation
 from univention.management.console.log import MODULE
-from univention.management.console.modules.decorators import sanitize, simple_response
+from univention.management.console.modules.decorators import sanitize
 from univention.management.console.modules.sanitizers import (
     BooleanSanitizer,
     LDAPSearchSanitizer,
@@ -50,31 +50,49 @@ _ = Translation("ucs-school-umc-licenses").translate
 
 
 class Instance(SchoolBaseModule):
-
-    #  @sanitize(pattern=PatternSanitizer(default=".*")) # TODO
+    @sanitize(
+        isAdvancedSearch=BooleanSanitizer(required=True),
+        school=StringSanitizer(required=True),
+        timeFrom=LDAPSearchSanitizer(add_asterisks=False),
+        timeTo=LDAPSearchSanitizer(add_asterisks=False),
+        onlyAvailableLicenses=BooleanSanitizer(),
+        publisher=LDAPSearchSanitizer(add_asterisks=False),
+        licenseType=LDAPSearchSanitizer(add_asterisks=False),
+        userPattern=LDAPSearchSanitizer(),
+        productId=LDAPSearchSanitizer(),
+        product=LDAPSearchSanitizer(),
+        licenseCode=LDAPSearchSanitizer(),
+        pattern=LDAPSearchSanitizer(),
+    )
     @LDAP_Connection(USER_WRITE)
-    def query(self, request, ldap_user_write=None):
+    def licenses_query(self, request, ldap_user_write=None):
         """Searches for licenses
         requests.options = {
-                        school -- schoolId
-                        timeFrom -- ISO 8601 date string
-                        timeTo -- ISO 8601 date string
-                        onlyAllocatableLicenses -- boolean
-                        publisher -- string
-                        licenseType -- string
-                        userPattern -- string TODO use PatternSanitizer
-                        productId -- string
-                        product -- string
-                        licenseCode -- string
-                        pattern -- string TODO use PatternSanitizer
+            isAdvancedSearch -- boolean
+            school -- str (schoolId)
+            timeFrom -- str (ISO 8601 date string)
+            timeTo -- str (ISO 8601 date string)
+            onlyAllocatableLicenses -- boolean
+            publisher -- str
+            licenseType -- str
+            userPattern -- str
+            productId -- str
+            product -- str
+            licenseCode -- str
+            pattern -- str
         }
         """
-        MODULE.info("licenses.query: options: %s" % str(request.options))
+        MODULE.error("licenses.licenses_query: options: %s" % str(request.options))
         lh = LicenseHandler(ldap_user_write)
+        time_from = request.options.get("timeFrom")
+        time_from = iso8601Date.to_datetime(time_from) if time_from else None
+        time_to = request.options.get("timeTo")
+        time_to = iso8601Date.to_datetime(time_to) if time_to else None
         result = lh.search_for_licenses(
+            is_advanced_search=request.options.get("isAdvancedSearch"),
             school=request.options.get("school"),
-            time_from=iso8601Date.to_datetime(request.options.get("timeFrom")),
-            time_to=iso8601Date.to_datetime(request.options.get("timeTo")),
+            time_from=time_from,
+            time_to=time_to,
             only_available_licenses=request.options.get("onlyAvailableLicenses"),
             publisher=request.options.get("publisher"),
             license_type=request.options.get("licenseType"),
@@ -84,19 +102,17 @@ class Instance(SchoolBaseModule):
             license_code=request.options.get("licenseCode"),
             pattern=request.options.get("pattern"),
         )
-        MODULE.info("licenses.query: result: %s" % str(result))
-        result_s = []
         for res in result:
-            res["importDate"] = res["importDate"].strftime("%Y-%m-%d")
-            result_s.append(res)
-        self.finished(request.id, result_s)
+            res["importDate"] = iso8601Date.from_datetime(res["importDate"])
+        MODULE.info("licenses.licenses_query: result: %s" % str(result))
+        self.finished(request.id, result)
 
     @sanitize(
         #  school=StringSanitizer(required=True),
         licenseCode=StringSanitizer(required=True),
     )
     @LDAP_Connection(USER_WRITE)
-    def get_license(self, request, ldap_user_write=None):
+    def licenses_get(self, request, ldap_user_write=None):
         """Get single license + meta data + assigned users
         requests.options = {
             #  school -- schoolId
@@ -141,28 +157,20 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.get: result: %s" % str(result))
         self.finished(request.id, result)
 
-    # TODO real backend call
-    @simple_response
-    def publishers(self):
-        MODULE.info("licenses.publishers")
-        result = [
-            #  {"id": "Verlag XYZ", "label": "Verlag XYZ"},
-            #  {"id": "Verlag ABC", "label": "Verlag ABC"},
-            #  {"id": "Verlag KLM", "label": "Verlag KLM"},
-        ]
+    @LDAP_Connection(USER_WRITE)
+    def publishers(self, request, ldap_user_write=None):
+        MODULE.info("licenses.publishers: options: %s" % str(request.options))
+        mh = MetaDataHandler(ldap_user_write)
+        result = [{"id": p, "label": p} for p in mh.get_all_publishers()]
         MODULE.info("licenses.publishers: result: %s" % str(result))
-        return result
+        self.finished(request.id, result)
 
-    # TODO real backend call
-    @simple_response
-    def license_types(self):
-        MODULE.info("licenses.license_types")
-        result = [
-            #  {"id": "Volumenlizenz", "label": _("Volumenlizenz")},
-            #  {"id": "Einzellizenz", "label": _("Einzellizenz")},
-        ]
+    @LDAP_Connection(USER_WRITE)
+    def license_types(self, request, ldap_user_write=None):
+        MODULE.info("licenses.license_types: options: %s" % str(request.options))
+        result = LicenseHandler.get_license_types()
         MODULE.info("licenses.license_types: result: %s" % str(result))
-        return result
+        self.finished(request.id, result)
 
     @sanitize(
         licenseCode=StringSanitizer(required=True),

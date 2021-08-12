@@ -28,14 +28,9 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 
-import re
-from typing import List
-
 from ldap.filter import escape_filter_chars
 
 from univention.lib.i18n import Translation
-
-_reg_white_spaces = re.compile(r"\s+")
 
 _ = Translation("vbm-bildungslogin").translate
 
@@ -46,7 +41,7 @@ class Status(object):
     AVAILABLE = "AVAILABLE"
 
     @classmethod
-    def name(cls, status):
+    def label(cls, status):
         return {
             cls.ASSIGNED: _("Assigned"),
             cls.PROVISIONED: _("Provisioned"),
@@ -55,8 +50,15 @@ class Status(object):
 
 
 class LicenseType:
-    VOLUME = "Volumenlizenz"
-    SINGLE = "Einzellizenz"
+    VOLUME = "VOLUME"
+    SINGLE = "SINGLE"
+
+    @classmethod
+    def label(cls, license_type):
+        return {
+            cls.VOLUME: _("Volume license"),
+            cls.SINGLE: _("Single license"),
+        }[license_type]
 
 
 def get_entry_uuid(lo, dn):
@@ -64,28 +66,9 @@ def get_entry_uuid(lo, dn):
     return lo.get(dn, attr=["entryUUID"])["entryUUID"][0]
 
 
-def get_special_filter(pattern, attribute_names):  # type: (str, List[str]) -> str
-    """
-    This is bluntly copied from `ucsschool.lib.school_umc_base.LDAP_Filter.forAll()` to prevent importing
-    the UMC lib. It was slithely adapted so that all attributes are searched as both substring and exact
-    match.
-    """
-    expressions = []
-    for iword in _reg_white_spaces.split(pattern or ""):
-        # evaluate the subexpression (search word over different attributes)
-        sub_expr = []
-        iword = escape_filter_chars(iword)
-        # all expressions for a full string match
-        if iword:
-            sub_expr += ["(%s=%s)" % (attr, iword) for attr in attribute_names]
-        # all expressions for a substring match
-        if not iword:
-            iword = "*"
-        elif iword.find("*") < 0:
-            iword = "*%s*" % iword
-        sub_expr += ["(%s=%s)" % (attr, iword) for attr in attribute_names]
-        # append to list of all search expressions
-        expressions.append("(|%s)" % "".join(sub_expr))
-    if not expressions:
-        return ""
-    return "(&%s)" % "".join(expressions)
+def ldap_escape(value, allow_asterisks=True):
+    escaped_wildcard = escape_filter_chars("*")
+    value = escape_filter_chars(value)
+    if allow_asterisks:
+        value = value.replace(escaped_wildcard, "*")
+    return value

@@ -32,34 +32,333 @@
 ## tags: [vbm]
 ## roles: [domaincontroller_master]
 
+from copy import deepcopy
+from datetime import datetime, timedelta
+from uuid import uuid4
 
-import univention.testing.ucsschool.ucs_test_school as utu
+import pytest
+from conftest import get_license, get_meta_data
+
+from ucsschool.lib.models.user import Student
+from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
+from univention.bildungslogin.utils import LicenseType
+from univention.udm import UDM
+
+GOOD_SEARCH = "FOUND"
+FUZZY_SEARCH = "*FUZZY*"
+BAD_SEARCH = "NOT_FOUND"
 
 
-def test_search_for_license_code(license_handler, meta_data_handler, meta_data, license_obj):
-    with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
-        license = license_obj(ou)
-        license.product_id = meta_data.product_id
-        license_handler.create(license)
-        meta_data_handler.create(meta_data)
-        res = license_handler.search_for_licenses(pattern=license.license_code, school=ou)
-        assert len(res) == 1
-        expected_res = {
-            "licenseId": license.license_code,
-            "productId": license.product_id,
-            "productName": meta_data.title,
-            "publisher": meta_data.publisher,
-            "licenseCode": license.license_code,
-            "licenseType": license.license_type,
-            "countAquired": license_handler.get_total_number_of_assignments(license),
-            "countAssigned": license_handler.get_number_of_provisioned_and_assigned_assignments(license),
-            "countExpired": 0,  # self.get_number_of_expired_assignments(license),
-            "countAvailable": license_handler.get_number_of_available_assignments(license),
-            "importDate": license.delivery_date,
-        }
-        assert expected_res in res
-        for i in range(len(license.license_code)):
-            substring = license.license_code[:i]
-            res = license_handler.search_for_licenses(pattern=substring, school=ou)
-            assert expected_res in res
+@pytest.fixture(scope="module")
+def test_user(lo_module, ou):
+    user = Student(
+        password="univention",
+        name="vbm_username",
+        firstname="vbm_firstname",
+        lastname="vbm_lastname",
+        school=ou,
+    )
+    user.create(lo_module)
+    return user.name
+
+
+@pytest.fixture(scope="module")
+def single_license(
+    lo_module,
+    ou,
+    test_user,
+):
+    license_handler = LicenseHandler(lo_module)
+    meta_data_handler = MetaDataHandler(lo_module)
+    assignment_handler = AssignmentHandler(lo_module)
+    license = get_license(ou)
+    meta_data = get_meta_data()
+    meta_data.title = "univention_s"
+    meta_data.publisher = "univention_s"
+    license.license_code = "univention_s"
+    meta_data.product_id = "univention_s"
+    license.license_quantity = 1
+    license.product_id = meta_data.product_id
+    license_handler.create(license)
+    meta_data_handler.create(meta_data)
+    assignment_handler.assign_to_license(license.license_code, test_user)
+    return license
+
+
+@pytest.fixture(scope="module")
+def volume_license(
+    lo_module,
+    ou,
+    test_user,
+):
+    license_handler = LicenseHandler(lo_module)
+    meta_data_handler = MetaDataHandler(lo_module)
+    assignment_handler = AssignmentHandler(lo_module)
+    license = get_license(ou)
+    meta_data = get_meta_data()
+    meta_data.title = "univention_v"
+    meta_data.publisher = "univention_v"
+    license.license_code = "univention_v"
+    meta_data.product_id = "univention_v"
+    license.license_quantity = 2
+    license.product_id = meta_data.product_id
+    license_handler.create(license)
+    meta_data_handler.create(meta_data)
+    assignment_handler.assign_to_license(license.license_code, test_user)
+    return license
+
+
+@pytest.fixture(scope="module")
+def udm_license_mod(lo_module):
+    udm = UDM(lo_module).version(1)
+    return udm.get("vbm/license")
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        GOOD_SEARCH,
+        FUZZY_SEARCH,
+        BAD_SEARCH,
+    ],
+)
+@pytest.mark.parametrize(
+    "publisher",
+    [
+        GOOD_SEARCH,
+        FUZZY_SEARCH,
+        BAD_SEARCH,
+    ],
+)
+@pytest.mark.parametrize(
+    "license_code",
+    [
+        GOOD_SEARCH,
+        FUZZY_SEARCH,
+        BAD_SEARCH,
+    ],
+)
+@pytest.mark.parametrize(
+    "product_id",
+    [
+        GOOD_SEARCH,
+        FUZZY_SEARCH,
+        BAD_SEARCH,
+    ],
+)
+def test_search_for_license_pattern(
+    ou,
+    license_handler,
+    license_obj,
+    meta_data_handler,
+    meta_data,
+    title,
+    publisher,
+    license_code,
+    product_id,
+):
+    def __create_license(title=None, publisher=None, license_code=None, product_id=None):
+        new_license = deepcopy(license_obj(ou))
+        new_meta_data = deepcopy(meta_data)
+        if title:
+            new_meta_data.title = title.replace("*", "sun")
+        if publisher:
+            new_meta_data.publisher = publisher.replace("*", "sun")
+        if license_code:
+            new_license.license_code = license_code.replace("*", "sun")
+        else:
+            new_license.license_code = "uni:{}".format(uuid4())
+        if product_id:
+            new_meta_data.product_id = product_id.replace("*", "sun")
+        else:
+            new_meta_data.product_id = str(uuid4())
+        new_license.product_id = new_meta_data.product_id
+        new_license.license_school = ou
+        license_handler.create(new_license)
+        meta_data_handler.create(new_meta_data)
+        return new_license.license_code
+
+    test_license_codes = {
+        GOOD_SEARCH: set(),
+        BAD_SEARCH: set(),
+        FUZZY_SEARCH: set(),
+    }
+    test_license_codes[title].add(__create_license(title=title))
+    test_license_codes[publisher].add(__create_license(publisher=publisher))
+    test_license_codes[license_code].add(__create_license(license_code=license_code))
+    test_license_codes[product_id].add(__create_license(product_id=product_id))
+
+    res = license_handler.search_for_licenses(
+        is_advanced_search=False, pattern=GOOD_SEARCH, school=ou + "_different_school"
+    )
+    assert len(res) == 0
+    res = license_handler.search_for_licenses(is_advanced_search=False, pattern=GOOD_SEARCH, school=ou)
+    assert (
+        len(res)
+        == (
+            title,
+            publisher,
+            license_code,
+            product_id,
+        ).count(GOOD_SEARCH)
+    )
+    assert test_license_codes[GOOD_SEARCH] == set(res_l["licenseId"] for res_l in res)
+    res = license_handler.search_for_licenses(is_advanced_search=False, pattern=FUZZY_SEARCH, school=ou)
+    assert (
+        len(res)
+        == (
+            title,
+            publisher,
+            license_code,
+            product_id,
+        ).count(FUZZY_SEARCH)
+    )
+    assert test_license_codes[FUZZY_SEARCH] == set(res_l["licenseId"] for res_l in res)
+
+
+@pytest.mark.parametrize(
+    "time_from",
+    [
+        (None, True),
+        (datetime.now() - timedelta(days=2), True),
+        (datetime.now() + timedelta(days=2), False),
+    ],
+)
+@pytest.mark.parametrize(
+    "time_to",
+    [
+        (None, True),
+        (datetime.now() - timedelta(days=2), False),
+        (datetime.now() + timedelta(days=2), True),
+    ],
+)
+@pytest.mark.parametrize(
+    "only_available_licenses",
+    [
+        (False, True),
+        (True, False),
+    ],
+)
+@pytest.mark.parametrize(
+    "publisher",
+    [
+        ("", True),
+        ("*vention{}", True),
+        ("univention{}", True),
+        ("foobar", False),
+    ],
+)
+@pytest.mark.parametrize(
+    "license_type",
+    [
+        ("", True),
+        (LicenseType.SINGLE, True),
+        (LicenseType.VOLUME, True),
+    ],
+)
+@pytest.mark.parametrize(
+    "user_pattern",
+    [
+        ("*", True),
+        ("vbm*username", True),
+        ("vbm*firstname", True),
+        ("vbm*lastname", True),
+        ("foobar", False),
+    ],
+)
+@pytest.mark.parametrize(
+    "product_id",
+    [
+        ("*", True),
+        ("*vention{}", True),
+        ("univention{}", True),
+        ("foobar", False),
+    ],
+)
+@pytest.mark.parametrize(
+    "product",
+    [
+        ("*", True),
+        ("*vention{}", True),
+        ("univention{}", True),
+        ("foobar", False),
+    ],
+)
+@pytest.mark.parametrize(
+    "license_code",
+    [
+        ("*", True),
+        ("*vention{}", True),
+        ("univention{}", True),
+        ("foobar", False),
+    ],
+)
+def test_search_for_license_advance(
+    ou,
+    udm_license_mod,
+    license_handler,
+    single_license,
+    volume_license,
+    time_from,
+    time_to,
+    only_available_licenses,
+    publisher,
+    license_type,
+    user_pattern,
+    product_id,
+    product,
+    license_code,
+):
+    if license_type[0] == LicenseType.SINGLE:
+        license_appendix = "_s"
+    else:
+        license_appendix = "_v"
+    res = license_handler.search_for_licenses(
+        is_advanced_search=True,
+        time_to=time_to[0],
+        time_from=time_from[0],
+        only_available_licenses=only_available_licenses[0],
+        publisher=publisher[0].format(license_appendix),
+        license_type=license_type[0],
+        user_pattern=user_pattern[0],
+        product_id=product_id[0].format(license_appendix),
+        product=product[0].format(license_appendix),
+        license_code=license_code[0].format(license_appendix),
+        school=ou + "_different_school",
+    )
+    assert len(res) == 0
+    res = license_handler.search_for_licenses(
+        is_advanced_search=True,
+        time_to=time_to[0],
+        time_from=time_from[0],
+        only_available_licenses=only_available_licenses[0],
+        publisher=publisher[0].format(license_appendix),
+        license_type=license_type[0],
+        user_pattern=user_pattern[0],
+        product_id=product_id[0].format(license_appendix),
+        product=product[0].format(license_appendix),
+        license_code=license_code[0].format(license_appendix),
+        school=ou,
+    )
+    should_be_found = all(
+        (
+            time_to[1],
+            time_from[1],
+            only_available_licenses[1] or license_type[0] in (LicenseType.VOLUME, ""),
+            publisher[1],
+            license_type[1],
+            user_pattern[1],
+            user_pattern[1],
+            product_id[1],
+            product[1],
+            license_code[1],
+        )
+    )
+    if license_type[0] == LicenseType.SINGLE:
+        assert (
+            single_license.license_code in set(res_l["licenseId"] for res_l in res)
+        ) == should_be_found
+    else:
+        assert (
+            volume_license.license_code in set(res_l["licenseId"] for res_l in res)
+        ) == should_be_found

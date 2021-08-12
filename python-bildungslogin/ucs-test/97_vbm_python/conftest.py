@@ -33,15 +33,30 @@ import json
 import random
 import string
 import uuid
+from contextlib import contextmanager
 
 import ldap
 import pytest
 
 import univention.testing.strings as uts
+import univention.testing.ucsschool.ucs_test_school as utu
+from univention.admin.uexceptions import noObject
 from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.bildungslogin.models import License, MetaData
 from univention.testing.ucr import UCSTestConfigRegistry
+
+
+@pytest.fixture(scope="module")
+def ou():
+    """if you don't need cleanup after every test. Use with caution"""
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        yield ou
+
+
+def iso_format_date(my_date):
+    return my_date.strftime("%Y-%m-%d")
 
 
 def random_string(n):  # type: (int) -> str
@@ -147,8 +162,8 @@ def n_meta_data():
     return [get_meta_data() for _ in range(n)]
 
 
-@pytest.fixture()
-def lo():
+@contextmanager
+def __lo():
     """this is to simplify some of our tests with the simple udm api,
     so we do not have to use the ucs-test school env all the time."""
 
@@ -160,11 +175,30 @@ def lo():
     lo, po = getAdminConnection()
     lo.add_orig = lo.add
     lo.add = add_temp
-    yield lo
-    # we need to sort the dns to first delete the child-nodes
-    created_objs.sort(key=lambda _dn: len(ldap.explode_dn(_dn)), reverse=True)
-    for dn in created_objs:
-        lo.delete(dn)
+    try:
+        yield lo
+    finally:
+        # we need to sort the dns to first delete the child-nodes
+        created_objs.sort(key=lambda _dn: len(ldap.explode_dn(_dn)), reverse=True)
+        for dn in created_objs:
+            try:
+                lo.delete(dn)
+            except noObject:
+                pass
+        lo.add = lo.add_orig
+        lo.unbind()
+
+
+@pytest.fixture()
+def lo():
+    with __lo() as lo:
+        yield lo
+
+
+@pytest.fixture(scope="module")
+def lo_module():
+    with __lo() as lo:
+        yield lo
 
 
 @pytest.fixture()
