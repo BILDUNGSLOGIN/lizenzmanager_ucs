@@ -143,11 +143,10 @@ def test_remove_assignment_from_users(assignment_handler, license_handler, licen
         n = random.randint(0, 10)
         usernames = [schoolenv.create_student(ou)[0] for _ in range(n)]
         usernames.append(schoolenv.create_teacher(ou)[0])
-        result = assignment_handler.assign_users_to_licenses(
+        assignment_handler.assign_users_to_licenses(
             usernames=usernames, license_codes=[license.license_code]
         )
         assignments = license_handler.get_assignments_for_license(license)
-        assert result["countUsers"] == len(usernames)
         for username in usernames:
             license_was_assigned_correct_to_user(assignments, username)
         num_removed = assignment_handler.remove_assignment_from_users(
@@ -167,10 +166,9 @@ def test_assign_users_to_licenses(assignment_handler, license_handler, license):
         license.license_school = ou
         license_handler.create(license)
         usernames = [schoolenv.create_student(ou)[0] for _ in range(int(license.license_quantity))]
-        result = assignment_handler.assign_users_to_licenses(
+        assignment_handler.assign_users_to_licenses(
             usernames=usernames, license_codes=[license.license_code]
         )
-        assert result["countUsers"] == len(usernames)
         assignments = license_handler.get_assignments_for_license(license)
         for username in usernames:
             license_was_assigned_correct_to_user(assignments, username)
