@@ -83,7 +83,7 @@ def test_check_is_ignored(ignored):
     if ignored != "0":
         with pytest.raises(BiloAssignmentError) as excinfo:
             AssignmentHandler.check_is_ignored(ignored)
-        assert "License is 'ignored for display' is set to" in str(excinfo.value)
+        assert "License is 'ignored for display' and thus can't be assigned!" in str(excinfo.value)
     else:
         AssignmentHandler.check_is_ignored(ignored)
 
@@ -113,7 +113,7 @@ def test_assign_user_to_ignored_license_fails(assignment_handler, license_handle
         username = schoolenv.create_student(ou)[0]
         with pytest.raises(BiloAssignmentError) as excinfo:
             assignment_handler.assign_to_license(username=username, license_code=license.license_code)
-        assert "License is 'ignored for display' is set to" in str(excinfo.value)
+        assert "License is 'ignored for display' and thus can't be assigned!" in str(excinfo.value)
 
 
 @pytest.mark.parametrize(

@@ -30,7 +30,7 @@ msgid ""
 "License with code {lc!r} already has {num} assignments. It can't be the set "
 "to ignored!"
 msgstr ""
-"Lizenz mit Code {lc!r} hat bereits {num} Zuweisungen. Es kann nicht mehr auf "
+"Lizenz mit Code {lc!r} hat bereits {num} Zuweisungen. Sie kann nicht mehr auf "
 "ignorieren gesetzt werden!"
 
 #: src/univention/bildungslogin/handlers.py:145
@@ -74,34 +74,42 @@ msgid ""
 "Error creating assignment for {license_code!r}!\n"
 "{exc!s}"
 msgstr ""
+"Fehler beim Zuweisen für die Lizenz {license_code!r}!\n"
+"{exc!s}"
 
 #: src/univention/bildungslogin/handlers.py:519
 msgid ""
 "License with special type 'Lehrer' can't be assigned to user {username!r} "
 "with roles {roles!r}!"
 msgstr ""
+"Die Lizenz mit dem Sondertyp 'Lehrer' kann dem User {username!r} "
+"mit den Rollen {roles!r} nicht zugewiesen werden!"
 
 #: src/univention/bildungslogin/handlers.py:530
 #, python-brace-format
 msgid ""
-"License is 'ignored for display' is set to {ignored} and thus can't be "
-"assigned!"
+"License is 'ignored for display' and thus can't be assigned!"
 msgstr ""
+"Die Lizenz ist auf 'In Ansicht ignorieren' gesetzt und kann daher nicht "
+"zugewiesen werden!"
 
 #: src/univention/bildungslogin/handlers.py:537
 msgid "License is expired and thus can't be assigned!"
-msgstr ""
+msgstr "Die Lizenz ist abgelaufen und kann nicht mehr zugewiesen werden!"
 
 #: src/univention/bildungslogin/handlers.py:569
 msgid ""
 "License with code {license_code!r} has already been assigned to {username!r}!"
 msgstr ""
+"Die Lizenz mit dem Lizenzcode {license_code!r} ist bereits dem User {username!r} zugewiesen!"
 
 #: src/univention/bildungslogin/handlers.py:630
 msgid ""
 "There are less available licenses than the number of users. No licenses have "
 "been assigned."
 msgstr ""
+"Es sind nicht genügend Lizenzen für die Zuweisung verfügbar. Keine Lizenzen "
+"wurden zugewiesen."
 
 #: src/univention/bildungslogin/handlers.py:664
 msgid "License validity start is in the future."
@@ -109,15 +117,17 @@ msgstr "Gültigkeitsbeginn liegt in der Zukunft."
 
 #: src/univention/bildungslogin/handlers.py:680
 msgid "No assignment for license with {dn!r} was found for user {username!r}."
-msgstr ""
+msgstr "Keine Zuweisung für die Lizenz {dn!r} wurde für den User {username!r} gefunden."
 
 #: src/univention/bildungslogin/handlers.py:700
 msgid "Illegal status change to {status!r}!"
-msgstr ""
+msgstr "Ungültiger Statusübergang zu {status!r}!"
 
 #: src/univention/bildungslogin/handlers.py:732
 #, python-brace-format
 msgid ""
-"Assignment status change is not valid!\n"
+"Invalid assignment status change!\n"
 "{exc}"
 msgstr ""
+"Ungültige Änderung des Zuweisungsstatus!\n"
+"{exc}"

@@ -549,11 +549,7 @@ class AssignmentHandler:
     def check_is_ignored(ignored):  # type: (str) -> None
         # todo make me more robust -> udm
         if ignored != "0":
-            raise BiloAssignmentError(
-                _(
-                    "License is 'ignored for display' is set to {ignored} and thus can't be assigned!"
-                ).format(ignored=ignored)
-            )
+            raise BiloAssignmentError(_("License is 'ignored for display' and thus can't be assigned!"))
 
     @staticmethod
     def check_is_expired(expired):  # type: (str) -> None
@@ -756,7 +752,7 @@ class AssignmentHandler:
                 status,
             )
         except ModifyError as exc:
-            raise BiloAssignmentError(_("Assignment status change is not valid!\n{exc}").format(exc=exc))
+            raise BiloAssignmentError(_("Invalid assignment status change!\n{exc}").format(exc=exc))
         return True
 
     def remove_assignment_from_users(self, license_code, usernames):  # type: (str, List[str]) -> int

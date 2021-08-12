@@ -8,6 +8,3 @@
 0020-W503: tests/*.py
 0020-W503: ucs-test/97_vbm_python/*.py
 0020-W503: src/univention/bildungslogin/*.py
-
-# TODO: translate all msgstr:
-0008-3: src/univention/bildungslogin/de.po
