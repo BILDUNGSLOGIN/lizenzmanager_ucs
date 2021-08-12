@@ -30,7 +30,7 @@
 
 from typing import Optional
 
-from utils import LicenseType, Status, my_string_to_int
+from .utils import LicenseType, Status, my_string_to_int
 
 
 class Assignment(object):

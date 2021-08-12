@@ -9,16 +9,36 @@ from typing import Dict, Tuple
 import pytest
 
 import univention.bildungslogin.handlers
-from univention.lib.i18n import Translation
-from univention.udm.base import BaseObject, BaseObjectProperties
+
+try:
+    from univention.lib.i18n import Translation
+
+    _l10n = Translation("vbm-bildungslogin").translate
+except ImportError:
+    _l10n = lambda x: x  # noqa: E731
 
 if sys.version_info[0] >= 3:
     from unittest.mock import MagicMock, call, patch
 else:
     from mock import MagicMock, call, patch
 
+try:
+    from univention.udm.base import BaseObject, BaseObjectProperties
+except ImportError:
 
-_l10n = Translation("vbm-bildungslogin").translate
+    class BaseObject(object):
+        def __init__(self):
+            self.dn = ""
+            self.props = None
+            self.options = []
+            self.policies = []
+            self.position = ""
+            self.superordinate = None
+            self._udm_module = None
+
+    class BaseObjectProperties(object):
+        def __init__(self, udm_obj):
+            self._udm_obj = udm_obj
 
 
 @pytest.fixture
