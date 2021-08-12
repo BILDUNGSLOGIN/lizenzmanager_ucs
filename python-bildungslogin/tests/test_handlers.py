@@ -9,7 +9,6 @@ from typing import Dict, Tuple
 import pytest
 
 import univention.bildungslogin.handlers
-import univention.testing.strings as uts
 from univention.udm.base import BaseObject, BaseObjectProperties
 
 if sys.version_info[0] >= 3:
@@ -77,7 +76,7 @@ def fake_udm_license_object(unsaved_udm_object):
 
 
 @pytest.fixture
-def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object):
+def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object, random_username):
     def _func(
         assignment_total, assignment_available
     ):  # type: (int, int) -> Tuple[BaseObject, Dict[str, BaseObject]]
@@ -88,7 +87,7 @@ def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object
         for _ in range(assignment_total - assignment_available):
             ass_obj = fake_udm_assignment_object(license.dn)
             ass_obj.props.status = "ASSIGNED"
-            ass_obj.props.assignee = uts.random_username()
+            ass_obj.props.assignee = random_username()
             license.props.assignments.append(ass_obj.dn)
             assignments[ass_obj.dn] = ass_obj
         for _ in range(assignment_available):
@@ -104,7 +103,7 @@ def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
 def test_assign_users_to_licenses_enough_licenses(
-    assign_to_license_mock, get_license_by_license_code_mock, license_with_assignments
+    assign_to_license_mock, get_license_by_license_code_mock, license_with_assignments, random_username
 ):
     # 3 available license assignments, validity_start_date in the future (->warning):
     assignment_available1 = 3
@@ -146,7 +145,7 @@ def test_assign_users_to_licenses_enough_licenses(
         assignment_available1 + assignment_available2 + assignment_available4 + 2,
         total_available - 2,
     )
-    usernames = [uts.random_username() for _ in range(num_users)]
+    usernames = [random_username() for _ in range(num_users)]
 
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
     result = ah.assign_users_to_licenses(
@@ -173,7 +172,7 @@ def test_assign_users_to_licenses_enough_licenses(
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
 def test_assign_users_to_licenses_not_enough_licenses(
-    assign_to_license_mock, get_license_by_license_code_mock, license_with_assignments
+    assign_to_license_mock, get_license_by_license_code_mock, license_with_assignments, random_username
 ):
     assignment_available1 = random.randint(2, 10)
     assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)
@@ -184,7 +183,7 @@ def test_assign_users_to_licenses_not_enough_licenses(
     get_license_by_license_code_mock.side_effect = lambda x: license1
 
     num_users = assignment_available1 + 1
-    usernames = [uts.random_username() for _ in range(num_users)]
+    usernames = [random_username() for _ in range(num_users)]
 
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
     result = ah.assign_users_to_licenses([license1.props.code], usernames)
