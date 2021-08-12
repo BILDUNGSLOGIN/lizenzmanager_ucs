@@ -1,3 +1,9 @@
+udm-bildungslogin (0.0.4) unstable; urgency=medium
+
+  * Issue #18: adjust matching rules in ldap schema
+
+ -- Johannes Keiser <keiser@univention.de>  Thu, 12 Aug 2021 12:09:59 +0200
+
 udm-bildungslogin (0.0.3) unstable; urgency=medium
 
   * Add ACLs for licenses and metadata
