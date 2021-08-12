@@ -16,14 +16,14 @@ attributetype ( vbmBildungslogin:101
         NAME 'vbmLicenseCode'
         DESC 'The code of the license as provided by the publisher'
         EQUALITY caseExactMatch
-        SUBSTR caseIgnoreSubstringsMatch
+        SUBSTR caseExactSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:102
         NAME 'vbmProductId'
         DESC 'The product id of the product the license entitles to use'
         EQUALITY caseExactMatch
-        SUBSTR caseIgnoreSubstringsMatch
+        SUBSTR caseExactSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:103
@@ -47,7 +47,8 @@ attributetype ( vbmBildungslogin:105
 attributetype ( vbmBildungslogin:106
         NAME 'vbmUtilizationSystems'
         DESC 'Systems the licensed product is supposed to be used on/with'
-        EQUALITY caseExactMatch
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:107
@@ -67,7 +68,8 @@ attributetype ( vbmBildungslogin:108
 attributetype ( vbmBildungslogin:109
         NAME 'vbmValidityDuration'
         DESC 'A string describing the duration during which the activated license is valid'
-        EQUALITY caseExactMatch
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:110
@@ -100,27 +102,28 @@ attributetype ( vbmBildungslogin:113
 attributetype ( vbmBildungslogin:201
         NAME 'vbmMetaDataTitle'
         DESC 'The title of the product'
-        EQUALITY caseExactMatch
+        EQUALITY caseIgnoreMatch
         SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:202
         NAME 'vbmMetaDataDescription'
         DESC 'The description of the product'
-        EQUALITY caseExactMatch
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:203
         NAME 'vbmMetaDataAuthor'
         DESC 'The author of the product'
-        EQUALITY caseExactMatch
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:204
         NAME 'vbmMetaDataPublisher'
         DESC 'The publisher of the product'
         EQUALITY caseExactMatch
-        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:205
@@ -139,6 +142,7 @@ attributetype ( vbmBildungslogin:207
         NAME 'vbmMetaDataModified'
         DESC 'The last time this object was modified'
         EQUALITY caseIgnoreMatch
+        ORDERING caseIgnoreOrderingMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 # Assignment attributes, OIDs from 300
@@ -146,13 +150,14 @@ attributetype ( vbmBildungslogin:207
 attributetype ( vbmBildungslogin:301
         NAME 'vbmAssignmentAssignee'
         DESC 'username of the user a license was assigned to'
-        EQUALITY caseIgnoreMatch
+        EQUALITY caseExactMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:302
         NAME 'vbmAssignmentTimeOfAssignment'
         DESC 'The time this assignment was created'
         EQUALITY caseIgnoreMatch
+        ORDERING caseIgnoreOrderingMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:303
