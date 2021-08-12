@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.0-4) unstable; urgency=medium
+
+  * Issue 23: translations
+
+ -- Johannes Keiser <keiser@univention.de>  Thu, 12 Aug 2021 13:12:53 +0200
+
 ucs-school-umc-licenses (0.1.0-3) unstable; urgency=medium
 
   * Issue #23: add modules for products

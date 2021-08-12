@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2021-08-08 21:38+0200\n"
+"POT-Creation-Date: 2021-08-09 20:00+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -12,8 +12,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: umc/js/licenses/LicenseSearchPage.js:114
-#: umc/js/licenses/LicenseSearchPage.js:240
+#: umc/js/licenses/SearchPage.js:113 umc/js/licenses/SearchPage.js:228
+#: umc/js/licenses/LicenseSearchPage.js:110
+#: umc/js/licenses/LicenseSearchPage.js:236
 msgid "Advanced search"
 msgstr "Erweiterte Suche"
 
@@ -21,11 +22,11 @@ msgstr "Erweiterte Suche"
 msgid "All classes"
 msgstr "Alle Klassen"
 
-#: umc/js/licenses/LicenseSearchPage.js:198
+#: umc/js/licenses/SearchPage.js:186 umc/js/licenses/LicenseSearchPage.js:194
 msgid "All license types"
 msgstr "Alle Lizenztypen"
 
-#: umc/js/licenses/LicenseSearchPage.js:190
+#: umc/js/licenses/SearchPage.js:178 umc/js/licenses/LicenseSearchPage.js:186
 msgid "All publishers"
 msgstr "Alle Verlage"
 
@@ -33,10 +34,10 @@ msgstr "Alle Verlage"
 msgid "All workgroups"
 msgstr "Alle Arbeitsgruppen"
 
-#: umc/js/licenses/ProductDetailPage.js:175
-#: umc/js/licenses/LicenseDetailPage.js:101
-#: umc/js/licenses/ProductSearchPage.js:162
-#: umc/js/licenses/LicenseSearchPage.js:293
+#: umc/js/licenses/DetailPage.js:99 umc/js/licenses/ProductDetailPage.js:186
+#: umc/js/licenses/LicenseDetailPage.js:98 umc/js/licenses/SearchPage.js:281
+#: umc/js/licenses/ProductSearchPage.js:135
+#: umc/js/licenses/LicenseSearchPage.js:289
 msgid "Aquired"
 msgstr "Erworben"
 
@@ -44,38 +45,38 @@ msgstr "Erworben"
 msgid "Assign licenses"
 msgstr "Lizenzen zuweisen"
 
-#: umc/js/licenses/LicenseSearchPage.js:122
+#: umc/js/licenses/LicenseSearchPage.js:118
 #, javascript-format
 msgid "Assign licenses to %s selected users"
 msgstr ""
 
-#: umc/js/licenses/ProductDetailPage.js:179
-#: umc/js/licenses/LicenseDetailPage.js:102
-#: umc/js/licenses/ProductSearchPage.js:166
-#: umc/js/licenses/LicenseSearchPage.js:297
+#: umc/js/licenses/DetailPage.js:100 umc/js/licenses/ProductDetailPage.js:190
+#: umc/js/licenses/LicenseDetailPage.js:99 umc/js/licenses/SearchPage.js:285
+#: umc/js/licenses/ProductSearchPage.js:139
+#: umc/js/licenses/LicenseSearchPage.js:293
 msgid "Assigned"
 msgstr "Zugewiesen"
 
-#: umc/js/licenses/ProductDetailPage.js:89
-#: umc/js/licenses/LicenseDetailPage.js:98
+#: umc/js/licenses/DetailPage.js:96 umc/js/licenses/ProductDetailPage.js:87
+#: umc/js/licenses/LicenseDetailPage.js:95
 msgid "Author"
 msgstr "Autor"
 
-#: umc/js/licenses/ProductDetailPage.js:187
-#: umc/js/licenses/LicenseDetailPage.js:104
-#: umc/js/licenses/ProductSearchPage.js:174
-#: umc/js/licenses/LicenseSearchPage.js:305
+#: umc/js/licenses/DetailPage.js:102 umc/js/licenses/ProductDetailPage.js:198
+#: umc/js/licenses/LicenseDetailPage.js:101 umc/js/licenses/SearchPage.js:293
+#: umc/js/licenses/ProductSearchPage.js:147
+#: umc/js/licenses/LicenseSearchPage.js:301
 msgid "Available"
 msgstr "Verfügbar"
 
-#: umc/js/licenses/ProductDetailPage.js:141
-#: umc/js/licenses/LicenseDetailPage.js:206
-#: umc/js/licenses/LicenseSearchPage.js:152
+#: umc/js/licenses/DetailPage.js:204 umc/js/licenses/ProductDetailPage.js:142
+#: umc/js/licenses/LicenseDetailPage.js:203 umc/js/licenses/SearchPage.js:145
+#: umc/js/licenses/LicenseSearchPage.js:148
 msgid "Back"
 msgstr "Zurück"
 
-#: umc/js/licenses/ProductSearchPage.js:87
-#: umc/js/licenses/LicenseSearchPage.js:145
+#: umc/js/licenses/SearchPage.js:138 umc/js/licenses/ProductSearchPage.js:85
+#: umc/js/licenses/LicenseSearchPage.js:141
 #: umc/js/licenses/UserSelectionPage.js:72
 msgid "Change school"
 msgstr "Schule wechseln"
@@ -85,41 +86,41 @@ msgstr "Schule wechseln"
 msgid "Class"
 msgstr "Klasse"
 
-#: umc/js/licenses/LicenseDetailPage.js:182
+#: umc/js/licenses/DetailPage.js:180 umc/js/licenses/LicenseDetailPage.js:179
 msgid "Continue editing"
 msgstr "Weiter bearbeiten"
 
-#: umc/js/licenses/ProductSearchPage.js:147
+#: umc/js/licenses/ProductSearchPage.js:179
 msgid "Cover not found"
-msgstr ""
+msgstr "Buchdeckel nicht gefunden"
 
-#: umc/js/licenses/LicenseDetailPage.js:239
+#: umc/js/licenses/DetailPage.js:237 umc/js/licenses/LicenseDetailPage.js:236
 msgid "Date of assignment"
 msgstr "Zuweisungsdatum"
 
-#: umc/js/licenses/ProductDetailPage.js:191
-#: umc/js/licenses/LicenseDetailPage.js:96
-#: umc/js/licenses/LicenseSearchPage.js:309
+#: umc/js/licenses/DetailPage.js:94 umc/js/licenses/ProductDetailPage.js:202
+#: umc/js/licenses/LicenseDetailPage.js:93 umc/js/licenses/SearchPage.js:297
+#: umc/js/licenses/LicenseSearchPage.js:305
 msgid "Delivery"
 msgstr "Lieferung"
 
-#: umc/js/licenses/LicenseDetailPage.js:184
+#: umc/js/licenses/DetailPage.js:182 umc/js/licenses/LicenseDetailPage.js:181
 msgid "Discard changes"
 msgstr "Änderungen verwerfen"
 
-#: umc/js/licenses/ProductSearchPage.js:117
-#: umc/js/licenses/LicenseSearchPage.js:267
+#: umc/js/licenses/SearchPage.js:255 umc/js/licenses/ProductSearchPage.js:115
+#: umc/js/licenses/LicenseSearchPage.js:263
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: umc/js/licenses/LicenseSearchPage.js:176
+#: umc/js/licenses/SearchPage.js:164 umc/js/licenses/LicenseSearchPage.js:172
 msgid "End import period"
 msgstr "Ende Zeitraum Import"
 
-#: umc/js/licenses/ProductDetailPage.js:183
-#: umc/js/licenses/LicenseDetailPage.js:103
-#: umc/js/licenses/ProductSearchPage.js:170
-#: umc/js/licenses/LicenseSearchPage.js:301
+#: umc/js/licenses/DetailPage.js:101 umc/js/licenses/ProductDetailPage.js:194
+#: umc/js/licenses/LicenseDetailPage.js:100 umc/js/licenses/SearchPage.js:289
+#: umc/js/licenses/ProductSearchPage.js:143
+#: umc/js/licenses/LicenseSearchPage.js:297
 msgid "Expired"
 msgstr "Verfallen"
 
@@ -127,24 +128,12 @@ msgstr "Verfallen"
 msgid "First name"
 msgstr "Vorname"
 
-#: umc/js/licenses/ProductDetailPage.js:163
-msgid "Gültigkeitsbeginn"
-msgstr ""
-
-#: umc/js/licenses/ProductDetailPage.js:169
-msgid "Gültigkeitsdauer"
-msgstr ""
-
-#: umc/js/licenses/ProductDetailPage.js:166
-msgid "Gültigkeitsende"
-msgstr ""
-
-#: umc/js/licenses/ProductDetailPage.js:172
-#: umc/js/licenses/LicenseDetailPage.js:100
+#: umc/js/licenses/DetailPage.js:98 umc/js/licenses/ProductDetailPage.js:182
+#: umc/js/licenses/LicenseDetailPage.js:97
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: umc/js/licenses/ProductSearchPage.js:178
+#: umc/js/licenses/ProductSearchPage.js:151
 msgid "Last delivery"
 msgstr " Letzte Lieferung"
 
@@ -152,83 +141,91 @@ msgstr " Letzte Lieferung"
 msgid "Last name"
 msgstr "Nachname"
 
-#: umc/js/licenses/ProductDetailPage.js:157
-#: umc/js/licenses/LicenseDetailPage.js:100
-#: umc/js/licenses/LicenseSearchPage.js:224
-#: umc/js/licenses/LicenseSearchPage.js:278
+#: umc/js/licenses/DetailPage.js:98 umc/js/licenses/ProductDetailPage.js:166
+#: umc/js/licenses/LicenseDetailPage.js:97 umc/js/licenses/SearchPage.js:212
+#: umc/js/licenses/SearchPage.js:266 umc/js/licenses/LicenseSearchPage.js:220
+#: umc/js/licenses/LicenseSearchPage.js:274
 msgid "License code"
 msgstr "Lizenz Code"
 
-#: umc/js/licenses/ProductDetailPage.js:160
-#: umc/js/licenses/LicenseDetailPage.js:101
-#: umc/js/licenses/LicenseSearchPage.js:197
-#: umc/js/licenses/LicenseSearchPage.js:290
+#: umc/js/licenses/DetailPage.js:99 umc/js/licenses/ProductDetailPage.js:169
+#: umc/js/licenses/LicenseDetailPage.js:98 umc/js/licenses/SearchPage.js:185
+#: umc/js/licenses/SearchPage.js:278 umc/js/licenses/LicenseSearchPage.js:193
+#: umc/js/licenses/LicenseSearchPage.js:286
 msgid "License type"
 msgstr "Lizenztyp"
 
-#: umc/js/licenses/ChooseSchoolPage.js:81
+#: umc/js/licenses/ChooseSchoolPage.js:88
 msgid "Next"
 msgstr "Weiter"
 
-#: umc/js/licenses/LicenseSearchPage.js:182
+#: umc/js/licenses/Cover.js:41
+msgid "No cover available"
+msgstr "Kein Bild verfügbar"
+
+#: umc/js/licenses/SearchPage.js:170 umc/js/licenses/LicenseSearchPage.js:178
 msgid "Only assignable licenses"
 msgstr "Nur freie Lizenzen"
 
-#: umc/js/licenses/ProductDetailPage.js:86
-#: umc/js/licenses/LicenseDetailPage.js:99
+#: umc/js/licenses/ProductDetailPage.js:154
+msgid "Open license"
+msgstr "Lizenz öffnen"
+
+#: umc/js/licenses/DetailPage.js:97 umc/js/licenses/ProductDetailPage.js:84
+#: umc/js/licenses/LicenseDetailPage.js:96
 msgid "Platform"
 msgstr "Plattform"
 
-#: umc/js/licenses/ChooseSchoolPage.js:70
+#: umc/js/licenses/ChooseSchoolPage.js:78
 msgid "Please select a school"
 msgstr "Bitte eine Schule auswählen"
 
-#: umc/js/licenses/ProductSearchPage.js:131
-#: umc/js/licenses/LicenseSearchPage.js:284
+#: umc/js/licenses/SearchPage.js:272 umc/js/licenses/ProductSearchPage.js:129
+#: umc/js/licenses/LicenseSearchPage.js:280
 msgid "Product"
 msgstr "Produkt"
 
-#: umc/js/licenses/ProductDetailPage.js:87
-#: umc/js/licenses/LicenseDetailPage.js:96
-#: umc/js/licenses/ProductSearchPage.js:128
-#: umc/js/licenses/LicenseSearchPage.js:212
-#: umc/js/licenses/LicenseSearchPage.js:281
+#: umc/js/licenses/DetailPage.js:94 umc/js/licenses/ProductDetailPage.js:85
+#: umc/js/licenses/LicenseDetailPage.js:93 umc/js/licenses/SearchPage.js:200
+#: umc/js/licenses/SearchPage.js:269 umc/js/licenses/ProductSearchPage.js:126
+#: umc/js/licenses/LicenseSearchPage.js:208
+#: umc/js/licenses/LicenseSearchPage.js:277
 msgid "Product ID"
 msgstr "Produkt ID"
 
-#: umc/js/licenses/LicenseSearchPage.js:218
+#: umc/js/licenses/SearchPage.js:206 umc/js/licenses/LicenseSearchPage.js:214
 msgid "Product name"
 msgstr "Produktname"
 
-#: umc/js/licenses/ProductDetailPage.js:86
-#: umc/js/licenses/LicenseDetailPage.js:95
-#: umc/js/licenses/ProductSearchPage.js:159
-#: umc/js/licenses/LicenseSearchPage.js:189
-#: umc/js/licenses/LicenseSearchPage.js:287
+#: umc/js/licenses/DetailPage.js:93 umc/js/licenses/ProductDetailPage.js:84
+#: umc/js/licenses/LicenseDetailPage.js:92 umc/js/licenses/SearchPage.js:177
+#: umc/js/licenses/SearchPage.js:275 umc/js/licenses/ProductSearchPage.js:132
+#: umc/js/licenses/LicenseSearchPage.js:185
+#: umc/js/licenses/LicenseSearchPage.js:283
 msgid "Publisher"
 msgstr "Verlag"
 
-#: umc/js/licenses/LicenseDetailPage.js:102
+#: umc/js/licenses/DetailPage.js:100 umc/js/licenses/LicenseDetailPage.js:99
 msgid "Reference"
 msgstr "Referenz"
 
-#: umc/js/licenses/LicenseDetailPage.js:218
+#: umc/js/licenses/DetailPage.js:216 umc/js/licenses/LicenseDetailPage.js:215
 msgid "Remove license"
 msgstr "Lizenzen zuweisen"
 
-#: umc/js/licenses/LicenseDetailPage.js:202
+#: umc/js/licenses/DetailPage.js:200 umc/js/licenses/LicenseDetailPage.js:199
 msgid "Save"
 msgstr "Speichern"
 
-#: umc/js/licenses/ChooseSchoolPage.js:74
+#: umc/js/licenses/ChooseSchoolPage.js:82
 msgid "School"
 msgstr "Schule"
 
-#: umc/js/licenses/ProductSearchPage.js:100
+#: umc/js/licenses/ProductSearchPage.js:98
 msgid "Search licensed products"
 msgstr "Lizenzierte Produkte suchen"
 
-#: umc/js/licenses/LicenseSearchPage.js:231
+#: umc/js/licenses/SearchPage.js:219 umc/js/licenses/LicenseSearchPage.js:227
 msgid "Search licenses"
 msgstr "Lizenzen suchen"
 
@@ -236,41 +233,41 @@ msgstr "Lizenzen suchen"
 msgid "Search user"
 msgstr "Nutzer suchen"
 
-#: umc/js/licenses/LicenseSearchPage.js:111
+#: umc/js/licenses/SearchPage.js:110 umc/js/licenses/LicenseSearchPage.js:107
 msgid "Simple search"
 msgstr "Einfache Suche"
 
-#: umc/js/licenses/LicenseDetailPage.js:103
+#: umc/js/licenses/DetailPage.js:101 umc/js/licenses/LicenseDetailPage.js:100
 msgid "Special license"
 msgstr "Sonderlizenz"
 
-#: umc/js/licenses/LicenseSearchPage.js:171
+#: umc/js/licenses/SearchPage.js:159 umc/js/licenses/LicenseSearchPage.js:167
 msgid "Start import period"
 msgstr "Beginn Zeitraum Import"
 
-#: umc/js/licenses/LicenseDetailPage.js:236
+#: umc/js/licenses/DetailPage.js:234 umc/js/licenses/LicenseDetailPage.js:233
 msgid "Status"
 msgstr "Status"
 
-#: umc/js/licenses/LicenseDetailPage.js:181
+#: umc/js/licenses/DetailPage.js:179 umc/js/licenses/LicenseDetailPage.js:178
 msgid "There are unsaved changes. Are you sure to cancel?"
 msgstr "Einige Änderungen sind noch nicht gespeichert. Möchten Sie abbrechen?"
 
-#: umc/js/licenses/ProductDetailPage.js:88
-#: umc/js/licenses/LicenseDetailPage.js:97
+#: umc/js/licenses/DetailPage.js:95 umc/js/licenses/ProductDetailPage.js:86
+#: umc/js/licenses/LicenseDetailPage.js:94
 msgid "Title"
 msgstr "Titel"
 
-#: umc/js/licenses/LicenseDetailPage.js:95
+#: umc/js/licenses/DetailPage.js:93 umc/js/licenses/LicenseDetailPage.js:92
 msgid "Usage"
 msgstr "Gebrauch"
 
-#: umc/js/licenses/LicenseDetailPage.js:233
+#: umc/js/licenses/DetailPage.js:231 umc/js/licenses/LicenseDetailPage.js:230
 #: umc/js/licenses/UserSelectionPage.js:104
 msgid "User"
 msgstr "Nutzer"
 
-#: umc/js/licenses/LicenseSearchPage.js:205
+#: umc/js/licenses/SearchPage.js:193 umc/js/licenses/LicenseSearchPage.js:201
 msgid "User identification"
 msgstr "Benutzererkennung"
 
@@ -278,26 +275,23 @@ msgstr "Benutzererkennung"
 msgid "Username"
 msgstr "Benutzername"
 
-#: umc/js/licenses/LicenseDetailPage.js:98
+#: umc/js/licenses/DetailPage.js:96 umc/js/licenses/LicenseDetailPage.js:95
 msgid "Validity end"
 msgstr "Gültigkeitsende"
 
-#: umc/js/licenses/LicenseDetailPage.js:99
+#: umc/js/licenses/DetailPage.js:97 umc/js/licenses/LicenseDetailPage.js:96
 msgid "Validity span"
 msgstr "Gültigkeitsdauer"
 
-#: umc/js/licenses/LicenseDetailPage.js:97
+#: umc/js/licenses/DetailPage.js:95 umc/js/licenses/LicenseDetailPage.js:94
 msgid "Validity start"
-msgstr "Gültigkeitsstart"
+msgstr "Gültigkeitsbeginn"
 
 #: umc/js/licenses/UserSelectionPage.js:99
 #: umc/js/licenses/UserSelectionPage.js:148
 msgid "Workgroup"
 msgstr "Arbeitsgruppe"
 
-#: umc/js/licenses.js:206
+#: umc/js/licenses.js:275
 msgid "for %(school)s"
 msgstr "für %(school)s"
-
-#~ msgid "No cover available"
-#~ msgstr "Kein Bild verfügbar"

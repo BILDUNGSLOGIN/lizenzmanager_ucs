@@ -169,13 +169,13 @@ define([
 				label: _('License type'),
 			}, {
 				name: 'validityStart',
-				label: _('Gültigkeitsbeginn'),
+				label: _('Validity start'),
 			}, {
 				name: 'validityEnd',
-				label: _('Gültigkeitsende'),
+				label: _('Validity end'),
 			}, {
 				name: 'validitySpan',
-				label: _('Gültigkeitsdauer'),
+				label: _('Validity span'),
 				width: '100px',
 			}, {
 				name: 'ignore',
