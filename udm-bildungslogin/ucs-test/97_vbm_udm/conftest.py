@@ -28,13 +28,23 @@
 import pytest
 
 import univention.testing.utils as utils
+from univention.config_registry import ConfigRegistry
 from univention.udm import UDM
+
+ucr = ConfigRegistry()
+ucr.load()
 
 
 @pytest.fixture(scope="session")
 def udm():
-    lo = utils.get_ldap_connection(admin_uldap=True)
-    return UDM(lo).version(1)
+    account = utils.UCSTestDomainAdminCredentials()
+    return UDM.credentials(
+        account.binddn,
+        account.bindpw,
+        ucr["ldap/base"],
+        ucr["ldap/master"],
+        ucr["ldap/master/port"],
+    ).version(1)
 
 
 @pytest.fixture()
