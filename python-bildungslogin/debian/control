@@ -9,6 +9,7 @@ Build-Depends:
  python-all,
  python-setuptools,
  python-debian,
+ python-mock,
  python-pytest,
  python-typing,
  python-ldap,

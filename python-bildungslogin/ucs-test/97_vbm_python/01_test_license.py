@@ -120,8 +120,11 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
         student_usernames = [schoolenv.create_student(ou)[0] for _ in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
         users = student_usernames + teacher_usernames
-        assignment_handler.assign_users_to_license(usernames=users, license_code=license.license_code)
+        result = assignment_handler.assign_users_to_licenses(
+            usernames=users, license_codes=[license.license_code]
+        )
         num_assigned = license_handler.get_number_of_provisioned_and_assigned_assignments(license)
+        assert num_assigned == result["countUsers"]
         assert num_assigned == num_students + num_teachers
         for user_name in users[:2]:
             assignment_handler.change_license_status(
@@ -132,8 +135,8 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
         # after provisioning the code to some users, the number should still be the same.
         num_assigned = license_handler.get_number_of_provisioned_and_assigned_assignments(license)
         assert num_assigned == num_students + num_teachers
-        # the number of available license-assignments for this license should be the total number - the number
-        # of users which just a license-assignment for this license
+        # the number of available license-assignments for this license should be the total number - the
+        # number of users which just a license-assignment for this license
         total_num = license_handler.get_total_number_of_assignments(license)
         assert license_handler.get_number_of_available_assignments(license) == total_num - len(users)
 

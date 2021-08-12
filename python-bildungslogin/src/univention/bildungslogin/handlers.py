@@ -28,8 +28,9 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 
+import datetime
+import itertools
 import logging
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 if TYPE_CHECKING:
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
 from ldap.filter import escape_filter_chars, filter_format
 
 from ucsschool.lib.roles import get_role_info
-from univention.admin.syntax import date
+from univention.admin.syntax import date as udm_syntax_date, iso8601Date
 from univention.udm import UDM, CreateError, ModifyError, NoObject as UdmNoObject
 
 from .exceptions import (
@@ -200,8 +201,8 @@ class LicenseHandler:
         which was assigned last."""
         filter_s = filter_format("(|(status=%s)(status=%s))", [Status.ASSIGNED, Status.PROVISIONED])
         assignments = self.get_assignments_for_license_with_filter(filter_s=filter_s, license=license)
-        max_datetime = max([date.to_datetime(a.time_of_assignment) for a in assignments])
-        return date.from_datetime(max_datetime)
+        max_datetime = max([udm_syntax_date.to_datetime(a.time_of_assignment) for a in assignments])
+        return udm_syntax_date.from_datetime(max_datetime)
 
     @staticmethod
     def get_license_types():  # type: () -> List[str]
@@ -551,42 +552,93 @@ class AssignmentHandler:
                     license_code, username
                 )
             )
-        date_of_today = datetime.now().strftime("%Y-%m-%d")
+        date_of_today = datetime.datetime.now().strftime("%Y-%m-%d")
         udm_assignment = available_licenses[0]
         udm_assignment.props.status = Status.ASSIGNED
         udm_assignment.props.assignee = user_entry_uuid
         udm_assignment.props.time_of_assignment = date_of_today
         udm_assignment.save()
-        logging.debug("Assigned license with license code {} to {}.".format(license_code, username))
+        self.logger.debug(
+            "Assigned license %r (%d left) to %r.", license_code, len(available_licenses) - 1, username
+        )
         return True
 
-    def assign_users_to_license(self, license_code, usernames):  # type: (str, List[str]) -> int
+    def assign_users_to_licenses(self, license_codes, usernames):
+        # type: (List[str], List[str]) -> Dict[str, Union[int, Dict[str, str]]]
         """
-        Assigne license to multiple users.
+        Assign a license to each user, from a list of potential licenses.
 
-        Errors during assignment will be ignored. The caller has to calculate:
-        `len(usernames) - returned_value` and handle the error if >0.
+        1. If there are less available licenses than the number of users, no licenses will be assigned.
+        2. There can be more available licenses than the number of users. The licenses will be sorted by
+        validity end date. Licenses that end sooner will be used first.
 
-        :param str license_code: license code
-        :param list(str) usernames: user names of users to assigne license to
-        :return: number of assigned licenses
-        :rtype: int
+        The result will be a dict with the number of users that licenses were assigned to, warning and
+        error messages:
+
+        {
+            "countUsers": int,  # number of users that licenses were assigned to
+            "errors": {
+                "license_code": "message",
+                ...
+            },
+            "warnings": {
+                "license_code": "message",
+            },
+        }
+
+        :param list(str) license_codes: license codes to assign to users
+        :param list(str) usernames: uids of users to assign licenses to
+        :return: dict with the number of users that licenses were assigned to, warnings and errors
+        :rtype: dict
+        :raises BiloAssignmentError: If the assignment process failed somewhere down the code path.
+            Insufficient available licenses will not raise an exception, only add an error message in
+            the result dict.
         """
-        num_assigned_correct = 0
-        for username in usernames:
-            try:
-                assigned_correct = self.assign_to_license(license_code, username)
-                if assigned_correct:
-                    num_assigned_correct += 1
-            except BiloAssignmentError:
-                # Error handling should be done in the umc - layer
-                pass
-        self.logger.info(
-            "Assigned {}/{} users to license with code {}.".format(
-                num_assigned_correct, len(usernames), license_code
+        licenses = [self.get_license_by_license_code(lc) for lc in license_codes]
+
+        num_available_liceses = sum(my_string_to_int(lic.props.num_available) for lic in licenses)
+        if num_available_liceses < len(usernames):
+            return {
+                "countUsers": 0,
+                "errors": {
+                    "*": "There are less available licenses than the number of users. No licenses have "
+                    "been assigned."
+                },
+                "warnings": {},
+            }
+
+        # sort licenses by validity_end_data
+        licenses.sort(key=lambda x: x.props.validity_end_date)
+        # move licenses without validity_end_data to end of list
+        licenses.sort(key=lambda x: bool(x.props.validity_end_date), reverse=True)
+
+        # assign licenses
+
+        # build list of licenses to use: [code1, code1, code1, code2, code2, ...] as an iterator (list
+        # could be very long)!
+        license_codes_to_use = itertools.chain.from_iterable(
+            (
+                (license.props.code, license.props.validity_start_date)
+                for _ in range(my_string_to_int(license.props.num_available))
             )
+            for license in licenses
         )
-        return num_assigned_correct
+        result = {
+            "countUsers": 0,
+            "errors": {},
+            "warnings": {},
+        }
+        for username in usernames:
+            code, validity_start_date = license_codes_to_use.next()
+            try:
+                self.assign_to_license(code, username)
+                result["countUsers"] += 1
+                if iso8601Date.to_datetime(validity_start_date) > datetime.date.today():
+                    result["warnings"][code] = "Gültigkeitsbeginn liegt in der Zukunft."
+            except BiloAssignmentError as exc:
+                result["errors"][code] = str(exc)
+        self.logger.info("Assigned licenses to %r/%r users.", result["countUsers"], len(usernames))
+        return result
 
     def get_assignment_for_user_under_license(self, license_dn, assignee):
         # type: (str, str)  -> UdmObject
@@ -652,6 +704,7 @@ class AssignmentHandler:
         return True
 
     def remove_assignment_from_users(self, license_code, usernames):  # type: (str, List[str]) -> int
+        # TODO: result wie oben, mit user-dn statt lic-code
         num_removed_correct = 0
         for username in usernames:
             try:
