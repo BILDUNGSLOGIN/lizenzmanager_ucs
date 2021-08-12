@@ -27,12 +27,14 @@
 # <https://www.gnu.org/licenses/>.
 import pytest
 
+import univention.testing.utils as utils
 from univention.udm import UDM
 
 
 @pytest.fixture(scope="session")
 def udm():
-    return UDM.admin().version(1)
+    lo = utils.get_ldap_connection(admin_uldap=True)
+    return UDM(lo).version(1)
 
 
 @pytest.fixture()
