@@ -58,6 +58,10 @@ define([
 			// event stub
 		},
 
+		onUsersSelected: function(userIds) {
+
+		},
+
 
 		//// lifecycle
 		postMixInProperties: function() {
@@ -97,7 +101,7 @@ define([
 			}, {
 				type: SearchBox,
 				name: 'pattern',
-				label: '&nbsp',
+				label: _('User'),
 				inlineLabel: _('Search user'),
 				size: 'TwoThirds',
 				onSearch: lang.hitch(this, function() {
@@ -123,9 +127,8 @@ define([
 				isStandardAction: true,
 				isContextAction: true,
 				isMultiAction: true,
-				callback: lang.hitch(this, function(_idxs, licenses) {
-					console.log('allocating');
-					// this.onEditLicense(licenses[0].licenseId);
+				callback: lang.hitch(this, function() {
+					this.onUsersSelected(this._grid.getSelectedIds());
 				}),
 			}];
 			const columns = [{

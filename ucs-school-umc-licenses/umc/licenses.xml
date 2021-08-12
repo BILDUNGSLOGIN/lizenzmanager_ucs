@@ -9,8 +9,12 @@
 			<description>Manage licenses</description>
 		</flavor>
 		<flavor id="licenses/allocation" priority="52">
-			<name>Allocate licenses</name>
-			<description>Manage allocation of licenses</description>
+			<name>Assign licenses</name>
+			<description>Assign licenses to users</description>
+		</flavor>
+		<flavor id="licenses/products" priority="52">
+			<name>Licensed products</name>
+			<description></description>
 		</flavor>
 		<command name="licenses/query" function="query"></command>
 		<command name="licenses/get" function="get"></command>
@@ -22,5 +26,7 @@
 		<command name="licenses/remove_from_users" function="remove_from_users"></command>
 		<command name="licenses/schools" function="schools"></command>
 		<command name="licenses/users/query" function="users_query"></command>
+		<command name="licenses/products/query" function="products_query"></command>
+		<command name="licenses/products/get" function="products_get"></command>
 	</module>
 </umc>
