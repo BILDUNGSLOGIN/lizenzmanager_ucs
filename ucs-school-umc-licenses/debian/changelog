@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.0-3) unstable; urgency=medium
+
+  * Issue #23: add modules for products
+
+ -- Johannes Keiser <keiser@univention.de>  Thu, 12 Aug 2021 12:15:40 +0200
+
 ucs-school-umc-licenses (0.1.0-2) unstable; urgency=medium
 
   * Update operation sets and categorie
