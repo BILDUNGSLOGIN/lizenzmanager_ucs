@@ -33,6 +33,7 @@
 # GNU copyright 1997 to 1999 by Joey Hess.
 
 
+export LC_ALL=C.UTF-8
 export PYBUILD_NAME=bildungslogin
 
 
