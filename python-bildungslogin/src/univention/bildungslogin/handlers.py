@@ -79,7 +79,7 @@ class LicenseHandler:
             udm_obj.props.special_type = license.license_special_type
             udm_obj.props.purchasing_reference = license.purchasing_reference
             udm_obj.save()
-            self.logger.debug("Created License object {}: {}".format(udm_obj.dn, udm_obj.props))
+            self.logger.debug("Created License object %r: %r", udm_obj.dn, udm_obj.props)
         except CreateError as e:
             raise BiloCreateError('Error creating license "{}"!\n{}'.format(license.license_code, e))
         for i in range(int(license.license_quantity)):
@@ -95,7 +95,7 @@ class LicenseHandler:
         ignore = "1" if ignore else "0"
         udm_obj.props.ignored = ignore
         udm_obj.save()
-        self.logger.debug("Set License status {}: {}".format(udm_obj.dn, udm_obj.props))
+        self.logger.debug("Set License status %r: %r", udm_obj.dn, udm_obj.props)
 
     @staticmethod
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> License
@@ -269,7 +269,7 @@ class MetaDataHandler:
             udm_obj.props.cover_small = meta_data.cover_small
             udm_obj.props.modified = meta_data.modified
             udm_obj.save()
-            self.logger.info("Created MetaData object {}: {}".format(udm_obj.dn, udm_obj.props))
+            self.logger.info("Created MetaData object %r: %r", udm_obj.dn, udm_obj.props)
         except CreateError as e:
             raise BiloCreateError(
                 'Error creating meta data for product id "{}"!\n{}'.format(meta_data.product_id, e)
@@ -287,7 +287,7 @@ class MetaDataHandler:
         udm_obj.props.modified = meta_data.modified
         udm_obj.save()
         self.logger.info(
-            "Saving product MetaData object {}: {} -> {}".format(udm_obj.dn, props_before, udm_obj.props)
+            "Saving product MetaData object %r: %r -> %r", udm_obj.dn, props_before, udm_obj.props
         )
 
     @staticmethod
@@ -477,9 +477,7 @@ class AssignmentHandler:
             assignment = self._assignments_mod.new(superordinate=udm_license.dn)
             assignment.props.status = Status.AVAILABLE
             assignment.save()
-            self.logger.debug(
-                "Created Assignment object {}: {}.".format(assignment.dn, assignment.props)
-            )
+            self.logger.debug("Created Assignment object %r: %r.", assignment.dn, assignment.props)
         except CreateError as e:
             raise BiloCreateError('Error creating assignment for "{}"!\n{}'.format(license_code, e))
 
@@ -630,9 +628,10 @@ class AssignmentHandler:
         old_status = udm_assignment.props.status
         if status == old_status:
             self.logger.info(
-                "Not changing any status for {} ({} -> {}).".format(
-                    username, udm_assignment.props.status, status
-                )
+                "Not changing any status for %r (%r -> %r).",
+                username,
+                udm_assignment.props.status,
+                status,
             )
             return False
         if status == Status.AVAILABLE:
@@ -641,10 +640,12 @@ class AssignmentHandler:
         udm_assignment.props.status = status
         try:
             udm_assignment.save()
-            logging.debug(
-                "Changed status of assignment {},{} from {} to {}.".format(
-                    license_code, username, old_status, status
-                )
+            self.logger.debug(
+                "Changed status of assignment %r (-> %r) from %r to %r.",
+                license_code,
+                username,
+                old_status,
+                status,
             )
         except ModifyError as exc:
             raise BiloAssignmentError("Assignment status change is not valid!\n{}".format(exc))
@@ -664,8 +665,9 @@ class AssignmentHandler:
                 pass
 
         self.logger.info(
-            "Removed {}/{} user-assignment to license code {}.".format(
-                num_removed_correct, len(usernames), license_code
-            )
+            "Removed %r/%r user-assignment to license code %r.",
+            num_removed_correct,
+            len(usernames),
+            license_code,
         )
         return num_removed_correct

@@ -55,7 +55,7 @@ async def get(
         )
     except DbConnectionError as exc:
         error_id = uuid.uuid4()
-        logger.exception(f"[{error_id!s}] Error connecting to database: {exc!s}")
+        logger.exception("[%s] Error connecting to database: %s", error_id, exc)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal server error. Error ID: {error_id!s}.",
@@ -67,7 +67,7 @@ async def get(
         )
     except Exception as exc:
         error_id = uuid.uuid4()
-        logger.exception(f"[{error_id!s}] Error looking for user with id {user_id!r}: {exc!s}")
+        logger.exception("[%s] Error looking for user with id %r: %s", error_id, user_id, exc)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal server error. Error ID: {error_id!s}.",

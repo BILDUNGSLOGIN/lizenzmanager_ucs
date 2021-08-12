@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup():
-    logger.info(f"Setup of {PLUGIN_NAME!r} with version {PLUGIN_VERSION!r}...")
+    logger.info("Setup of %r with version %r...", PLUGIN_NAME, PLUGIN_VERSION)
     backend = create_db_backend()
     setup_db_backend(backend)
 
