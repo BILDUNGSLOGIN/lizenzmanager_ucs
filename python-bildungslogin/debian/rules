@@ -35,10 +35,28 @@
 
 export PYBUILD_NAME=bildungslogin
 
+
+override_dh_auto_clean:
+	dh_auto_clean
+	find -name 'de.mo' -delete
+
+override_dh_auto_build:
+	univention-l10n-build de
+	dh_auto_build
+
+
+override_dh_auto_install:
+	univention-l10n-install de
+	dh_auto_install
+
 override_dh_install:
 	# Namespace __init__.py is already installed
 	rm debian/python-bildungslogin/usr/lib/python2.*/dist-packages/univention/__init__.py
 	dh_install
+
+override_dh_auto_test:
+	ucslint
+	dh_auto_test
 
 %:
 	dh $@ --with python2 --buildsystem=pybuild

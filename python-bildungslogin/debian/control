@@ -16,6 +16,8 @@ Build-Depends:
  python-univention-directory-manager,
  python-ucs-school,
  python-ucsschool-lib,
+ ucslint,
+ univention-ucs-translation-template,
 
 Package: python-bildungslogin
 Architecture: all

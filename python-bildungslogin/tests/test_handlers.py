@@ -104,7 +104,11 @@ def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
 def test_assign_users_to_licenses_enough_licenses(
-    assign_to_license_mock, get_license_by_license_code_mock, udm_mock, license_with_assignments, random_username
+    assign_to_license_mock,
+    get_license_by_license_code_mock,
+    udm_mock,
+    license_with_assignments,
+    random_username,
 ):
     # 3 available license assignments, validity_start_date in the future (->warning):
     assignment_available1 = 3
@@ -166,7 +170,7 @@ def test_assign_users_to_licenses_enough_licenses(
     assert result == {
         "countUsers": len(usernames),
         "errors": {},
-        "warnings": {license1.props.code: "Gültigkeitsbeginn liegt in der Zukunft."},
+        "warnings": {license1.props.code: "License validity start is in the future."},
     }
 
 
@@ -174,7 +178,11 @@ def test_assign_users_to_licenses_enough_licenses(
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
 def test_assign_users_to_licenses_not_enough_licenses(
-    assign_to_license_mock, get_license_by_license_code_mock, udm_mock, license_with_assignments, random_username
+    assign_to_license_mock,
+    get_license_by_license_code_mock,
+    udm_mock,
+    license_with_assignments,
+    random_username,
 ):
     assignment_available1 = random.randint(2, 10)
     assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)

@@ -1,0 +1,10 @@
+[
+	{
+		"input_files": [
+			"src/univention/bildungslogin/.*\\.py"
+		],
+		"po_subdir": "src/univention/bildungslogin/",
+		"target_type": "mo",
+		"destination": "usr/share/locale/{lang}/LC_MESSAGES/python-bildungslogin.mo"
+	}
+]

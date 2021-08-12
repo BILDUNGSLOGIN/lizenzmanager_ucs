@@ -33,13 +33,11 @@ import itertools
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
-if TYPE_CHECKING:
-    from ucsschool.lib.models.base import LoType, UdmObject
-
 from ldap.filter import escape_filter_chars, filter_format
 
 from ucsschool.lib.roles import get_role_info
 from univention.admin.syntax import date as udm_syntax_date, iso8601Date
+from univention.lib.i18n import Translation
 from univention.udm import UDM, CreateError, ModifyError, NoObject as UdmNoObject
 
 from .exceptions import (
@@ -51,6 +49,11 @@ from .exceptions import (
 )
 from .models import Assignment, License, MetaData
 from .utils import LicenseType, Status, get_entry_uuid, get_special_filter, my_string_to_int
+
+if TYPE_CHECKING:
+    from ucsschool.lib.models.base import LoType, UdmObject
+
+_ = Translation("vbm-bildungslogin").translate
 
 
 class LicenseHandler:
@@ -81,8 +84,12 @@ class LicenseHandler:
             udm_obj.props.purchasing_reference = license.purchasing_reference
             udm_obj.save()
             self.logger.debug("Created License object %r: %r", udm_obj.dn, udm_obj.props)
-        except CreateError as e:
-            raise BiloCreateError('Error creating license "{}"!\n{}'.format(license.license_code, e))
+        except CreateError as exc:
+            raise BiloCreateError(
+                _("Error creating license {license_code!r}!\n{exc}").format(
+                    license_code=license.license_code, exc=exc
+                )
+            )
         for i in range(int(license.license_quantity)):
             self.ah.create_assignment_for_license(license_code=license.license_code)
 
@@ -90,8 +97,10 @@ class LicenseHandler:
         udm_obj = self.get_udm_license_by_code(license_code)
         if my_string_to_int(udm_obj.props.num_assigned) != 0:
             raise BiloLicenseInvalidError(
-                "License with code {} already has {} assignments. "
-                "It can't be the set to ignored!".format(license_code, udm_obj.props.num_assigned)
+                _(
+                    "License with code {lc!r} already has {num} assignments. It can't be the set to "
+                    "ignored!"
+                ).format(lc=license_code, num=udm_obj.props.num_assigned)
             )
         ignore = "1" if ignore else "0"
         udm_obj.props.ignored = ignore
@@ -132,7 +141,9 @@ class LicenseHandler:
         try:
             return self._get_all(filter_s)[0]
         except IndexError:
-            raise BiloLicenseNotFoundError("License with code {} does not exist".format(license_code))
+            raise BiloLicenseNotFoundError(
+                _("License with code {license_code!r} does not exist.").format(license_code=license_code)
+            )
 
     def get_meta_data_for_license(self, license):  # type: (Union[UdmObject, License]) -> MetaData
         """search for the product of the license. If there is none yet, return an empty object."""
@@ -271,9 +282,11 @@ class MetaDataHandler:
             udm_obj.props.modified = meta_data.modified
             udm_obj.save()
             self.logger.info("Created MetaData object %r: %r", udm_obj.dn, udm_obj.props)
-        except CreateError as e:
+        except CreateError as exc:
             raise BiloCreateError(
-                'Error creating meta data for product id "{}"!\n{}'.format(meta_data.product_id, e)
+                _("Error creating meta data for product id {p_id!r}!\n{exc}").format(
+                    p_id=meta_data.product_id, exc=exc
+                )
             )
 
     def save(self, meta_data):  # type: (MetaData) -> None
@@ -363,7 +376,7 @@ class MetaDataHandler:
             return [o for o in self._meta_data_mod.search(filter_s)][0]
         except KeyError:
             raise BiloProductNotFoundError(
-                "Meta data object with product id {} does not exist!".format(product_id)
+                _("Meta data object with product id {p_id!r} does not exist!").format(p_id=product_id)
             )
 
     def get_all_product_ids(self):  # type: () -> List[str]
@@ -389,7 +402,9 @@ class AssignmentHandler:
         try:
             return self._licenses_mod.get(dn)
         except UdmNoObject:
-            raise BiloLicenseNotFoundError("There is no license for the assignment {}!".format(dn))
+            raise BiloLicenseNotFoundError(
+                _("There is no license for the assignment {dn!r}!").format(dn=dn)
+            )
 
     def from_udm_obj(self, udm_obj):  # type: (UdmObject) -> Assignment
         """
@@ -454,14 +469,14 @@ class AssignmentHandler:
         ucsschool_schools = [s.lower() for s in ucsschool_schools]
         if license_school.lower() not in ucsschool_schools:
             raise BiloAssignmentError(
-                "License can't be assigned to user in school {}!".format(ucsschool_schools)
+                _("License can't be assigned to user in schools {ous}!").format(ous=ucsschool_schools)
             )
 
     def get_user_by_username(self, username):  # type: (str) -> UdmObject
         filter_s = filter_format("(uid=%s)", [username])
         users = [u for u in self._users_mod.search(filter_s)]
         if not users:
-            raise BiloAssignmentError("No user with username {} exists!".format(username))
+            raise BiloAssignmentError(_("No user with username {un!r} exists!").format(un=username))
         return users[0]
 
     def get_license_by_license_code(self, license_code):  # type: (str) -> UdmObject
@@ -470,7 +485,9 @@ class AssignmentHandler:
             license = [o for o in self._licenses_mod.search(filter_s)][0]
             return license
         except IndexError:
-            raise BiloLicenseNotFoundError("No license with code {} was found!".format(license_code))
+            raise BiloLicenseNotFoundError(
+                _("No license with code {license_code!r} was found!").format(license_code=license_code)
+            )
 
     def create_assignment_for_license(self, license_code):  # type: (str) -> bool
         udm_license = self.get_license_by_license_code(license_code)
@@ -479,8 +496,12 @@ class AssignmentHandler:
             assignment.props.status = Status.AVAILABLE
             assignment.save()
             self.logger.debug("Created Assignment object %r: %r.", assignment.dn, assignment.props)
-        except CreateError as e:
-            raise BiloCreateError('Error creating assignment for "{}"!\n{}'.format(license_code, e))
+        except CreateError as exc:
+            raise BiloCreateError(
+                _("Error creating assignment for {license_code!r}!\n{exc!s}").format(
+                    license_code=license_code, exc=exc
+                )
+            )
 
     def _get_available_assignments(self, license_dn):  # type: (str) -> List[UdmObject]
         filter_s = filter_format("(status=%s)", [Status.AVAILABLE])
@@ -494,9 +515,10 @@ class AssignmentHandler:
             roles = [get_role_info(role)[0] for role in user_roles]
             if "student" in roles:
                 raise BiloAssignmentError(
-                    "License with special type 'Lehrer' can't be assigned to user {} with roles {}!".format(
-                        username, roles
-                    )
+                    _(
+                        "License with special type 'Lehrer' can't be assigned to user {username!r} with "
+                        "roles {roles!r}!"
+                    ).format(username=username, roles=roles)
                 )
 
     @staticmethod
@@ -504,15 +526,15 @@ class AssignmentHandler:
         # todo make me more robust -> udm
         if ignored != "0":
             raise BiloAssignmentError(
-                "License is 'ignored for display' is set to {} and thus can't be assigned!".format(
-                    ignored
-                )
+                _(
+                    "License is 'ignored for display' is set to {ignored} and thus can't be assigned!"
+                ).format(ignored=ignored)
             )
 
     @staticmethod
     def check_is_expired(expired):  # type: (str) -> None
         if expired != "0":
-            raise BiloAssignmentError("License is expired and thus can't be assigned!")
+            raise BiloAssignmentError(_("License is expired and thus can't be assigned!"))
 
     def assign_to_license(self, license_code, username):  # type: (str, str) -> bool
         """
@@ -543,14 +565,17 @@ class AssignmentHandler:
         )
         if assigned_to_user:
             raise BiloAssignmentError(
-                "License with code {} has already been assigned to {}!".format(license_code, username)
+                _(
+                    "License with code {license_code!r} has already been assigned to {username!r}!"
+                ).format(license_code=license_code, username=username)
             )
         available_licenses = self._get_available_assignments(udm_license.dn)
         if not available_licenses:
             raise BiloAssignmentError(
-                "No assignment left of license with code {}. Failed to assign {}!".format(
-                    license_code, username
-                )
+                -(
+                    "No assignment left of license with code {license_code!r}. Failed to assign "
+                    "{username!r}!"
+                ).format(license_code=license_code, username=username)
             )
         date_of_today = datetime.datetime.now().strftime("%Y-%m-%d")
         udm_assignment = available_licenses[0]
@@ -601,8 +626,10 @@ class AssignmentHandler:
             return {
                 "countUsers": 0,
                 "errors": {
-                    "*": "There are less available licenses than the number of users. No licenses have "
-                    "been assigned."
+                    "*": _(
+                        "There are less available licenses than the number of users. No licenses have "
+                        "been assigned."
+                    )
                 },
                 "warnings": {},
             }
@@ -634,7 +661,7 @@ class AssignmentHandler:
                 self.assign_to_license(code, username)
                 result["countUsers"] += 1
                 if iso8601Date.to_datetime(validity_start_date) > datetime.date.today():
-                    result["warnings"][code] = "Gültigkeitsbeginn liegt in der Zukunft."
+                    result["warnings"][code] = _("License validity start is in the future.")
             except BiloAssignmentError as exc:
                 result["errors"][code] = str(exc)
         self.logger.info("Assigned licenses to %r/%r users.", result["countUsers"], len(usernames))
@@ -650,7 +677,9 @@ class AssignmentHandler:
             return [a for a in self._assignments_mod.search(base=license_dn, filter_s=filter_s)][0]
         except IndexError:
             raise BiloAssignmentError(
-                "No assignment for license with {} was found for user {}".format(license_dn, assignee)
+                _("No assignment for license with {dn!r} was found for user {username!r}.").format(
+                    dn=license_dn, username=assignee
+                )
             )
 
     def change_license_status(self, license_code, username, status):  # type: (str, str, str) -> bool
@@ -668,7 +697,7 @@ class AssignmentHandler:
             # comment: fallback for AVAILABLE -> ASSIGNED
             return self.assign_to_license(license_code=license_code, username=username)
         if status not in [Status.PROVISIONED, Status.AVAILABLE]:
-            raise BiloAssignmentError("Illegal status change to {}!".format(status))
+            raise BiloAssignmentError(_("Illegal status change to {status!r}!").format(status=status))
 
         udm_license = self.get_license_by_license_code(license_code)
         self.check_is_ignored(udm_license.props.ignored)
@@ -700,7 +729,7 @@ class AssignmentHandler:
                 status,
             )
         except ModifyError as exc:
-            raise BiloAssignmentError("Assignment status change is not valid!\n{}".format(exc))
+            raise BiloAssignmentError(_("Assignment status change is not valid!\n{exc}").format(exc=exc))
         return True
 
     def remove_assignment_from_users(self, license_code, usernames):  # type: (str, List[str]) -> int
