@@ -9,12 +9,16 @@ from typing import Dict, Tuple
 import pytest
 
 import univention.bildungslogin.handlers
+from univention.lib.i18n import Translation
 from univention.udm.base import BaseObject, BaseObjectProperties
 
 if sys.version_info[0] >= 3:
     from unittest.mock import MagicMock, call, patch
 else:
     from mock import MagicMock, call, patch
+
+
+_l10n = Translation("vbm-bildungslogin").translate
 
 
 @pytest.fixture
@@ -110,11 +114,12 @@ def test_assign_users_to_licenses_enough_licenses(
     license_with_assignments,
     random_username,
 ):
-    # 3 available license assignments, validity_start_date in the future (->warning):
+    """Test that licenses are used in order of soonest validity_end_date."""
+    # 3 available license assignments
     assignment_available1 = 3
     assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)
     license1, assignments1 = license_with_assignments(assignment_total1, assignment_available1)
-    license1.props.validity_start_date = "2030-01-01"
+    license1.props.validity_start_date = "2000-01-01"
     license1.props.validity_end_date = "2040-01-01"
 
     # 0 available:
@@ -167,10 +172,39 @@ def test_assign_users_to_licenses_enough_licenses(
     # zip() will drop unused list items from used_licenses_codes (from license3):
     calls_to_assign_to_license = [call(l_c, u_n) for l_c, u_n in zip(used_licenses_codes, usernames)]
     assert assign_to_license_mock.call_args_list == calls_to_assign_to_license
+    assert result == {"countUsers": len(usernames), "errors": {}, "warnings": {}}
+
+
+@patch("univention.bildungslogin.handlers.UDM")
+@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
+@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
+def test_assign_users_to_licenses_warning_validity_starts_in_the_future(
+    assign_to_license_mock,
+    get_license_by_license_code_mock,
+    udm_mock,
+    license_with_assignments,
+    random_username,
+):
+    """Test that assigning a license with a validity_start_date in the future produces a warning."""
+    assignment_available1 = random.randint(2, 10)
+    assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)
+    license1, assignments1 = license_with_assignments(assignment_total1, assignment_available1)
+    # validity_start_date in the future (->warning)
+    license1.props.validity_start_date = "2030-01-01"
+    license1.props.validity_end_date = "2040-01-01"
+
+    get_license_by_license_code_mock.side_effect = lambda x: license1
+
+    num_users = assignment_available1 - 1
+    usernames = [random_username() for _ in range(num_users)]
+
+    ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
+    result = ah.assign_users_to_licenses([license1.props.code], usernames)
+
     assert result == {
-        "countUsers": len(usernames),
+        "countUsers": num_users,
         "errors": {},
-        "warnings": {license1.props.code: "License validity start is in the future."},
+        "warnings": {license1.props.code: _l10n("License validity start is in the future.")},
     }
 
 
@@ -184,6 +218,7 @@ def test_assign_users_to_licenses_not_enough_licenses(
     license_with_assignments,
     random_username,
 ):
+    """Test that with to few licenses, no license gets assigned and an error message is in the result."""
     assignment_available1 = random.randint(2, 10)
     assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)
     license1, assignments1 = license_with_assignments(assignment_total1, assignment_available1)
@@ -198,14 +233,14 @@ def test_assign_users_to_licenses_not_enough_licenses(
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
     result = ah.assign_users_to_licenses([license1.props.code], usernames)
 
-    calls_to_get_license_by_license_code = [call(license1.props.code)]
-    assert get_license_by_license_code_mock.call_args_list == calls_to_get_license_by_license_code
     assert assign_to_license_mock.call_args_list == []
     assert result == {
         "countUsers": 0,
         "errors": {
-            "*": "There are less available licenses than the number of users. No licenses have "
-            "been assigned."
+            "*": _l10n(
+                "There are less available licenses than the number of users. No licenses have been "
+                "assigned."
+            )
         },
         "warnings": {},
     }
