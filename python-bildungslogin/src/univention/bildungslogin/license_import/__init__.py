@@ -31,8 +31,8 @@ import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from univention.bildungslogin.handlers import LicenseHandler
-from univention.bildungslogin.models import License
+from ..handlers import LicenseHandler
+from ..models import License
 
 
 def convert_raw_license_date(date_str):  # type: (str) -> Optional[str]

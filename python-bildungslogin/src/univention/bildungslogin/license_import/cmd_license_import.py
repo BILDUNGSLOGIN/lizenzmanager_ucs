@@ -33,8 +33,9 @@ import argparse
 import sys
 
 from univention.admin.uldap import getAdminConnection
-from univention.bildungslogin.handlers import BiloCreateError, LicenseHandler
-from univention.bildungslogin.license_import import import_license, load_license_file
+
+from ..handlers import BiloCreateError, LicenseHandler
+from ..license_import import import_license, load_license_file
 
 
 def parse_args():  # type: () -> argparse.Namespace

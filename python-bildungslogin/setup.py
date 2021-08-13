@@ -53,6 +53,7 @@ setup(
         "console_scripts": [
             "bildungslogin-license-import=univention.bildungslogin.license_import.cmd_license_import:main",
             "bildungslogin-media-import=univention.bildungslogin.media_import.cmd_media_import:main",
+            "bildungslogin-media-update=univention.bildungslogin.media_import.cmd_media_update:main",
         ]
     },
     url="https://www.univention.de/",

@@ -105,7 +105,7 @@ def meta_data_rest_api_mock(meta_data):  # type: (List[Dict[str, Any]]) -> List[
     ]
 
 
-def get_all_media_data_mock(*args, **kwargs):  # type: (*Any, **Any) -> List[Dict[str, Any]]
+def retrieve_media_data_mock(*args, **kwargs):  # type: (*Any, **Any) -> List[Dict[str, Any]]
     return meta_data_rest_api_mock(TEST_META_DATA)
 
 
@@ -138,9 +138,10 @@ def test_cli_import(delete_metatdata_after_test, mocker):
     mocker.patch.object(cmd_media_import, "get_config", get_config_mock)
     mocker.patch.object(cmd_media_import, "parse_args", parse_args_mock)
     mocker.patch(
-        "univention.bildungslogin.media_import.cmd_media_import.get_all_media_data",
-        get_all_media_data_mock,
+        "univention.bildungslogin.media_import.cmd_media_import.retrieve_media_data",
+        retrieve_media_data_mock,
     )
+    mocker.patch("univention.bildungslogin.media_import.cmd_media_import.get_access_token")
     lo, po = getAdminConnection()
     mh = MetaDataHandler(lo)
     delete_metatdata_after_test(TEST_PRODUCT_ID)
@@ -158,9 +159,10 @@ def test_repeated_cli_import(delete_metatdata_after_test, lo, mocker):
     mocker.patch.object(cmd_media_import, "get_config", get_config_mock)
     mocker.patch.object(cmd_media_import, "parse_args", parse_args_mock)
     mocker.patch(
-        "univention.bildungslogin.media_import.cmd_media_import.get_all_media_data",
-        get_all_media_data_mock,
+        "univention.bildungslogin.media_import.cmd_media_import.retrieve_media_data",
+        retrieve_media_data_mock,
     )
+    mocker.patch("univention.bildungslogin.media_import.cmd_media_import.get_access_token")
     delete_metatdata_after_test(TEST_PRODUCT_ID)
     cmd_media_import.main()
     entry_uuids = lo.searchDn("(&(objectClass=vbmMetaData)(vbmProductId={}))".format(TEST_PRODUCT_ID))

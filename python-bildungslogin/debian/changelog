@@ -1,3 +1,9 @@
+python-bildungslogin (0.0.4) unstable; urgency=low
+
+  * Issue #35: import meta data for new licenses and update it regularly
+
+ -- Daniel Troeder <troeder@univention.de>  Fri, 13 Aug 2021 18:16:16 +0200
+
 python-bildungslogin (0.0.3) unstable; urgency=medium
 
   * Issue #23: get_num* functions for MetaDataHandler can take school as param now

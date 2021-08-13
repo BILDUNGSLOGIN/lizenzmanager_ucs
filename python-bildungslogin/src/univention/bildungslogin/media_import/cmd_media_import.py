@@ -35,12 +35,14 @@ import sys
 from typing import Any, Dict, List, Optional
 
 from univention.admin.uldap import getAdminConnection
-from univention.bildungslogin.handlers import MetaDataHandler
-from univention.bildungslogin.media_import import (
+
+from ..handlers import MetaDataHandler
+from . import (
     MediaImportError,
     MediaNotFoundError,
-    get_all_media_data,
+    get_access_token,
     import_single_media_data,
+    retrieve_media_data,
 )
 
 
@@ -48,21 +50,13 @@ class ScriptError(Exception):
     pass
 
 
-def import_all_media_data(
-    lo, client_id, client_secret, scope, auth_server, resource_server, product_ids
-):
-    # type: (Any, str, str, str, str, str, List[str]) -> None
-    raw_media_data = get_all_media_data(
-        client_id, client_secret, scope, auth_server, resource_server, product_ids
-    )
-
+def import_multiple_raw_media_data(meta_data_handler, raw_media_data):
+    # type: (MetaDataHandler, List[Dict[str, Any]]) -> str
     not_found_errors = []
     import_errors = []
-
-    mh = MetaDataHandler(lo)
     for raw_data in raw_media_data:
         try:
-            import_single_media_data(mh, raw_data)
+            import_single_media_data(meta_data_handler, raw_data)
         except MediaImportError as exc:
             print(raw_data)
             import_errors.append(
@@ -75,20 +69,30 @@ def import_all_media_data(
         except MediaNotFoundError:
             not_found_errors.append(raw_data["query"]["id"])
 
-    err = ""
+    error_message = ""
     if not_found_errors or import_errors:
-        err += "Not all media data could be downloaded:\n"
+        error_message += "Not all media data could be downloaded:\n"
     if not_found_errors:
-        err += "  The following product ids did not yield metadata:\n"
+        error_message += "  The following product ids did not yield metadata:\n"
         for e in not_found_errors:
-            err += "	%s\n" % (e,)
-        err += "\n"
+            error_message += "	%s\n" % (e,)
+        error_message += "\n"
     if import_errors:
-        err += "  The media data for the following product ids could not be imported:\n"
+        error_message += "  The media data for the following product ids could not be imported:\n"
         for e in import_errors:
-            err += "	%s\n" % (e,)
-    if err:
-        raise ScriptError(err)
+            error_message += "	%s\n" % (e,)
+    return error_message
+
+
+def import_all_media_data(
+    lo, client_id, client_secret, scope, auth_server, resource_server, product_ids
+):
+    # type: (Any, str, str, str, str, str, List[str]) -> None
+    access_token = get_access_token(client_id, client_secret, scope, auth_server)
+    raw_media_data = retrieve_media_data(access_token, resource_server, product_ids)
+    error_message = import_multiple_raw_media_data(MetaDataHandler(lo), raw_media_data)
+    if error_message:
+        raise ScriptError(error_message)
 
 
 def get_config_from_file(filename):  # type: (str) -> Dict[str, Any]
@@ -172,8 +176,7 @@ def parse_args(args=None):  # type: (Optional[List[str]]) -> argparse.Namespace
     return parser.parse_args(args)
 
 
-def main():
-    # type: () -> None
+def main():  # type: () -> None
     args = parse_args()
     config = get_config(args)
     lo, _ = getAdminConnection()

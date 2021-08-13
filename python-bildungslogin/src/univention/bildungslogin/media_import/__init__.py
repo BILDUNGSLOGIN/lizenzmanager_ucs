@@ -59,25 +59,33 @@ def get_access_token(client_id, client_secret, scope, auth_server):
     response = requests.post(
         auth_server,
         data={"grant_type": "client_credentials", "scope": scope},
-        auth=(
-            client_id,
-            client_secret,
-        ),
+        auth=(client_id, client_secret),
     )
     if response.status_code != 200:
         raise AuthError("Authorization failed: %s" % (response.json()["error_description"],))
     return response.json()["access_token"]
 
 
-def get_all_media_data(client_id, client_secret, scope, auth_server, resource_server, product_ids):
-    # type: (str, str, str, str, str, List[str]) -> List[dict]
-    access_token = get_access_token(client_id, client_secret, scope, auth_server)
+def retrieve_media_data(access_token, resource_server, product_ids):
+    # type: (str, str, List[str]) -> List[dict]
     return requests.post(
         resource_server + "/external/univention/media/query",
         json=[{"id": product_id} for product_id in product_ids],
         headers={
             "Authorization": "Bearer " + access_token,
             "Content-Type": "application/vnd.de.bildungslogin.mediaquery+json",
+        },
+    ).json()
+
+
+def retrieve_media_feed(access_token, resource_server, modified_after):
+    # type: (str, str, int) -> List[str]
+    return requests.post(
+        resource_server + "/external/univention/media/feed",
+        json={"modifiedAfter": modified_after},
+        headers={
+            "Authorization": "Bearer " + access_token,
+            "Content-Type": "application/vnd.de.bildungslogin.mediafeed-query+json",
         },
     ).json()
 

@@ -29,6 +29,14 @@
 
 #DEBHELPER#
 
+echo "Creating cron job for regular meta data updates."
+LOGFILE="/var/log/univention/bildungslogin-media-update.log"
+ucr set \
+  cron/bildungslogin-meta-data/command="date >> $LOGFILE; /usr/bin/bildungslogin-media-update >> $LOGFILE" \
+  cron/bildungslogin-meta-data/time="0 * * * *" \
+  cron/bildungslogin-meta-data/user="root" \
+  cron/bildungslogin-meta-data/description="VBM Bildungslogin meta data update job."
+
 if [ -x /etc/init.d/univention-directory-listener ]; then
 	deb-systemd-invoke restart univention-directory-listener
 fi
