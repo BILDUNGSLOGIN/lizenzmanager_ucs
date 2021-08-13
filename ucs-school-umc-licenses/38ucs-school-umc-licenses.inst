@@ -47,7 +47,7 @@ umc_operation_create "licenses-all" "Manage licenses" "" "licenses/*"
 # create empty UMC access policies
 ucs_school_policies_create
 
-for ipol in ucsschool-umc-teachers-default ucsschool-umc-admins-default default-umc-all; do
+for ipol in ucsschool-umc-admins-default default-umc-all; do
 	umc_policy_append "$ipol" "licenses-all"
 done
 
