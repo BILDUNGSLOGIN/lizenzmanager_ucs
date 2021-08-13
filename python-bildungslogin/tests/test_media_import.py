@@ -16,7 +16,7 @@ test_metadata_raw = {
         "title": "Entdecken und verstehen",
         "author": "",
         "cover": {
-            "href": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B160_X2.png",
+            "href": "/media/9783060658336/9783060658336_COVER_STD_B160_X2.png",
             "rel": "src",
         },
         "modified": 1628258416000,
@@ -30,7 +30,7 @@ test_metadata = MetaData(
     description="Entdecken und verstehen - Sch\xfclerbuch als E-Book - 7. Schuljahr",
     author="",
     publisher="Cornelsen",
-    cover="https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B160_X2.png",
+    cover="",
     cover_small="https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B110_X2.png",
     modified="2021-08-06",
 )

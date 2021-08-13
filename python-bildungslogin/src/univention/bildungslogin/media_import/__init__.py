@@ -29,6 +29,8 @@
 
 from __future__ import print_function
 
+import re
+from copy import deepcopy
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -36,6 +38,8 @@ import requests
 
 from univention.bildungslogin.handlers import BiloCreateError, BiloProductNotFoundError, MetaDataHandler
 from univention.bildungslogin.models import MetaData
+
+HTTP_URL_START = re.compile(r"^http.?://")
 
 
 class AuthError(Exception):
@@ -80,7 +84,7 @@ def get_all_media_data(client_id, client_secret, scope, auth_server, resource_se
 
 def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
     if raw_media_data["status"] == 200:
-        data = raw_media_data["data"]
+        data = cleaned_data(raw_media_data)
         try:
             return MetaData(
                 product_id=data["id"],
@@ -98,6 +102,16 @@ def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
             raise MediaImportError(str(exc))
     else:
         raise MediaNotFoundError()
+
+
+def cleaned_data(raw_media_data):  # type: (Dict[str, Any]) -> Dict[str, Any]
+    data = raw_media_data["data"]
+    result = deepcopy(data)
+    if not HTTP_URL_START.match(data["cover"]["href"]):
+        result["cover"]["href"] = ""
+    if not HTTP_URL_START.match(data["coverSmall"]["href"]):
+        result["coverSmall"]["href"] = ""
+    return result
 
 
 def import_single_media_data(meta_data_handler, raw_media_data):
