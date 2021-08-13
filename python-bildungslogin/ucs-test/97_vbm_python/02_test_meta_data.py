@@ -122,13 +122,14 @@ def test_number_of_provisioned_and_assigned_licenses(
     num_teachers = 3
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license = license_obj(ou)
-        license.product_id = meta_data.product_id
-        license.ignored_for_display = "0"  # we only want correct assignments here
-        license_handler.create(license)
         student_usernames = [schoolenv.create_student(ou)[0] for i in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for i in range(num_teachers)]
         users = student_usernames + teacher_usernames
+        license = license_obj(ou)
+        license.product_id = meta_data.product_id
+        license.ignored_for_display = "0"  # we only want correct assignments here
+        license.license_quantity = str(len(users) + 1)
+        license_handler.create(license)
         assignment_handler.assign_users_to_licenses(
             usernames=users, license_codes=[license.license_code]
         )

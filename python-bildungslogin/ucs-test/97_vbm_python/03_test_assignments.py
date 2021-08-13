@@ -137,12 +137,13 @@ def test_remove_assignment_from_users(assignment_handler, license_handler, licen
     # 00_vbm_test_assignments
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license = license_obj(ou)
-        license.license_special_type = ""
-        license_handler.create(license)
         n = random.randint(0, 10)
         usernames = [schoolenv.create_student(ou)[0] for _ in range(n)]
         usernames.append(schoolenv.create_teacher(ou)[0])
+        license = license_obj(ou)
+        license.license_special_type = ""
+        license.license_quantity = str(len(usernames) + 1)
+        license_handler.create(license)
         assignment_handler.assign_users_to_licenses(
             usernames=usernames, license_codes=[license.license_code]
         )
