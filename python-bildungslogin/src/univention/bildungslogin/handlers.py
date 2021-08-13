@@ -643,20 +643,28 @@ class AssignmentHandler:
             Insufficient available licenses will not raise an exception, only add an error message in
             the result dict.
         """
-        licenses = [self.get_license_by_license_code(lc) for lc in license_codes]
+        result = {
+            "countUsers": 0,
+            "errors": {},
+            "warnings": {},
+        }
+        licenses = []
+
+        for lc in license_codes:
+            license = self.get_license_by_license_code(lc)
+            try:
+                self.check_is_expired(license.props.expired)
+                licenses.append(license)
+            except BiloAssignmentError as exc:
+                result["warnings"][license.props.code] = str(exc)
 
         num_available_liceses = sum(my_string_to_int(lic.props.num_available) for lic in licenses)
         if num_available_liceses < len(usernames):
-            return {
-                "countUsers": 0,
-                "errors": {
-                    "*": _(
-                        "There are less available licenses than the number of users. No licenses have "
-                        "been assigned."
-                    )
-                },
-                "warnings": {},
-            }
+            result["errors"]["*"] = _(
+                "There are less available licenses than the number of users. No licenses have been "
+                "assigned."
+            )
+            return result
 
         # sort licenses by validity_end_data
         licenses.sort(key=lambda x: x.props.validity_end_date)
@@ -674,11 +682,6 @@ class AssignmentHandler:
             )
             for license in licenses
         )
-        result = {
-            "countUsers": 0,
-            "errors": {},
-            "warnings": {},
-        }
         for username in usernames:
             code, validity_start_date = license_codes_to_use.next()
             try:

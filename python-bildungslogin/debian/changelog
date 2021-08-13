@@ -1,6 +1,7 @@
 python-bildungslogin (0.0.3) unstable; urgency=medium
 
   * Issue #23: get_num* functions for MetaDataHandler can take school as param now
+  * Issue #16: implement assigning multiple licenses to multiple users
 
  -- Johannes Keiser <keiser@univention.de>  Fri, 13 Aug 2021 11:27:49 +0200
 

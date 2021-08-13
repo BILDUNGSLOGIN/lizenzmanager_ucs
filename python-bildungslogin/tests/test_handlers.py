@@ -107,6 +107,7 @@ def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object
         license = fake_udm_license_object()  # type: BaseObject
         license.props.quantity = str(assignment_total)
         license.props.num_available = str(assignment_available)
+        license.props.num_assigned = str(assignment_total - assignment_available)
         assignments = {}
         for _ in range(assignment_total - assignment_available):
             ass_obj = fake_udm_assignment_object(license.dn)
@@ -198,6 +199,51 @@ def test_assign_users_to_licenses_enough_licenses(
 @patch("univention.bildungslogin.handlers.UDM")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
+def test_assign_users_to_licenses_warning_expired_license(
+    assign_to_license_mock,
+    get_license_by_license_code_mock,
+    udm_mock,
+    license_with_assignments,
+    random_username,
+):
+    """Test that assigning a license that has expired produces a warning."""
+
+    # validity_end_date in the past (->warning):
+    assignment_available1 = random.randint(2, 10)
+    assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)
+    license1, assignments1 = license_with_assignments(assignment_total1, assignment_available1)
+    license1.props.validity_start_date = "2000-01-01"
+    license1.props.validity_end_date = "2001-01-01"
+    # fake UDM object will not do this on its own:
+    license1.props.expired = "1"
+    license1.props.num_expired = str(assignment_total1)
+
+    # this license will not produce a warning:
+    assignment_available2 = random.randint(2, 10)
+    assignment_total2 = random.randint(assignment_available2 + 1, assignment_available2 + 10)
+    license2, assignments2 = license_with_assignments(assignment_total2, assignment_available2)
+    license2.props.validity_start_date = "2000-01-01"
+    license2.props.validity_end_date = "2025-01-01"
+
+    licenses = {license.props.code: license for license in (license1, license2)}
+    get_license_by_license_code_mock.side_effect = lambda x: licenses[x]
+
+    num_users = assignment_available2 - 1
+    usernames = [random_username() for _ in range(num_users)]
+
+    ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
+    result = ah.assign_users_to_licenses([license1.props.code, license2.props.code], usernames)
+
+    assert result == {
+        "countUsers": num_users,
+        "errors": {},
+        "warnings": {license1.props.code: _l10n("License is expired and thus can't be assigned!")},
+    }
+
+
+@patch("univention.bildungslogin.handlers.UDM")
+@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
+@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
 def test_assign_users_to_licenses_warning_validity_starts_in_the_future(
     assign_to_license_mock,
     get_license_by_license_code_mock,
@@ -213,13 +259,21 @@ def test_assign_users_to_licenses_warning_validity_starts_in_the_future(
     license1.props.validity_start_date = "2030-01-01"
     license1.props.validity_end_date = "2040-01-01"
 
-    get_license_by_license_code_mock.side_effect = lambda x: license1
+    # this license will not produce a warning:
+    assignment_available2 = random.randint(2, 10)
+    assignment_total2 = random.randint(assignment_available2 + 1, assignment_available2 + 10)
+    license2, assignments2 = license_with_assignments(assignment_total2, assignment_available2)
+    license2.props.validity_start_date = "2000-01-01"
+    license2.props.validity_end_date = "2040-01-01"
 
-    num_users = assignment_available1 - 1
+    licenses = {license.props.code: license for license in (license1, license2)}
+    get_license_by_license_code_mock.side_effect = lambda x: licenses[x]
+
+    num_users = assignment_available1 + assignment_available2 - 1
     usernames = [random_username() for _ in range(num_users)]
 
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
-    result = ah.assign_users_to_licenses([license1.props.code], usernames)
+    result = ah.assign_users_to_licenses([license1.props.code, license2.props.code], usernames)
 
     assert result == {
         "countUsers": num_users,
