@@ -48,8 +48,10 @@ class ScriptError(Exception):
     pass
 
 
-def import_all_media_data(client_id, client_secret, scope, auth_server, resource_server, product_ids):
-    # type: (str, str, str, str, str, str, List[str]) -> None
+def import_all_media_data(
+    lo, client_id, client_secret, scope, auth_server, resource_server, product_ids
+):
+    # type: (Any, str, str, str, str, str, List[str]) -> None
     raw_media_data = get_all_media_data(
         client_id, client_secret, scope, auth_server, resource_server, product_ids
     )
@@ -57,7 +59,6 @@ def import_all_media_data(client_id, client_secret, scope, auth_server, resource
     not_found_errors = []
     import_errors = []
 
-    lo, po = getAdminConnection()
     mh = MetaDataHandler(lo)
     for raw_data in raw_media_data:
         try:
@@ -76,7 +77,7 @@ def import_all_media_data(client_id, client_secret, scope, auth_server, resource
 
     err = ""
     if not_found_errors or import_errors:
-        err += "Not all media data could be downloadeda:\n"
+        err += "Not all media data could be downloaded:\n"
     if not_found_errors:
         err += "  The following product ids did not yield metadata:\n"
         for e in not_found_errors:
@@ -175,7 +176,9 @@ def main():
     # type: () -> None
     args = parse_args()
     config = get_config(args)
+    lo, _ = getAdminConnection()
     import_all_media_data(
+        lo,
         config["client_id"],
         config["client_secret"],
         config["scope"],

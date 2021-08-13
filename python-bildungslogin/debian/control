@@ -32,6 +32,7 @@ Depends:
  python-configparser,
  python-ucsschool-lib,
  python-ucs-school,
+ univention-directory-listener,
 Description: python libs for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),
