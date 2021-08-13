@@ -34,7 +34,7 @@ from typing import Any, Dict, List
 
 import requests
 
-from univention.bildungslogin.handlers import BiloCreateError, MetaDataHandler
+from univention.bildungslogin.handlers import BiloCreateError, BiloProductNotFoundError, MetaDataHandler
 from univention.bildungslogin.models import MetaData
 
 
@@ -103,6 +103,13 @@ def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
 def import_single_media_data(meta_data_handler, raw_media_data):
     # type: (MetaDataHandler, List[dict]) -> None
     md = load_media(raw_media_data)
+    try:
+        meta_data_handler.get_meta_data_by_product_id(md.product_id)
+        meta_data_handler.save(md)
+        return
+    except BiloProductNotFoundError:
+        # doesn't exist in LDAP yet, create it
+        pass
     try:
         meta_data_handler.create(md)
     except BiloCreateError as exc:

@@ -374,7 +374,7 @@ class MetaDataHandler:
         filter_s = filter_format("(product_id=%s)", [product_id])
         try:
             return [o for o in self._meta_data_mod.search(filter_s)][0]
-        except KeyError:
+        except IndexError:
             raise BiloProductNotFoundError(
                 _("Meta data object with product id {p_id!r} does not exist!").format(p_id=product_id)
             )

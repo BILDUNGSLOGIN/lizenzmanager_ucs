@@ -32,7 +32,10 @@
 ## tags: [vbm]
 ## roles: [domaincontroller_master]
 
+import pytest
+
 from univention.admin.uldap import getAdminConnection
+from univention.bildungslogin.exceptions import BiloProductNotFoundError
 from univention.bildungslogin.handlers import MetaDataHandler
 from univention.bildungslogin.media_import import cmd_media_import
 
@@ -85,7 +88,28 @@ def parse_args_mock(*args, **kwargs):
     return ArgsMock()
 
 
-def test_cli_import(mocker):
+@pytest.fixture
+def delete_metatdata_after_test():
+    product_ids = []
+
+    def _func(product_id):
+        product_ids.append(product_id)
+
+    yield _func
+
+    lo, po = getAdminConnection()
+    for product_id in product_ids:
+        mh = MetaDataHandler(lo)
+        try:
+            obj = mh.get_meta_data_by_product_id(product_id)
+            obj.delete()
+            print("Deleted metadata {!r}.".format(product_id))
+        except BiloProductNotFoundError:
+            pass
+
+
+def test_cli_import(delete_metatdata_after_test, mocker):
+    """Test that a metda data import os possible."""
     mocker.patch.object(cmd_media_import, "get_config", get_config_mock)
     mocker.patch.object(cmd_media_import, "parse_args", parse_args_mock)
     mocker.patch(
@@ -94,10 +118,10 @@ def test_cli_import(mocker):
     )
     lo, po = getAdminConnection()
     mh = MetaDataHandler(lo)
+    delete_metatdata_after_test(TEST_PRODUCT_ID)
     cmd_media_import.main()
     udm_metadata = mh.get_meta_data_by_product_id(TEST_PRODUCT_ID)
     metadata = mh.from_udm_obj(udm_metadata)
-    udm_metadata.delete()
     assert metadata.__dict__ == {
         "author": None,
         "cover": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B160_X2.png",
@@ -108,3 +132,31 @@ def test_cli_import(mocker):
         "publisher": "Cornelsen",
         "title": "Entdecken und verstehen",
     }
+
+
+def test_repeated_cli_import(delete_metatdata_after_test, lo, mocker):
+    """
+    Test that importing multiple times the same meta data is possible and the LDAP object will only be
+    updated.
+    """
+    mocker.patch.object(cmd_media_import, "get_config", get_config_mock)
+    mocker.patch.object(cmd_media_import, "parse_args", parse_args_mock)
+    mocker.patch(
+        "univention.bildungslogin.media_import.cmd_media_import.get_all_media_data",
+        get_all_media_data_mock,
+    )
+    delete_metatdata_after_test(TEST_PRODUCT_ID)
+    cmd_media_import.main()
+    entry_uuids = lo.searchDn("(&(objectClass=vbmMetaData)(vbmProductId={}))".format(TEST_PRODUCT_ID))
+    assert len(entry_uuids) == 1
+    entry_uuid1 = entry_uuids[0]
+    cmd_media_import.main()
+    entry_uuids = lo.searchDn("(&(objectClass=vbmMetaData)(vbmProductId={}))".format(TEST_PRODUCT_ID))
+    assert len(entry_uuids) == 1
+    entry_uuid2 = entry_uuids[0]
+    assert entry_uuid1 == entry_uuid2
+    cmd_media_import.main()
+    entry_uuids = lo.searchDn("(&(objectClass=vbmMetaData)(vbmProductId={}))".format(TEST_PRODUCT_ID))
+    assert len(entry_uuids) == 1
+    entry_uuid3 = entry_uuids[0]
+    assert entry_uuid1 == entry_uuid3
