@@ -14,7 +14,7 @@
 		</flavor>
 		<flavor id="licenses/products" priority="52">
 			<name>Licensed products</name>
-			<description></description>
+			<description>View licensed products</description>
 		</flavor>
 		<command name="licenses/query" function="query"></command>
 		<command name="licenses/get" function="get"></command>

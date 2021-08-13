@@ -81,10 +81,10 @@ define([
 			}
 
 			const data = [
-				[_('Publisher'),  e('publisher'),   _('Platform'), e('platform')],
-				[_('Product ID'), e('productId'),   '',            ''],
-				[_('Title'),      e('productName'), '',            ''],
-				[_('Author'),     e('author'),      '',            ''],
+				[_('Publisher'),  e('publisher'), _('Platform'), e('platform')],
+				[_('Product ID'), e('productId'), '',            ''],
+				[_('Title'),      e('title'),     '',            ''],
+				[_('Author'),     e('author'),    '',            ''],
 			];
 
 			for (const row of data) {
@@ -206,7 +206,7 @@ define([
 				columns: columns,
 				moduleStore: new Observable(new Memory({
 					data: [],
-					idProperty: 'dn'
+					idProperty: 'licenseCode'
 				})),
 			});
 
@@ -215,4 +215,3 @@ define([
 		},
 	});
 });
-

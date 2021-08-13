@@ -112,8 +112,7 @@ define([
 
 			const actions = [{
 				name: 'edit',
-				label: _('Edit'),
-				iconClass: 'umcIconEdit',
+				label: _('Show details'),
 				isStandardAction: true,
 				isContextAction: true,
 				isMultiAction: false,
@@ -125,7 +124,7 @@ define([
 				name: 'productId',
 				label: _('Product ID'),
 			}, {
-				name: 'productName',
+				name: 'title',
 				label: _('Product'),
 			}, {
 				name: 'publisher',
@@ -147,7 +146,7 @@ define([
 				label: _('Available'),
 				width: '60px',
 			}, {
-				name: 'lastImportDate',
+				name: 'latestDeliveryDate',
 				label: _('Last delivery'),
 			}];
 			this._grid = new Grid({
@@ -162,10 +161,10 @@ define([
 				return lang.hitch(this, function(item, options) {
 					const rowNode = renderRow.call(this._grid._grid, item, options);
 					if (item.cover) {
-					 	// .field-productName should always exist. just to be safe
-						const tooltipTarget = query('.field-productName', rowNode)[0] || rowNode;
+					 	// .field-title should always exist. just to be safe
+						const tooltipTarget = query('.field-title', rowNode)[0] || rowNode;
 						on(rowNode, mouse.enter, function() {
-							Tooltip.show('loading cover...', tooltipTarget);
+							Tooltip.show(_('Loading cover...'), tooltipTarget);
 							let showImage = true;
 							const img = put(document.body, `img.dijitOffScreen.licensesCover[src="${item.cover}]`);
 							on(img, 'load', function() {
@@ -194,4 +193,3 @@ define([
 		},
 	});
 });
-
