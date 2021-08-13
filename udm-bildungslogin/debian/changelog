@@ -1,3 +1,9 @@
+udm-bildungslogin (0.0.5) unstable; urgency=medium
+
+  * Issue #23: adjust matching rules in ldap schema for query
+
+ -- Johannes Keiser <keiser@univention.de>  Fri, 13 Aug 2021 11:26:26 +0200
+
 udm-bildungslogin (0.0.4) unstable; urgency=medium
 
   * Issue #18: adjust matching rules in ldap schema
