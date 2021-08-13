@@ -1,5 +1,19 @@
 # Changelog
 
+## 2021-08-13
+
+### Hinzugefügt
+
+- Python Bibliotheksfunktionen um die verfügbaren und verbrauchten Zuweisungen einer Lizenz zu bestimmen.
+- Python Bibliotheksfunktionen um Lizenzzuweisungen zu bearbeiten.
+- Ein UMC-Modul um lizenzierte Produkte anzuzeigen.
+
+### Geändert
+
+- LDAP-ACL für Lizenz-, Metadaten- und Assignment-Objekte, diese Objekte können nun nur noch von Primary-Systemen, Backup-Systemen und Administratoren aus der LDAP Datenbank gelesen werden.
+- Die UMC-Module sind nun in der edukativen Kategorie der UMC, nicht mehr in der administrativen Kategorie.
+- LDAP-Schemata wurden angepasst um "case-insensitive" Suchen zu ermöglichen.
+
 ## 2021-08-06
 
 ### Hinzugefügt
