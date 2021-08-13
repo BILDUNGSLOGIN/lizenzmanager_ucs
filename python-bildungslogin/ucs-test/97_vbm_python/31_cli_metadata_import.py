@@ -32,6 +32,10 @@
 ## tags: [vbm]
 ## roles: [domaincontroller_master]
 
+import datetime
+import time
+from typing import Any, Dict, List
+
 import pytest
 
 from univention.admin.uldap import getAdminConnection
@@ -43,6 +47,18 @@ from univention.bildungslogin.media_import import cmd_media_import
 
 
 TEST_PRODUCT_ID = "urn:univention-test:medium:1234567890"
+TEST_META_DATA = [
+    {
+        "author": None,
+        "cover": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B160_X2.png",
+        "cover_small": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B110_X2.png",
+        "description": "Entdecken und verstehen - Schülerbuch als E-Book - 7. Schuljahr",
+        "modified": "2021-08-06",
+        "product_id": TEST_PRODUCT_ID,
+        "publisher": "Cornelsen",
+        "title": "Entdecken und verstehen",
+    }
+]
 
 
 class ArgsMock:
@@ -59,29 +75,38 @@ def get_config_mock(*args, **kwargs):
     }
 
 
-def get_all_media_data_mock(*args, **kwargs):
+def meta_data_rest_api_mock(meta_data):  # type: (List[Dict[str, Any]]) -> List[Dict[str, Any]]
     return [
         {
             "status": 200,
-            "query": {"id": TEST_PRODUCT_ID},
+            "query": {"id": md["product_id"]},
             "data": {
-                "publisher": "Cornelsen",
+                "publisher": md["publisher"],  # md[""]
                 "coverSmall": {
-                    "href": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B110_X2.png",
+                    "href": md["cover_small"],
                     "rel": "src",
                 },
-                "description": "Entdecken und verstehen - Schülerbuch als E-Book - 7. Schuljahr",
-                "title": "Entdecken und verstehen",
+                "description": md["description"],
+                "title": md["title"],
                 "author": "",
                 "cover": {
-                    "href": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B160_X2.png",
+                    "href": md["cover"],
                     "rel": "src",
                 },
-                "modified": 1628258416000,
-                "id": TEST_PRODUCT_ID,
+                "modified": int(
+                    time.mktime(datetime.datetime.strptime(md["modified"], "%Y-%m-%d").utctimetuple())
+                    - time.timezone
+                )
+                * 1000,
+                "id": md["product_id"],
             },
         }
+        for md in meta_data
     ]
+
+
+def get_all_media_data_mock(*args, **kwargs):  # type: (*Any, **Any) -> List[Dict[str, Any]]
+    return meta_data_rest_api_mock(TEST_META_DATA)
 
 
 def parse_args_mock(*args, **kwargs):
@@ -122,16 +147,7 @@ def test_cli_import(delete_metatdata_after_test, mocker):
     cmd_media_import.main()
     udm_metadata = mh.get_meta_data_by_product_id(TEST_PRODUCT_ID)
     metadata = mh.from_udm_obj(udm_metadata)
-    assert metadata.__dict__ == {
-        "author": None,
-        "cover": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B160_X2.png",
-        "cover_small": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B110_X2.png",
-        "description": "Entdecken und verstehen - Schülerbuch als E-Book - 7. Schuljahr",
-        "modified": "2021-08-06",
-        "product_id": TEST_PRODUCT_ID,
-        "publisher": "Cornelsen",
-        "title": "Entdecken und verstehen",
-    }
+    assert metadata.__dict__ == TEST_META_DATA
 
 
 def test_repeated_cli_import(delete_metatdata_after_test, lo, mocker):
