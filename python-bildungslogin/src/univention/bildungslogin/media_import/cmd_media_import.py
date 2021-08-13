@@ -90,36 +90,37 @@ def import_all_media_data(client_id, client_secret, scope, auth_server, resource
         raise ScriptError(err)
 
 
+def get_config_from_file(filename):  # type: (str) -> Dict[str, Any]
+    config = {}
+    cp = configparser.ConfigParser()
+    try:
+        with open(filename, "r") as fd:
+            cp.read_file(fd)
+    except EnvironmentError as exc:
+        raise ScriptError("Failed to load config from {!r}: {!s}".format(filename, exc))
+    else:
+        if cp.has_option("Auth", "ClientId"):
+            config["client_id"] = cp["Auth"]["ClientId"]
+        if cp.has_option("Auth", "ClientSecret"):
+            config["client_secret"] = cp["Auth"]["ClientSecret"]
+        if cp.has_option("Auth", "Scope"):
+            config["scope"] = cp["Auth"]["Scope"]
+        if cp.has_option("APIEndpoint", "AuthServer"):
+            config["auth_server"] = cp["APIEndpoint"]["AuthServer"]
+        if cp.has_option("APIEndpoint", "ResourceServer"):
+            config["resource_server"] = cp["APIEndpoint"]["ResourceServer"]
+    return config
+
+
 def get_config(args):  # type: (argparse.Namespace) -> Dict[str, Any]
-    config = {
-        "auth_server": "https://global.telekom.com/gcp-web-api/oauth",
-        "resource_server": "https://www.bildungslogin-test.de/api",
-    }
 
     if args.config_file:
-        cp = configparser.ConfigParser()
-        try:
-            with open(args.config_file, "r") as fd:
-                cp.read_file(fd)
-        except EnvironmentError as exc:
-            raise ScriptError(
-                "Failed to load config from --config-file (%s): %s"
-                % (
-                    args.config_file,
-                    exc,
-                )
-            )
-        else:
-            if cp.has_option("Auth", "ClientId"):
-                config["client_id"] = cp["Auth"]["ClientId"]
-            if cp.has_option("Auth", "ClientSecret"):
-                config["client_secret"] = cp["Auth"]["ClientSecret"]
-            if cp.has_option("Auth", "Scope"):
-                config["scope"] = cp["Auth"]["Scope"]
-            if cp.has_option("APIEndpoint", "AuthServer"):
-                config["auth_server"] = cp["APIEndpoint"]["AuthServer"]
-            if cp.has_option("APIEndpoint", "ResourceServer"):
-                config["resource_server"] = cp["APIEndpoint"]["ResourceServer"]
+        config = get_config_from_file(args.config_file)
+    else:
+        config = {
+            "auth_server": "https://global.telekom.com/gcp-web-api/oauth",
+            "resource_server": "https://www.bildungslogin-test.de/api",
+        }
 
     if args.client_id:
         config["client_id"] = args.client_id
