@@ -81,7 +81,7 @@ def meta_data_rest_api_mock(meta_data):  # type: (List[Dict[str, Any]]) -> List[
             "status": 200,
             "query": {"id": md["product_id"]},
             "data": {
-                "publisher": md["publisher"],  # md[""]
+                "publisher": md["publisher"],
                 "coverSmall": {
                     "href": md["cover_small"],
                     "rel": "src",
@@ -147,7 +147,7 @@ def test_cli_import(delete_metatdata_after_test, mocker):
     cmd_media_import.main()
     udm_metadata = mh.get_meta_data_by_product_id(TEST_PRODUCT_ID)
     metadata = mh.from_udm_obj(udm_metadata)
-    assert metadata.__dict__ == TEST_META_DATA
+    assert metadata.__dict__ == TEST_META_DATA[0]
 
 
 def test_repeated_cli_import(delete_metatdata_after_test, lo, mocker):
