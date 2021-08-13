@@ -44,17 +44,18 @@ from univention.testing.utils import verify_ldap_object
 from univention.udm import UDM
 
 
-def test_license_type(license):
+def test_license_type(license_obj):
+    license = license_obj("foo")
     license.license_quantity = "10"
     assert license.license_type == LicenseType.VOLUME
     license.license_quantity = "1"
     assert license.license_type == LicenseType.SINGLE
 
 
-def test_create(lo, license_handler, license, ldap_base):
+def test_create(lo, license_handler, license_obj, ldap_base):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license.license_school = ou
+        license = license_obj(ou)
         license_handler.create(license)
         cn = sha256(license.license_code).hexdigest()
         license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
@@ -89,10 +90,10 @@ def test_create(lo, license_handler, license, ldap_base):
             license_handler.create(license)
 
 
-def test_get_assignments_for_license(license_handler, license):
+def test_get_assignments_for_license(license_handler, license_obj):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license.license_school = ou
+        license = license_obj(ou)
         license_handler.create(license)
         assignments = license_handler.get_assignments_for_license(license)
         for assignment in assignments:
@@ -100,22 +101,22 @@ def test_get_assignments_for_license(license_handler, license):
             assert assignment.license == license.license_code
 
 
-def test_get_total_number_of_licenses(license_handler, license):
+def test_get_total_number_of_licenses(license_handler, license_obj):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license.license_school = ou
+        license = license_obj(ou)
         license_handler.create(license)
         assert license_handler.get_total_number_of_assignments(license) == int(license.license_quantity)
 
 
-def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment_handler, license):
+def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment_handler, license_obj):
     # 00_vbm_test_assignments
     # the number of provisioned licenses is included in the number of assigned licenses
     num_students = 3
     num_teachers = 3
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license.license_school = ou
+        license = license_obj(ou)
         license_handler.create(license)
         student_usernames = [schoolenv.create_student(ou)[0] for _ in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
@@ -140,10 +141,10 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
         assert license_handler.get_number_of_available_assignments(license) == total_num - len(users)
 
 
-def test_get_number_of_expired_assignments(lo, license_handler, expired_license):
+def test_get_number_of_expired_assignments(lo, license_handler, expired_license_obj):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        expired_license.license_school = ou
+        expired_license = expired_license_obj(ou)
         license_handler.create(expired_license)
         license_obj = license_handler.get_udm_license_by_code(expired_license.license_code)
         udm = UDM(lo).version(1)
@@ -158,11 +159,11 @@ def test_get_number_of_expired_assignments(lo, license_handler, expired_license)
         assert license_handler.get_number_of_expired_assignments(expired_license) == expected_num
 
 
-def test_get_meta_data_for_license(license_handler, meta_data_handler, license, meta_data):
+def test_get_meta_data_for_license(license_handler, meta_data_handler, license_obj, meta_data):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
+        license = license_obj(ou)
         license.product_id = meta_data.product_id
-        license.license_school = ou
         license_handler.create(license)
         meta_data_handler.create(meta_data)
         meta_data = license_handler.get_meta_data_for_license(license)
@@ -176,10 +177,10 @@ def test_get_meta_data_for_license(license_handler, meta_data_handler, license, 
         assert meta_data.modified == meta_data.modified
 
 
-def test_get_time_of_last_assignment(license_handler, assignment_handler, license):
+def test_get_time_of_last_assignment(license_handler, assignment_handler, license_obj):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license.license_school = ou
+        license = license_obj(ou)
         license_handler.create(license)
         username, _ = schoolenv.create_student(ou)
         assignment_handler.assign_to_license(username=username, license_code=license.license_code)
@@ -188,11 +189,11 @@ def test_get_time_of_last_assignment(license_handler, assignment_handler, licens
         )
 
 
-def test_set_license_ignore(license_handler, assignment_handler, license, ldap_base):
+def test_set_license_ignore(license_handler, assignment_handler, license_obj, ldap_base):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
+        license = license_obj(ou)
         username = schoolenv.create_student(ou)[0]
-        license.license_school = ou
         license.ignored_for_display = "0"
         license_handler.create(license)
         cn = sha256(license.license_code).hexdigest()

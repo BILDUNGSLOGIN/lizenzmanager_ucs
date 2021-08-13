@@ -36,12 +36,11 @@
 import univention.testing.ucsschool.ucs_test_school as utu
 
 
-def test_search_for_license_code(license_handler, meta_data_handler, meta_data, license):
+def test_search_for_license_code(license_handler, meta_data_handler, meta_data, license_obj):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-
+        license = license_obj(ou)
         license.product_id = meta_data.product_id
-        license.license_school = ou
         license_handler.create(license)
         meta_data_handler.create(meta_data)
         res = license_handler.search_for_licenses(pattern=license.license_code, school=ou)

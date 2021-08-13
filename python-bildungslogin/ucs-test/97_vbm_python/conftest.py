@@ -38,7 +38,6 @@ import ldap
 import pytest
 
 import univention.testing.strings as uts
-import univention.testing.ucsschool.ucs_test_school as utu
 from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.bildungslogin.models import License, MetaData
@@ -59,9 +58,7 @@ def product_id():
     )
 
 
-def get_license():
-    with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
+def get_license(ou):
     today = datetime.datetime.now()
     start = today + datetime.timedelta(days=random.randint(0, 365))
     duration = "Unbeschränkt"
@@ -85,12 +82,12 @@ def get_license():
     )
 
 
-def get_expired_license():
+def get_expired_license(ou):
     """the validity_end_date < today"""
     today = datetime.datetime.now()
     duration = "Ein Schuljahr"
     start = today - datetime.timedelta(days=random.randint(2, 365))
-    license = get_license()
+    license = get_license(ou)
     license.validity_start_date = iso_format_date(start)
     license.validity_end_date = iso_format_date(today - datetime.timedelta(1))
     license.validity_duration = duration
@@ -98,25 +95,37 @@ def get_expired_license():
 
 
 @pytest.fixture(scope="function")
-def expired_license():
-    return get_expired_license()
+def expired_license_obj():
+    def _func(ou):
+        return get_expired_license(ou)
+
+    return _func
 
 
 @pytest.fixture(scope="function")
-def n_expired_licenses():
-    n = random.randint(1, 10)
-    return [expired_license() for _ in range(n)]
+def n_expired_licenses(expired_license_obj):
+    def _func(ou):
+        n = random.randint(1, 10)
+        return [expired_license_obj(ou) for _ in range(n)]
+
+    return _func
 
 
 @pytest.fixture(scope="function")
-def license():
-    return get_license()
+def license_obj():
+    def _func(ou):
+        return get_license(ou)
+
+    return _func
 
 
 @pytest.fixture(scope="function")
 def n_licenses():
-    n = random.randint(1, 10)
-    return [get_license() for _ in range(n)]
+    def _func(ou):
+        n = random.randint(1, 10)
+        return [get_license(ou) for _ in range(n)]
+
+    return _func
 
 
 def get_meta_data():
