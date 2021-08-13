@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: Sun, 08 Aug 2021 19:21:37 +0200\n"
+"POT-Creation-Date: Tue, 10 Aug 2021 18:21:18 +0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention GmbH <packages@univention.de>\n"
 "Language-Team: Univention GmbH <packages@univention.de>\n"
@@ -16,7 +16,7 @@ msgid "Assign licenses"
 msgstr "Lizenzen zuweisen"
 
 msgid "Assign licenses to users"
-msgstr ""
+msgstr "Lizenzen Benutzern zuweisen"
 
 msgid "Licensed products"
 msgstr "Lizenzierte Produkte"
@@ -26,6 +26,9 @@ msgstr "Lizenzen"
 
 msgid "Manage licenses"
 msgstr "Lizenzen bearbeiten"
+
+msgid "View licensed products"
+msgstr "Lizenzierte Produkte ansehen"
 
 #~ msgid "Allocate licenses"
 #~ msgstr "Lizenzen zuweisen"
