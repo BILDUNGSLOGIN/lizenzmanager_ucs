@@ -287,19 +287,19 @@ define([
 			}, {
 				name: 'countAquired',
 				label: _('Aquired'),
-				width: '60px',
+				width: 'adjust',
 			}, {
 				name: 'countAssigned',
 				label: _('Assigned'),
-				width: '60px',
+				width: 'adjust',
 			}, {
 				name: 'countExpired',
 				label: _('Expired'),
-				width: '60px',
+				width: 'adjust',
 			}, {
 				name: 'countAvailable',
 				label: _('Available'),
-				width: '60px',
+				width: 'adjust',
 			}, {
 				name: 'importDate',
 				label: _('Delivery'),

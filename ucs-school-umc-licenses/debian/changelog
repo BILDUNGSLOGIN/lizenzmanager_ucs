@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.0-6) unstable; urgency=medium
+
+  * Issue #23: adjust column widths
+
+ -- Johannes Keiser <keiser@univention.de>  Fri, 13 Aug 2021 12:42:24 +0200
+
 ucs-school-umc-licenses (0.1.0-5) unstable; urgency=medium
 
   * Issue #23: add backend call
