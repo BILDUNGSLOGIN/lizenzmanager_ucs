@@ -13,6 +13,7 @@
 - LDAP-ACL für Lizenz-, Metadaten- und Assignment-Objekte, diese Objekte können nun nur noch von Primary-Systemen, Backup-Systemen und Administratoren aus der LDAP Datenbank gelesen werden.
 - Die UMC-Module sind nun in der edukativen Kategorie der UMC, nicht mehr in der administrativen Kategorie.
 - LDAP-Schemata wurden angepasst um "case-insensitive" Suchen zu ermöglichen.
+- Nur absolute Pfade, für Buch-Cover, werden in den Metadaten gespeichert, sonst wird der Pfad durch einen leeren String ersetzt.
 
 ## 2021-08-06
 
