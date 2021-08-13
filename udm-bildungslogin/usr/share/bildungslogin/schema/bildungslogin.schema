@@ -123,7 +123,8 @@ attributetype ( vbmBildungslogin:203
 attributetype ( vbmBildungslogin:204
         NAME 'vbmMetaDataPublisher'
         DESC 'The publisher of the product'
-        EQUALITY caseExactMatch
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( vbmBildungslogin:205

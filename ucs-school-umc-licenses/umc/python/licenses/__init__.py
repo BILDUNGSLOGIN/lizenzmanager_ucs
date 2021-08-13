@@ -34,13 +34,11 @@
 
 from ucsschool.lib.school_umc_base import SchoolBaseModule
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
-from univention.bildungslogin.handlers import LicenseHandler
+from univention.bildungslogin.handlers import LicenseHandler, MetaDataHandler
 from univention.lib.i18n import Translation
 from univention.management.console.log import MODULE
-from univention.management.console.modules.decorators import simple_response
-
-#  from univention.management.console.modules.decorators import sanitize, simple_response
-#  from univention.management.console.modules.sanitizers import PatternSanitizer
+from univention.management.console.modules.decorators import sanitize, simple_response
+from univention.management.console.modules.sanitizers import LDAPSearchSanitizer, StringSanitizer
 
 _ = Translation("ucs-school-umc-licenses").translate
 
@@ -235,45 +233,49 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.query: results: %s" % str(result))
         self.finished(request.id, result)
 
-    # TODO real backend call
-    def products_query(self, request):
+    @sanitize(
+        school=StringSanitizer(required=True),
+        pattern=LDAPSearchSanitizer(),
+    )
+    @LDAP_Connection(USER_WRITE)
+    def products_query(self, request, ldap_user_write=None):
         """Searches for products
         requests.options = {
-            school
-            pattern
+            school:  str
+            pattern: str
         }
         """
         MODULE.info("licenses.products.query: options: %s" % str(request.options))
-        result = [
-            {
-                "productId": "xxx-x-xxx",
-                "productName": "Produkt A",
-                "publisher": "Verlag A",
-                "countAquired": 25,
-                "countAssigned": 10,
-                "countAvailable": 15,
-                "countExpired": 0,
-                "lastImportDate": "2021-08-08",
-                "cover": "",
-            },
-            {
-                "productId": "yyy-y-yyy",
-                "productName": "Produkt B",
-                "publisher": "Verlag B",
-                "countAquired": 25,
-                "countAssigned": 10,
-                "countAvailable": 15,
-                "countExpired": 0,
-                "lastImportDate": "2021-07-07",
-                "cover": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Eiffel_Tower_Vertical.JPG",
-            },
-        ]
-
-        MODULE.info("licenses..products.query: results: %s" % str(result))
+        result = []
+        mh = MetaDataHandler(ldap_user_write)
+        school = request.options.get("school")
+        pattern = request.options.get("pattern")
+        filter_s = "(|(product_id={0})(title={0})(publisher={0}))".format(pattern)
+        meta_data_objs = mh.get_all(filter_s)
+        for meta_datum_obj in meta_data_objs:
+            licenses = mh.get_udm_licenses_by_product_id(meta_datum_obj.product_id)
+            licenses = [license for license in licenses if license.props.school == school]
+            if licenses:
+                result.append(
+                    {
+                        "productId": meta_datum_obj.product_id,
+                        "title": meta_datum_obj.title,
+                        "publisher": meta_datum_obj.publisher,
+                        "cover": meta_datum_obj.cover_small or meta_datum_obj.cover,
+                        "countAquired": mh.get_total_number_of_assignments(meta_datum_obj, school),
+                        "countAssigned": mh.get_number_of_provisioned_and_assigned_assignments(
+                            meta_datum_obj, school
+                        ),
+                        "countExpired": mh.get_number_of_expired_assignments(meta_datum_obj, school),
+                        "countAvailable": mh.get_number_of_available_assignments(meta_datum_obj, school),
+                        "latestDeliveryDate": max([license.props.delivery_date for license in licenses]),
+                    }
+                )
+        MODULE.info("licenses.products.query: results: %s" % str(result))
         self.finished(request.id, result)
 
-    # TODO real backend call
-    def products_get(self, request):
+    @LDAP_Connection(USER_WRITE)
+    def products_get(self, request, ldap_user_write=None):
         """Get a product
         requests.options = {
             school

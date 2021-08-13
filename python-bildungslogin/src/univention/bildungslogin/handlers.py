@@ -344,30 +344,54 @@ class MetaDataHandler:
         licenses_of_product = self.get_udm_licenses_by_product_id(product_id)
         return [udm_license for udm_license in licenses_of_product if udm_license.props.ignored != "1"]
 
-    def get_number_of_available_assignments(self, meta_data):  # type: (MetaData) -> int
+    def get_number_of_available_assignments(
+        self, meta_data, school=None
+    ):  # type: (MetaData, Optional[str]) -> int
         """count the number of assignments with status available"""
         licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
+        if school:
+            licenses_of_product = [
+                license for license in licenses_of_product if license.props.school == school
+            ]
         return sum(
             [my_string_to_int(udm_license.props.num_available) for udm_license in licenses_of_product]
         )
 
-    def get_number_of_provisioned_and_assigned_assignments(self, meta_data):  # type: (MetaData) -> int
+    def get_number_of_provisioned_and_assigned_assignments(
+        self, meta_data, school=None
+    ):  # type: (MetaData, Optional[str]) -> int
         """count the number of assignments with status provisioned or assigned"""
         licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
+        if school:
+            licenses_of_product = [
+                license for license in licenses_of_product if license.props.school == school
+            ]
         return sum(
             [my_string_to_int(udm_license.props.num_assigned) for udm_license in licenses_of_product]
         )
 
-    def get_number_of_expired_assignments(self, meta_data):  # type: (MetaData) -> int
+    def get_number_of_expired_assignments(
+        self, meta_data, school=None
+    ):  # type: (MetaData, Optional[str]) -> int
         """count the number of assignments with status expired"""
         licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
+        if school:
+            licenses_of_product = [
+                license for license in licenses_of_product if license.props.school == school
+            ]
         return sum(
             [my_string_to_int(udm_license.props.num_expired) for udm_license in licenses_of_product]
         )
 
-    def get_total_number_of_assignments(self, meta_data):  # type: (MetaData) -> int
+    def get_total_number_of_assignments(
+        self, meta_data, school=None
+    ):  # type: (MetaData, Optional[str]) -> int
         """count the total number of assignments"""
         licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
+        if school:
+            licenses_of_product = [
+                license for license in licenses_of_product if license.props.school == school
+            ]
         return sum([my_string_to_int(udm_license.props.quantity) for udm_license in licenses_of_product])
 
     def get_meta_data_by_product_id(self, product_id):  # type: (str) -> UdmObject
