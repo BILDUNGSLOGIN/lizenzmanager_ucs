@@ -37,6 +37,7 @@ from hashlib import sha256
 
 import univention.testing.strings as uts
 import univention.testing.ucsschool.ucs_test_school as utu
+from univention.bildungslogin.handlers import BiloAssignmentError
 from univention.bildungslogin.utils import Status
 from univention.testing.utils import verify_ldap_object
 
@@ -109,6 +110,77 @@ def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_
         )
 
 
+def test_total_number_licenses2(
+    license_handler, license_obj, expired_license_obj, meta_data, meta_data_handler
+):
+    with utu.UCSTestSchool() as schoolenv:
+        conf = _prepare_all_license_combinations(
+            schoolenv, license_handler, license_obj, expired_license_obj, meta_data
+        )
+        # only
+        # l_ou_r_pr_r_ifd_f_e_f
+        # license ou_related product_related !ignored_for_display expired
+        # and
+        # l_ou_r_pr_r_ifd_f_e_t
+        # license ou_related product_related !ignored_for_display !expired
+        # should count
+        expected_num = 2
+        assert (
+            meta_data_handler.get_total_number_of_assignments(conf["meta_data"], conf["ou_related"])
+            == expected_num
+        )
+
+
+def _prepare_all_license_combinations(
+    schoolenv,
+    license_handler,
+    license_obj,
+    expired_license_obj,
+    meta_data,
+    license_quantity=1,
+    assign_users=False,
+):
+    ou_related, _ = schoolenv.create_ou()
+    ou_unrelated = uts.random_name()
+    while ou_related == ou_unrelated:
+        ou_unrelated = uts.random_name()
+    ou_unrelated, _ = schoolenv.create_ou(ou_unrelated)
+    product_id_related = "xxx"
+    product_id_unrelated = "yyy"
+    meta_data.product_id = product_id_related
+
+    ret = {
+        "ou_related": ou_related,
+        "ou_unrelated": ou_unrelated,
+        "meta_data": meta_data,
+        "assignment": [],
+    }
+    for is_ou_related in [True, False]:
+        for is_product_id_related in [True, False]:
+            for is_ignored_for_display in [True, False]:
+                for is_expired in [True, False]:
+                    key = "l_{}_{}_{}_{}".format(
+                        "ou_r" if is_ou_related else "ou_ur",
+                        "pr_r" if is_product_id_related else "pr_ur",
+                        "ifd_t" if is_ignored_for_display else "ifd_f",
+                        "e_t" if is_expired else "e_f",
+                    )
+                    ou = ou_related if is_ou_related else ou_unrelated
+                    product_id = product_id_related if is_product_id_related else product_id_unrelated
+                    ignored_for_display = "1" if is_ignored_for_display else "0"
+                    func = expired_license_obj if is_expired else license_obj
+                    ret[key] = func(ou)
+                    ret[key].product_id = product_id
+                    ret[key].ignored_for_display = ignored_for_display
+                    ret[key].license_quantity = license_quantity
+                    license_handler.create(ret[key])
+                    if assign_users:
+                        skey = "s" + key[1:]
+                        ret[skey] = [schoolenv.create_student(ou)[0] for i in range(2)]
+                        ret["assignment"].append((ret[skey], ret[key]))
+    return ret
+
+
 def test_number_of_provisioned_and_assigned_licenses(
     license_handler,
     meta_data_handler,
@@ -150,6 +222,61 @@ def test_number_of_provisioned_and_assigned_licenses(
         assert meta_data_handler.get_number_of_available_assignments(meta_data) == total_num - len(users)
 
 
+def test_number_of_provisioned_and_assigned_licenses2(
+    license_handler,
+    meta_data_handler,
+    assignment_handler,
+    meta_data,
+    license_obj,
+    expired_license_obj,
+):
+    with utu.UCSTestSchool() as schoolenv:
+        license_quantity = 3
+        conf = _prepare_all_license_combinations(
+            schoolenv,
+            license_handler,
+            license_obj,
+            expired_license_obj,
+            meta_data,
+            license_quantity=license_quantity,
+            assign_users=True,
+        )
+        ou_related = conf["ou_related"]
+        meta_data = conf["meta_data"]
+        assignment = conf["assignment"]
+        for (student_usernames, license) in assignment:
+            assignment_handler.assign_users_to_licenses(
+                usernames=student_usernames, license_codes=[license.license_code]
+            )
+        # only the assignments in l_ou_r_pr_r_ifd_f_e_f should be counted
+        expected_num = len(conf["s_ou_r_pr_r_ifd_f_e_f"])
+        num_assigned = meta_data_handler.get_number_of_provisioned_and_assigned_assignments(
+            meta_data, ou_related
+        )
+        assert num_assigned == expected_num
+        for (student_usernames, license) in assignment:
+            try:
+                assignment_handler.change_license_status(
+                    username=student_usernames[0],
+                    license_code=license.license_code,
+                    status=Status.PROVISIONED,
+                )
+            except BiloAssignmentError:
+                pass
+        # after provisioning the code to some users, the number should still be the same.
+        num_assigned = meta_data_handler.get_number_of_provisioned_and_assigned_assignments(
+            meta_data, ou_related
+        )
+        assert num_assigned == expected_num
+        # num_aquired should be 2 times license_quantity
+        # (l_ou_r_pr_r_ifd_f_e_f.license_quantity + l_ou_r_pr_r_ifd_f_e_t.license_quantity)
+        num_aquired = meta_data_handler.get_total_number_of_assignments(meta_data, ou_related)
+        # num_available should be to 1 times license_quantity - num of assigned licenses
+        # (l_ou_r_pr_r_ifd_f_e_f - len(s_ou_r_pr_r_ifd_f_e_f))
+        num_available = meta_data_handler.get_number_of_available_assignments(meta_data, ou_related)
+        assert num_available == num_aquired - expected_num - license_quantity
+
+
 def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_data, n_expired_licenses):
     total_amount_of_licenses_for_product = 0
     with utu.UCSTestSchool() as schoolenv:
@@ -165,6 +292,20 @@ def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_dat
             meta_data_handler.get_number_of_expired_assignments(meta_data)
             == total_amount_of_licenses_for_product
         )
+
+
+def test_number_of_expired_licenses2(
+    license_handler, meta_data_handler, meta_data, license_obj, expired_license_obj
+):
+    with utu.UCSTestSchool() as schoolenv:
+        conf = _prepare_all_license_combinations(
+            schoolenv, license_handler, license_obj, expired_license_obj, meta_data
+        )
+        ou_related = conf["ou_related"]
+        meta_data = conf["meta_data"]
+        # only l_ou_r_pr_r_ifd_f_e_f should count
+        expected_num = 1
+        assert meta_data_handler.get_number_of_expired_assignments(meta_data, ou_related) == expected_num
 
 
 def test_get_all_product_ids(meta_data_handler, n_meta_data):
