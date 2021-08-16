@@ -65,7 +65,7 @@ class ArgsMock:
     product_ids = [TEST_PRODUCT_ID]
 
 
-def get_config_mock(*args, **kwargs):
+def get_config_mock(*args, **kwargs):  # type: (*Any, **Any) -> Dict[str, Any]
     return {
         "client_id": None,
         "client_secret": None,
@@ -117,7 +117,7 @@ def parse_args_mock(*args, **kwargs):
 def delete_metatdata_after_test():
     product_ids = []
 
-    def _func(product_id):
+    def _func(product_id):  # type: (str) -> None
         product_ids.append(product_id)
 
     yield _func
@@ -165,16 +165,17 @@ def test_repeated_cli_import(delete_metatdata_after_test, lo, mocker):
     mocker.patch("univention.bildungslogin.media_import.cmd_media_import.get_access_token")
     delete_metatdata_after_test(TEST_PRODUCT_ID)
     cmd_media_import.main()
-    entry_uuids = lo.searchDn("(&(objectClass=vbmMetaData)(vbmProductId={}))".format(TEST_PRODUCT_ID))
+    filter_s = "(&(objectClass=vbmMetaData)(vbmProductId={}))".format(TEST_PRODUCT_ID)
+    entry_uuids = lo.searchDn(filter_s)
     assert len(entry_uuids) == 1
     entry_uuid1 = entry_uuids[0]
     cmd_media_import.main()
-    entry_uuids = lo.searchDn("(&(objectClass=vbmMetaData)(vbmProductId={}))".format(TEST_PRODUCT_ID))
+    entry_uuids = lo.searchDn(filter_s)
     assert len(entry_uuids) == 1
     entry_uuid2 = entry_uuids[0]
     assert entry_uuid1 == entry_uuid2
     cmd_media_import.main()
-    entry_uuids = lo.searchDn("(&(objectClass=vbmMetaData)(vbmProductId={}))".format(TEST_PRODUCT_ID))
+    entry_uuids = lo.searchDn(filter_s)
     assert len(entry_uuids) == 1
     entry_uuid3 = entry_uuids[0]
     assert entry_uuid1 == entry_uuid3
