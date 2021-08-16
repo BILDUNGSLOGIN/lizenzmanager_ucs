@@ -43,6 +43,7 @@ def test_save_last_update_timestamp():
         assert fp.read() == str(num)
 
 
+@patch("univention.bildungslogin.handlers.UDM")
 @patch("univention.bildungslogin.media_import.cmd_media_update.save_last_update_timestamp")
 @patch(
     "univention.bildungslogin.media_import.cmd_media_update.load_last_update_timestamp", return_value=0
@@ -68,6 +69,7 @@ def test_update_ldap_meta_data(
     import_multiple_raw_media_data,
     load_last_update_timestamp_mock,
     save_last_update_timestamp_mock,
+    udm_mock,
 ):
     """Test the meta data update function."""
     # product IDs in LDAP:
