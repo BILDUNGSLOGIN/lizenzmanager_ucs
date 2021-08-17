@@ -66,7 +66,7 @@ def test_update_ldap_meta_data(
     get_access_token_mock,
     retrieve_media_feed_mock,
     retrieve_media_data_mock,
-    import_multiple_raw_media_data,
+    import_multiple_raw_media_data_mock,
     load_last_update_timestamp_mock,
     save_last_update_timestamp_mock,
     udm_mock,
@@ -103,7 +103,7 @@ def test_update_ldap_meta_data(
     assert get_access_token_mock.called_once()
     assert retrieve_media_feed_mock.called_once()
     assert save_last_update_timestamp_mock.called_once()
-    assert import_multiple_raw_media_data.called_once()
+    assert import_multiple_raw_media_data_mock.called_once()
 
     assert retrieve_media_data_mock.called
     assert retrieve_media_data_mock.call_args == call(
