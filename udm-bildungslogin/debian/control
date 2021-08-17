@@ -22,8 +22,9 @@ Package: ucs-test-vbm-udm
 Architecture: all
 Depends:
  ${misc:Depends},
- ucs-test-framework,
  python-pytest,
+ python-univention-directory-manager (>= 14.0.20-14),
+ ucs-test-framework,
 Description: test the udm modules for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),
