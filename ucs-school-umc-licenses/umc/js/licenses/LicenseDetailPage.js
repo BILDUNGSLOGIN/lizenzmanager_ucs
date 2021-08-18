@@ -31,6 +31,8 @@
 define([
 	"dojo/_base/declare",
 	"dojo/_base/lang",
+	"dojo/dom-class",
+	"dojo/on",
 	"dojo/store/Memory",
 	"dojo/store/Observable",
 	"dijit/_WidgetBase",
@@ -41,9 +43,10 @@ define([
 	"umc/widgets/Page",
 	"umc/widgets/Grid",
 	"umc/widgets/CheckBox",
+	"umc/widgets/ContainerWidget",
 	"put-selector/put",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, Memory, Observable, _WidgetBase, _TemplatedMixin, entities, tools, dialog, Page, Grid, CheckBox, put, _) {
+], function(declare, lang, domClass, on, Memory, Observable, _WidgetBase, _TemplatedMixin, entities, tools, dialog, Page, Grid, CheckBox, ContainerWidget, put, _) {
 
 	const _Table = declare("umc.modules.licenses.Table", [_WidgetBase, _TemplatedMixin], {
 		//// overwrites
@@ -52,6 +55,10 @@ define([
 				<div
 					class="licensesTable__coverWrapper"
 				>
+					<div
+						data-dojo-attach-point="_coverFallbackNode"
+						class="licensesTable__coverFallback"
+					></div>
 					<img
 						data-dojo-attach-point="_coverNode"
 						class="licensesTable__cover"
@@ -70,20 +77,42 @@ define([
 
 		license: null,
 		_setLicenseAttr: function(license) {
-			this._coverNode.src = license.cover;
-			this._tableNode.innerHTML = '';
+			domClass.remove(this._coverFallbackNode, 'dijitDisplayNone');
+			domClass.add(this._coverNode, 'dijitDisplayNone');
+			if (license.cover) {
+				this._coverFallbackNode.innerHTML = _('Loading cover...');
+				const img = new Image();
+				on(img, 'load', lang.hitch(this, function() {
+					domClass.add(this._coverFallbackNode, 'dijitDisplayNone');
+					domClass.remove(this._coverNode, 'dijitDisplayNone');
+					this._coverNode.src = license.cover;
+				}));
+				on(img, 'error', lang.hitch(this, function() {
+					this._coverFallbackNode.innerHTML = _('No cover available');
+				}));
+				img.src = license.cover;
+			} else {
+				this._coverFallbackNode.innerHTML = _('No cover available');
+			}
 
+			this._tableNode.innerHTML = '';
 			function e(id) {
 				let val = license[id];
+				if (val === null) {
+					val = '';
+				}
 				if (typeof val === 'string') {
-					val = entities.encode(val);
+					val = entities.encode(val) || '---';
 				}
 				return val;
 			}
 
 			const ignore = lang.hitch(this, function ignore() {
 				this._ignore = new CheckBox({
-					value: license.ignore
+					value: license.ignore,
+					onChange: lang.hitch(this, function() {
+						this.onIgnoreCheckBoxClicked();
+					}),
 				});
 				return this._ignore.domNode;
 			});
@@ -96,9 +125,9 @@ define([
 				[_('Platform'),        e('platform'),       _('Validity span'),  e('validitySpan')],
 				[_('License code'),    e('licenseCode'),    _('Ignore'),         ignore()],
 				[_('License type'),    e('licenseType'),    _('Aquired'),        e('countAquired')],
-				[_('Reference'),       e('reference'),      _('Assigned'),       e('countAllocated')],
+				[_('Reference'),       e('reference'),      _('Assigned'),       e('countAssigned')],
 				[_('Special license'), e('specialLicense'), _('Expired'),        e('countExpired')],
-				['',                   '',                  _('Available'),      e('countAllocatable')],
+				['',                   '',                  _('Available'),      e('countAvailable')],
 			];
 
 			for (const row of data) {
@@ -110,6 +139,10 @@ define([
 				);
 			}
 			this._set('license', license);
+		},
+
+		onIgnoreCheckBoxClicked: function() {
+			// evt stub
 		},
 
 		ignoreChanged: function() {
@@ -141,10 +174,11 @@ define([
 		load: function(licenseId) {
 			return this.standbyDuring(
 				tools.umcpCommand('licenses/get', {
-					licenseId: licenseId,
+					licenseCode: licenseId,
 				}).then(lang.hitch(this, function(response) {
 					const license = response.result;
 					this.set('license', license);
+					this._headerButtons.save.set('disabled', true);
 					return license.licenseCode;
 				}))
 			);
@@ -155,21 +189,38 @@ define([
 				this.onBack();
 			} else {
 				this.standbyDuring(tools.umcpCommand('licenses/set_ignore', {
-					license_id: this.license.licenseId,
+					licenseCode: this.license.licenseCode,
 					ignore: this._table.getIgnore(),
 				}).then(lang.hitch(this, function(response) {
-					console.log(response);
-					this.onBack();
+					const result = response.result;
+					if (result.errorMessage) {
+						dialog.alert(result.errorMessage);
+					} else {
+						this.onBack();
+					}
 				})));
 			}
 		},
 
-		removeLicense: function(userDNs) {
+		removeLicenseFromUsers: function(usernames) {
 			tools.umcpCommand('licenses/remove_from_users', {
-				user_dns: userDNs,
+				licenseCode: this.license.licenseCode,
+				usernames: usernames,
 			}).then(lang.hitch(this, function(response) {
-				console.log(response);
-				// TODO update Grid
+				this.load(this.license.licenseCode);
+				const failedAssignments = response.result.failedAssignments;
+				if (failedAssignments.length) {
+					const containerWidget = new ContainerWidget({});
+					const container = put(containerWidget.domNode, 'div');
+					put(container, 'p', _('The license could not be removed from the following users:'));
+					const table = put(container, 'table');
+					for (let failedAssignment of failedAssignments) {
+						const tr = put(table, 'tr');
+						put(tr, 'td', entities.encode(failedAssignment.username));
+						put(tr, 'td', entities.encode(failedAssignment.error));
+					}
+					dialog.alert(containerWidget);
+				}
 			}));
 		},
 
@@ -209,19 +260,22 @@ define([
 			this.inherited(arguments);
 
 			this._table = new _Table({});
+			on(this._table, 'ignoreCheckBoxClicked', lang.hitch(this, function() {
+				this._headerButtons.save.set('disabled', !this._table.ignoreChanged());
+			}));
 
 			const actions = [{
 				name: 'delete',
-				label: _('Remove license'),
+				label: _('Remove assignment'),
 				isStandardAction: true,
 				isContextAction: true,
 				isMultiAction: true,
 				canExecute: function(user) {
-					return user.status === 'allocated';
+					return user.status === 'ASSIGNED';
 				},
 				callback: lang.hitch(this, function(idxs, users) {
-					this.removeLicense(users.map(function(user) {
-						return user.dn;
+					this.removeLicenseFromUsers(users.map(function(user) {
+						return user.username;
 					}));
 				}),
 			}];
@@ -229,10 +283,10 @@ define([
 				name: 'username',
 				label: _('User'),
 			}, {
-				name: 'status',
+				name: 'statusName',
 				label: _('Status'),
 			}, {
-				name: 'allocationDate',
+				name: 'dateOfAssignment',
 				label: _('Date of assignment'),
 			}];
 			this._grid = new Grid({
@@ -240,7 +294,7 @@ define([
 				columns: columns,
 				moduleStore: new Observable(new Memory({
 					data: [],
-					idProperty: 'dn'
+					idProperty: 'username'
 				})),
 			});
 

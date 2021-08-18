@@ -43,7 +43,6 @@ from univention.udm import UDM, CreateError, ModifyError, NoObject as UdmNoObjec
 from .exceptions import (
     BiloAssignmentError,
     BiloCreateError,
-    BiloLicenseInvalidError,
     BiloLicenseNotFoundError,
     BiloProductNotFoundError,
 )
@@ -62,6 +61,7 @@ class LicenseHandler:
         self._licenses_mod = udm.get("vbm/license")
         self._assignments_mod = udm.get("vbm/assignment")
         self._meta_data_mod = udm.get("vbm/metadata")
+        self._users_mod = udm.get("users/user")
         self.ah = AssignmentHandler(lo)
         self.logger = logging.getLogger(__name__)
 
@@ -93,19 +93,31 @@ class LicenseHandler:
         for i in range(int(license.license_quantity)):
             self.ah.create_assignment_for_license(license_code=license.license_code)
 
-    def set_license_ignore(self, license_code, ignore):  # type: (str, bool) -> None
+    def get_assigned_users(self, license):
+        users = [
+            {
+                "username": a.assignee,
+                "status": a.status,
+                "statusName": Status.name(a.status),
+                "dateOfAssignment": a.time_of_assignment,
+            }
+            for a in self.get_assignments_for_license_with_filter(license, "(assignee=*)")
+        ]
+        for user in users:
+            udm_user = self._users_mod.search(filter_format("(entryUUID=%s)", [user["username"]])).next()
+            user["username"] = udm_user.props.username
+        return users
+
+    def set_license_ignore(self, license_code, ignore):  # type: (str, bool) -> bool
         udm_obj = self.get_udm_license_by_code(license_code)
         if my_string_to_int(udm_obj.props.num_assigned) != 0:
-            raise BiloLicenseInvalidError(
-                _(
-                    "License with code {lc!r} already has {num} assignments. It can't be the set to "
-                    "ignored!"
-                ).format(lc=license_code, num=udm_obj.props.num_assigned)
-            )
+            # can't set ignore if license has assigned users.
+            return False
         ignore = "1" if ignore else "0"
         udm_obj.props.ignored = ignore
         udm_obj.save()
         self.logger.debug("Set License status %r: %r", udm_obj.dn, udm_obj.props)
+        return True
 
     @staticmethod
     def from_udm_obj(udm_obj):  # type: (UdmObject) -> License
@@ -662,9 +674,9 @@ class AssignmentHandler:
             )
             return result
 
-        # sort licenses by validity_end_data
+        # sort licenses by validity_end_date
         licenses.sort(key=lambda x: x.props.validity_end_date)
-        # move licenses without validity_end_data to end of list
+        # move licenses without validity_end_date to end of list
         licenses.sort(key=lambda x: bool(x.props.validity_end_date), reverse=True)
 
         # assign licenses
@@ -755,9 +767,12 @@ class AssignmentHandler:
             raise BiloAssignmentError(_("Invalid assignment status change!\n{exc}").format(exc=exc))
         return True
 
-    def remove_assignment_from_users(self, license_code, usernames):  # type: (str, List[str]) -> int
+    def remove_assignment_from_users(
+        self, license_code, usernames
+    ):  # type: (str, List[str]) -> List[tuple[str, str]]
         # TODO: result wie oben, mit user-dn statt lic-code
         num_removed_correct = 0
+        failed_assignments = []
         for username in usernames:
             try:
                 success = self.change_license_status(
@@ -765,9 +780,9 @@ class AssignmentHandler:
                 )
                 if success:
                     num_removed_correct += 1
-            except BiloAssignmentError:
+            except BiloAssignmentError as err:
                 # Error handling should be done in the umc - layer
-                pass
+                failed_assignments.append((username, str(err)))
 
         self.logger.info(
             "Removed %r/%r user-assignment to license code %r.",
@@ -775,4 +790,4 @@ class AssignmentHandler:
             len(usernames),
             license_code,
         )
-        return num_removed_correct
+        return failed_assignments

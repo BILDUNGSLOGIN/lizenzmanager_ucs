@@ -33,13 +33,25 @@ from typing import List
 
 from ldap.filter import escape_filter_chars
 
+from univention.lib.i18n import Translation
+
 _reg_white_spaces = re.compile(r"\s+")
+
+_ = Translation("vbm-bildungslogin").translate
 
 
 class Status(object):
     ASSIGNED = "ASSIGNED"
     PROVISIONED = "PROVISIONED"
     AVAILABLE = "AVAILABLE"
+
+    @classmethod
+    def name(cls, status):
+        return {
+            cls.ASSIGNED: _("Assigned"),
+            cls.PROVISIONED: _("Provisioned"),
+            cls.AVAILABLE: _("Available"),
+        }[status]
 
 
 class LicenseType:

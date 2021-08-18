@@ -34,11 +34,16 @@
 
 from ucsschool.lib.school_umc_base import SchoolBaseModule
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
-from univention.bildungslogin.handlers import LicenseHandler, MetaDataHandler
+from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.lib.i18n import Translation
 from univention.management.console.log import MODULE
 from univention.management.console.modules.decorators import sanitize, simple_response
-from univention.management.console.modules.sanitizers import LDAPSearchSanitizer, StringSanitizer
+from univention.management.console.modules.sanitizers import (
+    BooleanSanitizer,
+    LDAPSearchSanitizer,
+    ListSanitizer,
+    StringSanitizer,
+)
 
 _ = Translation("ucs-school-umc-licenses").translate
 
@@ -78,71 +83,53 @@ class Instance(SchoolBaseModule):
             license_code=request.options.get("licenseCode"),
             pattern=request.options.get("pattern"),
         )
-        MODULE.info("licenses.query: results: %s" % str(result))
+        MODULE.info("licenses.query: result: %s" % str(result))
         self.finished(request.id, result)
 
-    # TODO real backend call
-    @simple_response
-    def get(self, licenseId):
-        MODULE.info("licenses.get: licenseId: %s" % str(licenseId))
-        if licenseId == 0:
-            users = [
-                {"dn": "dn1", "username": "max", "status": "allocated", "allocationDate": "2021-02-13"},
-                {
-                    "dn": "dn2",
-                    "username": "bobby",
-                    "status": "allocated",
-                    "allocationDate": "2021-03-13",
-                },
-                {
-                    "dn": "dn3",
-                    "username": "daniel",
-                    "status": "provisioned",
-                    "allocationDate": "2021-02-08",
-                },
-            ]
-        else:
-            users = [
-                {"dn": "dn4", "username": "xena", "status": "allocated", "allocationDate": "2021-02-13"},
-                {
-                    "dn": "dn5",
-                    "username": "arnold",
-                    "status": "allocated",
-                    "allocationDate": "2021-03-13",
-                },
-                {
-                    "dn": "dn6",
-                    "username": "danny",
-                    "status": "provisioned",
-                    "allocationDate": "2021-02-08",
-                },
-            ]
+    @sanitize(
+        #  school=StringSanitizer(required=True),
+        licenseCode=StringSanitizer(required=True),
+    )
+    @LDAP_Connection(USER_WRITE)
+    def get_license(self, request, ldap_user_write=None):
+        """Get single license + meta data + assigned users
+        requests.options = {
+            #  school -- schoolId
+            licenseCode -- str
+        }
+        """
+        MODULE.info("licenses.get: options: %s" % str(request.options))
+        # TODO should the school be incorperated in getting the license?
+        # school = request.options.get("school")
+        license_code = request.options.get("licenseCode")
+        lh = LicenseHandler(ldap_user_write)
+        license = lh.from_udm_obj(lh.get_udm_license_by_code(license_code))
+        meta_data = lh.get_meta_data_for_license(license)
         result = {
-            "licenseId": 0,
-            "productId": "xxx-x-xxxxx-xxx-x",
-            "productName": "Produkt A",
-            "publisher": "Verlag XYZ",
-            "licenseCode": "XYZ-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx",
-            "licenseType": "Volumenlizenz",
-            "countAquired": 25,
-            "countAllocated": 15,
-            "countExpired": 0,
-            "countAllocatable": 10,
-            "importDate": "2021-05-12",
-            "author": "Author ABC",
-            "platform": "All",
-            "reference": "reference",
-            "specialLicense": "Demo license",
-            "usage": "http://schule.de",
-            "validityStart": "2021-05-12",
-            "validityEnd": "2021-05-12",
-            "validitySpan": "12",
-            "ignore": True,
-            "cover": "https://edit.org/images/cat/book-covers-big-2019101610.jpg",
-            "users": users,
+            "countAquired": lh.get_total_number_of_assignments(license),
+            "countAssigned": lh.get_number_of_provisioned_and_assigned_assignments(license),
+            "countAvailable": lh.get_number_of_available_assignments(license),
+            "countExpired": lh.get_number_of_expired_assignments(license),
+            "ignore": True if license.ignored_for_display == "1" else False,
+            "importDate": license.delivery_date,
+            "licenseCode": license.license_code,
+            "licenseType": license.license_type,
+            "platform": license.utilization_systems,
+            "productId": license.product_id,
+            "reference": license.purchasing_reference,
+            "specialLicense": license.license_special_type,
+            "usage": license.utilization_systems,
+            "validityStart": license.validity_start_date,
+            "validityEnd": license.validity_end_date,
+            "validitySpan": license.validity_duration,
+            "author": meta_data.author,
+            "cover": meta_data.cover or meta_data.cover_small,
+            "productName": meta_data.title,
+            "publisher": meta_data.publisher,
+            "users": lh.get_assigned_users(license),
         }
         MODULE.info("licenses.get: result: %s" % str(result))
-        return result
+        self.finished(request.id, result)
 
     # TODO real backend call
     @simple_response
@@ -153,7 +140,7 @@ class Instance(SchoolBaseModule):
             #  {"id": "Verlag ABC", "label": "Verlag ABC"},
             #  {"id": "Verlag KLM", "label": "Verlag KLM"},
         ]
-        MODULE.info("licenses.publishers: results: %s" % str(result))
+        MODULE.info("licenses.publishers: result: %s" % str(result))
         return result
 
     # TODO real backend call
@@ -164,26 +151,56 @@ class Instance(SchoolBaseModule):
             #  {"id": "Volumenlizenz", "label": _("Volumenlizenz")},
             #  {"id": "Einzellizenz", "label": _("Einzellizenz")},
         ]
-        MODULE.info("licenses.license_types: results: %s" % str(result))
+        MODULE.info("licenses.license_types: result: %s" % str(result))
         return result
 
-    # TODO real backend call
-    @simple_response
-    def set_ignore(self, license_id, ignore):
-        MODULE.info(
-            "licenses.set_ignore: license_id: %s ignore: %s"
-            % (
-                license_id,
-                ignore,
-            )
-        )
-        return True
+    @sanitize(
+        licenseCode=StringSanitizer(required=True),
+        ignore=BooleanSanitizer(required=True),
+    )
+    @LDAP_Connection(USER_WRITE)
+    def set_ignore(self, request, ldap_user_write=None):
+        """Set 'ignored' attribute of a license
+        requests.options = {
+            licenseCode -- str
+            ignore -- boolean
+        }
+        """
+        MODULE.info("licenses.set_ignore: options: %s" % str(request.options))
+        license_code = request.options.get("licenseCode")
+        ignore = request.options.get("ignore")
+        lh = LicenseHandler(ldap_user_write)
+        success = lh.set_license_ignore(license_code, ignore)
+        result = {
+            "errorMessage": ""
+            if success
+            else _("The 'Ignore' status can't be changed because the license has assigned users.")
+        }
+        MODULE.info("licenses.set_ignore: result: %s" % str(result))
+        self.finished(request.id, result)
 
-    # TODO real backend call
-    @simple_response
-    def remove_from_users(self, user_dns):
-        MODULE.info("licenses.set_ignore: user_dns: %s" % (user_dns,))
-        return True
+    @sanitize(
+        licenseCode=StringSanitizer(required=True),
+        usernames=ListSanitizer(required=True),
+    )
+    @LDAP_Connection(USER_WRITE)
+    def remove_from_users(self, request, ldap_user_write=None):
+        """Remove ASSIGNED users from the license
+        requests.options = {
+            licenseCode -- str
+            usernames -- List[str]
+        }
+        """
+        MODULE.info("licenses.remove_from_users: options: %s" % str(request.options))
+        license_code = request.options.get("licenseCode")
+        usernames = request.options.get("usernames")
+        ah = AssignmentHandler(ldap_user_write)
+        failed_assignments = ah.remove_assignment_from_users(license_code, usernames)
+        result = {
+            "failedAssignments": [{"username": fa[0], "error": fa[1]} for fa in failed_assignments]
+        }
+        MODULE.info("licenses.remove_from_users: result: %s" % str(result))
+        self.finished(request.id, result)
 
     # TODO real backend call
     def users_query(self, request):
@@ -230,7 +247,7 @@ class Instance(SchoolBaseModule):
             },
         ]
 
-        MODULE.info("licenses.query: results: %s" % str(result))
+        MODULE.info("licenses.query: result: %s" % str(result))
         self.finished(request.id, result)
 
     @sanitize(
@@ -271,7 +288,7 @@ class Instance(SchoolBaseModule):
                         "latestDeliveryDate": max([license.props.delivery_date for license in licenses]),
                     }
                 )
-        MODULE.info("licenses.products.query: results: %s" % str(result))
+        MODULE.info("licenses.products.query: result: %s" % str(result))
         self.finished(request.id, result)
 
     @LDAP_Connection(USER_WRITE)
@@ -320,5 +337,5 @@ class Instance(SchoolBaseModule):
             ],
         }
 
-        MODULE.info("licenses..products.get: results: %s" % str(result))
+        MODULE.info("licenses..products.get: result: %s" % str(result))
         self.finished(request.id, result)

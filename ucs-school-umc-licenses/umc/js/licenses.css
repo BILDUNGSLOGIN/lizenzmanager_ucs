@@ -16,7 +16,7 @@
 	max-height: 100%;
 }
 
-.umc .licensesTable__coverFallback {
+.licensesTable__coverFallback {
 	height: 100%;
 	width: 100%;
 	background: white;
@@ -30,7 +30,7 @@
 .licensesTable__data {
 	flex: 1 1 auto;
 	display: grid;
-	grid-template-columns: auto 1fr auto 1fr;
+	grid-template-columns: auto auto auto 1fr;
 	gap: 0px 16px;
 	height: min-content;
 }

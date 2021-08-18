@@ -17,7 +17,7 @@
 			<description>View licensed products</description>
 		</flavor>
 		<command name="licenses/query" function="query"></command>
-		<command name="licenses/get" function="get"></command>
+		<command name="licenses/get" function="get_license"></command>
 		<command name="licenses/publishers" function="publishers"></command>
 		<command name="licenses/license_types" function="license_types"></command>
 		<command name="licenses/classes" function="classes"></command>
