@@ -43,7 +43,7 @@ def convert_raw_license_date(date_str):  # type: (str) -> Optional[str]
 
 
 def load_license(license_raw, school):  # type: (Dict[str, Any], str) -> License
-    return License(
+    license = License(
         license_code=license_raw["lizenzcode"],
         product_id=license_raw["product_id"],
         license_quantity=str(license_raw["lizenzanzahl"]),
@@ -58,9 +58,11 @@ def load_license(license_raw, school):  # type: (Dict[str, Any], str) -> License
         delivery_date=datetime.now().strftime("%Y-%m-%d"),
         license_school=school,
     )
+    check_and_fix_license_code(license)
+    return license
 
 
-def load_license_file(license_file, school):  # type: (str) -> List(License)
+def load_license_file(license_file, school):  # type: (str, str) -> List[License]
     with open(license_file, "r") as license_file_fd:
         licenses_raw = json.load(license_file_fd)
     licenses = [load_license(license_raw, school) for license_raw in licenses_raw]
@@ -69,4 +71,11 @@ def load_license_file(license_file, school):  # type: (str) -> List(License)
 
 def import_license(license_handler, license):  # type: (LicenseHandler, License) -> None
     license_handler.create(license)
-    # TODO: trigger metadata update (listener?)
+
+
+def check_and_fix_license_code(license):
+    """
+    If the license code does not start with the provider short, it is appended.
+    """
+    if not license.license_code.lower().startswith("{}-".format(license.license_provider.lower())):
+        license.license_code = "{}-{}".format(license.license_provider, license.license_code)
