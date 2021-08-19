@@ -18,6 +18,19 @@ Description: UCS directory integration for bildungslogin
  corporate environments. For more information about UCS,
  refer to: https://www.univention.de/
 
+Package: udm-bildungslogin-encoders
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python:Depends},
+ python-univention-directory-manager (>=13.0.25-13),
+Description: Simple UDM encoders for bildungslogin
+ .
+ This package is part of Univention Corporate Server (UCS),
+ an integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/
+
 Package: ucs-test-vbm-udm
 Architecture: all
 Depends:
@@ -25,6 +38,7 @@ Depends:
  python-pytest,
  python-univention-directory-manager (>= 14.0.20-14),
  ucs-test-framework,
+ ucs-test-ucsschool,
 Description: test the udm modules for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),

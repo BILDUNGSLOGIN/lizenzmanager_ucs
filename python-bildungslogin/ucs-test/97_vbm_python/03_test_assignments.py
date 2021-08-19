@@ -51,7 +51,7 @@ def license_was_assigned_correct_to_user(assignments, username):
             assignment = a
             assert username == assignment.assignee
             assert Status.ASSIGNED == assignment.status
-            assert assignment.time_of_assignment == datetime.datetime.now().strftime("%Y-%m-%d")
+            assert assignment.time_of_assignment == datetime.date.today()
             break
 
 
@@ -78,9 +78,9 @@ def test_assign_user_to_license(assignment_handler, license_handler, license_obj
         assert "has already been assigned to" in str(excinfo.value)
 
 
-@pytest.mark.parametrize("ignored", ["0", "1", True, False])
+@pytest.mark.parametrize("ignored", [True, False])
 def test_check_is_ignored(ignored):
-    if ignored != "0":
+    if ignored is not False:
         with pytest.raises(BiloAssignmentError) as excinfo:
             AssignmentHandler.check_is_ignored(ignored)
         assert "License is 'ignored for display' and thus can't be assigned!" in str(excinfo.value)
@@ -93,9 +93,7 @@ def test_assign_user_to_expired_license_fails(assignment_handler, license_handle
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
-        license.validity_end_date = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
-            "%Y-%m-%d"
-        )
+        license.validity_end_date = datetime.date.today() - datetime.timedelta(days=1)
         license_handler.create(license)
         username = schoolenv.create_student(ou)[0]
         with pytest.raises(BiloAssignmentError, match="License is expired") as excinfo:
@@ -108,7 +106,7 @@ def test_assign_user_to_ignored_license_fails(assignment_handler, license_handle
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
-        license.ignored_for_display = "1"
+        license.ignored_for_display = True
         license_handler.create(license)
         username = schoolenv.create_student(ou)[0]
         with pytest.raises(BiloAssignmentError) as excinfo:
@@ -142,7 +140,7 @@ def test_remove_assignment_from_users(assignment_handler, license_handler, licen
         usernames.append(schoolenv.create_teacher(ou)[0])
         license = license_obj(ou)
         license.license_special_type = ""
-        license.license_quantity = str(len(usernames) + 1)
+        license.license_quantity = len(usernames) + 1
         license_handler.create(license)
         assignment_handler.assign_users_to_licenses(
             usernames=usernames, license_codes=[license.license_code]
@@ -166,7 +164,7 @@ def test_assign_users_to_licenses(assignment_handler, license_handler, license_o
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
         license_handler.create(license)
-        usernames = [schoolenv.create_student(ou)[0] for _ in range(int(license.license_quantity))]
+        usernames = [schoolenv.create_student(ou)[0] for _ in range(license.license_quantity)]
         assignment_handler.assign_users_to_licenses(
             usernames=usernames, license_codes=[license.license_code]
         )

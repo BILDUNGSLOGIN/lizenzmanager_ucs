@@ -1,4 +1,4 @@
-#!/usr/share/ucs-test/runner /usr/bin/py.test -s
+#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv
 # -*- coding: utf-8 -*-
 ## desc: Run tests for the replication ACLs of the UDM modules
 ## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
@@ -31,6 +31,8 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
+
+import datetime
 
 import pytest
 
@@ -66,7 +68,7 @@ def test_license_acl_user(create_license):
 
 
 def test_metadata_acl_machine(create_metadata):
-    metadata = create_metadata("PRODUCT_ID", "2000-01-01")
+    metadata = create_metadata("PRODUCT_ID", datetime.date(2000, 1, 1))
     lo, _ = getMachineConnection()
     if ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"]:
         assert lo.searchDn(base=metadata.dn)
@@ -76,7 +78,7 @@ def test_metadata_acl_machine(create_metadata):
 
 
 def test_metadata_acl_user(create_metadata):
-    metadata = create_metadata("PRODUCT_ID", "2000-01-01")
+    metadata = create_metadata("PRODUCT_ID", datetime.date(2000, 1, 1))
     user_pw = "univention"
     with udm_test.UCSTestUDM() as udm:
         userdn, username = udm.create_user(password=user_pw)

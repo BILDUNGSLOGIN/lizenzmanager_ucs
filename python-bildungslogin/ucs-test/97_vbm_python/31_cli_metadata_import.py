@@ -53,7 +53,7 @@ TEST_META_DATA = [
         "cover": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B160_X2.png",
         "cover_small": "https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B110_X2.png",
         "description": "Entdecken und verstehen - Schülerbuch als E-Book - 7. Schuljahr",
-        "modified": "2021-08-06",
+        "modified": datetime.date(2021, 8, 6),
         "product_id": TEST_PRODUCT_ID,
         "publisher": "Cornelsen",
         "title": "Entdecken und verstehen",
@@ -94,7 +94,11 @@ def meta_data_rest_api_mock(meta_data):  # type: (List[Dict[str, Any]]) -> List[
                     "rel": "src",
                 },
                 "modified": int(
-                    time.mktime(datetime.datetime.strptime(md["modified"], "%Y-%m-%d").utctimetuple())
+                    time.mktime(
+                        datetime.datetime(
+                            md["modified"].year, md["modified"].month, md["modified"].day
+                        ).utctimetuple()
+                    )
                     - time.timezone
                 )
                 * 1000,

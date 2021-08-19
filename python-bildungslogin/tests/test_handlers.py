@@ -82,16 +82,16 @@ def fake_udm_license_object(unsaved_udm_object):
         obj.props.cn = sha256(obj.props.code).hexdigest()
         obj.dn = "cn={},{}".format(obj.props.cn, obj.position)
         obj.props.assignments = []
-        obj.props.delivery_date = "2021-01-01"
-        obj.props.expired = "0"
-        obj.props.ignored = "0"
-        obj.props.num_assigned = "0"
-        obj.props.num_available = "0"
-        obj.props.num_expired = "0"
+        obj.props.delivery_date = datetime.date(2021, 1, 1)
+        obj.props.expired = False
+        obj.props.ignored = False
+        obj.props.num_assigned = 0
+        obj.props.num_available = 0
+        obj.props.num_expired = 0
         obj.props.product_id = "urn:bilo:medium:A0001#01-02-TZ"
         obj.props.provider = "ABC"
         obj.props.purchasing_reference = "2001-01-01T11:12:13 -02:00 010203"
-        obj.props.quantity = "0"
+        obj.props.quantity = 0
         obj.props.school = "DEMOSCHOOL"
         obj.props.special_type = None
         return obj
@@ -105,9 +105,9 @@ def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object
         assignment_total, assignment_available
     ):  # type: (int, int) -> Tuple[BaseObject, Dict[str, BaseObject]]
         license = fake_udm_license_object()  # type: BaseObject
-        license.props.quantity = str(assignment_total)
-        license.props.num_available = str(assignment_available)
-        license.props.num_assigned = str(assignment_total - assignment_available)
+        license.props.quantity = assignment_total
+        license.props.num_available = assignment_available
+        license.props.num_assigned = assignment_total - assignment_available
         assignments = {}
         for _ in range(assignment_total - assignment_available):
             ass_obj = fake_udm_assignment_object(license.dn)
@@ -140,29 +140,29 @@ def test_assign_users_to_licenses_enough_licenses(
     assignment_available1 = 3
     assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)
     license1, assignments1 = license_with_assignments(assignment_total1, assignment_available1)
-    license1.props.validity_start_date = "2000-01-01"
-    license1.props.validity_end_date = "2040-01-01"
+    license1.props.validity_start_date = datetime.date(2000, 1, 1)
+    license1.props.validity_end_date = datetime.date(2040, 1, 1)
 
     # 0 available:
     assignment_available2 = 0
     assignment_total2 = random.randint(assignment_available2 + 1, assignment_available2 + 10)
     license2, assignments2 = license_with_assignments(assignment_total2, assignment_available2)
-    license2.props.validity_start_date = "2000-01-01"
-    license2.props.validity_end_date = "2025-01-01"
+    license2.props.validity_start_date = datetime.date(2000, 1, 1)
+    license2.props.validity_end_date = datetime.date(2025, 1, 1)
 
     # 10 available, must be used last (validity end furthest away):
     assignment_available3 = 10
     assignment_total3 = random.randint(assignment_available3 + 1, assignment_available3 + 10)
     license3, assignments3 = license_with_assignments(assignment_total3, assignment_available3)
-    license3.props.validity_start_date = "2000-01-01"
-    license3.props.validity_end_date = "2050-01-01"
+    license3.props.validity_start_date = datetime.date(2000, 1, 1)
+    license3.props.validity_end_date = datetime.date(2050, 1, 1)
 
     # 1 available, must be used first (validity end nearest (today)):
     assignment_available4 = 1
     assignment_total4 = random.randint(assignment_available4 + 1, assignment_available4 + 10)
     license4, assignments4 = license_with_assignments(assignment_total4, assignment_available4)
-    license4.props.validity_start_date = "2000-01-01"
-    license4.props.validity_end_date = datetime.date.today().strftime("%Y-%m-%d")
+    license4.props.validity_start_date = datetime.date(2000, 1, 1)
+    license4.props.validity_end_date = datetime.date.today()
 
     licenses = {license.props.code: license for license in (license1, license2, license3, license4)}
     get_license_by_license_code_mock.side_effect = lambda x: licenses[x]
@@ -212,18 +212,18 @@ def test_assign_users_to_licenses_warning_expired_license(
     assignment_available1 = random.randint(2, 10)
     assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)
     license1, assignments1 = license_with_assignments(assignment_total1, assignment_available1)
-    license1.props.validity_start_date = "2000-01-01"
-    license1.props.validity_end_date = "2001-01-01"
+    license1.props.validity_start_date = datetime.date(2000, 1, 1)
+    license1.props.validity_end_date = datetime.date(2001, 1, 1)
     # fake UDM object will not do this on its own:
-    license1.props.expired = "1"
-    license1.props.num_expired = str(assignment_total1)
+    license1.props.expired = True
+    license1.props.num_expired = assignment_total1
 
     # this license will not produce a warning:
     assignment_available2 = random.randint(2, 10)
     assignment_total2 = random.randint(assignment_available2 + 1, assignment_available2 + 10)
     license2, assignments2 = license_with_assignments(assignment_total2, assignment_available2)
-    license2.props.validity_start_date = "2000-01-01"
-    license2.props.validity_end_date = "2025-01-01"
+    license2.props.validity_start_date = datetime.date(2000, 1, 1)
+    license2.props.validity_end_date = datetime.date(2025, 1, 1)
 
     licenses = {license.props.code: license for license in (license1, license2)}
     get_license_by_license_code_mock.side_effect = lambda x: licenses[x]
@@ -256,15 +256,15 @@ def test_assign_users_to_licenses_warning_validity_starts_in_the_future(
     assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)
     license1, assignments1 = license_with_assignments(assignment_total1, assignment_available1)
     # validity_start_date in the future (->warning)
-    license1.props.validity_start_date = "2030-01-01"
-    license1.props.validity_end_date = "2040-01-01"
+    license1.props.validity_start_date = datetime.date(2030, 1, 1)
+    license1.props.validity_end_date = datetime.date(2040, 1, 1)
 
     # this license will not produce a warning:
     assignment_available2 = random.randint(2, 10)
     assignment_total2 = random.randint(assignment_available2 + 1, assignment_available2 + 10)
     license2, assignments2 = license_with_assignments(assignment_total2, assignment_available2)
-    license2.props.validity_start_date = "2000-01-01"
-    license2.props.validity_end_date = "2040-01-01"
+    license2.props.validity_start_date = datetime.date(2000, 1, 1)
+    license2.props.validity_end_date = datetime.date(2040, 1, 1)
 
     licenses = {license.props.code: license for license in (license1, license2)}
     get_license_by_license_code_mock.side_effect = lambda x: licenses[x]
@@ -296,8 +296,8 @@ def test_assign_users_to_licenses_not_enough_licenses(
     assignment_available1 = random.randint(2, 10)
     assignment_total1 = random.randint(assignment_available1 + 1, assignment_available1 + 10)
     license1, assignments1 = license_with_assignments(assignment_total1, assignment_available1)
-    license1.props.validity_start_date = "2000-01-01"
-    license1.props.validity_end_date = "2040-01-01"
+    license1.props.validity_start_date = datetime.date(2000, 1, 1)
+    license1.props.validity_end_date = datetime.date(2040, 1, 1)
 
     get_license_by_license_code_mock.side_effect = lambda x: license1
 

@@ -53,7 +53,7 @@ def check_meta_data_is_correct(meta_data_obj, ldap_base):
         "vbmMetaDataPublisher": [meta_data_obj.publisher],
         "vbmMetaDataCover": [meta_data_obj.cover],
         "vbmMetaDataCoverSmall": [meta_data_obj.cover_small],
-        "vbmMetaDataModified": [meta_data_obj.modified],
+        "vbmMetaDataModified": [meta_data_obj.modified.strftime("%Y-%m-%d")],
     }
     dn = "cn={},cn=metadata,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
     verify_ldap_object(
@@ -76,7 +76,7 @@ def test_save_meta_data(meta_data_handler, meta_data, ldap_base):
     meta_data.publisher = uts.random_name()
     meta_data.cover = uts.random_name()
     meta_data.cover_small = uts.random_name()
-    meta_data.modified = datetime.datetime.today().strftime("%Y-%m-%d")
+    meta_data.modified = datetime.date.today()
     meta_data_handler.save(meta_data)
     check_meta_data_is_correct(meta_data, ldap_base)
 
@@ -101,9 +101,9 @@ def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_
             # comment: we do not have to create the actual meta-data object for this.
             lic.product_id = meta_data.product_id
             license_handler.create(lic)
-            if lic.ignored_for_display == "0":
+            if lic.ignored_for_display is False:
                 # licenses with this attribute set are not counted.
-                total_amount_of_licenses_for_product += int(lic.license_quantity)
+                total_amount_of_licenses_for_product += lic.license_quantity
         assert (
             meta_data_handler.get_total_number_of_assignments(meta_data)
             == total_amount_of_licenses_for_product
@@ -152,11 +152,10 @@ def test_product_license_numbers(
                             product_id = (
                                 product_id_related if is_product_id_related else product_id_unrelated
                             )
-                            ignored_for_display = "1" if is_ignored_for_display else "0"
                             func = expired_license_obj if is_expired else license_obj
                             license = func(ou)
                             license.product_id = product_id
-                            license.ignored_for_display = ignored_for_display
+                            license.ignored_for_display = is_ignored_for_display
                             license.license_quantity = license_quantity
                             license_handler.create(license)
 
@@ -301,8 +300,8 @@ def test_number_of_provisioned_and_assigned_licenses(
         users = student_usernames + teacher_usernames
         license = license_obj(ou)
         license.product_id = meta_data.product_id
-        license.ignored_for_display = "0"  # we only want correct assignments here
-        license.license_quantity = str(len(users) + 1)
+        license.ignored_for_display = False  # we only want correct assignments here
+        license.license_quantity = len(users) + 1
         license_handler.create(license)
         assignment_handler.assign_users_to_licenses(
             usernames=users, license_codes=[license.license_code]

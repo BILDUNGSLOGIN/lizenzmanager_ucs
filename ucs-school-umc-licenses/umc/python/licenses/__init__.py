@@ -34,6 +34,7 @@
 
 from ucsschool.lib.school_umc_base import SchoolBaseModule
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
+from univention.admin.syntax import iso8601Date
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.lib.i18n import Translation
 from univention.management.console.log import MODULE
@@ -72,8 +73,8 @@ class Instance(SchoolBaseModule):
         lh = LicenseHandler(ldap_user_write)
         result = lh.search_for_licenses(
             school=request.options.get("school"),
-            time_from=request.options.get("timeFrom"),
-            time_to=request.options.get("timeTo"),
+            time_from=iso8601Date.to_datetime(request.options.get("timeFrom")),
+            time_to=iso8601Date.to_datetime(request.options.get("timeTo")),
             only_available_licenses=request.options.get("onlyAvailableLicenses"),
             publisher=request.options.get("publisher"),
             license_type=request.options.get("licenseType"),
@@ -84,7 +85,11 @@ class Instance(SchoolBaseModule):
             pattern=request.options.get("pattern"),
         )
         MODULE.info("licenses.query: result: %s" % str(result))
-        self.finished(request.id, result)
+        result_s = []
+        for res in result:
+            res["importDate"] = res["importDate"].strftime("%Y-%m-%d")
+            result_s.append(res)
+        self.finished(request.id, result_s)
 
     @sanitize(
         #  school=StringSanitizer(required=True),
@@ -104,14 +109,18 @@ class Instance(SchoolBaseModule):
         license_code = request.options.get("licenseCode")
         lh = LicenseHandler(ldap_user_write)
         license = lh.from_udm_obj(lh.get_udm_license_by_code(license_code))
+        assigned_users = lh.get_assigned_users(license)
+        assigned_users["dateOfAssignment"] = iso8601Date.from_datetime(
+            assigned_users["dateOfAssignment"]
+        )
         meta_data = lh.get_meta_data_for_license(license)
         result = {
             "countAquired": lh.get_total_number_of_assignments(license),
             "countAssigned": lh.get_number_of_provisioned_and_assigned_assignments(license),
             "countAvailable": lh.get_number_of_available_assignments(license),
             "countExpired": lh.get_number_of_expired_assignments(license),
-            "ignore": True if license.ignored_for_display == "1" else False,
-            "importDate": license.delivery_date,
+            "ignore": license.ignored_for_display,
+            "importDate": iso8601Date.from_datetime(license.delivery_date),
             "licenseCode": license.license_code,
             "licenseType": license.license_type,
             "platform": license.utilization_systems,
@@ -119,14 +128,14 @@ class Instance(SchoolBaseModule):
             "reference": license.purchasing_reference,
             "specialLicense": license.license_special_type,
             "usage": license.utilization_systems,
-            "validityStart": license.validity_start_date,
-            "validityEnd": license.validity_end_date,
+            "validityStart": iso8601Date.from_datetime(license.validity_start_date),
+            "validityEnd": iso8601Date.from_datetime(license.validity_end_date),
             "validitySpan": license.validity_duration,
             "author": meta_data.author,
             "cover": meta_data.cover or meta_data.cover_small,
             "productName": meta_data.title,
             "publisher": meta_data.publisher,
-            "users": lh.get_assigned_users(license),
+            "users": assigned_users,
         }
         MODULE.info("licenses.get: result: %s" % str(result))
         self.finished(request.id, result)
@@ -285,7 +294,9 @@ class Instance(SchoolBaseModule):
                         ),
                         "countExpired": mh.get_number_of_expired_assignments(meta_datum_obj, school),
                         "countAvailable": mh.get_number_of_available_assignments(meta_datum_obj, school),
-                        "latestDeliveryDate": max([license.props.delivery_date for license in licenses]),
+                        "latestDeliveryDate": iso8601Date.to_datetime(
+                            max(license.props.delivery_date for license in licenses)
+                        ),
                     }
                 )
         MODULE.info("licenses.products.query: result: %s" % str(result))

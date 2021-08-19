@@ -28,88 +28,55 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 
+import datetime
 from typing import Optional
 
-from .utils import LicenseType, Status, my_string_to_int
+import attr
+
+from .utils import LicenseType, Status
 
 
+@attr.s
 class Assignment(object):
-    def __init__(self, username, license, time_of_assignment, status):
-        # type: (str, str, str, Status) -> None
-        self.assignee = username
-        self.time_of_assignment = time_of_assignment
-        self.status = status
-        self.license = license
-
-    def to_dict(self):
-        return self.__dict__
+    assignee = attr.ib()  # type: str
+    time_of_assignment = attr.ib()  # type: datetime.date
+    status = attr.ib()  # type: str
+    license = attr.ib()  # type: Status
 
 
+@attr.s
 class License(object):
-    def __init__(
-        self,
-        license_code,
-        product_id,
-        license_quantity,
-        license_provider,
-        purchasing_reference,
-        utilization_systems,
-        validity_start_date,
-        validity_end_date,
-        validity_duration,
-        license_special_type,
-        ignored_for_display,
-        delivery_date,
-        license_school,
-        num_available=None,
-    ):  # type: (str, str, str, str, str, str, str, str, str, str, str, str, str, Optional[int]) -> None
-        self.license_code = license_code
-        self.product_id = product_id
-        self.license_quantity = license_quantity
-        self.license_provider = license_provider
-        self.purchasing_reference = purchasing_reference
-        self.utilization_systems = utilization_systems
-        self.validity_start_date = validity_start_date
-        self.validity_end_date = validity_end_date
-        self.validity_duration = validity_duration
-        self.license_special_type = license_special_type
-        self.ignored_for_display = ignored_for_display
-        self.delivery_date = delivery_date
-        self.license_school = license_school
-        self.num_available = num_available
+    license_code = attr.ib()  # type: str
+    product_id = attr.ib()  # type: str
+    license_quantity = attr.ib()  # type: int
+    license_provider = attr.ib()  # type: str
+    purchasing_reference = attr.ib()  # type: str
+    utilization_systems = attr.ib()  # type: str
+    validity_start_date = attr.ib()  # type: Optional[datetime.date]
+    validity_end_date = attr.ib()  # type: Optional[datetime.date]
+    validity_duration = attr.ib()  # type: str
+    license_special_type = attr.ib()  # type: str
+    ignored_for_display = attr.ib()  # type: bool
+    delivery_date = attr.ib()  # type: Optional[datetime.date]
+    license_school = attr.ib()  # type: str
+    num_available = attr.ib(default=0)  # type: Optional[int]
 
     @property
     def license_type(self):  # type: () -> str
         """we only have volume and single-licenses, not mass-licenses"""
-        if my_string_to_int(self.license_quantity) > 1:
+        if self.license_quantity > 1:
             return LicenseType.VOLUME
         else:
             return LicenseType.SINGLE
 
-    def to_dict(self):
-        return self.__dict__
 
-
+@attr.s
 class MetaData(object):
-    def __init__(
-        self,
-        product_id,
-        title=None,
-        description=None,
-        author=None,
-        publisher=None,
-        cover=None,
-        cover_small=None,
-        modified=None,
-    ):  # type: (str, str, str, str, str, str, str, str) -> None
-        self.product_id = product_id
-        self.title = title
-        self.description = description
-        self.author = author
-        self.publisher = publisher
-        self.cover = cover
-        self.cover_small = cover_small
-        self.modified = modified
-
-    def to_dict(self):
-        return self.__dict__
+    product_id = attr.ib()  # type: str
+    title = attr.ib(default="")  # type: str
+    description = attr.ib(default="")  # type: str
+    author = attr.ib(default="")  # type: str
+    publisher = attr.ib(default="")  # type: str
+    cover = attr.ib(default="")  # type: str
+    cover_small = attr.ib(default="")  # type: str
+    modified = attr.ib(default=datetime.date.today())  # type: datetime.date

@@ -25,8 +25,11 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
+import datetime
+
 import pytest
 
+import univention.testing.strings as uts
 import univention.testing.utils as utils
 from univention.config_registry import ConfigRegistry
 from univention.udm import UDM
@@ -54,7 +57,7 @@ def create_metadata(udm):
 
     def _create_metadata(
         product_id,
-        modified="2000-01-01",
+        modified=datetime.date(2000, 1, 1),
         title="",
         description="",
         author="",
@@ -65,12 +68,12 @@ def create_metadata(udm):
         metadata = udm.get("vbm/metadata").new()
         metadata.props.product_id = product_id
         metadata.props.modified = modified
-        metadata.props.title = title
-        metadata.props.description = description
-        metadata.props.author = author
-        metadata.props.publisher = publisher
-        metadata.props.cover = cover
-        metadata.props.cover_small = cover_small
+        metadata.props.title = title or uts.random_name()
+        metadata.props.description = description or uts.random_name()
+        metadata.props.author = author or uts.random_name()
+        metadata.props.publisher = publisher or uts.random_name()
+        metadata.props.cover = cover or uts.random_name()
+        metadata.props.cover_small = cover_small or uts.random_name()
         metadata.save()
         created_metadata.append(metadata)
         return metadata
@@ -91,11 +94,11 @@ def create_license(udm):
         product_id,
         quantity,
         school,
-        validity_start_date="2000-01-01",
-        validity_end_date="2000-01-01",
-        delivery_date="2000-01-01",
-        ignored="0",
-        provider="univention",
+        validity_start_date=datetime.date(2000, 1, 1),
+        validity_end_date=datetime.date(2000, 1, 1),
+        delivery_date=datetime.date(2000, 1, 1),
+        ignored=False,
+        provider="",
         purchasing_reference="",
         utilization_systems="",
         validity_duration="",
@@ -110,10 +113,10 @@ def create_license(udm):
         license_obj.props.validity_end_date = validity_end_date
         license_obj.props.delivery_date = delivery_date
         license_obj.props.ignored = ignored
-        license_obj.props.provider = provider
-        license_obj.props.purchasing_reference = purchasing_reference
-        license_obj.props.utilization_systems = utilization_systems
-        license_obj.props.validity_duration = validity_duration
+        license_obj.props.provider = provider or uts.random_name()
+        license_obj.props.purchasing_reference = purchasing_reference or uts.random_name()
+        license_obj.props.utilization_systems = utilization_systems or uts.random_name()
+        license_obj.props.validity_duration = validity_duration or uts.random_name()
         license_obj.props.special_type = special_type
         license_obj.save()
         created_licenses.append(license_obj)

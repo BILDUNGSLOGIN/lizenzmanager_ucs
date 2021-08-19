@@ -96,21 +96,21 @@ property_descriptions = {
     ),
     "publisher": univention.admin.property(
         short_description=_("Publisher"),
-        long_description=_("The publisher of the  product described by the metadata"),
+        long_description=_("The publisher of the product described by the metadata"),
         syntax=univention.admin.syntax.string,
         required=False,
         may_change=True,
     ),
     "cover": univention.admin.property(
         short_description=_("Cover"),
-        long_description=_("The url for the cover of the  product described by the metadata"),
+        long_description=_("The url for the cover of the product described by the metadata"),
         syntax=univention.admin.syntax.string,  # TODO URL?
         required=False,
         may_change=True,
     ),
     "cover_small": univention.admin.property(
         short_description=_("CoverSmall"),
-        long_description=_("The url for the thumbnail of the  product described by the metadata"),
+        long_description=_("The url for the thumbnail of the product described by the metadata"),
         syntax=univention.admin.syntax.string,  # TODO URL?
         required=False,
         may_change=True,

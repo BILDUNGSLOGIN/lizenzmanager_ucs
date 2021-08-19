@@ -29,9 +29,9 @@
 
 from __future__ import print_function
 
+import datetime
 import re
 from copy import deepcopy
-from datetime import datetime
 from typing import Any, Dict, List
 
 import requests
@@ -104,7 +104,7 @@ def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
                     "href"
                 ],  # TODO what does data['cover'] look like if there is no cover
                 cover_small=data["coverSmall"]["href"],
-                modified=datetime.utcfromtimestamp(data["modified"] // 1000).strftime("%Y-%m-%d"),
+                modified=datetime.datetime.utcfromtimestamp(data["modified"] // 1000).date(),
             )
         except (KeyError, ValueError) as exc:
             raise MediaImportError(str(exc))

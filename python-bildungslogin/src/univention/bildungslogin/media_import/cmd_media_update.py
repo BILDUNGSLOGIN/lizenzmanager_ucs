@@ -58,7 +58,7 @@ def update_ldap_meta_data(lo):  # type: (Any) -> bool
     last_update_ts = load_last_update_timestamp()
     print(
         "Updating meta data changed since {:%Y-%m-%d %H:%M} UTC...".format(
-            datetime.datetime.utcfromtimestamp(last_update_ts // 1000)
+            datetime.datetime.utcfromtimestamp(last_update_ts // 1000).date()
         )
     )
     config = get_config_from_file(CONFIG_FILE)

@@ -1,3 +1,9 @@
+python-bildungslogin (0.0.6) unstable; urgency=low
+
+  * Issue #53: adapt to simple UDM API encoders for vbm UDM modules
+
+ -- Daniel Troeder <troeder@univention.de>  Wed, 19 Aug 2021 07:50:12 +0200
+
 python-bildungslogin (0.0.5) unstable; urgency=medium
 
   * Issue #23: methods for license detail page

@@ -1,4 +1,4 @@
-#!/usr/share/ucs-test/runner /usr/bin/py.test -s
+#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv
 # -*- coding: utf-8 -*-
 ## desc: Run tests for the udm module vbm/metadata
 ## roles: [domaincontroller_master, domaincontroller_backup]
@@ -32,6 +32,8 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
+
+import datetime
 from hashlib import sha256
 
 import pytest
@@ -52,13 +54,13 @@ def test_required_attributes(attr_name, udm):
 
 
 def test_create_metadata(create_metadata):
-    metadata = create_metadata("PRODUCT_ID", "2000-01-01")
+    metadata = create_metadata("PRODUCT_ID", datetime.date(2000, 1, 1))
     assert metadata.props.cn == sha256("PRODUCT_ID").hexdigest()
 
 
 def test_unique_product_ids(create_metadata):
     product_id = "PRODUCT_ID"
-    create_metadata(product_id, "2000-01-01")
+    create_metadata(product_id, datetime.date(2000, 1, 1))
     with pytest.raises(CreateError) as exinfo:
-        create_metadata(product_id, "2000-01-02")
+        create_metadata(product_id, datetime.date(2000, 1, 2))
     assert "A metadata object with that product_id already exists" in exinfo.value.message

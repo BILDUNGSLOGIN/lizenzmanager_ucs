@@ -27,17 +27,17 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
 
+import datetime
 import json
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from ..handlers import LicenseHandler
 from ..models import License
 
 
-def convert_raw_license_date(date_str):  # type: (str) -> Optional[str]
+def convert_raw_license_date(date_str):  # type: (str) -> Optional[datetime.date]
     if date_str:
-        return datetime.strptime(date_str, "%d-%m-%Y").strftime("%Y-%m-%d")
+        return datetime.datetime.strptime(date_str, "%d-%m-%Y").date()
     else:
         return None
 
@@ -46,7 +46,7 @@ def load_license(license_raw, school):  # type: (Dict[str, Any], str) -> License
     license = License(
         license_code=license_raw["lizenzcode"],
         product_id=license_raw["product_id"],
-        license_quantity=str(license_raw["lizenzanzahl"]),
+        license_quantity=license_raw["lizenzanzahl"],
         license_provider=license_raw["lizenzgeber"],
         purchasing_reference=license_raw["kaufreferenz"],
         utilization_systems=license_raw["nutzungssysteme"],
@@ -54,8 +54,8 @@ def load_license(license_raw, school):  # type: (Dict[str, Any], str) -> License
         validity_end_date=convert_raw_license_date(license_raw["gueltigkeitsende"]),
         validity_duration=license_raw["gueltigkeitsdauer"],
         license_special_type=license_raw["sonderlizenz"],
-        ignored_for_display="0",
-        delivery_date=datetime.now().strftime("%Y-%m-%d"),
+        ignored_for_display=False,
+        delivery_date=datetime.date.today(),
         license_school=school,
     )
     check_and_fix_license_code(license)
@@ -73,7 +73,7 @@ def import_license(license_handler, license):  # type: (LicenseHandler, License)
     license_handler.create(license)
 
 
-def check_and_fix_license_code(license):
+def check_and_fix_license_code(license):  # type: (License) -> None
     """
     If the license code does not start with the provider short, it is appended.
     """

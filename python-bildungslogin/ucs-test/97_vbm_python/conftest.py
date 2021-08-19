@@ -44,10 +44,6 @@ from univention.bildungslogin.models import License, MetaData
 from univention.testing.ucr import UCSTestConfigRegistry
 
 
-def iso_format_date(my_date):
-    return my_date.strftime("%Y-%m-%d")
-
-
 def random_string(n):  # type: (int) -> str
     return "".join([random.choice(string.ascii_uppercase + string.digits) for _ in range(n)])
 
@@ -59,7 +55,7 @@ def product_id():
 
 
 def get_license(ou):
-    today = datetime.datetime.now()
+    today = datetime.date.today()
     start = today + datetime.timedelta(days=random.randint(0, 365))
     duration = "Unbeschränkt"
     end = start + datetime.timedelta(days=random.randint(0, 365))
@@ -67,29 +63,28 @@ def get_license(ou):
     return License(
         license_code="{}-{}".format(provider, str(uuid.uuid4())),
         product_id=product_id(),
-        license_quantity=str(random.randint(2, 10)),
+        license_quantity=random.randint(2, 10),
         license_provider=provider,
-        # todo this is not exactly equal to this format: "2014-04-11T03:28:16 -02:00 4572022",
-        purchasing_reference=today.isoformat(),
+        purchasing_reference=today.isoformat(),  # could be just a random string
         utilization_systems=uts.random_username(),
-        validity_start_date=iso_format_date(start),
-        validity_end_date=iso_format_date(end),
+        validity_start_date=start,
+        validity_end_date=end,
         validity_duration=duration,
         license_special_type="",
-        ignored_for_display="0",
-        delivery_date=iso_format_date(today),
+        ignored_for_display=False,
+        delivery_date=today,
         license_school=ou,
     )
 
 
 def get_expired_license(ou):
     """the validity_end_date < today"""
-    today = datetime.datetime.now()
+    today = datetime.date.today()
     duration = "Ein Schuljahr"
     start = today - datetime.timedelta(days=random.randint(2, 365))
     license = get_license(ou)
-    license.validity_start_date = iso_format_date(start)
-    license.validity_end_date = iso_format_date(today - datetime.timedelta(1))
+    license.validity_start_date = start
+    license.validity_end_date = today - datetime.timedelta(1)
     license.validity_duration = duration
     return license
 
@@ -137,7 +132,7 @@ def get_meta_data():
         publisher=uts.random_name(),
         cover=uts.random_name(),
         cover_small=uts.random_name(),
-        modified=datetime.datetime.now().strftime("%Y-%m-%d"),
+        modified=datetime.date.today(),
     )
 
 

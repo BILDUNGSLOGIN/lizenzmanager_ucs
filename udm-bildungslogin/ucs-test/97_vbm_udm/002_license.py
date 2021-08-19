@@ -1,4 +1,4 @@
-#!/usr/share/ucs-test/runner /usr/bin/py.test -s
+#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv
 # -*- coding: utf-8 -*-
 ## desc: Run tests for the udm module vbm/license
 ## roles: [domaincontroller_master, domaincontroller_backup]
@@ -54,9 +54,11 @@ def test_create_license(create_license):
     assert license_obj.props.cn == sha256("LICENSE_CODE").hexdigest()
 
 
-@pytest.mark.parametrize(
-    "attr_name",
-    (
+def test_required_attributes(udm):
+    with pytest.raises(CreateError) as exinfo:
+        obj = udm.get("vbm/license").new()
+        obj.save()
+    for attr_name in (
         "cn",
         "code",
         "product_id",
@@ -64,13 +66,8 @@ def test_create_license(create_license):
         "provider",
         "school",
         "delivery_date",
-    ),
-)
-def test_required_attributes(attr_name, udm):
-    with pytest.raises(CreateError) as exinfo:
-        obj = udm.get("vbm/license").new()
-        obj.save()
-    assert "\n{}".format(attr_name) in exinfo.value.message
+    ):
+        assert "\n{}".format(attr_name) in exinfo.value.message
 
 
 @pytest.mark.parametrize(
@@ -125,9 +122,9 @@ def test_assignments(create_license, udm):
 @pytest.mark.parametrize(
     "expired_validity_end_date",
     (
-        ("0", (datetime.datetime.now().strftime("%Y-%m-%d"))),
-        ("1", (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")),
-        ("0", (datetime.datetime.now() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")),
+        (False, datetime.date.today()),
+        (True, datetime.date.today() - datetime.timedelta(days=1)),
+        (False, datetime.date.today() + datetime.timedelta(days=1)),
     ),
     ids=lambda x: "{1} -> {0}".format(*x),
 )
@@ -157,15 +154,15 @@ def test_num_available(create_license, udm):
         # all licenses are expired, as none are assigned
         license_obj_expired = udm.get("vbm/license").get(license_obj.dn)
         assert len(license_obj_expired.props.assignments) == num_licenses
-        assert license_obj_expired.props.num_expired == str(num_licenses)
+        assert license_obj_expired.props.num_expired == num_licenses
         # assign a few licenses
         assignment_mod = udm.get("vbm/assignment")
         for assignment_dn in license_obj_expired.props.assignments[:num_assigned]:
             assignment_obj = assignment_mod.get(assignment_dn)
             assignment_obj.props.assignee = "foo"
-            assignment_obj.props.time_of_assignment = datetime.datetime.now().strftime("%Y-%m-%d")
+            assignment_obj.props.time_of_assignment = datetime.date.today()
             assignment_obj.props.status = "ASSIGNED"
             assignment_obj.save()
         license_obj_fresh = udm.get("vbm/license").get(license_obj_expired.dn)
         assert len(license_obj_expired.props.assignments) == num_licenses
-        assert license_obj_fresh.props.num_expired == str(num_expired)
+        assert license_obj_fresh.props.num_expired == num_expired

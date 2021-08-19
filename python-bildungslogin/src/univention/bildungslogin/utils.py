@@ -59,10 +59,6 @@ class LicenseType:
     SINGLE = "Einzellizenz"
 
 
-def my_string_to_int(num):  # type: (str) -> int
-    return int(num) if num else 0
-
-
 def get_entry_uuid(lo, dn):
     """UDM doesn't expose the `entryUUID` attribute, so we have to use ldap here."""
     return lo.get(dn, attr=["entryUUID"])["entryUUID"][0]

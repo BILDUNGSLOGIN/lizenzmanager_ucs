@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.1) unstable; urgency=low
+
+  * Issue #53: adapt to simple UDM API encoders for vbm UDM modules
+
+ -- Daniel Troeder <troeder@univention.de>  Thu, 19 Aug 2021 07:24:36 +0200
+
 ucs-school-umc-licenses (0.1.0-8) unstable; urgency=medium
 
   * Issue #23: License detail page

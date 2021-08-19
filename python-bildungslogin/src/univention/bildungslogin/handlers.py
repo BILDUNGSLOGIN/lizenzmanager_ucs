@@ -31,12 +31,11 @@
 import datetime
 import itertools
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
 from ldap.filter import escape_filter_chars, filter_format
 
 from ucsschool.lib.roles import get_role_info
-from univention.admin.syntax import date as udm_syntax_date, iso8601Date
 from univention.lib.i18n import Translation
 from univention.udm import UDM, CreateError, ModifyError, NoObject as UdmNoObject
 
@@ -47,7 +46,7 @@ from .exceptions import (
     BiloProductNotFoundError,
 )
 from .models import Assignment, License, MetaData
-from .utils import LicenseType, Status, get_entry_uuid, get_special_filter, my_string_to_int
+from .utils import LicenseType, Status, get_entry_uuid, get_special_filter
 
 if TYPE_CHECKING:
     from ucsschool.lib.models.base import LoType, UdmObject
@@ -90,10 +89,10 @@ class LicenseHandler:
                     license_code=license.license_code, exc=exc
                 )
             )
-        for i in range(int(license.license_quantity)):
+        for i in range(license.license_quantity):
             self.ah.create_assignment_for_license(license_code=license.license_code)
 
-    def get_assigned_users(self, license):
+    def get_assigned_users(self, license):  # type: (License) -> Dict[str, Any]
         users = [
             {
                 "username": a.assignee,
@@ -110,10 +109,9 @@ class LicenseHandler:
 
     def set_license_ignore(self, license_code, ignore):  # type: (str, bool) -> bool
         udm_obj = self.get_udm_license_by_code(license_code)
-        if my_string_to_int(udm_obj.props.num_assigned) != 0:
+        if ignore and udm_obj.props.num_assigned != 0:
             # can't set ignore if license has assigned users.
             return False
-        ignore = "1" if ignore else "0"
         udm_obj.props.ignored = ignore
         udm_obj.save()
         self.logger.debug("Set License status %r: %r", udm_obj.dn, udm_obj.props)
@@ -200,32 +198,30 @@ class LicenseHandler:
     def get_number_of_available_assignments(self, license):  # type: (License) -> int
         """count the number of assignments with status available"""
         udm_license = self.get_udm_license_by_code(license.license_code)
-        return my_string_to_int(udm_license.props.num_available)
+        return udm_license.props.num_available
 
     def get_number_of_provisioned_and_assigned_assignments(self, license):  # type: (License) -> int
         """count the number of assignments with status provisioned or assigned
         provisioned is also assigned"""
         udm_license = self.get_udm_license_by_code(license.license_code)
-        num_assigned = my_string_to_int(udm_license.props.num_assigned)
-        return num_assigned
+        return udm_license.props.num_assigned
 
     def get_number_of_expired_assignments(self, license):  # type: (License) -> int
         """count the number of assignments with status expired"""
         udm_license = self.get_udm_license_by_code(license.license_code)
-        return my_string_to_int(udm_license.props.num_expired)
+        return udm_license.props.num_expired
 
     def get_total_number_of_assignments(self, license):  # type: (License) -> int
         """count the number of assignments for this license"""
         udm_license = self.get_udm_license_by_code(license.license_code)
-        return my_string_to_int(udm_license.props.quantity)
+        return udm_license.props.quantity
 
     def get_time_of_last_assignment(self, license):  # type: (License) -> str
         """Get all assignments of this license and return the date of assignment,
         which was assigned last."""
         filter_s = filter_format("(|(status=%s)(status=%s))", [Status.ASSIGNED, Status.PROVISIONED])
         assignments = self.get_assignments_for_license_with_filter(filter_s=filter_s, license=license)
-        max_datetime = max([udm_syntax_date.to_datetime(a.time_of_assignment) for a in assignments])
-        return udm_syntax_date.from_datetime(max_datetime)
+        return max(a.time_of_assignment for a in assignments)
 
     @staticmethod
     def get_license_types():  # type: () -> List[str]
@@ -234,8 +230,8 @@ class LicenseHandler:
     def search_for_licenses(
         self,
         school,  # type: str
-        time_from="",  # type: Optional[str]
-        time_to="",  # type: Optional[str]
+        time_from=None,  # type: Optional[datetime.date]
+        time_to=None,  # type: Optional[datetime.date]
         only_available_licenses=False,  # type: Optional[bool]
         publisher="",  # type: Optional[str]
         license_type="",  # type: Optional[str]
@@ -354,7 +350,7 @@ class MetaDataHandler:
 
     def get_non_ignored_licenses_for_product_id(self, product_id):  # type: (str) -> List[UdmObject]
         licenses_of_product = self.get_udm_licenses_by_product_id(product_id)
-        return [udm_license for udm_license in licenses_of_product if udm_license.props.ignored != "1"]
+        return [udm_license for udm_license in licenses_of_product if not udm_license.props.ignored]
 
     def get_number_of_available_assignments(
         self, meta_data, school=None
@@ -365,9 +361,7 @@ class MetaDataHandler:
             licenses_of_product = [
                 license for license in licenses_of_product if license.props.school == school
             ]
-        return sum(
-            [my_string_to_int(udm_license.props.num_available) for udm_license in licenses_of_product]
-        )
+        return sum(udm_license.props.num_available for udm_license in licenses_of_product)
 
     def get_number_of_provisioned_and_assigned_assignments(
         self, meta_data, school=None
@@ -378,9 +372,7 @@ class MetaDataHandler:
             licenses_of_product = [
                 license for license in licenses_of_product if license.props.school == school
             ]
-        return sum(
-            [my_string_to_int(udm_license.props.num_assigned) for udm_license in licenses_of_product]
-        )
+        return sum(udm_license.props.num_assigned for udm_license in licenses_of_product)
 
     def get_number_of_expired_assignments(
         self, meta_data, school=None
@@ -391,9 +383,7 @@ class MetaDataHandler:
             licenses_of_product = [
                 license for license in licenses_of_product if license.props.school == school
             ]
-        return sum(
-            [my_string_to_int(udm_license.props.num_expired) for udm_license in licenses_of_product]
-        )
+        return sum(udm_license.props.num_expired for udm_license in licenses_of_product)
 
     def get_total_number_of_assignments(
         self, meta_data, school=None
@@ -404,7 +394,7 @@ class MetaDataHandler:
             licenses_of_product = [
                 license for license in licenses_of_product if license.props.school == school
             ]
-        return sum([my_string_to_int(udm_license.props.quantity) for udm_license in licenses_of_product])
+        return sum(udm_license.props.quantity for udm_license in licenses_of_product)
 
     def get_meta_data_by_product_id(self, product_id):  # type: (str) -> UdmObject
         filter_s = filter_format("(product_id=%s)", [product_id])
@@ -452,7 +442,7 @@ class AssignmentHandler:
         """
         udm_assignment = self.get_license_of_assignment(udm_obj.position)
         return Assignment(
-            username=udm_obj.props.assignee,
+            assignee=udm_obj.props.assignee,
             license=udm_assignment.props.code,
             time_of_assignment=udm_obj.props.time_of_assignment,
             status=udm_obj.props.status,
@@ -558,14 +548,13 @@ class AssignmentHandler:
                 )
 
     @staticmethod
-    def check_is_ignored(ignored):  # type: (str) -> None
-        # todo make me more robust -> udm
-        if ignored != "0":
+    def check_is_ignored(ignored):  # type: (bool) -> None
+        if ignored:
             raise BiloAssignmentError(_("License is 'ignored for display' and thus can't be assigned!"))
 
     @staticmethod
-    def check_is_expired(expired):  # type: (str) -> None
-        if expired != "0":
+    def check_is_expired(expired):  # type: (bool) -> None
+        if expired:
             raise BiloAssignmentError(_("License is expired and thus can't be assigned!"))
 
     def assign_to_license(self, license_code, username):  # type: (str, str) -> bool
@@ -609,11 +598,10 @@ class AssignmentHandler:
                     "{username!r}!"
                 ).format(license_code=license_code, username=username)
             )
-        date_of_today = datetime.datetime.now().strftime("%Y-%m-%d")
         udm_assignment = available_licenses[0]
         udm_assignment.props.status = Status.ASSIGNED
         udm_assignment.props.assignee = user_entry_uuid
-        udm_assignment.props.time_of_assignment = date_of_today
+        udm_assignment.props.time_of_assignment = datetime.date.today()
         udm_assignment.save()
         self.logger.debug(
             "Assigned license %r (%d left) to %r.", license_code, len(available_licenses) - 1, username
@@ -666,7 +654,7 @@ class AssignmentHandler:
             except BiloAssignmentError as exc:
                 result["warnings"][license.props.code] = str(exc)
 
-        num_available_liceses = sum(my_string_to_int(lic.props.num_available) for lic in licenses)
+        num_available_liceses = sum(lic.props.num_available for lic in licenses)
         if num_available_liceses < len(usernames):
             result["errors"]["*"] = _(
                 "There are less available licenses than the number of users. No licenses have been "
@@ -686,7 +674,7 @@ class AssignmentHandler:
         license_codes_to_use = itertools.chain.from_iterable(
             (
                 (license.props.code, license.props.validity_start_date)
-                for _ in range(my_string_to_int(license.props.num_available))
+                for _ in range(license.props.num_available)
             )
             for license in licenses
         )
@@ -695,7 +683,7 @@ class AssignmentHandler:
             try:
                 self.assign_to_license(code, username)
                 result["countUsers"] += 1
-                if iso8601Date.to_datetime(validity_start_date) > datetime.date.today():
+                if validity_start_date > datetime.date.today():
                     result["warnings"][code] = _("License validity start is in the future.")
             except BiloAssignmentError as exc:
                 result["errors"][code] = str(exc)
@@ -767,9 +755,8 @@ class AssignmentHandler:
             raise BiloAssignmentError(_("Invalid assignment status change!\n{exc}").format(exc=exc))
         return True
 
-    def remove_assignment_from_users(
-        self, license_code, usernames
-    ):  # type: (str, List[str]) -> List[tuple[str, str]]
+    def remove_assignment_from_users(self, license_code, usernames):
+        # type: (str, List[str]) -> List[Tuple[str, str]]
         # TODO: result wie oben, mit user-dn statt lic-code
         num_removed_correct = 0
         failed_assignments = []

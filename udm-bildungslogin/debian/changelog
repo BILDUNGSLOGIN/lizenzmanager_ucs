@@ -1,3 +1,9 @@
+udm-bildungslogin (0.0.6) unstable; urgency=low
+
+  * Issue #53: add simple UDM API encoders for vbm UDM modules
+
+ -- Daniel Troeder <troeder@univention.de>  Tue, 17 Aug 2021 16:22:23 +0200
+
 udm-bildungslogin (0.0.5) unstable; urgency=medium
 
   * Issue #23: adjust matching rules in ldap schema for query

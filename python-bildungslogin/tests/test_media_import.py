@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import datetime
+
+import attr
+
 from univention.bildungslogin.media_import import load_media
 from univention.bildungslogin.models import MetaData
 
@@ -32,10 +36,10 @@ test_metadata = MetaData(
     publisher="Cornelsen",
     cover="",
     cover_small="https://static.cornelsen.de/media/9783060658336/9783060658336_COVER_STD_B110_X2.png",
-    modified="2021-08-06",
+    modified=datetime.date(2021, 8, 6),
 )
 
 
 def test_load_media():
     metadata = load_media(test_metadata_raw)
-    assert metadata.__dict__ == test_metadata.__dict__
+    assert metadata.__dict__ == attr.asdict(test_metadata)

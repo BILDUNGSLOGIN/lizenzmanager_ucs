@@ -46,9 +46,9 @@ from univention.udm import UDM
 
 def test_license_type(license_obj):
     license = license_obj("foo")
-    license.license_quantity = "10"
+    license.license_quantity = 10
     assert license.license_type == LicenseType.VOLUME
-    license.license_quantity = "1"
+    license.license_quantity = 1
     assert license.license_type == LicenseType.SINGLE
 
 
@@ -63,16 +63,16 @@ def test_create(lo, license_handler, license_obj, ldap_base):
             "cn": [cn],
             "vbmLicenseCode": [license.license_code],
             "vbmProductId": [license.product_id],
-            "vbmLicenseQuantity": [license.license_quantity],
+            "vbmLicenseQuantity": [str(license.license_quantity)],
             "vbmLicenseProvider": [license.license_provider],
             "vbmPurchasingReference": [license.purchasing_reference],
             "vbmUtilizationSystems": [license.utilization_systems],
-            "vbmValidityStartDate": [license.validity_start_date],
-            "vbmValidityEndDate": [license.validity_end_date],
+            "vbmValidityStartDate": [license.validity_start_date.strftime("%Y-%m-%d")],
+            "vbmValidityEndDate": [license.validity_end_date.strftime("%Y-%m-%d")],
             "vbmValidityDuration": [license.validity_duration],
-            "vbmDeliveryDate": [license.delivery_date],
+            "vbmDeliveryDate": [license.delivery_date.strftime("%Y-%m-%d")],
             "vbmLicenseSchool": [license.license_school],
-            "vbmIgnoredForDisplay": [license.ignored_for_display],
+            "vbmIgnoredForDisplay": ["1" if license.ignored_for_display else "0"],
         }
         if license.license_special_type:
             expected_attr["vbmLicenseSpecialType"] = [license.license_special_type]
@@ -106,7 +106,7 @@ def test_get_total_number_of_licenses(license_handler, license_obj):
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
         license_handler.create(license)
-        assert license_handler.get_total_number_of_assignments(license) == int(license.license_quantity)
+        assert license_handler.get_total_number_of_assignments(license) == license.license_quantity
 
 
 def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment_handler, license_obj):
@@ -120,7 +120,7 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
         users = student_usernames + teacher_usernames
         license = license_obj(ou)
-        license.license_quantity = str(len(users) + 1)
+        license.license_quantity = len(users) + 1
         license_handler.create(license)
         assignment_handler.assign_users_to_licenses(
             usernames=users, license_codes=[license.license_code]
@@ -153,10 +153,10 @@ def test_get_number_of_expired_assignments(lo, license_handler, expired_license_
         for assignment_dn in license_obj.props.assignments[:2]:
             assignment_obj = assignment_mod.get(assignment_dn)
             assignment_obj.props.assignee = "foo"
-            assignment_obj.props.time_of_assignment = datetime.datetime.now().strftime("%Y-%m-%d")
+            assignment_obj.props.time_of_assignment = datetime.date.today()
             assignment_obj.props.status = Status.ASSIGNED
             assignment_obj.save()
-        expected_num = int(expired_license.license_quantity) - 2  # assigned 2 licenses in for loop above
+        expected_num = expired_license.license_quantity - 2  # assigned 2 licenses in for loop above
         assert license_handler.get_number_of_expired_assignments(expired_license) == expected_num
 
 
@@ -185,9 +185,7 @@ def test_get_time_of_last_assignment(license_handler, assignment_handler, licens
         license_handler.create(license)
         username, _ = schoolenv.create_student(ou)
         assignment_handler.assign_to_license(username=username, license_code=license.license_code)
-        assert license_handler.get_time_of_last_assignment(license) == datetime.datetime.now().strftime(
-            "%Y-%m-%d"
-        )
+        assert license_handler.get_time_of_last_assignment(license) == datetime.date.today()
 
 
 def test_set_license_ignore(license_handler, assignment_handler, license_obj, ldap_base):
@@ -195,7 +193,7 @@ def test_set_license_ignore(license_handler, assignment_handler, license_obj, ld
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
         username = schoolenv.create_student(ou)[0]
-        license.ignored_for_display = "0"
+        license.ignored_for_display = False
         license_handler.create(license)
         cn = sha256(license.license_code).hexdigest()
         license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
