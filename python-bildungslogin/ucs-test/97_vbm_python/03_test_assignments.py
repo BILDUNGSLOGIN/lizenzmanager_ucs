@@ -131,7 +131,6 @@ def test_check_license_can_be_assigned_to_school_user(license_school, ucsschool_
         assert "License can't be assigned to user in school" in str(excinfo.value)
 
 
-@pytest.mark.xfail(reason="TODO: adapt to changes in AssignmentHandler.remove_assignment_from_users()")
 def test_remove_assignment_from_users(assignment_handler, license_handler, license_obj):
     # 00_vbm_test_assignments
     with utu.UCSTestSchool() as schoolenv:
@@ -149,10 +148,10 @@ def test_remove_assignment_from_users(assignment_handler, license_handler, licen
         assignments = license_handler.get_assignments_for_license(license)
         for username in usernames:
             license_was_assigned_correct_to_user(assignments, username)
-        num_removed = assignment_handler.remove_assignment_from_users(
+        failed_assignments = assignment_handler.remove_assignment_from_users(
             usernames=usernames, license_code=license.license_code
         )
-        assert num_removed == len(usernames)
+        assert len(failed_assignments) == 0
         assignments = license_handler.get_assignments_for_license(license)
         assignees = [a.assignee for a in assignments]
         for username in usernames:

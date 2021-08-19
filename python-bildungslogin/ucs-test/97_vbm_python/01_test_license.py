@@ -38,7 +38,6 @@ from hashlib import sha256
 import pytest
 
 import univention.testing.ucsschool.ucs_test_school as utu
-from univention.bildungslogin.exceptions import BiloLicenseInvalidError
 from univention.bildungslogin.handlers import BiloCreateError
 from univention.bildungslogin.utils import LicenseType, Status
 from univention.testing.utils import verify_ldap_object
@@ -189,7 +188,6 @@ def test_get_time_of_last_assignment(license_handler, assignment_handler, licens
         assert license_handler.get_time_of_last_assignment(license) == datetime.date.today()
 
 
-@pytest.mark.xfail(reason="TODO: adapt to changes in AssignmentHandler.assign_to_license()")
 def test_set_license_ignore(license_handler, assignment_handler, license_obj, ldap_base):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
@@ -216,8 +214,9 @@ def test_set_license_ignore(license_handler, assignment_handler, license_obj, ld
         )
         license_handler.set_license_ignore(license_code=license.license_code, ignore=False)
         assignment_handler.assign_to_license(username=username, license_code=license.license_code)
-        with pytest.raises(BiloLicenseInvalidError):
-            license_handler.set_license_ignore(license_code=license.license_code, ignore=True)
+        assert (
+            license_handler.set_license_ignore(license_code=license.license_code, ignore=True) is False
+        )
 
 
 def test_get_license_types(license_handler):
