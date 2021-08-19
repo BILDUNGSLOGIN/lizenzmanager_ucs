@@ -17,7 +17,7 @@ from ucsschool.apis.plugins.auth import get_token
 NonEmptyStr = constr(min_length=1)
 NoStarStr = constr(regex=r"^[^*]+$")
 
-router = APIRouter(tags=["users"])
+router = APIRouter()
 
 _backend: Optional[DbBackend] = None
 logger = logging.getLogger(__name__)
