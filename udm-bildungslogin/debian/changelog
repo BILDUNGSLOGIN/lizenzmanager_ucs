@@ -1,3 +1,9 @@
+udm-bildungslogin (0.0.7) unstable; urgency=low
+
+  * Issue #55: Fix broken LDAP ACLs
+
+ -- Ole Schwiegert <schwiegert@univention.de>  Thu, 19 Aug 2021 12:03:44 +0200
+
 udm-bildungslogin (0.0.6) unstable; urgency=low
 
   * Issue #53: add simple UDM API encoders for vbm UDM modules

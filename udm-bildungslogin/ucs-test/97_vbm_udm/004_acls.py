@@ -67,6 +67,16 @@ def test_license_acl_user(create_license):
             lo.searchDn(base=license.dn)
 
 
+def test_license_acl_school_admin(create_license):
+    code = "CODE"
+    create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
+    user_pw = "univention"
+    with udm_test.UCSTestUDM() as udm:
+        userdn, username = udm.create_user(password=user_pw, options=["ucsschoolAdministrator"])
+        lo = access(binddn=userdn, bindpw=user_pw, base=ucr.get("ldap/base"))
+        assert lo.searchDn("(&(objectClass=vbmLicense)(vbmLicenseCode={}))".format(code))
+
+
 def test_metadata_acl_machine(create_metadata):
     metadata = create_metadata("PRODUCT_ID", datetime.date(2000, 1, 1))
     lo, _ = getMachineConnection()
@@ -85,3 +95,12 @@ def test_metadata_acl_user(create_metadata):
         lo = access(binddn=userdn, bindpw=user_pw, base=ucr.get("ldap/base"))
         with pytest.raises(noObject):
             lo.searchDn(base=metadata.dn)
+
+
+def test_metadata_acl_school_admin(create_metadata):
+    metadata = create_metadata("PRODUCT_ID", datetime.date(2000, 1, 1))
+    user_pw = "univention"
+    with udm_test.UCSTestUDM() as udm:
+        userdn, username = udm.create_user(password=user_pw, options=["ucsschoolAdministrator"])
+        lo = access(binddn=userdn, bindpw=user_pw, base=ucr.get("ldap/base"))
+        assert lo.searchDn(base=metadata.dn)
