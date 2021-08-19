@@ -44,7 +44,6 @@ from .generic import GenericModule, GenericObject, GenericObjectProperties
 class ExpiredPropertyEncoder(DisabledPropertyEncoder):
     @staticmethod
     def encode(value=None):
-        print("***")
         if value is None:
             return None
         return "1" if value else "0"

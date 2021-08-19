@@ -92,7 +92,7 @@ class LicenseHandler:
         for i in range(license.license_quantity):
             self.ah.create_assignment_for_license(license_code=license.license_code)
 
-    def get_assigned_users(self, license):  # type: (License) -> Dict[str, Any]
+    def get_assigned_users(self, license):  # type: (License) -> List[Dict[str, Any]]
         users = [
             {
                 "username": a.assignee,

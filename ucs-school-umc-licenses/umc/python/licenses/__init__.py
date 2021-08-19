@@ -110,9 +110,10 @@ class Instance(SchoolBaseModule):
         lh = LicenseHandler(ldap_user_write)
         license = lh.from_udm_obj(lh.get_udm_license_by_code(license_code))
         assigned_users = lh.get_assigned_users(license)
-        assigned_users["dateOfAssignment"] = iso8601Date.from_datetime(
-            assigned_users["dateOfAssignment"]
-        )
+        for assigned_user in assigned_users:
+            assigned_user["dateOfAssignment"] = iso8601Date.from_datetime(
+                assigned_user["dateOfAssignment"]
+            )
         meta_data = lh.get_meta_data_for_license(license)
         result = {
             "countAquired": lh.get_total_number_of_assignments(license),
@@ -294,7 +295,7 @@ class Instance(SchoolBaseModule):
                         ),
                         "countExpired": mh.get_number_of_expired_assignments(meta_datum_obj, school),
                         "countAvailable": mh.get_number_of_available_assignments(meta_datum_obj, school),
-                        "latestDeliveryDate": iso8601Date.to_datetime(
+                        "latestDeliveryDate": iso8601Date.from_datetime(
                             max(license.props.delivery_date for license in licenses)
                         ),
                     }
