@@ -65,8 +65,10 @@ def get_entry_uuid(lo, dn):
 
 
 def get_special_filter(pattern, attribute_names):  # type: (str, List[str]) -> str
-    """this is bluntly copied from school_umc_base: all attributes are searched
-    as substring + exact match.
+    """
+    This is bluntly copied from `ucsschool.lib.school_umc_base.LDAP_Filter.forAll()` to prevent importing
+    the UMC lib. It was slithely adapted so that all attributes are searched as both substring and exact
+    match.
     """
     expressions = []
     for iword in _reg_white_spaces.split(pattern or ""):
