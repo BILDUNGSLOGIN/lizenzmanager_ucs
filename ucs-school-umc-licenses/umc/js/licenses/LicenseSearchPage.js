@@ -107,7 +107,7 @@ define([
 			_('Assign licenses to %s selected users', count)
 		},
 
-		onShowLicense: function(licenseId) {
+		onShowLicense: function(licenseCode) {
 			// event stub
 		},
 
@@ -256,7 +256,7 @@ define([
 				isContextAction: true,
 				isMultiAction: false,
 				callback: lang.hitch(this, function(_idxs, licenses) {
-					this.onShowLicense(licenses[0].licenseId);
+					this.onShowLicense(licenses[0].licenseCode);
 				}),
 			}];
 			const columns = [{
@@ -297,7 +297,7 @@ define([
 			this._grid = new Grid({
 				actions: actions,
 				columns: columns,
-				moduleStore: store('licenseId', 'licenses'),
+				moduleStore: store('licenseCode', 'licenses'),
 				sortIndex: -10,
 				addTitleOnCellHoverIfOverflow: true,
 			});

@@ -118,16 +118,15 @@ define([
 			});
 
 			const data = [
-				[_('Publisher'),       e('publisher'),      _('Usage'),          e('usage')],
-				[_('Product ID'),      e('productId'),      _('Delivery'),       e('importDate')],
-				[_('Title'),           e('productName'),    _('Validity start'), e('validityStart')],
-				[_('Author'),          e('author'),         _('Validity end'),   e('validityEnd')],
-				[_('Platform'),        e('platform'),       _('Validity span'),  e('validitySpan')],
-				[_('License code'),    e('licenseCode'),    _('Ignore'),         ignore()],
-				[_('License type'),    e('licenseType'),    _('Aquired'),        e('countAquired')],
-				[_('Reference'),       e('reference'),      _('Assigned'),       e('countAssigned')],
-				[_('Special license'), e('specialLicense'), _('Expired'),        e('countExpired')],
-				['',                   '',                  _('Available'),      e('countAvailable')],
+				[_('Title'),           e('productName'),      _('Ignore'),         ignore()           ],
+				[_('Author'),          e('author'),           _('Delivery'),       e('importDate')    ],
+				[_('Publisher'),       e('publisher'),        _('Validity start'), e('validityStart') ],
+				[_('Product ID'),      e('productId'),        _('Validity end'),   e('validityEnd')   ],
+				[_('License code'),    e('licenseCode'),      _('Validity span'),  e('validitySpan')  ],
+				[_('License type'),    e('licenseTypeLabel'), _('Aquired'),        e('countAquired')  ],
+				[_('Special license'), e('specialLicense'),   _('Available'),      e('countAvailable')],
+				[_('Reference'),       e('reference'),        _('Assigned'),       e('countAssigned') ],
+				[_('Platform'),        e('platform'),         _('Expired'),        e('countExpired')  ],
 			];
 
 			for (const row of data) {
@@ -171,10 +170,10 @@ define([
 			this._set('license', license);
 		},
 
-		load: function(licenseId) {
+		load: function(licenseCode) {
 			return this.standbyDuring(
 				tools.umcpCommand('licenses/get', {
-					licenseCode: licenseId,
+					licenseCode: licenseCode,
 				}).then(lang.hitch(this, function(response) {
 					const license = response.result;
 					this.set('license', license);

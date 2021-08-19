@@ -36,6 +36,7 @@ from ucsschool.lib.school_umc_base import SchoolBaseModule
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
 from univention.admin.syntax import iso8601Date
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
+from univention.bildungslogin.utils import LicenseType
 from univention.lib.i18n import Translation
 from univention.management.console.log import MODULE
 from univention.management.console.modules.decorators import sanitize
@@ -139,8 +140,7 @@ class Instance(SchoolBaseModule):
             "ignore": license.ignored_for_display,
             "importDate": iso8601Date.from_datetime(license.delivery_date),
             "licenseCode": license.license_code,
-            "licenseType": license.license_type,
-            "platform": license.utilization_systems,
+            "licenseTypeLabel": LicenseType.label(license.license_type),
             "productId": license.product_id,
             "reference": license.purchasing_reference,
             "specialLicense": license.license_special_type,

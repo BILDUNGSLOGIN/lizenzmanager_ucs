@@ -125,7 +125,6 @@ define([
 				}).then(lang.hitch(this, function(response) {
 					const product = response.result;
 					this.set('product', product);
-					return;
 				}))
 			);
 		},

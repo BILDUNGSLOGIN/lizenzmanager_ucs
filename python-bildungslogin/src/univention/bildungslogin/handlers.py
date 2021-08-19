@@ -381,7 +381,6 @@ class LicenseHandler:
             if not only_available_licenses or self.get_number_of_available_assignments(license) > 0:
                 rows.append(
                     {
-                        "licenseId": license.license_code,
                         "productId": license.product_id,
                         "productName": meta_data.title,
                         "publisher": meta_data.publisher,

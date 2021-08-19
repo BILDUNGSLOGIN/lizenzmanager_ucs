@@ -65,8 +65,8 @@ define([
 		_productSearchPage: null,
 		_productDetailPage: null,
 
-		_showLicense: function(licenseId) {
-			this._licenseDetailPage.load(licenseId).then(lang.hitch(this, function(licenseCode) {
+		_showLicense: function(licenseCode) {
+			this._licenseDetailPage.load(licenseCode).then(lang.hitch(this, function(licenseCode) {
 				this.set('title', this.defaultTitle + ': ' + entities.encode(licenseCode));
 				this.selectChild(this._licenseDetailPage);
 			}));
@@ -88,8 +88,8 @@ define([
 			on(this._licenseSearchPage, 'chooseDifferentSchool', lang.hitch(this, function() {
 				this._chooseDifferentSchool();
 			}));
-			on(this._licenseSearchPage, 'showLicense', lang.hitch(this, function(licenseId) {
-				this._showLicense(licenseId);
+			on(this._licenseSearchPage, 'showLicense', lang.hitch(this, function(licenseCode) {
+				this._showLicense(licenseCode);
 			}));
 
 			this._licenseDetailPage = new LicenseDetailPage({
@@ -248,9 +248,9 @@ define([
 				this._trySelectSchool(schoolId).then(lang.hitch(this, function() {
 					const detailString = stateParts[2];
 					if (detailString === 'license' && this.moduleFlavor === 'licenses/licenses') {
-						const licenseId = stateParts[3];
-						if (licenseId) {
-							this._showLicense(licenseId);
+						const licenseCode = stateParts[3];
+						if (licenseCode) {
+							this._showLicense(licenseCode);
 						}
 					} else if (detailString === 'product' && this.moduleFlavor === 'licenses/products') {
 						const productId = stateParts[3];
