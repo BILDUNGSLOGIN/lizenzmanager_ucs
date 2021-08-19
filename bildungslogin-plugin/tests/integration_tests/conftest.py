@@ -176,15 +176,15 @@ def create_test_user(kelvin_session_kwargs, test_user_obj, schedule_delete_user_
 
 @pytest.fixture
 def random_license_data():
-    yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
-    next_year = datetime.datetime.now() + datetime.timedelta(days=365)
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    next_year = datetime.date.today() + datetime.timedelta(days=365)
 
     def _func(**kwargs) -> Dict[str, Any]:
         code = f"VHT-{uuid.uuid4()!s}"
         res = {
             "cn": sha256(code.encode()).hexdigest(),
             "code": code,
-            "delivery_date": datetime.datetime.now().strftime("%Y-%m-%d"),
+            "delivery_date": datetime.date.today().strftime("%Y-%m-%d"),
             # "expired": None,
             # "ignored": None,
             # "num_assigned": None,
@@ -193,7 +193,7 @@ def random_license_data():
             "product_id": f"urn:bilo:medium:A00{random.randint(10, 99)}#{random.randint(10, 99)}-"
             f"{random.randint(10, 99)}-TZ",
             "provider": "VHT",
-            "purchasing_reference": f"{yesterday.isoformat()} -02:00 4572022",
+            "purchasing_reference": f"{yesterday.isoformat()} -02:00 4572022",  # random string really
             "quantity": random.randint(2, 5),
             "school": "DEMOSCHOOL",
             # "special_type": None,

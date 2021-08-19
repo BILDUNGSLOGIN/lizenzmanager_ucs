@@ -56,7 +56,7 @@ async def test_get_user_with_licenses(
     # allowed status changes are controlled by UDM module,
     # cannot change from AVAILABLE directly to PROVISIONED, so setting to ASSIGNED first
     assignment_obj1.props.status = AssignmentStatus.ASSIGNED.name
-    assignment_obj1.props.time_of_assignment = datetime.datetime.now().strftime("%Y-%m-%d")
+    assignment_obj1.props.time_of_assignment = datetime.date.today().strftime("%Y-%m-%d")
     await assignment_obj1.save()
     # now set it to PROVISIONED
     assignment_obj1.props.status = AssignmentStatus.PROVISIONED.name
@@ -64,7 +64,7 @@ async def test_get_user_with_licenses(
     assignment_obj2: UdmObject = assignment_objs2[0]
     assignment_obj2.props.assignee = udm_user.uuid
     assignment_obj2.props.status = AssignmentStatus.ASSIGNED.name
-    assignment_obj2.props.time_of_assignment = datetime.datetime.now().strftime("%Y-%m-%d")
+    assignment_obj2.props.time_of_assignment = datetime.date.today().strftime("%Y-%m-%d")
     await assignment_obj2.save()
     assignment_obj2.props.status = AssignmentStatus.PROVISIONED.name
     await assignment_obj2.save()
