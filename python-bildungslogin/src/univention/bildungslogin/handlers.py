@@ -880,6 +880,7 @@ class AssignmentHandler:
         if status == Status.AVAILABLE:
             # assignments which are available do not have an assignee
             udm_assignment.props.assignee = None
+            udm_assignment.props.time_of_assignment = None
         udm_assignment.props.status = status
         try:
             udm_assignment.save()
