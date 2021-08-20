@@ -31,3 +31,12 @@ A [Jenkins Job](https://jenkins.knut.univention.de:8181/job/Customers/job/172906
 ## Getting started:
 
 [Installation and usage](getting_started.md)
+
+## Release:
+
+- [Changelog](CHANGELOG.md) aktualisieren.
+- [getting started](getting_started.md) prüfen und gegebenenfalls aktualisieren.
+- Nach Möglichkeit Update vom letzten Release zum aktuellen Stand prüfen.
+- Release von `omar`
+  - `announce_ucs_customer_scope --skip-tag -c 172906 -r 4.4-0 -s vbm`
+  - `sudo update_customer_mirror.sh 172906`
