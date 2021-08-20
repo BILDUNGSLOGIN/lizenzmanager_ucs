@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.5) unstable; urgency=medium
+
+  * Adjust UMC module names
+
+ -- Johannes Keiser <keiser@univention.de>  Fri, 20 Aug 2021 11:45:05 +0200
+
 ucs-school-umc-licenses (0.1.4) unstable; urgency=medium
 
   * Issue #27: wording and translation
