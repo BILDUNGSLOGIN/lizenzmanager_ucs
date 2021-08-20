@@ -16,6 +16,7 @@
 
 ### Status GUI
 - Das UMC-Modul ***Medienlizenzen anzeigen*** ist abgeschlossen und kann getestet werden.
+  - Die Suche nach `Produkt ID` und `Lizenz Code` ist noch case sensitive.
 - Das UMC-Modul ***Lizenzierte Medien*** ist noch nicht abgeschlossen.
   - Die Detailansicht für Medien enthält noch Platzhalterdaten.
 - Das UMC-Modul ***Medienlizenzen zuweisen*** ist noch nicht abgeschlossen.
