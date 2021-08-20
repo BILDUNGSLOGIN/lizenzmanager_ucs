@@ -216,6 +216,7 @@ def test_search_for_license_pattern(
     assert test_license_codes[FUZZY_SEARCH] == set(res_l["licenseId"] for res_l in res)
 
 
+#  Warning: all combinations take a lot of time
 @pytest.mark.parametrize(
     "time_from",
     [
@@ -243,9 +244,9 @@ def test_search_for_license_pattern(
     "publisher",
     [
         ("", True),
-        ("*vention{}", True),
-        ("univention{}", True),
-        ("foobar", False),
+        # ("*vention{}", True),
+        # ("univention{}", True),
+        # ("foobar", False),
     ],
 )
 @pytest.mark.parametrize(
@@ -270,9 +271,9 @@ def test_search_for_license_pattern(
     "product_id",
     [
         ("*", True),
-        ("*vention{}", True),
-        ("univention{}", True),
-        ("foobar", False),
+        # ("*vention{}", True),
+        # ("univention{}", True),
+        # ("foobar", False),
     ],
 )
 @pytest.mark.parametrize(
@@ -287,10 +288,10 @@ def test_search_for_license_pattern(
 @pytest.mark.parametrize(
     "license_code",
     [
-        ("*", True),
+        # ("*", True),
         ("*vention{}", True),
-        ("univention{}", True),
-        ("foobar", False),
+        # ("univention{}", True),
+        # ("foobar", False),
     ],
 )
 def test_search_for_license_advance(
