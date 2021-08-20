@@ -67,6 +67,10 @@ def test_license_acl_user(create_license):
             lo.searchDn(base=license.dn)
 
 
+@pytest.mark.skipif(
+    not ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"],
+    reason="Does not run on replication nodes",
+)
 def test_license_acl_school_admin(create_license):
     code = "CODE"
     create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
@@ -97,6 +101,10 @@ def test_metadata_acl_user(create_metadata):
             lo.searchDn(base=metadata.dn)
 
 
+@pytest.mark.skipif(
+    not ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"],
+    reason="Does not run on replication nodes",
+)
 def test_metadata_acl_school_admin(create_metadata):
     metadata = create_metadata("PRODUCT_ID", datetime.date(2000, 1, 1))
     user_pw = "univention"
