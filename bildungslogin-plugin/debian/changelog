@@ -1,3 +1,9 @@
+bildungslogin-plugin (1.0.2) unstable; urgency=medium
+
+  * Issue #21: Test fixes and cleanup
+
+ -- Daniel Troeder <troeder@univention.de>  Fri, 20 Aug 2021 16:41:12 +0200
+
 bildungslogin-plugin (1.0.1) unstable; urgency=medium
 
   * Issue #21: Various fixes and packaging cleanup
