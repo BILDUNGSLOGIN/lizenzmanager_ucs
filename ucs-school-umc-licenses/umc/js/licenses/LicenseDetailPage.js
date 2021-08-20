@@ -126,7 +126,7 @@ define([
 				[_('License type'),    e('licenseTypeLabel'), _('Aquired'),        e('countAquired')  ],
 				[_('Special license'), e('specialLicense'),   _('Available'),      e('countAvailable')],
 				[_('Reference'),       e('reference'),        _('Assigned'),       e('countAssigned') ],
-				[_('Platform'),        e('platform'),         _('Expired'),        e('countExpired')  ],
+				[_('Usage'),           e('usage'),            _('Expired'),        e('countExpired')  ],
 			];
 
 			for (const row of data) {
