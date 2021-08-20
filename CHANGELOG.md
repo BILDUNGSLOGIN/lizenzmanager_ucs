@@ -1,5 +1,27 @@
 # Changelog
 
+## 2021-08-20
+
+### Hinzugefügt
+- Das Verlagskürzel wird automatisch dem Lizenzcode vorangestellt, sollte dieses Kürzel fehlen.
+- Produktmetadaten werden automatisch, für neue Lizenzen, heruntergeladen.
+- Produktmetadaten werden regelmässig auf Änderungen überprüft und bei Bedarf aktualisiert.
+- Eine Python Bibliotheksfunktion für eine erweiterte Lizenzsuche im UMC-Modul.
+- Eine Detailansicht für Lizenzen im UMC-Modul.
+
+### Geändert
+- Eine doppelte Endpunktbeschreibung wurde aus der Swagger UI entfernt.
+- Ein Fehler in den LDAP-ACL wurde korrigiert, damit Schuladmins Lizenzen verwalten können.
+- Die Typisierung von Werten der Lizenz-, Metadaten- und Assignment-Objekte wurde in den UDM-Modulen verbessert.
+
+### Status GUI
+- Das UMC-Modul ***Medienlizenzen anzeigen*** ist abgeschlossen und kann getestet werden.
+- Das UMC-Modul ***Lizenzierte Medien*** ist nicht nicht abgeschlossen.
+  - Die Detailansicht für Medien enthält noch Platzhalterdaten.
+- Das UMC-Modul ***Medienlizenzen zuweisen*** ist nicht nicht abgeschlossen.
+  - Die Übersichtsseite enthält noch Platzhalterdaten.
+  - Es lassen sich noch keine Lizenzen zuweisen.
+
 ## 2021-08-13
 
 ### Hinzugefügt
