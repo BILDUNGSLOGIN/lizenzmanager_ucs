@@ -202,7 +202,7 @@ def test_search_for_license_pattern(
             product_id,
         ).count(GOOD_SEARCH)
     )
-    assert test_license_codes[GOOD_SEARCH] == set(res_l["licenseId"] for res_l in res)
+    assert test_license_codes[GOOD_SEARCH] == set(res_l["licenseCode"] for res_l in res)
     res = license_handler.search_for_licenses(is_advanced_search=False, pattern=FUZZY_SEARCH, school=ou)
     assert (
         len(res)
@@ -213,7 +213,7 @@ def test_search_for_license_pattern(
             product_id,
         ).count(FUZZY_SEARCH)
     )
-    assert test_license_codes[FUZZY_SEARCH] == set(res_l["licenseId"] for res_l in res)
+    assert test_license_codes[FUZZY_SEARCH] == set(res_l["licenseCode"] for res_l in res)
 
 
 #  Warning: all combinations take a lot of time
@@ -357,9 +357,9 @@ def test_search_for_license_advance(
     )
     if license_type[0] == LicenseType.SINGLE:
         assert (
-            single_license.license_code in set(res_l["licenseId"] for res_l in res)
+            single_license.license_code in set(res_l["licenseCode"] for res_l in res)
         ) == should_be_found
     else:
         assert (
-            volume_license.license_code in set(res_l["licenseId"] for res_l in res)
+            volume_license.license_code in set(res_l["licenseCode"] for res_l in res)
         ) == should_be_found
