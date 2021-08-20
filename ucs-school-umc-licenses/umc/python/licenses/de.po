@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2021-08-05 22:44+0200\n"
+"POT-Creation-Date: 2021-08-19 22:20+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -12,10 +12,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: umc/python/licenses/__init__.py:165
-msgid "Einzellizenz"
+#: umc/python/licenses/__init__.py:196
+msgid ""
+"The 'Ignore' state cannot be changed because users are already assigned to "
+"the license."
 msgstr ""
-
-#: umc/python/licenses/__init__.py:164
-msgid "Volumenlizenz"
-msgstr ""
+"Der Status 'Ignorieren' kann nicht geändert werden, da der Lizenz bereits "
+"Benutzer zugewiesen sind."

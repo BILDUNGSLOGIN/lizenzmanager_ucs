@@ -192,7 +192,9 @@ class Instance(SchoolBaseModule):
         result = {
             "errorMessage": ""
             if success
-            else _("The 'Ignore' status can't be changed because the license has assigned users.")
+            else _(
+                "The 'Ignore' state cannot be changed because users are already assigned to the license."
+            )
         }
         MODULE.info("licenses.set_ignore: result: %s" % str(result))
         self.finished(request.id, result)
