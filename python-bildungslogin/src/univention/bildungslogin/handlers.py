@@ -263,8 +263,16 @@ class LicenseHandler:
         pattern="",  # type: Optional[str]
     ):
         def __get_possible_product_ids(search_values, search_combo="|"):
+            attr_allow_list = (
+                "title",
+                "publisher",
+            )
             filter_parts = []
             for attr, pattern in search_values:
+                if attr not in attr_allow_list:
+                    raise AttributeError(
+                        "attr {} not in allowed search attr {}".format(attr, attr_allow_list)
+                    )
                 filter_parts.append("({attr}={pattern})".format(attr=attr, pattern=ldap_escape(pattern)))
             if not filter_parts:
                 filter_s = ""
