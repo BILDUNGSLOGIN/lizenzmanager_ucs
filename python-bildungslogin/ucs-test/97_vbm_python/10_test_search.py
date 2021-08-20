@@ -157,6 +157,7 @@ def test_search_for_license_pattern(
     license_code,
     product_id,
 ):
+    """Test simple search with OR in title, publisher, license code (case sensitive) and product id (case sensitive)"""
     def __create_license(title=None, publisher=None, license_code=None, product_id=None):
         new_license = deepcopy(license_obj(ou))
         new_meta_data = deepcopy(meta_data)
@@ -310,6 +311,7 @@ def test_search_for_license_advance(
     product,
     license_code,
 ):
+    """Test advanced search with AND in start period/end period, only available licenses, user identification, product id (case sensitive), title and  license code (case sensitive)"""
     if license_type[0] == LicenseType.SINGLE:
         license_appendix = "_s"
     else:

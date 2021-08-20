@@ -55,6 +55,7 @@ def test_create_license(create_license):
 
 
 def test_required_attributes(udm):
+    """Test that for license the attributes cn, code, product_id, quantity, provider, school or delivery_date are mandatory"""
     with pytest.raises(CreateError) as exinfo:
         obj = udm.get("vbm/license").new()
         obj.save()
@@ -82,6 +83,7 @@ def test_required_attributes(udm):
     ),
 )
 def test_unrequired_attributes(attr_name, udm):
+    """Test that a license object can be created in LDAP"""
     with pytest.raises(CreateError) as exinfo:
         obj = udm.get("vbm/license").new()
         obj.save()
@@ -89,6 +91,7 @@ def test_unrequired_attributes(attr_name, udm):
 
 
 def test_unique_codes(create_license):
+    """Test that for a license object the CODE has to be unique"""
     code = "CODE"
     create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
     with pytest.raises(CreateError) as exinfo:
@@ -97,6 +100,7 @@ def test_unique_codes(create_license):
 
 
 def test_existing_school(create_license):
+    """Test that for a license object the school must exist in LDAP"""
     code = "CODE"
     non_existing_school = "DEMOSCHOOL" + str(uuid.uuid4())
     with pytest.raises(CreateError) as exinfo:
@@ -105,6 +109,7 @@ def test_existing_school(create_license):
 
 
 def test_assignments(create_license, udm):
+    """Test that the value of licenses and assignments matches in LDAP"""
     num_licenses = random.randint(2, 10)
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
@@ -129,6 +134,7 @@ def test_assignments(create_license, udm):
     ids=lambda x: "{1} -> {0}".format(*x),
 )
 def test_expired(create_license, udm, expired_validity_end_date):
+    """Test that a license can be set to expired in LDAP"""
     expired, validity_end_date = expired_validity_end_date
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
@@ -140,6 +146,7 @@ def test_expired(create_license, udm, expired_validity_end_date):
 
 
 def test_num_available(create_license, udm):
+    """Test that number of licenses is expected including the expired licenses in LDAP"""
     num_licenses = 10
     num_assigned = random.randint(2, num_licenses - 1)
     num_expired = num_licenses - num_assigned

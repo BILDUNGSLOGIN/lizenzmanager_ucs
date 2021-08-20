@@ -47,6 +47,7 @@ ucr.load()
 
 @pytest.mark.parametrize("attr_name", ("cn", "product_id"))
 def test_required_attributes(attr_name, udm):
+    """Test that for meta data the attributes cn and product_id are mandatory"""
     with pytest.raises(CreateError) as exinfo:
         obj = udm.get("vbm/metadata").new()
         obj.save()
@@ -54,11 +55,13 @@ def test_required_attributes(attr_name, udm):
 
 
 def test_create_metadata(create_metadata):
+    """Test that a meta data object can be created in LDAP"""
     metadata = create_metadata("PRODUCT_ID", datetime.date(2000, 1, 1))
     assert metadata.props.cn == sha256("PRODUCT_ID").hexdigest()
 
 
 def test_unique_product_ids(create_metadata):
+    """Test that for a meta data object the product_id has to be unique"""
     product_id = "PRODUCT_ID"
     create_metadata(product_id, datetime.date(2000, 1, 1))
     with pytest.raises(CreateError) as exinfo:

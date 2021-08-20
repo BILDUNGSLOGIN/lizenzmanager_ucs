@@ -30,6 +30,7 @@ async def test_connection_test(backend: UdmRestApiBackend):
 
 @pytest.mark.asyncio
 async def test_get_user_no_licenses(backend: UdmRestApiBackend, create_test_user):
+    """Test that a newly created user has no assigned licenses in the backend."""
     kelvin_user: KelvinUser = await create_test_user()
     prov_user: ProvUser = await backend.get_user(kelvin_user.name)
     compare_kelvin_user_and_prov_user(kelvin_user, prov_user)
@@ -40,6 +41,7 @@ async def test_get_user_no_licenses(backend: UdmRestApiBackend, create_test_user
 async def test_get_user_with_licenses(
     backend: UdmRestApiBackend, create_test_user, create_license_and_assignments, udm
 ):
+    """Test that license assignments are created with AVAILABLE status, can be assigned to a user and the license is in the ASSIGNED status, and after provisioning the status is PROVISIONED"""
     kelvin_user: KelvinUser = await create_test_user()
     license_obj1, assignment_objs1 = await create_license_and_assignments(quantity=1)
     license_obj2, assignment_objs2 = await create_license_and_assignments(quantity=1)

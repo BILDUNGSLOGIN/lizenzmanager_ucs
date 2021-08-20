@@ -64,11 +64,13 @@ def check_meta_data_is_correct(meta_data_obj, ldap_base):
 
 
 def test_create_meta_data(meta_data_handler, meta_data, ldap_base):
+    """Test that meta data can be created"""
     meta_data_handler.create(meta_data)
     check_meta_data_is_correct(meta_data, ldap_base)
 
 
 def test_save_meta_data(meta_data_handler, meta_data, ldap_base):
+    """Test that meta data can be saved"""
     meta_data_handler.create(meta_data)
     meta_data.title = uts.random_name()
     meta_data.description = uts.random_name()
@@ -82,6 +84,7 @@ def test_save_meta_data(meta_data_handler, meta_data, ldap_base):
 
 
 def test_get_assignments_for_meta_data(license_handler, meta_data_handler, license_obj, meta_data):
+    """Test that license assignments are created with AVAILABLE status and have meta data"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -94,6 +97,7 @@ def test_get_assignments_for_meta_data(license_handler, meta_data_handler, licen
 
 
 def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_licenses):
+    """Test that the total number of licenses in meta data backend is as expected without ignored licenses"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         total_amount_of_licenses_for_product = 0
@@ -118,8 +122,8 @@ def test_product_license_numbers(
     meta_data,
     assignment_handler,
 ):
-    # create a MetaData object and all combinations of licenses with the following properties in relation to
-    # the MetaData object
+    """
+    Test to create a MetaData object and all combinations of licenses with the following properties in relation to the MetaData object
     # - ou is     related
     # - ou is not related
     # - product_id is     related
@@ -128,6 +132,7 @@ def test_product_license_numbers(
     # - is_ignored_for_display is False
     # - expired is True
     # - expired is False
+    """
     with utu.UCSTestSchool() as schoolenv:
         ou_related, _ = schoolenv.create_ou()
         ou_unrelated = uts.random_name()
@@ -289,8 +294,7 @@ def test_number_of_provisioned_and_assigned_licenses(
     meta_data,
     license_obj,
 ):
-    # 00_vbm_test_assignments
-    # the number of provisioned licenses is included in the number of assigned licenses
+    """Test the number of provisioned licenses is included in the number of assigned licenses"""
     num_students = 3
     num_teachers = 3
     with utu.UCSTestSchool() as schoolenv:
@@ -324,6 +328,7 @@ def test_number_of_provisioned_and_assigned_licenses(
 
 
 def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_data, n_expired_licenses):
+    """Test the numer of expired licenses is as expected"""
     total_amount_of_licenses_for_product = 0
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
@@ -341,6 +346,7 @@ def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_dat
 
 
 def test_get_all_product_ids(meta_data_handler, n_meta_data):
+    """Test that the value of all product ids in meta data are as expected"""
     product_ids_expected = set()
     for m in n_meta_data:
         meta_data_handler.create(m)
@@ -349,6 +355,7 @@ def test_get_all_product_ids(meta_data_handler, n_meta_data):
 
 
 def test_get_all_publishers(meta_data_handler, n_meta_data):
+    """Test that the value of all publishers in meta data are as expected"""
     publishers = []
     for m in n_meta_data:
         meta_data_handler.create(m)

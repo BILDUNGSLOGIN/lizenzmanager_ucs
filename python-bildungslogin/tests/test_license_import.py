@@ -39,6 +39,7 @@ test_license = License(
 
 
 def test_load_license():
+    """Test that a license loaded from dict are the same as a corresponding python object."""
     license = load_license(test_license_raw, "test_schule")
     assert license.__dict__ == attr.asdict(test_license)
 
@@ -59,5 +60,6 @@ def test_load_license_missing_provider_in_code(code, expected):
         "gueltigkeitsdauer": "Ein Jahr",
         "sonderlizenz": "Lehrer",
     }
+    """Test that a license loaded from dict has the expected license codes."""
     license = load_license(license_raw, "test_schule")
     assert license.license_code == expected

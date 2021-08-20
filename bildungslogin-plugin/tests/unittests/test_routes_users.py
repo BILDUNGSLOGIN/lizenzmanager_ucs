@@ -10,6 +10,7 @@ fake = faker.Faker()
 
 
 def test_routes_v1_users_get(client, fake_db_backend):
+    """Test that the REST API returns for a User-ID a JSON-Object."""
     user = User(
         id=fake.uuid4(),
         first_name=fake.first_name(),

@@ -45,6 +45,7 @@ from univention.udm import UDM
 
 
 def test_license_type(license_obj):
+    """Test that a license can have the type VOLUME for many or SINGLE for quantity 1"""
     license = license_obj("foo")
     license.license_quantity = 10
     assert license.license_type == LicenseType.VOLUME
@@ -53,6 +54,7 @@ def test_license_type(license_obj):
 
 
 def test_create(lo, license_handler, license_obj, ldap_base):
+    """Test that a license assignment can be used once in atatus AVAILABLE and can not assigned multiple times."""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -91,6 +93,7 @@ def test_create(lo, license_handler, license_obj, ldap_base):
 
 
 def test_get_assignments_for_license(license_handler, license_obj):
+    """Test that a license assignment is in atatus AVAILABLE"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -102,6 +105,7 @@ def test_get_assignments_for_license(license_handler, license_obj):
 
 
 def test_get_total_number_of_licenses(license_handler, license_obj):
+    """Test that the number of license assignments is the same as its quantity"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -110,7 +114,7 @@ def test_get_total_number_of_licenses(license_handler, license_obj):
 
 
 def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment_handler, license_obj):
-    # 00_vbm_test_assignments
+    """Test that the number of license assignments is the same as the number of selected teachers and students"""
     # the number of provisioned licenses is included in the number of assigned licenses
     num_students = 3
     num_teachers = 3
@@ -143,6 +147,7 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
 
 
 def test_get_number_of_expired_assignments(lo, license_handler, expired_license_obj):
+    """Test that the number of expired license assignments is as expected"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         expired_license = expired_license_obj(ou)
@@ -161,6 +166,7 @@ def test_get_number_of_expired_assignments(lo, license_handler, expired_license_
 
 
 def test_get_meta_data_for_license(license_handler, meta_data_handler, license_obj, meta_data):
+    """Test that for a license the meta data is available"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -179,6 +185,7 @@ def test_get_meta_data_for_license(license_handler, meta_data_handler, license_o
 
 
 def test_get_time_of_last_assignment(license_handler, assignment_handler, license_obj):
+    """Test that the date and time of a license assignment is uptodate"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -189,6 +196,7 @@ def test_get_time_of_last_assignment(license_handler, assignment_handler, licens
 
 
 def test_set_license_ignore(license_handler, assignment_handler, license_obj, ldap_base):
+    """Test that a license can be set to ignored and can not assigned afterwards"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -220,4 +228,5 @@ def test_set_license_ignore(license_handler, assignment_handler, license_obj, ld
 
 
 def test_get_license_types(license_handler):
+    """Test that a license type is implemented for "Volumenlizenz" and "Einzellizenz" """
     assert {"Volumenlizenz", "Einzellizenz"} == {t["id"] for t in license_handler.get_license_types()}

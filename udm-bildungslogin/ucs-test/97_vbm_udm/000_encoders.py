@@ -43,6 +43,7 @@ from univention.udm.base import BaseObject
 
 
 def test_vbm_assignment(create_license, udm):
+    """Test that the license assignment is stored in LDAP with the expected type for each attribute"""
     assert udm.api_version >= 1
 
     with utu.UCSTestSchool() as schoolenv:
@@ -80,6 +81,7 @@ def test_vbm_assignment(create_license, udm):
 
 
 def test_vbm_license(create_license, udm):
+    """Test that the license is stored in LDAP with the expected type for each attribute"""
     assert udm.api_version >= 1
 
     with utu.UCSTestSchool() as schoolenv:
@@ -130,6 +132,7 @@ def test_vbm_license(create_license, udm):
 
 
 def test_vbm_metadata(create_metadata, udm):
+    """Test that the meta data is stored in LDAP with the expected type for each attribute"""
     assert udm.api_version >= 1
 
     metadate_obj = create_metadata(str(uuid.uuid4()))

@@ -41,5 +41,6 @@ test_metadata = MetaData(
 
 
 def test_load_media():
+    """Test that meta data loaded from dict are the same as a corresponding python object."""
     metadata = load_media(test_metadata_raw)
     assert metadata.__dict__ == attr.asdict(test_metadata)

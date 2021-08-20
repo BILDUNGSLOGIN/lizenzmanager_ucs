@@ -57,7 +57,7 @@ def license_was_assigned_correct_to_user(assignments, username):
 
 @pytest.mark.parametrize("user_type", ["student", "teacher"])
 def test_assign_user_to_license(assignment_handler, license_handler, license_obj, user_type):
-    # 00_vbm_test_assignments
+    """Test that a license can be assigned to a user"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -80,6 +80,7 @@ def test_assign_user_to_license(assignment_handler, license_handler, license_obj
 
 @pytest.mark.parametrize("ignored", [True, False])
 def test_check_is_ignored(ignored):
+    """Test that a license can not be used if the ignore flag is set"""
     if ignored is not False:
         with pytest.raises(BiloAssignmentError) as excinfo:
             AssignmentHandler.check_is_ignored(ignored)
@@ -89,7 +90,7 @@ def test_check_is_ignored(ignored):
 
 
 def test_assign_user_to_expired_license_fails(assignment_handler, license_handler, license_obj):
-    # 00_vbm_test_assignments
+    """Test that a license can not be assigned if the license is expired"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -102,7 +103,7 @@ def test_assign_user_to_expired_license_fails(assignment_handler, license_handle
 
 
 def test_assign_user_to_ignored_license_fails(assignment_handler, license_handler, license_obj):
-    # 00_vbm_test_assignments
+    """Test that a license can not be assigned if the ignore flag is set"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -119,6 +120,7 @@ def test_assign_user_to_ignored_license_fails(assignment_handler, license_handle
     [("demoschool", "demoschool"), ("demOSchool", "DEMOSCHOOL"), ("demoschool", "demoschool2")],
 )
 def test_check_license_can_be_assigned_to_school_user(license_school, ucsschool_school):
+    """Test that a license associated to a school can not be assigned to a user of a different school"""
     if license_school.lower() == ucsschool_school.lower():
         AssignmentHandler.check_license_can_be_assigned_to_school_user(
             license_school=license_school, ucsschool_schools=[ucsschool_school]
@@ -132,7 +134,7 @@ def test_check_license_can_be_assigned_to_school_user(license_school, ucsschool_
 
 
 def test_remove_assignment_from_users(assignment_handler, license_handler, license_obj):
-    # 00_vbm_test_assignments
+    """Test that license assignment can be removed from an user"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         n = random.randint(0, 10)
@@ -159,7 +161,7 @@ def test_remove_assignment_from_users(assignment_handler, license_handler, licen
 
 
 def test_assign_users_to_licenses(assignment_handler, license_handler, license_obj):
-    # 00_vbm_test_assignments
+    """Test that a license can be assigned to a user with status ASSIGNED"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -174,6 +176,7 @@ def test_assign_users_to_licenses(assignment_handler, license_handler, license_o
 
 
 def test_get_assignments_for_product_id_for_user(license_handler, assignment_handler, license_obj):
+    """Test that a license can be assigned to a user and the user have the product"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -189,7 +192,7 @@ def test_get_assignments_for_product_id_for_user(license_handler, assignment_han
 
 @pytest.mark.parametrize("user_type", ["student", "teacher"])
 def test_positive_change_license_status(license_handler, assignment_handler, user_type, license_obj):
-    # positive test: test all valid status changes (+ if status was set correct)
+    """Positive test: test all valid status changes (+ if status was set correct)"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -240,7 +243,7 @@ def test_positive_change_license_status(license_handler, assignment_handler, use
 
 @pytest.mark.parametrize("user_type", ["student", "teacher"])
 def test_negative_change_license_status(license_handler, assignment_handler, user_type, license_obj):
-    # negative test: test all invalid status changes
+    """Negative test: test all invalid status changes"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license = license_obj(ou)
@@ -288,6 +291,7 @@ def test_negative_change_license_status(license_handler, assignment_handler, use
 )
 @pytest.mark.parametrize("license_type", ["Lehrer", ""])
 def test_check_license_type_is_correct(assignment_handler, user_roles, license_type):
+    """Test that a license with string type "Lehrer" can not be assigned to a student"""
     roles = [get_role_info(role)[0] for role in user_roles]
     if license_type == "Lehrer" and "student" in roles:
         with pytest.raises(BiloAssignmentError) as excinfo:
