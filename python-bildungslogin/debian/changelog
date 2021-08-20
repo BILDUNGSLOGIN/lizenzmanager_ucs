@@ -1,3 +1,9 @@
+python-bildungslogin (0.0.8) unstable; urgency=medium
+
+  * Issue 27: use license_code as license_id
+
+ -- Johannes Keiser <keiser@univention.de>  Fri, 20 Aug 2021 10:55:03 +0200
+
 python-bildungslogin (0.0.7) unstable; urgency=medium
 
   * Issue #18: Pattern and advanced license search
