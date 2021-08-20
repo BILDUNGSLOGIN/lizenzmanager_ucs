@@ -31,11 +31,11 @@
 
 if [ "$1" = "configure" ]
 then
-	uinst=/usr/lib/univention-install/60bildungslogin-plugin.uinst
+	uinst=/usr/lib/univention-install/30bildungslogin-plugin.uinst
 	[ -e "$uinst" ] && rm "$uinst"
 fi
 
 . /usr/share/univention-lib/base.sh
-call_joinscript 40bildungslogin-plugin.inst
+call_joinscript 70bildungslogin-plugin.inst
 
 exit 0

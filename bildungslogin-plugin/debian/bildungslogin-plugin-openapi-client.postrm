@@ -32,7 +32,7 @@
 if [ "$1" = "remove" ]
 then
 	. /usr/share/univention-lib/base.sh
-	call_unjoinscript 61bildungslogin-plugin-openapi-client.uinst
+	call_unjoinscript 31bildungslogin-plugin-openapi-client.uinst
 fi
 
 exit 0

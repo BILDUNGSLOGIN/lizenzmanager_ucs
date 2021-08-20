@@ -32,7 +32,7 @@
 if [ "$1" = "remove" ] || [ "$1" = "purge" ]
 then
 	. /usr/share/univention-lib/base.sh
-	call_unjoinscript 60bildungslogin-plugin.uinst
+	call_unjoinscript 30bildungslogin-plugin.uinst
 fi
 
 if [ "$1" = "purge" ]; then

@@ -31,7 +31,7 @@
 
 if [ "$1" = "remove" ]
 then
-	cp /usr/lib/univention-uninstall/61bildungslogin-plugin-openapi-client.uinst \
+	cp /usr/lib/univention-uninstall/31bildungslogin-plugin-openapi-client.uinst \
 		/usr/lib/univention-install/
 fi
 

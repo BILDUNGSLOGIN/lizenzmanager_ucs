@@ -13,6 +13,7 @@ Depends:
  ${misc:Depends},
  makepasswd,
  bildungslogin-plugin-openapi-client (= ${binary:Version}),
+ univention-join,
 Description: This package provides the bildungslogin plugin for the univention ucsschool-api.
  It is part of Univention Corporate Server (UCS), an
  integrated, directory driven solution for managing
@@ -23,6 +24,8 @@ Package: bildungslogin-plugin-openapi-client
 Architecture: all
 Depends:
  ${misc:Depends},
+ udm-bildungslogin,
+ univention-join,
 Description: This package provides the JAR used to build the OpenAPI client used by bildungslogin-plugin.
  It is part of Univention Corporate Server (UCS), an
  integrated, directory driven solution for managing
