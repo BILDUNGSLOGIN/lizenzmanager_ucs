@@ -16,9 +16,9 @@
 
 ### Status GUI
 - Das UMC-Modul ***Medienlizenzen anzeigen*** ist abgeschlossen und kann getestet werden.
-- Das UMC-Modul ***Lizenzierte Medien*** ist nicht nicht abgeschlossen.
+- Das UMC-Modul ***Lizenzierte Medien*** ist noch nicht abgeschlossen.
   - Die Detailansicht für Medien enthält noch Platzhalterdaten.
-- Das UMC-Modul ***Medienlizenzen zuweisen*** ist nicht nicht abgeschlossen.
+- Das UMC-Modul ***Medienlizenzen zuweisen*** ist noch nicht abgeschlossen.
   - Die Übersichtsseite enthält noch Platzhalterdaten.
   - Es lassen sich noch keine Lizenzen zuweisen.
 
