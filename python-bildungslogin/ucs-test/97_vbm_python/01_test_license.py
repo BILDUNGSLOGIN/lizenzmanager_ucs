@@ -220,4 +220,4 @@ def test_set_license_ignore(license_handler, assignment_handler, license_obj, ld
 
 
 def test_get_license_types(license_handler):
-    assert {"Volumenlizenz", "Einzellizenz"} == set(license_handler.get_license_types())
+    assert {"Volumenlizenz", "Einzellizenz"} == {t["id"] for t in license_handler.get_license_types()}

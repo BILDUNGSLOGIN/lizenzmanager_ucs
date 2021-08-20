@@ -235,7 +235,7 @@ class LicenseHandler:
         return licenses
 
     @staticmethod
-    def get_license_types():  # type: () -> List[dict]
+    def get_license_types():  # type: () -> List[Dict[str, str]]
         return [
             {
                 "id": LicenseType.SINGLE,
