@@ -42,7 +42,7 @@ from univention.admin.uldap import getAdminConnection
 
 
 def test_cli_import(license_file, license_handler):
-    """Test that a license can be imported by the CLI tool bildungslogin-license-import """
+    """Test that a license can be imported by the CLI tool bildungslogin-license-import"""
     with open(str(license_file), "r") as license_file_fd:
         licenses_raw = json.load(license_file_fd)
     filter_s = filter_format(
