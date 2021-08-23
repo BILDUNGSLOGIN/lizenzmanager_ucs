@@ -217,21 +217,21 @@ class LicenseHandler:
         udm_license = self.get_udm_license_by_code(license.license_code)
         return udm_license.props.quantity
 
-    def get_time_of_last_assignment(self, license):  # type: (License) -> str
+    def get_time_of_last_assignment(self, license):  # type: (License) -> datetime.date
         """Get all assignments of this license and return the date of assignment,
         which was assigned last."""
         filter_s = filter_format("(|(status=%s)(status=%s))", [Status.ASSIGNED, Status.PROVISIONED])
         assignments = self.get_assignments_for_license_with_filter(filter_s=filter_s, license=license)
         return max(a.time_of_assignment for a in assignments)
 
-    def get_licenses_for_user(self, filter_s):  # type: (str) -> List[License]
+    def get_licenses_for_user(self, filter_s):  # type: (str) -> Set[UdmObject]
         users = self._users_mod.search(filter_s)
         licenses = set()
         for user in users:
             entry_uuid = get_entry_uuid(self._users_mod.connection, user.dn)
             assignments = self.ah.get_all_assignments_for_user(entry_uuid)
             for assignment in assignments:
-                licenses.add(self.ah.get_license_by_license_code(assignment.license))
+                licenses.add(self.ah.get_license_by_license_code(str(assignment.license)))
         return licenses
 
     @staticmethod
@@ -732,7 +732,7 @@ class AssignmentHandler:
         available_licenses = self._get_available_assignments(udm_license.dn)
         if not available_licenses:
             raise BiloAssignmentError(
-                -(
+                _(
                     "No assignment left of license with code {license_code!r}. Failed to assign "
                     "{username!r}!"
                 ).format(license_code=license_code, username=username)
@@ -793,8 +793,8 @@ class AssignmentHandler:
             except BiloAssignmentError as exc:
                 result["warnings"][license.props.code] = str(exc)
 
-        num_available_liceses = sum(lic.props.num_available for lic in licenses)
-        if num_available_liceses < len(usernames):
+        num_available_licenses = sum(lic.props.num_available for lic in licenses)
+        if num_available_licenses < len(usernames):
             result["errors"]["*"] = _(
                 "There are less available licenses than the number of users. No licenses have been "
                 "assigned."

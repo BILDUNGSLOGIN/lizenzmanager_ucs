@@ -1,3 +1,9 @@
+python-bildungslogin (0.0.9) unstable; urgency=medium
+
+  * Issue #53, 18: fix type-hints
+
+ -- Tobias Wenzel <wenzel@univention.de>  Mon, 23 Aug 2021 16:05:33 +0200
+
 python-bildungslogin (0.0.8) unstable; urgency=medium
 
   * Issue 27: use license_code as license_id
