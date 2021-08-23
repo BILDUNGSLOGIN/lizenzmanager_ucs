@@ -58,7 +58,7 @@ define([
 				</div>
 				<div
 					data-dojo-attach-point="_tableNode"
-					class="licensesTable__data"
+					class="productsTable__data"
 				></div>
 			</div>
 		`,
@@ -81,18 +81,16 @@ define([
 			}
 
 			const data = [
-				[_('Publisher'),  e('publisher'), _('Platform'), e('platform')],
-				[_('Product ID'), e('productId'), '',            ''],
-				[_('Title'),      e('title'),     '',            ''],
-				[_('Author'),     e('author'),    '',            ''],
+				[_('Title'),      e('title')],
+				[_('Author'),     e('author')],
+				[_('Publisher'),  e('publisher')],
+				[_('Product ID'), e('productId')],
 			];
 
 			for (const row of data) {
 				put(this._tableNode,
 					'div.licensesTable__dataLabel', row[0],
 					'+ div', row[1],
-					'+ div.licensesTable__dataLabel', row[2],
-					'+ div', row[3]
 				);
 			}
 			this._set('product', product);
@@ -121,6 +119,7 @@ define([
 		load: function(productId) {
 			return this.standbyDuring(
 				tools.umcpCommand('licenses/products/get', {
+					school: this.schoolId,
 					productId: productId,
 				}).then(lang.hitch(this, function(response) {
 					const product = response.result;
@@ -164,7 +163,7 @@ define([
 				name: 'licenseCode',
 				label: _('License code'),
 			}, {
-				name: 'licenseType',
+				name: 'licenseTypeLabel',
 				label: _('License type'),
 			}, {
 				name: 'validityStart',
@@ -207,6 +206,11 @@ define([
 					data: [],
 					idProperty: 'licenseCode'
 				})),
+				addTitleOnCellHoverIfOverflow: true,
+				gridOptions: {
+					selectionMode: 'single',
+				},
+				selectorType: 'radio',
 			});
 
 			this.addChild(this._table);

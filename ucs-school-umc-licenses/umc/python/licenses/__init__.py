@@ -313,6 +313,10 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.products.query: result: %s" % str(result))
         self.finished(request.id, result)
 
+    @sanitize(
+        school=StringSanitizer(required=True),
+        productId=StringSanitizer(required=True),
+    )
     @LDAP_Connection(USER_WRITE)
     def products_get(self, request, ldap_user_write=None):
         """Get a product
@@ -322,42 +326,38 @@ class Instance(SchoolBaseModule):
         }
         """
         MODULE.info("licenses.products.get: options: %s" % str(request.options))
+        school = request.options.get("school")
+        product_id = request.options.get("productId")
+        mh = MetaDataHandler(ldap_user_write)
+        lh = LicenseHandler(ldap_user_write)
+        meta_data = mh.get_meta_data_by_product_id(product_id)
+        meta_data = mh.from_udm_obj(meta_data)
+        licenses = mh.get_udm_licenses_by_product_id(meta_data.product_id)
+        licenses = [license for license in licenses if license.props.school == school]
+        licenses = [lh.from_udm_obj(license) for license in licenses]
+        licenses = [
+            {
+                "licenseCode": license.license_code,
+                "licenseTypeLabel": LicenseType.label(license.license_type),
+                "validityStart": iso8601Date.from_datetime(license.validity_start_date),
+                "validityEnd": iso8601Date.from_datetime(license.validity_end_date),
+                "validitySpan": str(license.validity_duration),
+                "ignore": _("Yes") if license.ignored_for_display else _("No"),
+                "countAquired": str(lh.get_total_number_of_assignments(license)),
+                "countAssigned": str(lh.get_number_of_provisioned_and_assigned_assignments(license)),
+                "countExpired": str(lh.get_number_of_expired_assignments(license)),
+                "countAvailable": str(lh.get_number_of_available_assignments(license)),
+                "importDate": iso8601Date.from_datetime(license.delivery_date),
+            }
+            for license in licenses
+        ]
         result = {
-            "publisher": "Verlag A",
-            "platform": "Platform",
-            "productId": "xxx-yyy",
-            "productName": "Produkt A",
-            "cover": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Eiffel_Tower_Vertical.JPG",
-            "author": "Authro A",
-            "licenses": [
-                {
-                    "licenseCode": "KLM-xxx-yyy",
-                    "licenseType": "Volumenlizenz",
-                    "validityStart": "2021-08-08",
-                    "validityEnd": "2021-08-09",
-                    "validitySpan": "1",
-                    "ignore": "Nein",
-                    "countAquired": 25,
-                    "countAssigned": 12,
-                    "countExpired": 2,
-                    "countAvailable": 12,
-                    "importDate": "2021-08-08",
-                },
-                {
-                    "licenseCode": "KLM-xxx-zzz",
-                    "licenseType": "Volumenlizenz",
-                    "validityStart": "2021-08-08",
-                    "validityEnd": "2021-08-09",
-                    "validitySpan": "1",
-                    "ignore": "Ja",
-                    "countAquired": 25,
-                    "countAssigned": 12,
-                    "countExpired": 2,
-                    "countAvailable": 12,
-                    "importDate": "2021-08-08",
-                },
-            ],
+            "title": meta_data.title,
+            "productId": meta_data.product_id,
+            "publisher": meta_data.publisher,
+            "author": meta_data.author,
+            "cover": meta_data.cover or meta_data.cover_small,
+            "licenses": licenses,
         }
-
-        MODULE.info("licenses..products.get: result: %s" % str(result))
+        MODULE.info("licenses.products.get: result: %s" % str(result))
         self.finished(request.id, result)

@@ -35,6 +35,14 @@
 	height: min-content;
 }
 
+.productsTable__data {
+	flex: 1 1 auto;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0px 16px;
+	height: min-content;
+}
+
 .licensesTable__dataLabel {
 	font-weight: 500;
 }

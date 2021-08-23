@@ -155,6 +155,10 @@ define([
 				moduleStore: store('productId', 'licenses/products'),
 				sortIndex: -8,
 				addTitleOnCellHoverIfOverflow: true,
+				gridOptions: {
+					selectionMode: 'single',
+				},
+				selectorType: 'radio',
 			});
 			// FIXME(?) usage of private inherited variables
 			aspect.around(this._grid._grid, 'renderRow', lang.hitch(this, function(renderRow) {

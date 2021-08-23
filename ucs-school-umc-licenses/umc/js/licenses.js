@@ -243,17 +243,18 @@ define([
 			}
 
 			const stateParts = state.split(':');
-			const schoolId = stateParts[1];
-			if (schoolId) {
+			const schoolKey = stateParts.shift();
+			const schoolId = stateParts.shift();
+			if (schoolKey === 'school' && schoolId) {
 				this._trySelectSchool(schoolId).then(lang.hitch(this, function() {
-					const detailString = stateParts[2];
-					if (detailString === 'license' && this.moduleFlavor === 'licenses/licenses') {
-						const licenseCode = stateParts[3];
+					const detailKey = stateParts.shift();
+					if (detailKey === 'license' && this.moduleFlavor === 'licenses/licenses') {
+						const licenseCode = stateParts.join(':');
 						if (licenseCode) {
 							this._showLicense(licenseCode);
 						}
-					} else if (detailString === 'product' && this.moduleFlavor === 'licenses/products') {
-						const productId = stateParts[3];
+					} else if (detailKey === 'product' && this.moduleFlavor === 'licenses/products') {
+						const productId = stateParts.join(':');
 						if (productId) {
 							this._showProduct(productId);
 						}
