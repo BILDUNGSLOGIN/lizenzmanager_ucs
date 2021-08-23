@@ -2,7 +2,7 @@
 
 # Copyright 2021 Univention GmbH
 #
-# http://www.univention.de/
+# https://www.univention.de/
 #
 # All rights reserved.
 #
@@ -25,15 +25,17 @@
 # You should have received a copy of the GNU Affero General Public
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
-# <http://www.gnu.org/licenses/>.
+# <https://www.gnu.org/licenses/>.
 
 #DEBHELPER#
 
-APP="ucsschool-apis"
-CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/ && python3 -m pip install -U pip poetry && poetry export --dev --without-hashes -f requirements.txt --output requirements.txt && python3 -m pip install -U -r requirements.txt && rm -f poetry.lock requirements.txt"
+rm -fv /var/lib/bildungslogin/last_update
 
-echo "Installing test dependencies. Executing in container: sh -c \"$CMD\""
-
-univention-app shell "$APP" sh -c "$CMD"
+echo "Removing cron job for regular meta data updates."
+ucr unset \
+  cron/bildungslogin-meta-data/command \
+  cron/bildungslogin-meta-data/time \
+  cron/bildungslogin-meta-data/user \
+  cron/bildungslogin-meta-data/description
 
 exit 0

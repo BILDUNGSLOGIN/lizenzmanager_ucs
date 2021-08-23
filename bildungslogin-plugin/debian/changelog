@@ -1,3 +1,9 @@
+bildungslogin-plugin (1.1.0) unstable; urgency=low
+
+  * Issue #15: clean uninstallation of bildungslogin components
+
+ -- Daniel Troeder <troeder@univention.de>  Mon, 23 Aug 2021 14:52:30 +0200
+
 bildungslogin-plugin (1.0.2) unstable; urgency=medium
 
   * Issue #21: Test fixes and cleanup

@@ -32,7 +32,7 @@
 
 if [ "$1" = "configure" ]
 then
-	uinst=/usr/lib/univention-install/68udm-bildungslogin.uinst
+	uinst=/usr/lib/univention-install/32udm-bildungslogin.uinst
 	[ -e "$uinst" ] && rm "$uinst"
 fi
 

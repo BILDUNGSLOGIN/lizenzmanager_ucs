@@ -1,3 +1,9 @@
+python-bildungslogin (0.1.0) unstable; urgency=low
+
+  * Issue #15: clean uninstallation of bildungslogin components
+
+ -- Daniel Troeder <troeder@univention.de>  Mon, 23 Aug 2021 14:54:04 +0200
+
 python-bildungslogin (0.0.9) unstable; urgency=medium
 
   * Issue #53, 18: fix type-hints

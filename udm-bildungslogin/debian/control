@@ -10,6 +10,7 @@ Package: udm-bildungslogin
 Architecture: all
 Depends:
  univention-join,
+ shell-univention-lib,
  ${misc:Depends},
 Description: UCS directory integration for bildungslogin
  .

@@ -29,10 +29,14 @@
 
 #DEBHELPER#
 
-if [ "$1" = "remove" ]
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]
 then
 	. /usr/share/univention-lib/base.sh
 	call_unjoinscript 60bildungslogin-plugin.uinst
+fi
+
+if [ "$1" = "purge" ]; then
+		rm -frv /etc/ucsschool/apis/bildungslogin
 fi
 
 exit 0

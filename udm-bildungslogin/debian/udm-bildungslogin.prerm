@@ -29,11 +29,10 @@
 
 #DEBHELPER#
 
-APP="ucsschool-apis"
-CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/ && python3 -m pip install -U pip poetry && poetry export --dev --without-hashes -f requirements.txt --output requirements.txt && python3 -m pip install -U -r requirements.txt && rm -f poetry.lock requirements.txt"
-
-echo "Installing test dependencies. Executing in container: sh -c \"$CMD\""
-
-univention-app shell "$APP" sh -c "$CMD"
+if [ "$1" = "remove" ]
+then
+	cp /usr/lib/univention-uninstall/32udm-bildungslogin.uinst \
+		/usr/lib/univention-install/
+fi
 
 exit 0

@@ -29,11 +29,6 @@
 
 #DEBHELPER#
 
-APP="ucsschool-apis"
-CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/ && python3 -m pip install -U pip poetry && poetry export --dev --without-hashes -f requirements.txt --output requirements.txt && python3 -m pip install -U -r requirements.txt && rm -f poetry.lock requirements.txt"
-
-echo "Installing test dependencies. Executing in container: sh -c \"$CMD\""
-
-univention-app shell "$APP" sh -c "$CMD"
+rm -rf /usr/share/ucs-test/97_vbm_python/__pycache__/
 
 exit 0

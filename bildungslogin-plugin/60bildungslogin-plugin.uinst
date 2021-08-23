@@ -33,7 +33,26 @@ VERSION=1
 
 . /usr/share/univention-join/joinscripthelper.lib
 
+API_ACCESS_USER="bildungslogin-api-user"
+
 joinscript_init
+
+echo "Disabling 'bildungslogin' plugin for ucsschool-apis..."
+python -c '
+import json
+conf = json.load(open("/etc/ucsschool/apis/settings.json"))
+enabled_plugins = set(conf["enabled_plugins"])
+if "bildungslogin" in enabled_plugins:
+  enabled_plugins.remove("bildungslogin")
+  conf["enabled_plugins"] = sorted(enabled_plugins)
+  json.dump(conf, open("/etc/ucsschool/apis/settings.json", "w"))
+'
+
+echo "Restarting the UCS@school APIs app..."
+univention-app restart ucsschool-apis
+
+echo "Deleting user '$API_ACCESS_USER' that was allowed to access the Bildungslogin Provisioning API..."
+univention-directory-manager users/user remove "$@" --dn "uid=$API_ACCESS_USER,cn=users,$(ucr get ldap/base)"
 
 joinscript_remove_script_from_status_file bildungslogin-plugin-openapi-client
 

@@ -1,8 +1,12 @@
 #!/bin/sh
-
+# -*- coding: utf-8 -*-
+#
+# udm bildungslogin
+#  unjoin script
+#
 # Copyright 2021 Univention GmbH
 #
-# http://www.univention.de/
+# https://www.univention.de/
 #
 # All rights reserved.
 #
@@ -25,15 +29,31 @@
 # You should have received a copy of the GNU Affero General Public
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
-# <http://www.gnu.org/licenses/>.
+# <https://www.gnu.org/licenses/>.
 
-#DEBHELPER#
+## joinscript api: bindpwdfile
 
-APP="ucsschool-apis"
-CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/ && python3 -m pip install -U pip poetry && poetry export --dev --without-hashes -f requirements.txt --output requirements.txt && python3 -m pip install -U -r requirements.txt && rm -f poetry.lock requirements.txt"
+VERSION=1
 
-echo "Installing test dependencies. Executing in container: sh -c \"$CMD\""
+. /usr/share/univention-join/joinscripthelper.lib
+. /usr/share/univention-lib/ldap.sh
+. /usr/share/ucs-school-lib/base.sh
 
-univention-app shell "$APP" sh -c "$CMD"
+joinscript_init
+
+eval "$(ucr shell ldap/base)"
+
+echo "Deleting UDM modules..."
+ucs_unregisterLDAPExtension "$@" --udm_module vbm/assignment || die
+ucs_unregisterLDAPExtension "$@" --udm_module vbm/metadata || die
+ucs_unregisterLDAPExtension "$@" --udm_module vbm/license || die
+
+echo "Deleting metadata cache..."
+univention-directory-manager container/cn remove "$@" \
+  --dn "cn=metadata,cn=bildungslogin,cn=vbm,cn=univention,$ldap_base"
+
+echo "License and assignment data has not been deleted."
+
+joinscript_save_current_version
 
 exit 0

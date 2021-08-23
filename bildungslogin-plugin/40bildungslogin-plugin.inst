@@ -47,6 +47,7 @@ fi
 eval "$(ucr shell ldap/base appcenter/apps/ucsschool-apis/hostdn appcenter/apps/ucsschool-apis/container)"
 
 API_ACCESS_USER="bildungslogin-api-user"
+SETTINGS_FILE="/etc/ucsschool/apis/bildungslogin/settings.json"
 
 
 create_settings_file() {

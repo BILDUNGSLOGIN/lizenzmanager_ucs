@@ -1,4 +1,5 @@
 0001-2: 39bildungslogin-plugin-openapi-client.inst
+0001-2: 61bildungslogin-plugin-openapi-client.uinst
 0009-1: bildungslogin_plugin/*.py
 0009-10: bildungslogin_plugin/*.py
 0009-1: tests/*.py

@@ -1,2 +1,3 @@
 usr/share/ usr/
+32udm-bildungslogin.uinst usr/lib/univention-uninstall/
 68udm-bildungslogin.inst usr/lib/univention-install/

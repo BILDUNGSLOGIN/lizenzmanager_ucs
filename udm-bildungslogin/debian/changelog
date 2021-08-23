@@ -1,3 +1,9 @@
+udm-bildungslogin (0.1.0) unstable; urgency=low
+
+  * Issue #15: clean uninstallation of bildungslogin components
+
+ -- Daniel Troeder <troeder@univention.de>  Mon, 23 Aug 2021 14:53:54 +0200
+
 udm-bildungslogin (0.0.7) unstable; urgency=low
 
   * Issue #55: Fix broken LDAP ACLs
