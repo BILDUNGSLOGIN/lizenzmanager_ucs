@@ -15,15 +15,15 @@ objectIdentifier integerType 1.3.6.1.4.1.1466.115.121.1.27
 attributetype ( bildungsloginOID:101
         NAME 'bildungsloginLicenseCode'
         DESC 'The code of the license as provided by the publisher'
-        EQUALITY caseExactMatch
-        SUBSTR caseExactSubstringsMatch
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( bildungsloginOID:102
         NAME 'bildungsloginProductId'
         DESC 'The product id of the product the license entitles to use'
-        EQUALITY caseExactMatch
-        SUBSTR caseExactSubstringsMatch
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( bildungsloginOID:103

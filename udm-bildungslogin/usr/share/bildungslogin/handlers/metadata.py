@@ -167,9 +167,12 @@ class object(univention.admin.handlers.simpleLdap):
 
     def _ldap_pre_create(self):
         super(object, self)._ldap_pre_create()
-        # The code, and thus the cn of any license must be unique in the domain
+        # The code, and thus the vbmProductId of any license must be unique in the domain
         if self.lo.searchDn(
-            filter_format("(&(objectClass=bildungsloginMetadata)(cn=%s))", [self["cn"]])
+            filter_format(
+                "(&(objectClass=bildungsloginMetadata)(bildungsloginProductId=%s))",
+                [self["product_id"]],
+            )
         ):
             raise univention.admin.uexceptions.valueError(
                 _("A metadata object with that product_id already exists")

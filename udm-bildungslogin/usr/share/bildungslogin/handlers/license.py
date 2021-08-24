@@ -297,8 +297,13 @@ class object(univention.admin.handlers.simpleLdap):
 
     def _ldap_pre_create(self):
         super(object, self)._ldap_pre_create()
-        # The code, and thus the cn of any license must be unique in the domain
-        if self.lo.searchDn(filter_format("(&(objectClass=bildungsloginLicense)(cn=%s))", [self["cn"]])):
+        # The code, and thus the vbmLicenseCode of any license must be unique in the domain
+        if self.lo.searchDn(
+            filter_format(
+                "(&(objectClass=bildungsloginLicense)(bildungsloginLicenseCode=%s))",
+                [self["code"]],
+            )
+        ):
             raise univention.admin.uexceptions.valueError(_("A license with that code already exists"))
         super(object, self)._ldap_pre_create()
 

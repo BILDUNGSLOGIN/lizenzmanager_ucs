@@ -1,3 +1,9 @@
+udm-bildungslogin (0.2.2) unstable; urgency=low
+
+  * Issue #56: make searching for license code and product id case insensitive
+
+ -- Daniel Troeder <troeder@univention.de>  Wed, 25 Aug 2021 17:16:42 +0200
+
 udm-bildungslogin (0.2.1) unstable; urgency=low
 
   * Issue #67: Fix num_expired for licenses without validity_end_date

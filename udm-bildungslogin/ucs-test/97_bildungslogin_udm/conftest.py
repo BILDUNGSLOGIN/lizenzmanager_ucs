@@ -26,6 +26,7 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
 import datetime
+import random
 
 import pytest
 
@@ -126,3 +127,11 @@ def create_license(udm):
 
     for license_obj in created_licenses:
         license_obj.delete(True)
+
+
+@pytest.fixture(scope="session")
+def scramble_case():
+    def _func(text):  # type: (str) -> str
+        return "".join(random.choice((str.lower, str.upper))(t) for t in text)
+
+    return _func
