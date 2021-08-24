@@ -170,7 +170,7 @@ define([
 						on(rowNode, mouse.enter, function() {
 							Tooltip.show(_('Loading cover...'), tooltipTarget);
 							let showImage = true;
-							const img = put(document.body, `img.dijitOffScreen.licensesCover[src="${item.cover}]`);
+							const img = put(document.body, `img.dijitOffScreen.licensesCover[src="${item.cover}"]`);
 							on(img, 'load', function() {
 								if (showImage) {
 									const innerHTML = `<img src="${item.cover}" style="width: ${img.clientWidth}px; height: ${img.clientHeight}px">`;
