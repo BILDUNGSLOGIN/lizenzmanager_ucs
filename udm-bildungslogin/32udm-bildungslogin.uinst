@@ -54,6 +54,6 @@ univention-directory-manager container/cn remove "$@" \
 
 echo "License and assignment data has not been deleted."
 
-joinscript_save_current_version
+joinscript_remove_script_from_status_file
 
 exit 0
