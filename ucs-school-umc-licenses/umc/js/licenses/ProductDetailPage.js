@@ -74,8 +74,11 @@ define([
 
 			function e(id) {
 				let val = product[id];
+				if (val === null) {
+					val = '';
+				}
 				if (typeof val === 'string') {
-					val = entities.encode(val);
+					val = entities.encode(val) || '---';
 				}
 				return val;
 			}
@@ -90,7 +93,7 @@ define([
 			for (const row of data) {
 				put(this._tableNode,
 					'div.licensesTable__dataLabel', row[0],
-					'+ div', row[1] ? row[1] : '',
+					'+ div', row[1],
 				);
 			}
 			this._set('product', product);
