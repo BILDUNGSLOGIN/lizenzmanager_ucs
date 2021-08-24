@@ -37,7 +37,7 @@ import univention.admin.types
 import univention.admin.uexceptions
 from univention.admin.layout import Tab
 
-translation = univention.admin.localization.translation("univention.admin.handlers.vbm")
+translation = univention.admin.localization.translation("univention.admin.handlers.bildungslogin")
 _ = translation.translate
 
 
@@ -54,18 +54,20 @@ class StatusSyntax(univention.admin.syntax.simple):
         return text
 
 
-module = "vbm/assignment"
+module = "bildungslogin/assignment"
 childs = False
-superordinate = "vbm/license"
+superordinate = "bildungslogin/license"
 object_name = _("Assignment")
 object_name_plural = _("Assignments")
 short_description = _("Assignment")
-long_description = _("Assignment of a license from the VBM Bildungslogin")
+long_description = _("Assignment of a license from Bildungslogin")
 operations = ["add", "edit", "remove", "search"]
 
 options = {
     "default": univention.admin.option(
-        short_description=short_description, default=True, objectClasses=["top", "vbmAssignment"]
+        short_description=short_description,
+        default=True,
+        objectClasses=["top", "bildungsloginAssignment"],
     )
 }
 
@@ -109,9 +111,9 @@ layout = [
 mapping = univention.admin.mapping.mapping()
 for udm_name, ldap_name in [
     ("cn", "cn"),
-    ("assignee", "vbmAssignmentAssignee"),
-    ("time_of_assignment", "vbmAssignmentTimeOfAssignment"),
-    ("status", "vbmAssignmentStatus"),
+    ("assignee", "bildungsloginAssignmentAssignee"),
+    ("time_of_assignment", "bildungsloginAssignmentTimeOfAssignment"),
+    ("status", "bildungsloginAssignmentStatus"),
 ]:
     mapping.register(udm_name, ldap_name, None, univention.admin.mapping.ListToString)
 

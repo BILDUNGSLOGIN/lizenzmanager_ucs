@@ -1,9 +1,9 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -slvv
 # -*- coding: utf-8 -*-
-## desc: Run tests for the udm module vbm/license
+## desc: Run tests for the udm module bildungslogin/license
 ## roles: [domaincontroller_master, domaincontroller_backup]
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## packages: [udm-bildungslogin]
 #
 # Copyright 2021 Univention GmbH
@@ -55,9 +55,12 @@ def test_create_license(create_license):
 
 
 def test_required_attributes(udm):
-    """Test that for license the attributes cn, code, product_id, quantity, provider, school or delivery_date are mandatory"""
+    """
+    Test that for license the attributes cn, code, product_id, quantity, provider, school or
+    delivery_date are mandatory.
+    """
     with pytest.raises(CreateError) as exinfo:
-        obj = udm.get("vbm/license").new()
+        obj = udm.get("bildungslogin/license").new()
         obj.save()
     for attr_name in (
         "cn",
@@ -85,7 +88,7 @@ def test_required_attributes(udm):
 def test_unrequired_attributes(attr_name, udm):
     """Test that a license object can be created in LDAP"""
     with pytest.raises(CreateError) as exinfo:
-        obj = udm.get("vbm/license").new()
+        obj = udm.get("bildungslogin/license").new()
         obj.save()
     assert "\n{}".format(attr_name) not in exinfo.value.message
 
@@ -115,12 +118,14 @@ def test_assignments(create_license, udm):
         ou, _ = schoolenv.create_ou()
         license_obj = create_license(uts.random_name(), uts.random_name(), num_licenses, ou)
         for _ in range(num_licenses):
-            assignment = udm.get("vbm/assignment").new(license_obj.dn)
+            assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
             assignment.props.status = "AVAILABLE"
             assignment.save()
-        license_obj = udm.get("vbm/license").get(license_obj.dn)
+        license_obj = udm.get("bildungslogin/license").get(license_obj.dn)
         assert len(license_obj.props.assignments) == num_licenses
-        assignments = schoolenv.lo.searchDn("(objectClass=vbmAssignment)", base=str(license_obj.dn))
+        assignments = schoolenv.lo.searchDn(
+            "(objectClass=bildungsloginAssignment)", base=str(license_obj.dn)
+        )
         assert set(assignments) == set(license_obj.props.assignments)
 
 
@@ -141,7 +146,7 @@ def test_expired(create_license, udm, expired_validity_end_date):
         license_obj = create_license(
             uts.random_name(), uts.random_name(), 2, ou, validity_end_date=validity_end_date
         )
-        license_obj_fresh = udm.get("vbm/license").get(license_obj.dn)
+        license_obj_fresh = udm.get("bildungslogin/license").get(license_obj.dn)
         assert license_obj_fresh.props.expired == expired
 
 
@@ -155,21 +160,21 @@ def test_num_available(create_license, udm):
         # create an expired license
         license_obj = create_license(uts.random_name(), uts.random_name(), num_licenses, ou)
         for _ in range(num_licenses):
-            assignment = udm.get("vbm/assignment").new(license_obj.dn)
+            assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
             assignment.props.status = "AVAILABLE"
             assignment.save()
         # all licenses are expired, as none are assigned
-        license_obj_expired = udm.get("vbm/license").get(license_obj.dn)
+        license_obj_expired = udm.get("bildungslogin/license").get(license_obj.dn)
         assert len(license_obj_expired.props.assignments) == num_licenses
         assert license_obj_expired.props.num_expired == num_licenses
         # assign a few licenses
-        assignment_mod = udm.get("vbm/assignment")
+        assignment_mod = udm.get("bildungslogin/assignment")
         for assignment_dn in license_obj_expired.props.assignments[:num_assigned]:
             assignment_obj = assignment_mod.get(assignment_dn)
             assignment_obj.props.assignee = "foo"
             assignment_obj.props.time_of_assignment = datetime.date.today()
             assignment_obj.props.status = "ASSIGNED"
             assignment_obj.save()
-        license_obj_fresh = udm.get("vbm/license").get(license_obj_expired.dn)
+        license_obj_fresh = udm.get("bildungslogin/license").get(license_obj_expired.dn)
         assert len(license_obj_expired.props.assignments) == num_licenses
         assert license_obj_fresh.props.num_expired == num_expired

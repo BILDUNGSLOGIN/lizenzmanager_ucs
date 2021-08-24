@@ -29,7 +29,7 @@
 # <https://www.gnu.org/licenses/>.
 ## desc: Test the license handler, i.e. the license view.
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## roles: [domaincontroller_master]
 
 import datetime
@@ -63,21 +63,21 @@ def test_create(lo, license_handler, license_obj, ldap_base):
         license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
         expected_attr = {
             "cn": [cn],
-            "vbmLicenseCode": [license.license_code],
-            "vbmProductId": [license.product_id],
-            "vbmLicenseQuantity": [str(license.license_quantity)],
-            "vbmLicenseProvider": [license.license_provider],
-            "vbmPurchasingReference": [license.purchasing_reference],
-            "vbmUtilizationSystems": [license.utilization_systems],
-            "vbmValidityStartDate": [license.validity_start_date.strftime("%Y-%m-%d")],
-            "vbmValidityEndDate": [license.validity_end_date.strftime("%Y-%m-%d")],
-            "vbmValidityDuration": [license.validity_duration],
-            "vbmDeliveryDate": [license.delivery_date.strftime("%Y-%m-%d")],
-            "vbmLicenseSchool": [license.license_school],
-            "vbmIgnoredForDisplay": ["1" if license.ignored_for_display else "0"],
+            "bildungsloginLicenseCode": [license.license_code],
+            "bildungsloginProductId": [license.product_id],
+            "bildungsloginLicenseQuantity": [str(license.license_quantity)],
+            "bildungsloginLicenseProvider": [license.license_provider],
+            "bildungsloginPurchasingReference": [license.purchasing_reference],
+            "bildungsloginUtilizationSystems": [license.utilization_systems],
+            "bildungsloginValidityStartDate": [license.validity_start_date.strftime("%Y-%m-%d")],
+            "bildungsloginValidityEndDate": [license.validity_end_date.strftime("%Y-%m-%d")],
+            "bildungsloginValidityDuration": [license.validity_duration],
+            "bildungsloginDeliveryDate": [license.delivery_date.strftime("%Y-%m-%d")],
+            "bildungsloginLicenseSchool": [license.license_school],
+            "bildungsloginIgnoredForDisplay": ["1" if license.ignored_for_display else "0"],
         }
         if license.license_special_type:
-            expected_attr["vbmLicenseSpecialType"] = [license.license_special_type]
+            expected_attr["bildungsloginLicenseSpecialType"] = [license.license_special_type]
         verify_ldap_object(
             license_dn,
             expected_attr=expected_attr,
@@ -85,7 +85,7 @@ def test_create(lo, license_handler, license_obj, ldap_base):
         )
         # check assignments were created
         for dn in lo.searchDn(base=license_dn, scope="one"):
-            expected_attr = {"vbmAssignmentStatus": [Status.AVAILABLE]}
+            expected_attr = {"bildungsloginAssignmentStatus": [Status.AVAILABLE]}
             verify_ldap_object(dn, expected_attr=expected_attr, strict=False)
         # licenses are unique, duplicates produce errors
         with pytest.raises(BiloCreateError):
@@ -154,7 +154,7 @@ def test_get_number_of_expired_assignments(lo, license_handler, expired_license_
         license_handler.create(expired_license)
         license_obj = license_handler.get_udm_license_by_code(expired_license.license_code)
         udm = UDM(lo).version(1)
-        assignment_mod = udm.get("vbm/assignment")
+        assignment_mod = udm.get("bildungslogin/assignment")
         for assignment_dn in license_obj.props.assignments[:2]:
             assignment_obj = assignment_mod.get(assignment_dn)
             assignment_obj.props.assignee = "foo"
@@ -208,7 +208,7 @@ def test_set_license_ignore(license_handler, assignment_handler, license_obj, ld
         verify_ldap_object(
             license_dn,
             expected_attr={
-                "vbmIgnoredForDisplay": ["0"],
+                "bildungsloginIgnoredForDisplay": ["0"],
             },
             strict=False,
         )
@@ -216,7 +216,7 @@ def test_set_license_ignore(license_handler, assignment_handler, license_obj, ld
         verify_ldap_object(
             license_dn,
             expected_attr={
-                "vbmIgnoredForDisplay": ["1"],
+                "bildungsloginIgnoredForDisplay": ["1"],
             },
             strict=False,
         )

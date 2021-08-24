@@ -1,9 +1,9 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -slvv
 # -*- coding: utf-8 -*-
-## desc: Run tests for the udm module vbm/metadata
+## desc: Run tests for the udm module bildungslogin/metadata
 ## roles: [domaincontroller_master, domaincontroller_backup]
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## packages: [udm-bildungslogin]
 #
 # Copyright 2021 Univention GmbH
@@ -49,7 +49,7 @@ ucr.load()
 def test_required_attributes(attr_name, udm):
     """Test that for meta data the attributes cn and product_id are mandatory"""
     with pytest.raises(CreateError) as exinfo:
-        obj = udm.get("vbm/metadata").new()
+        obj = udm.get("bildungslogin/metadata").new()
         obj.save()
     assert "\n{}".format(attr_name) in exinfo.value.message
 

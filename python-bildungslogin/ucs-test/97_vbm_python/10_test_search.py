@@ -29,7 +29,7 @@
 # <https://www.gnu.org/licenses/>.
 ## desc: search for licenses
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## roles: [domaincontroller_master]
 
 from copy import deepcopy
@@ -53,9 +53,9 @@ BAD_SEARCH = "NOT_FOUND"
 def test_user(lo_module, ou):
     user = Student(
         password="univention",
-        name="vbm_username",
-        firstname="vbm_firstname",
-        lastname="vbm_lastname",
+        name="bildungslogin_username",
+        firstname="bildungslogin_firstname",
+        lastname="bildungslogin_lastname",
         school=ou,
     )
     user.create(lo_module)
@@ -111,7 +111,7 @@ def volume_license(
 @pytest.fixture(scope="module")
 def udm_license_mod(lo_module):
     udm = UDM(lo_module).version(1)
-    return udm.get("vbm/license")
+    return udm.get("bildungslogin/license")
 
 
 @pytest.mark.parametrize(
@@ -264,9 +264,9 @@ def test_search_for_license_pattern(
     "user_pattern",
     [
         ("*", True),
-        ("vbm*username", True),
-        ("vbm*firstname", True),
-        ("vbm*lastname", True),
+        ("bildungslogin*username", True),
+        ("bildungslogin*firstname", True),
+        ("bildungslogin*lastname", True),
         ("foobar", False),
     ],
 )

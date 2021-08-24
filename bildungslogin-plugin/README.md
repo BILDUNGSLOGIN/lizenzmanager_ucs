@@ -76,7 +76,7 @@ lo, po = getAdminConnection()
 ah = AssignmentHandler(lo)
 ah.assign_to_license(username="demo_student", license_code="VHT-7bd46a45-345c-4237-a451-4444736eb011")
 
-# INFO: Modified 'vbm/assignment' object 'cn=2ab27fc7-28df-4960-bbf8-88cd8876be7c,cn=c23df3f1b32e0e78a8a98e7ea2eacd5ad90447be01643d87bb34ceba942e9a39,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=uni,dc=dtr'
+# INFO: Modified 'bildungslogin/assignment' object 'cn=2ab27fc7-28df-4960-bbf8-88cd8876be7c,cn=c23df3f1b32e0e78a8a98e7ea2eacd5ad90447be01643d87bb34ceba942e9a39,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=uni,dc=dtr'
 ```
 
 Result:
@@ -86,10 +86,10 @@ $ univention-ldapsearch -LLL cn=2ab27fc7-28df-4960-bbf8-88cd8876be7c
 dn: cn=2ab27fc7-28df-4960-bbf8-88cd8876be7c,cn=c23df3f1b32e0e78a8a98e7ea2eacd5ad90447be01643d87bb34ceba942e9a39,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=uni,dc=dtr
 objectClass: top
 objectClass: univentionObject
-objectClass: vbmAssignment
-univentionObjectType: vbm/assignment
+objectClass: bildungsloginAssignment
+univentionObjectType: bildungslogin/assignment
 cn: 2ab27fc7-28df-4960-bbf8-88cd8876be7c
-vbmAssignmentStatus: ASSIGNED
-vbmAssignmentAssignee: demo_student
-vbmAssignmentTimeOfAssignment: 2021-08-04
+bildungsloginAssignmentStatus: ASSIGNED
+bildungsloginAssignmentAssignee: demo_student
+bildungsloginAssignmentTimeOfAssignment: 2021-08-04
 ```

@@ -35,7 +35,7 @@ ucr set \
   cron/bildungslogin-meta-data/command="/usr/sbin/jitter 1200 date >> $LOGFILE; /usr/bin/bildungslogin-media-update >> $LOGFILE" \
   cron/bildungslogin-meta-data/time="0 * * * *" \
   cron/bildungslogin-meta-data/user="root" \
-  cron/bildungslogin-meta-data/description="VBM Bildungslogin meta data update job."
+  cron/bildungslogin-meta-data/description="Bildungslogin meta data update job."
 
 if [ -x /etc/init.d/univention-directory-listener ]; then
 	deb-systemd-invoke restart univention-directory-listener

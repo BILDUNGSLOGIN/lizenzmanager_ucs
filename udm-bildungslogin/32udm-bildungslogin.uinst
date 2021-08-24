@@ -44,9 +44,9 @@ joinscript_init
 eval "$(ucr shell ldap/base)"
 
 echo "Deleting UDM modules..."
-ucs_unregisterLDAPExtension "$@" --udm_module vbm/assignment || die
-ucs_unregisterLDAPExtension "$@" --udm_module vbm/metadata || die
-ucs_unregisterLDAPExtension "$@" --udm_module vbm/license || die
+ucs_unregisterLDAPExtension "$@" --udm_module bildungslogin/assignment || die
+ucs_unregisterLDAPExtension "$@" --udm_module bildungslogin/metadata || die
+ucs_unregisterLDAPExtension "$@" --udm_module bildungslogin/license || die
 
 echo "Deleting metadata cache..."
 univention-directory-manager container/cn remove "$@" \

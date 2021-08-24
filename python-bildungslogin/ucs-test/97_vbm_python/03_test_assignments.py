@@ -29,7 +29,7 @@
 # <https://www.gnu.org/licenses/>.
 ## desc: Test the assignment handler, i.e. changing the status of the licenses
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## roles: [domaincontroller_master]
 
 import datetime

@@ -32,7 +32,7 @@ Description: Simple UDM encoders for bildungslogin
  corporate environments. For more information about UCS,
  refer to: https://www.univention.de/
 
-Package: ucs-test-vbm-udm
+Package: ucs-test-bildungslogin-udm
 Architecture: all
 Depends:
  ${misc:Depends},

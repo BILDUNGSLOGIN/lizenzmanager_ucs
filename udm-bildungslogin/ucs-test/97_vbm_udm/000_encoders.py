@@ -1,9 +1,9 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -slvv
 # -*- coding: utf-8 -*-
-## desc: Test simple UDM API encoders for vbm/*
+## desc: Test simple UDM API encoders for bildungslogin/*
 ## roles: [domaincontroller_master, domaincontroller_backup]
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## packages: [udm-bildungslogin]
 
 # Copyright 2021 Univention GmbH
@@ -42,7 +42,7 @@ from univention.testing.utils import verify_ldap_object
 from univention.udm.base import BaseObject
 
 
-def test_vbm_assignment(create_license, udm):
+def test_bildungslogin_assignment(create_license, udm):
     """Test that the license assignment is stored in LDAP with the expected type for each attribute"""
     assert udm.api_version >= 1
 
@@ -50,15 +50,15 @@ def test_vbm_assignment(create_license, udm):
         ou, _ = schoolenv.create_ou()
         license_obj = create_license(str(uuid.uuid4()), str(uuid.uuid4()), 1, ou)
 
-        assignment = udm.get("vbm/assignment").new(license_obj.dn)
+        assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
         assignment.props.status = "AVAILABLE"
         assignment.save()
 
         verify_ldap_object(
             assignment.dn,
             expected_attr={
-                "univentionObjectType": ["vbm/assignment"],
-                "vbmAssignmentStatus": [assignment.props.status],
+                "univentionObjectType": ["bildungslogin/assignment"],
+                "bildungsloginAssignmentStatus": [assignment.props.status],
             },
         )
 
@@ -70,17 +70,17 @@ def test_vbm_assignment(create_license, udm):
         verify_ldap_object(
             assignment.dn,
             expected_attr={
-                "univentionObjectType": ["vbm/assignment"],
-                "vbmAssignmentStatus": [assignment.props.status],
-                "vbmAssignmentAssignee": [assignment.props.assignee],
-                "vbmAssignmentTimeOfAssignment": [
+                "univentionObjectType": ["bildungslogin/assignment"],
+                "bildungsloginAssignmentStatus": [assignment.props.status],
+                "bildungsloginAssignmentAssignee": [assignment.props.assignee],
+                "bildungsloginAssignmentTimeOfAssignment": [
                     assignment.props.time_of_assignment.strftime("%Y-%m-%d")
                 ],
             },
         )
 
 
-def test_vbm_license(create_license, udm):
+def test_bildungslogin_license(create_license, udm):
     """Test that the license is stored in LDAP with the expected type for each attribute"""
     assert udm.api_version >= 1
 
@@ -95,19 +95,23 @@ def test_vbm_license(create_license, udm):
         verify_ldap_object(
             license_obj.dn,
             expected_attr={
-                "univentionObjectType": ["vbm/license"],
-                "vbmDeliveryDate": [license_obj.props.delivery_date.strftime("%Y-%m-%d")],
-                "vbmIgnoredForDisplay": ["1" if license_obj.props.ignored else "0"],
-                "vbmLicenseQuantity": [str(license_obj.props.quantity)],
-                "vbmValidityEndDate": [license_obj.props.validity_end_date.strftime("%Y-%m-%d")],
-                "vbmValidityStartDate": [license_obj.props.validity_start_date.strftime("%Y-%m-%d")],
+                "univentionObjectType": ["bildungslogin/license"],
+                "bildungsloginDeliveryDate": [license_obj.props.delivery_date.strftime("%Y-%m-%d")],
+                "bildungsloginIgnoredForDisplay": ["1" if license_obj.props.ignored else "0"],
+                "bildungsloginLicenseQuantity": [str(license_obj.props.quantity)],
+                "bildungsloginValidityEndDate": [
+                    license_obj.props.validity_end_date.strftime("%Y-%m-%d")
+                ],
+                "bildungsloginValidityStartDate": [
+                    license_obj.props.validity_start_date.strftime("%Y-%m-%d")
+                ],
             },
         )
 
         # test UDM conversion for virtual properties
         assignments = []
         for _ in range(total_num):
-            assignment = udm.get("vbm/assignment").new(license_obj.dn)
+            assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
             assignment.props.status = "AVAILABLE"
             assignment.save()
             assignments.append(assignment)
@@ -131,7 +135,7 @@ def test_vbm_license(create_license, udm):
         assert {a_obj.dn for a_obj in assignment_objs} == {a.dn for a in assignments}
 
 
-def test_vbm_metadata(create_metadata, udm):
+def test_bildungslogin_metadata(create_metadata, udm):
     """Test that the meta data is stored in LDAP with the expected type for each attribute"""
     assert udm.api_version >= 1
 
@@ -140,13 +144,13 @@ def test_vbm_metadata(create_metadata, udm):
     verify_ldap_object(
         metadate_obj.dn,
         expected_attr={
-            "univentionObjectType": ["vbm/metadata"],
-            "vbmMetaDataCover": [metadate_obj.props.cover],
-            "vbmMetaDataCoverSmall": [metadate_obj.props.cover_small],
-            "vbmMetaDataDescription": [metadate_obj.props.description],
-            "vbmMetaDataModified": [metadate_obj.props.modified.strftime("%Y-%m-%d")],
-            "vbmMetaDataPublisher": [metadate_obj.props.publisher],
-            "vbmMetaDataTitle": [metadate_obj.props.title],
-            "vbmProductId": [metadate_obj.props.product_id],
+            "univentionObjectType": ["bildungslogin/metadata"],
+            "bildungsloginMetaDataCover": [metadate_obj.props.cover],
+            "bildungsloginMetaDataCoverSmall": [metadate_obj.props.cover_small],
+            "bildungsloginMetaDataDescription": [metadate_obj.props.description],
+            "bildungsloginMetaDataModified": [metadate_obj.props.modified.strftime("%Y-%m-%d")],
+            "bildungsloginMetaDataPublisher": [metadate_obj.props.publisher],
+            "bildungsloginMetaDataTitle": [metadate_obj.props.title],
+            "bildungsloginProductId": [metadate_obj.props.product_id],
         },
     )

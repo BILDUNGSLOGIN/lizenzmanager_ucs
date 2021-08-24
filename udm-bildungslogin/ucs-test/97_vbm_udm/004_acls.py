@@ -3,7 +3,7 @@
 ## desc: Run tests for the replication ACLs of the UDM modules
 ## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 #
 # Copyright 2021 Univention GmbH
 #
@@ -78,7 +78,9 @@ def test_license_acl_school_admin(create_license):
     with udm_test.UCSTestUDM() as udm:
         userdn, username = udm.create_user(password=user_pw, options=["ucsschoolAdministrator"])
         lo = access(binddn=userdn, bindpw=user_pw, base=ucr.get("ldap/base"))
-        assert lo.searchDn("(&(objectClass=vbmLicense)(vbmLicenseCode={}))".format(code))
+        assert lo.searchDn(
+            "(&(objectClass=bildungsloginLicense)(bildungsloginLicenseCode={}))".format(code)
+        )
 
 
 def test_metadata_acl_machine(create_metadata):

@@ -41,19 +41,23 @@ from univention.listener import ListenerModuleHandler
 CONFIG_FILE = "/etc/bildungslogin/config.ini"
 
 
-class VbmMetaDataDownloader(ListenerModuleHandler):
+class BildungsloginMetaDataDownloader(ListenerModuleHandler):
     class Configuration(object):
-        name = "vbm_meta_data_downloader"
-        description = "VBM Metadata retrieval"
-        ldap_filter = "(objectClass=vbmLicense)"
+        name = "bildungslogin_meta_data_downloader"
+        description = "Bildungslogin Metadata retrieval"
+        ldap_filter = "(objectClass=bildungsloginLicense)"
         attributes = []
 
     def create(self, dn, new):
-        code = new.get("vbmLicenseCode", [None])[0]
-        product_id = new.get("vbmProductId", [None])[0]
-        self.logger.info("New VBM license. Code: %r Product ID: %r DN: %r", code, product_id, dn)
+        code = new.get("bildungsloginLicenseCode", [None])[0]
+        product_id = new.get("bildungsloginProductId", [None])[0]
+        self.logger.info(
+            "New Bildungslogin license. Code: %r Product ID: %r DN: %r", code, product_id, dn
+        )
 
-        meta_data_filter = filter_format("(&(objectClass=vbmMetaData)(vbmProductId=%s))", (product_id,))
+        meta_data_filter = filter_format(
+            "(&(objectClass=bildungsloginMetaData)(bildungsloginProductId=%s))", (product_id,)
+        )
         if self.lo.searchDn(meta_data_filter):
             self.logger.info("Meta data for product %r already exist in LDAP.")
             return

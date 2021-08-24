@@ -52,15 +52,15 @@ from .utils import LicenseType, Status, get_entry_uuid, ldap_escape
 if TYPE_CHECKING:
     from ucsschool.lib.models.base import LoType, UdmObject
 
-_ = Translation("vbm-bildungslogin").translate
+_ = Translation("bildungslogin").translate
 
 
 class LicenseHandler:
     def __init__(self, lo):  # type: (LoType) -> None
         udm = UDM(lo).version(1)
-        self._licenses_mod = udm.get("vbm/license")
-        self._assignments_mod = udm.get("vbm/assignment")
-        self._meta_data_mod = udm.get("vbm/metadata")
+        self._licenses_mod = udm.get("bildungslogin/license")
+        self._assignments_mod = udm.get("bildungslogin/assignment")
+        self._meta_data_mod = udm.get("bildungslogin/metadata")
         self._users_mod = udm.get("users/user")
         self.ah = AssignmentHandler(lo)
         self.logger = logging.getLogger(__name__)
@@ -306,21 +306,25 @@ class LicenseHandler:
             return filter_s
 
         def __get_advanced_filter():
-            # return either None, if the search for matching vbm/metadata did not yield results
+            # return either None, if the search for matching bildungslogin/metadata did not yield results
             # or a ldap search filter str which is further used
             filter_parts = []
             if time_from:
                 filter_parts.append(
-                    filter_format("(vbmDeliveryDate>=%s)", (iso8601Date.from_datetime(time_from),))
+                    filter_format(
+                        "(bildungsloginDeliveryDate>=%s)", (iso8601Date.from_datetime(time_from),)
+                    )
                 )
             if time_to:
                 filter_parts.append(
-                    filter_format("(vbmDeliveryDate<=%s)", (iso8601Date.from_datetime(time_to),))
+                    filter_format(
+                        "(bildungsloginDeliveryDate<=%s)", (iso8601Date.from_datetime(time_to),)
+                    )
                 )
             if license_type == LicenseType.SINGLE:
-                filter_parts.append("(vbmLicenseQuantity=1)")
+                filter_parts.append("(bildungsloginLicenseQuantity=1)")
             elif license_type == LicenseType.VOLUME:
-                filter_parts.append("(!(vbmLicenseQuantity=1))")
+                filter_parts.append("(!(bildungsloginLicenseQuantity=1))")
             if product_id != "*":
                 filter_parts.append("(product_id={})".format(ldap_escape(product_id)))
             if license_code != "*":
@@ -409,9 +413,9 @@ class LicenseHandler:
 class MetaDataHandler:
     def __init__(self, lo):  # type: (LoType) -> None
         udm = UDM(lo).version(1)
-        self._licenses_mod = udm.get("vbm/license")
-        self._assignments_mod = udm.get("vbm/assignment")
-        self._meta_data_mod = udm.get("vbm/metadata")
+        self._licenses_mod = udm.get("bildungslogin/license")
+        self._assignments_mod = udm.get("bildungslogin/assignment")
+        self._meta_data_mod = udm.get("bildungslogin/metadata")
         self.ah = AssignmentHandler(lo)
         self.lh = LicenseHandler(lo)
         self.logger = logging.getLogger(__name__)
@@ -555,8 +559,8 @@ class MetaDataHandler:
 class AssignmentHandler:
     def __init__(self, lo):  # type: (LoType) -> None
         udm = UDM(lo).version(1)
-        self._licenses_mod = udm.get("vbm/license")
-        self._assignments_mod = udm.get("vbm/assignment")
+        self._licenses_mod = udm.get("bildungslogin/license")
+        self._assignments_mod = udm.get("bildungslogin/assignment")
         self._users_mod = udm.get("users/user")
         self._lo = lo
         self.logger = logging.getLogger(__name__)
@@ -706,7 +710,7 @@ class AssignmentHandler:
         :rtype: bool
         :raises BiloAssignmentError: 1. If the `ignored` property is set. This should not happen,
             because only 'non-ignored' license codes should be passed to this method. 2. If the license
-            was already assigned. 3. If no unassigned `vbm/assignment` objects are available for the
+            was already assigned. 3. If no unassigned `bildungslogin/assignment` objects are available for the
             license.
         """
         udm_license = self.get_license_by_license_code(license_code)

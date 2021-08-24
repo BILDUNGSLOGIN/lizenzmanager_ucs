@@ -29,7 +29,7 @@
 # <https://www.gnu.org/licenses/>.
 ## desc: Test the cli bilo license import
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## roles: [domaincontroller_master]
 
 import json
@@ -67,7 +67,9 @@ def test_cli_import(license_file, license_handler):
         finally:
             licenses_dn = lo.searchDn(filter=filter_s)
             for dn in licenses_dn:
-                subprocess.check_call(["udm", "vbm/license", "remove", "--dn", dn, "--recursive"])
+                subprocess.check_call(
+                    ["udm", "bildungslogin/license", "remove", "--dn", dn, "--recursive"]
+                )
     assert set(license.license_code for license in licenses) == set(
         license_raw["lizenzcode"] for license_raw in licenses_raw
     )

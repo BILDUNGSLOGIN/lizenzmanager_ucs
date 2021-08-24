@@ -70,18 +70,18 @@ setup_udm_rest_api_access() {
   sleep 5  # prevent [502] Proxy Error, in case of access before UDM REST API is ready
 }
 
-check_openapi_client_knows_vbm_modules() {
-  OPENAPI_TEST_CODE="from openapi_client_udm import VbmAssignment, VbmLicense, VbmMetadata"
-  echo "Checking OpenAPI client library is installed and knows VBM UDM modules..."
+check_openapi_client_knows_bildungslogin_modules() {
+  OPENAPI_TEST_CODE="from openapi_client_udm import BildungsloginAssignment, BildungsloginLicense, BildungsloginMetadata"
+  echo "Checking OpenAPI client library is installed and knows Bildungslogin UDM modules..."
   if docker exec $appcenter_apps_ucsschool_apis_container python3 -c "$OPENAPI_TEST_CODE"; then
-    echo "OK: OpenAPI client library already knows VBM UDM modules."
+    echo "OK: OpenAPI client library already knows Bildungslogin UDM modules."
   else
     echo "Building OpenAPI client library for UDM REST API access in Docker container..."
     echo "==> This requires network access to Debians repositories! <=="
     echo "If the installation fails, make sure the server can open outgoing TCP connections to 141.76.2.4:80 (ftp.de.debian.org)."
     docker exec $appcenter_apps_ucsschool_apis_container /var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/install_udm_rest_api_client || die
     if docker exec $appcenter_apps_ucsschool_apis_container python3 -c "$OPENAPI_TEST_CODE"; then
-      echo "OK: OpenAPI client library now knows VBM UDM modules."
+      echo "OK: OpenAPI client library now knows Bildungslogin UDM modules."
     else
       die "FAIL: OpenAPI client library in Docker container still not usable!"
     fi
@@ -94,7 +94,7 @@ restart_ucsschool_apis_app() {
 }
 
 setup_udm_rest_api_access "$@"
-check_openapi_client_knows_vbm_modules
+check_openapi_client_knows_bildungslogin_modules
 restart_ucsschool_apis_app
 
 joinscript_save_current_version

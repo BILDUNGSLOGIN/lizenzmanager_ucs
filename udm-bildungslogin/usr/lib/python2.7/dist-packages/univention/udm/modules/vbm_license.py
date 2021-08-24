@@ -27,7 +27,7 @@
 # <https://www.gnu.org/licenses/>.
 
 """
-Module and object specific for "vbm/license" UDM module.
+Module and object specific for "bildungslogin/license" UDM module.
 """
 
 from __future__ import absolute_import, unicode_literals
@@ -49,8 +49,8 @@ class ExpiredPropertyEncoder(DisabledPropertyEncoder):
         return "1" if value else "0"
 
 
-class VbmLicenseObjectProperties(GenericObjectProperties):
-    """vbm/license UDM properties."""
+class BildungsloginLicenseObjectProperties(GenericObjectProperties):
+    """bildungslogin/license UDM properties."""
 
     _encoders = {
         "quantity": StringIntPropertyEncoder,
@@ -61,22 +61,22 @@ class VbmLicenseObjectProperties(GenericObjectProperties):
         "num_assigned": StringIntPropertyEncoder,
         "num_expired": StringIntPropertyEncoder,
         "num_available": StringIntPropertyEncoder,
-        "assignments": dn_list_property_encoder_for("vbm/assignment"),
+        "assignments": dn_list_property_encoder_for("bildungslogin/assignment"),
         "expired": ExpiredPropertyEncoder,
     }
 
 
-class VbmLicenseObject(GenericObject):
-    """Better representation of vbm/license properties."""
+class BildungsloginLicenseObject(GenericObject):
+    """Better representation of bildungslogin/license properties."""
 
-    udm_prop_class = VbmLicenseObjectProperties
+    udm_prop_class = BildungsloginLicenseObjectProperties
 
 
-class VbmLicenseModule(GenericModule):
-    """VbmLicenseObject factory"""
+class BildungsloginLicenseModule(GenericModule):
+    """BildungsloginLicenseObject factory"""
 
-    _udm_object_class = VbmLicenseObject
+    _udm_object_class = BildungsloginLicenseObject
 
     class Meta:
         supported_api_versions = [1, 2]
-        suitable_for = ["vbm/license"]
+        suitable_for = ["bildungslogin/license"]

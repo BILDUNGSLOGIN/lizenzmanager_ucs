@@ -13,7 +13,7 @@ import univention.bildungslogin.handlers
 try:
     from univention.lib.i18n import Translation
 
-    _l10n = Translation("vbm-bildungslogin").translate
+    _l10n = Translation("bildungslogin").translate
 except ImportError:
     _l10n = lambda x: x  # noqa: E731
 

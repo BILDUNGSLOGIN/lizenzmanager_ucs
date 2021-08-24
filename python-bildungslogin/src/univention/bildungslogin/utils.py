@@ -32,7 +32,7 @@ from ldap.filter import escape_filter_chars
 
 from univention.lib.i18n import Translation
 
-_ = Translation("vbm-bildungslogin").translate
+_ = Translation("bildungslogin").translate
 
 
 class Status(object):

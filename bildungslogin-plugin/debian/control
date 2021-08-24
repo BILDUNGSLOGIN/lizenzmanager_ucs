@@ -29,7 +29,7 @@ Description: This package provides the JAR used to build the OpenAPI client used
  corporate environments. For more information about UCS,
  refer to: http://www.univention.de/
 
-Package: ucs-test-vbm-prov-api
+Package: ucs-test-bildungslogin-prov-api
 Architecture: all
 Depends:
  ${misc:Depends},

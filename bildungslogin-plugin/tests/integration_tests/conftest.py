@@ -228,17 +228,17 @@ def create_license_and_assignments(
     """Create a license and its associated assignments in LDAP."""
 
     async def _func(**license_kwargs) -> Tuple[UdmObject, List[UdmObject]]:
-        license_mod = udm.get("vbm/license")
+        license_mod = udm.get("bildungslogin/license")
         license_obj = await license_mod.new()
         license_obj.position = f"cn=vbm,cn=univention,{ldap_auth.settings.ldap_base}"
         license_data = random_license_data(**license_kwargs)
         license_obj.props.update(license_data)
         await license_obj.save()
-        schedule_delete_udm_obj(license_obj.dn, "vbm/license")
+        schedule_delete_udm_obj(license_obj.dn, "bildungslogin/license")
 
         assignments = []
         for _ in range(license_obj.props.quantity):
-            assignment_mod = udm.get("vbm/assignment")
+            assignment_mod = udm.get("bildungslogin/assignment")
             assignment_obj = await assignment_mod.new()
             assignment_obj.position = license_obj.dn
             assignment_data = new_assignment_data()

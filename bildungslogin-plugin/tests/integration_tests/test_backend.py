@@ -41,7 +41,10 @@ async def test_get_user_no_licenses(backend: UdmRestApiBackend, create_test_user
 async def test_get_user_with_licenses(
     backend: UdmRestApiBackend, create_test_user, create_license_and_assignments, udm
 ):
-    """Test that license assignments are created with AVAILABLE status, can be assigned to a user and the license is in the ASSIGNED status, and after provisioning the status is PROVISIONED"""
+    """
+    Test that license assignments are created with AVAILABLE status, can be assigned to a user and the
+    license is in the ASSIGNED status, and after provisioning the status is PROVISIONED.
+    """
     kelvin_user: KelvinUser = await create_test_user()
     license_obj1, assignment_objs1 = await create_license_and_assignments(quantity=1)
     license_obj2, assignment_objs2 = await create_license_and_assignments(quantity=1)

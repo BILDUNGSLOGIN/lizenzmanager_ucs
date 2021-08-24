@@ -29,7 +29,7 @@
 # <https://www.gnu.org/licenses/>.
 ## desc: Test the metadata handler, i.e. the metadata view.
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## roles: [domaincontroller_master]
 
 import datetime
@@ -46,14 +46,14 @@ def check_meta_data_is_correct(meta_data_obj, ldap_base):
     cn = sha256(meta_data_obj.product_id).hexdigest()
     expected_attr = {
         "cn": [cn],
-        "vbmProductId": [meta_data_obj.product_id],
-        "vbmMetaDataTitle": [meta_data_obj.title],
-        "vbmMetaDataDescription": [meta_data_obj.description],
-        "vbmMetaDataAuthor": [meta_data_obj.author],
-        "vbmMetaDataPublisher": [meta_data_obj.publisher],
-        "vbmMetaDataCover": [meta_data_obj.cover],
-        "vbmMetaDataCoverSmall": [meta_data_obj.cover_small],
-        "vbmMetaDataModified": [meta_data_obj.modified.strftime("%Y-%m-%d")],
+        "bildungsloginProductId": [meta_data_obj.product_id],
+        "bildungsloginMetaDataTitle": [meta_data_obj.title],
+        "bildungsloginMetaDataDescription": [meta_data_obj.description],
+        "bildungsloginMetaDataAuthor": [meta_data_obj.author],
+        "bildungsloginMetaDataPublisher": [meta_data_obj.publisher],
+        "bildungsloginMetaDataCover": [meta_data_obj.cover],
+        "bildungsloginMetaDataCoverSmall": [meta_data_obj.cover_small],
+        "bildungsloginMetaDataModified": [meta_data_obj.modified.strftime("%Y-%m-%d")],
     }
     dn = "cn={},cn=metadata,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
     verify_ldap_object(
@@ -123,7 +123,9 @@ def test_product_license_numbers(
     assignment_handler,
 ):
     """
-    Test to create a MetaData object and all combinations of licenses with the following properties in relation to the MetaData object
+    Test to create a MetaData object and all combinations of licenses with the following properties in
+    relation to the MetaData object
+
     # - ou is     related
     # - ou is not related
     # - product_id is     related
@@ -260,7 +262,7 @@ def test_product_license_numbers(
         # expire one of the licenses and check the counts again
         o = license_handler.get_udm_license_by_code(to_expire.license_code)
         o._orig_udm_object.lo.modify(
-            o.dn, [("vbmValidityEndDate", o.props.validity_end_date, "2000-01-01")]
+            o.dn, [("bildungsloginValidityEndDate", o.props.validity_end_date, "2000-01-01")]
         )
         num_of_newly_expired_licenses = (
             license_quantity - num_students

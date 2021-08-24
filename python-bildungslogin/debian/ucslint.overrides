@@ -1,10 +1,10 @@
 0009-13: tests/*.py
-0009-13: ucs-test/97_vbm_python/*.py
+0009-13: ucs-test/97_bildungslogin_python/*.py
 0009-13: src/univention/bildungslogin/*.py
 0020-F401: tests/*.py
-0020-F401: ucs-test/97_vbm_python/*.py
+0020-F401: ucs-test/97_bildungslogin_python/*.py
 0020-F401: src/univention/bildungslogin/*.py
-0020-F812: ucs-test/97_vbm_python/*.py
+0020-F812: ucs-test/97_bildungslogin_python/*.py
 0020-W503: tests/*.py
-0020-W503: ucs-test/97_vbm_python/*.py
+0020-W503: ucs-test/97_bildungslogin_python/*.py
 0020-W503: src/univention/bildungslogin/*.py

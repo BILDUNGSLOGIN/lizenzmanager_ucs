@@ -41,16 +41,16 @@ import univention.admin.uexceptions
 from univention.admin.layout import Tab
 from univention.admin.syntax import iso8601Date
 
-translation = univention.admin.localization.translation("univention.admin.handlers.vbm")
+translation = univention.admin.localization.translation("univention.admin.handlers.bildungslogin")
 _ = translation.translate
 
-module = "vbm/license"
+module = "bildungslogin/license"
 childs = True
-childmodules = ["vbm/assignment"]
+childmodules = ["bildungslogin/assignment"]
 object_name = _("Licenses")
 object_name_plural = _("Licenses")
 short_description = _("License")
-long_description = _("License from the VBM Bildungslogin")
+long_description = _("License from Bildungslogin")
 operations = ["add", "edit", "remove", "search"]  # TODO: Do we want a remove operation or not?
 default_containers = ["cn=licenses,cn=bildungslogin,cn=vbm,cn=univention"]
 
@@ -58,7 +58,7 @@ options = {
     "default": univention.admin.option(
         short_description=short_description,
         default=True,
-        objectClasses=["top", "vbmLicense"],
+        objectClasses=["top", "bildungsloginLicense"],
     )
 }
 
@@ -220,19 +220,19 @@ layout = [
 mapping = univention.admin.mapping.mapping()
 for udm_name, ldap_name in [
     ("cn", "cn"),
-    ("code", "vbmLicenseCode"),
-    ("product_id", "vbmProductId"),
-    ("quantity", "vbmLicenseQuantity"),
-    ("provider", "vbmLicenseProvider"),
-    ("purchasing_reference", "vbmPurchasingReference"),
-    ("utilization_systems", "vbmUtilizationSystems"),
-    ("validity_start_date", "vbmValidityStartDate"),
-    ("validity_end_date", "vbmValidityEndDate"),
-    ("validity_duration", "vbmValidityDuration"),
-    ("special_type", "vbmLicenseSpecialType"),
-    ("ignored", "vbmIgnoredForDisplay"),
-    ("delivery_date", "vbmDeliveryDate"),
-    ("school", "vbmLicenseSchool"),
+    ("code", "bildungsloginLicenseCode"),
+    ("product_id", "bildungsloginProductId"),
+    ("quantity", "bildungsloginLicenseQuantity"),
+    ("provider", "bildungsloginLicenseProvider"),
+    ("purchasing_reference", "bildungsloginPurchasingReference"),
+    ("utilization_systems", "bildungsloginUtilizationSystems"),
+    ("validity_start_date", "bildungsloginValidityStartDate"),
+    ("validity_end_date", "bildungsloginValidityEndDate"),
+    ("validity_duration", "bildungsloginValidityDuration"),
+    ("special_type", "bildungsloginLicenseSpecialType"),
+    ("ignored", "bildungsloginIgnoredForDisplay"),
+    ("delivery_date", "bildungsloginDeliveryDate"),
+    ("school", "bildungsloginLicenseSchool"),
 ]:
     mapping.register(udm_name, ldap_name, None, univention.admin.mapping.ListToString)
 
@@ -246,8 +246,8 @@ class object(univention.admin.handlers.simpleLdap):
             self.info["num_assigned"] = str(
                 len(
                     self.lo.searchDn(
-                        "(&(objectClass=vbmAssignment)"
-                        "(|(vbmAssignmentStatus=ASSIGNED)(vbmAssignmentStatus=PROVISIONED)))",
+                        "(&(objectClass=bildungsloginAssignment)"
+                        "(|(bildungsloginAssignmentStatus=ASSIGNED)(bildungsloginAssignmentStatus=PROVISIONED)))",
                         base=str(self.dn),
                     )
                 )
@@ -264,7 +264,9 @@ class object(univention.admin.handlers.simpleLdap):
 
     def _load_assignments(self):
         if self.exists():
-            self["assignments"] = self.lo.searchDn("(objectClass=vbmAssignment)", base=str(self.dn))
+            self["assignments"] = self.lo.searchDn(
+                "(objectClass=bildungsloginAssignment)", base=str(self.dn)
+            )
 
     def _load_expired(self):
         """The license is expired, when `validity_end_date` is later than 'today'."""
@@ -295,7 +297,7 @@ class object(univention.admin.handlers.simpleLdap):
     def _ldap_pre_create(self):
         super(object, self)._ldap_pre_create()
         # The code, and thus the cn of any license must be unique in the domain
-        if self.lo.searchDn(filter_format("(&(objectClass=vbmLicense)(cn=%s))", [self["cn"]])):
+        if self.lo.searchDn(filter_format("(&(objectClass=bildungsloginLicense)(cn=%s))", [self["cn"]])):
             raise univention.admin.uexceptions.valueError(_("A license with that code already exists"))
         super(object, self)._ldap_pre_create()
 

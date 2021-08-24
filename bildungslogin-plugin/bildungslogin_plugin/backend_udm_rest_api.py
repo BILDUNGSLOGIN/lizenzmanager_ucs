@@ -30,8 +30,8 @@ class UdmRestApiBackend(DbBackend):
                 raise ConfigurationError(f"Missing UDM REST API client configuration option {kwarg!r}.")
         self.udm = UDM(**kwargs)
         self.udm.session.open()
-        self.assignment_mod = self.udm.get("vbm/assignment")
-        self.license_mod = self.udm.get("vbm/license")
+        self.assignment_mod = self.udm.get("bildungslogin/assignment")
+        self.license_mod = self.udm.get("bildungslogin/license")
         self.user_mod = self.udm.get("users/user")
         self.ldap_base = os.environ["LDAP_BASE"]
         self.school_class_dn_regex = self._school_class_dn_regex()
@@ -133,7 +133,9 @@ class UdmRestApiBackend(DbBackend):
 
     async def get_licenses_and_set_assignment_status(self, user: UdmObject) -> Set[str]:
         license_dns = set()
-        async for assignment in self.assignment_mod.search(f"(vbmAssignmentAssignee={user.uuid})"):
+        async for assignment in self.assignment_mod.search(
+            f"(bildungsloginAssignmentAssignee={user.uuid})"
+        ):
             if assignment.props.status == AssignmentStatus.AVAILABLE.name:
                 logger.error(
                     "License assignment for user %r has invalid status 'AVAILABLE', setting to "

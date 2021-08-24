@@ -29,7 +29,7 @@
 # <https://www.gnu.org/licenses/>.
 ## desc: Test the cli bilo metadata import
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## roles: [domaincontroller_master]
 
 import datetime
@@ -169,7 +169,9 @@ def test_repeated_cli_import(delete_metatdata_after_test, lo, mocker):
     mocker.patch("univention.bildungslogin.media_import.cmd_media_import.get_access_token")
     delete_metatdata_after_test(TEST_PRODUCT_ID)
     cmd_media_import.main()
-    filter_s = "(&(objectClass=vbmMetaData)(vbmProductId={}))".format(TEST_PRODUCT_ID)
+    filter_s = "(&(objectClass=bildungsloginMetaData)(bildungsloginProductId={}))".format(
+        TEST_PRODUCT_ID
+    )
     entry_uuids = lo.searchDn(filter_s)
     assert len(entry_uuids) == 1
     entry_uuid1 = entry_uuids[0]

@@ -38,7 +38,7 @@ joinscript_init
 # Not removing 'UDM-API-enabled-machines' group or 'UCS@school APIs machine account', as other plugins
 # may be using it.
 
-if ! udm modules | grep -q 'vbm/license'; then
+if ! udm modules | grep -q 'bildungslogin/license'; then
   echo "Rebuilding OpenAPI client library in UCS@school APIs' Docker container as Bildungslogin UDM modules have been removed..."
   univention-app shell ucsschool-apis sh -c 'update_openapi_client \
   --generator java \

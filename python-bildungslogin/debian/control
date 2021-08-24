@@ -44,7 +44,7 @@ Description: python libs for bildungslogin
  corporate environments. For more information about UCS,
  refer to: https://www.univention.de/
 
-Package: ucs-test-vbm-python
+Package: ucs-test-bildungslogin-python
 Architecture: all
 Depends:
  ${misc:Depends},

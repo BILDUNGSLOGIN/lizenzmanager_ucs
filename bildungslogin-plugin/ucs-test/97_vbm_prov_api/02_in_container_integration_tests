@@ -1,7 +1,7 @@
 #!/usr/share/ucs-test/runner bash
 ## desc: In-container integration tests
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## packages: [bildungslogin-plugin]
 
 APP="ucsschool-apis"

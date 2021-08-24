@@ -29,6 +29,6 @@
 
 #DEBHELPER#
 
-rm -rf /usr/share/ucs-test/97_vbm_python/__pycache__/
+rm -rf /usr/share/ucs-test/97_bildungslogin_python/__pycache__/
 
 exit 0

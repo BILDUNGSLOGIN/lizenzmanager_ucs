@@ -27,7 +27,7 @@
 # <https://www.gnu.org/licenses/>.
 
 """
-Module and object specific for "vbm/metadata" UDM module.
+Module and object specific for "bildungslogin/metadata" UDM module.
 """
 
 from __future__ import absolute_import, unicode_literals
@@ -36,23 +36,23 @@ from ..encoders import DatePropertyEncoder
 from .generic import GenericModule, GenericObject, GenericObjectProperties
 
 
-class VbmMetadataObjectProperties(GenericObjectProperties):
-    """vbm/metadata UDM properties."""
+class BildungsloginMetadataObjectProperties(GenericObjectProperties):
+    """bildungslogin/metadata UDM properties."""
 
     _encoders = {"modified": DatePropertyEncoder}
 
 
-class VbmMetadataObject(GenericObject):
-    """Better representation of vbm/metadata properties."""
+class BildungsloginMetadataObject(GenericObject):
+    """Better representation of bildungslogin/metadata properties."""
 
-    udm_prop_class = VbmMetadataObjectProperties
+    udm_prop_class = BildungsloginMetadataObjectProperties
 
 
-class VbmMetadataModule(GenericModule):
-    """VbmMetadataObject factory"""
+class BildungsloginMetadataModule(GenericModule):
+    """BildungsloginMetadataObject factory"""
 
-    _udm_object_class = VbmMetadataObject
+    _udm_object_class = BildungsloginMetadataObject
 
     class Meta:
         supported_api_versions = [1, 2]
-        suitable_for = ["vbm/metadata"]
+        suitable_for = ["bildungslogin/metadata"]

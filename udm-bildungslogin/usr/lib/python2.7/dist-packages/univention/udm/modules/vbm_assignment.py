@@ -27,7 +27,7 @@
 # <https://www.gnu.org/licenses/>.
 
 """
-Module and object specific for "vbm/assignment" UDM module.
+Module and object specific for "bildungslogin/assignment" UDM module.
 """
 
 from __future__ import absolute_import, unicode_literals
@@ -46,13 +46,13 @@ class EntryUuidPropertyEncoder(DnPropertyEncoder):
         filter_s = filter_format("(&(univentionObjectType=users/user)(entryUUID=%s))", (value,))
         dns = self._udm.connection.searchDn(filter_s)
         if len(dns) != 1:
-            UDebug.error("Assignee for 'vbm/assignment' with {!r} not found.".format(filter_s))
+            UDebug.error("Assignee for 'bildungslogin/assignment' with {!r} not found.".format(filter_s))
             return None
         return super(EntryUuidPropertyEncoder, self)._dn_to_udm_object(dns[0])
 
 
-class VbmAssignmentObjectProperties(GenericObjectProperties):
-    """vbm/assignment UDM properties."""
+class BildungsloginAssignmentObjectProperties(GenericObjectProperties):
+    """bildungslogin/assignment UDM properties."""
 
     _encoders = {
         "assignee": EntryUuidPropertyEncoder,
@@ -60,17 +60,17 @@ class VbmAssignmentObjectProperties(GenericObjectProperties):
     }
 
 
-class VbmAssignmentObject(GenericObject):
-    """Better representation of vbm/assignment properties."""
+class BildungsloginAssignmentObject(GenericObject):
+    """Better representation of bildungslogin/assignment properties."""
 
-    udm_prop_class = VbmAssignmentObjectProperties
+    udm_prop_class = BildungsloginAssignmentObjectProperties
 
 
-class VbmAssignmentModule(GenericModule):
-    """VbmAssignmentObject factory"""
+class BildungsloginAssignmentModule(GenericModule):
+    """BildungsloginAssignmentObject factory"""
 
-    _udm_object_class = VbmAssignmentObject
+    _udm_object_class = BildungsloginAssignmentObject
 
     class Meta:
         supported_api_versions = [1, 2]
-        suitable_for = ["vbm/assignment"]
+        suitable_for = ["bildungslogin/assignment"]

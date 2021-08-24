@@ -1,9 +1,9 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -slvv
 # -*- coding: utf-8 -*-
-## desc: Run tests for the udm module vbm/assignment
+## desc: Run tests for the udm module bildungslogin/assignment
 ## roles: [domaincontroller_master, domaincontroller_backup]
 ## exposure: dangerous
-## tags: [vbm]
+## tags: [bildungslogin]
 ## packages: [udm-bildungslogin]
 #
 # Copyright 2021 Univention GmbH
@@ -41,7 +41,7 @@ from univention.udm import CreateError, ModifyError, NoSuperordinate
 def test_create_assignment(create_license, udm):
     """Test that a license assignment object can be created in LDAP"""
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
-    assignment = udm.get("vbm/assignment").new(license_obj.dn)
+    assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
     assignment.props.status = "AVAILABLE"
     assignment.save()
     assert assignment.position == license_obj.dn
@@ -51,7 +51,7 @@ def test_wrong_superordinate(create_metadata, udm):
     """TODO add test description"""
     metadata = create_metadata(product_id="PRODUCT")
     with pytest.raises(NoSuperordinate):
-        udm.get("vbm/assignment").new(metadata.dn)
+        udm.get("bildungslogin/assignment").new(metadata.dn)
 
 
 @pytest.mark.parametrize(
@@ -60,7 +60,7 @@ def test_wrong_superordinate(create_metadata, udm):
 def test_allowed_status(status, assignee, create_license, udm):
     """Test that an assignment has a status that can change from AVAILABLE to ASSIGNED and PROVISIONED"""
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
-    assignment = udm.get("vbm/assignment").new(license_obj.dn)
+    assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
     assignment.props.status = status
     assignment.props.assignee = assignee
     assignment.save()
@@ -70,7 +70,7 @@ def test_allowed_status(status, assignee, create_license, udm):
 def test_wrong_status(create_license, udm):
     """Test that an assignment can not have an unknown status"""
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
-    assignment = udm.get("vbm/assignment").new(license_obj.dn)
+    assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
     assignment.props.status = "SOME_STATUS"
     with pytest.raises(valueInvalidSyntax):
         assignment.save()
@@ -97,7 +97,7 @@ def test_allowed_status_transitions(
     ASSIGNED -> PROVISIONED, "USER" -> "USER"
     """
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
-    assignment = udm.get("vbm/assignment").new(license_obj.dn)
+    assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
     assignment.props.status = old_status
     assignment.props.assignee = old_assignee
     assignment.save()
@@ -127,7 +127,7 @@ def test_wrong_status_transitions(
     PROVISIONED -> AVAILABLE, "USER" -> ""
     """
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
-    assignment = udm.get("vbm/assignment").new(license_obj.dn)
+    assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
     assignment.props.status = old_status
     assignment.props.assignee = old_assignee
     assignment.save()
@@ -142,7 +142,7 @@ def test_wrong_status_transitions(
 def test_status_require_assignee(status, create_license, udm):
     """Test that for an assignment an assignee is needed"""
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
-    assignment = udm.get("vbm/assignment").new(license_obj.dn)
+    assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
     assignment.props.status = status
     with pytest.raises(CreateError) as exinfo:
         assignment.save()
@@ -152,7 +152,7 @@ def test_status_require_assignee(status, create_license, udm):
 def test_status_available_no_assignee(create_license, udm):
     """Test that for an assignment with status AVAILABLE no assignee should be set"""
     license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "DEMOSCHOOL")
-    assignment = udm.get("vbm/assignment").new(license_obj.dn)
+    assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
     assignment.props.status = "AVAILABLE"
     assignment.props.assignee = "SOME_USER"
     with pytest.raises(CreateError) as exinfo:

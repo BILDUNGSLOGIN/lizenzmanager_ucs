@@ -65,7 +65,7 @@ def create_metadata(udm):
         cover="",
         cover_small="",
     ):
-        metadata = udm.get("vbm/metadata").new()
+        metadata = udm.get("bildungslogin/metadata").new()
         metadata.props.product_id = product_id
         metadata.props.modified = modified
         metadata.props.title = title or uts.random_name()
@@ -104,7 +104,7 @@ def create_license(udm):
         validity_duration="",
         special_type="",
     ):
-        license_obj = udm.get("vbm/license").new()
+        license_obj = udm.get("bildungslogin/license").new()
         license_obj.props.code = code
         license_obj.props.product_id = product_id
         license_obj.props.quantity = quantity
