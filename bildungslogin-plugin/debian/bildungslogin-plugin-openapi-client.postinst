@@ -31,11 +31,11 @@
 
 if [ "$1" = "configure" ]
 then
-	uinst=/usr/lib/univention-install/61bildungslogin-plugin-openapi-client.uinst
+	uinst=/usr/lib/univention-install/31bildungslogin-plugin-openapi-client.uinst
 	[ -e "$uinst" ] && rm "$uinst"
 fi
 
 . /usr/share/univention-lib/base.sh
-call_joinscript 39bildungslogin-plugin-openapi-client.inst
+call_joinscript 69bildungslogin-plugin-openapi-client.inst
 
 exit 0
