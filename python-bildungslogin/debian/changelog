@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.0) unstable; urgency=low
+
+  * Issue #46: change namespace from 'vbm' to 'bildungslogin'
+
+ -- Daniel Troeder <troeder@univention.de>  Tue, 24 Aug 2021 15:21:15 +0200
+
 python-bildungslogin (0.1.0) unstable; urgency=low
 
   * Issue #15: clean uninstallation of bildungslogin components
