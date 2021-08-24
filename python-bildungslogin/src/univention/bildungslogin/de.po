@@ -92,6 +92,14 @@ msgstr ""
 "Die Lizenz mit dem Lizenzcode {license_code!r} ist bereits dem User "
 "{username!r} zugewiesen!"
 
+#: src/univention/bildungslogin/handlers.py:736
+msgid ""
+"No assignment left of license with code {license_code!r}. Failed to assign "
+"{username!r}!"
+msgstr ""
+"Es sind keine Zuweisungen für die Lizenz mit dem Code {license_code!r} "
+"mehr verfügbar. Dem Nutzer {username!r} wurde keine Lizenz zugewiesen!"
+
 #: src/univention/bildungslogin/handlers.py:555
 msgid ""
 "License with special type 'Lehrer' can't be assigned to user {username!r} "
