@@ -31,8 +31,31 @@ import datetime
 import json
 from typing import Any, Dict, List, Optional
 
+from jsonschema import validate
+
 from ..handlers import LicenseHandler
 from ..models import License
+
+LICENSE_SCHEMA = {
+    "$schema": "http://json-schema.org/schema#",
+    "$comment": "License Import configuration schema. License: GNU AGPL v3, Copyright 2021 Univention GmbH",
+    "title": "license-import",
+    "description": "license-import data",
+    "type": "object",
+    "properties": {
+        "lizenzcode": {"type": "string"},
+        "product_id": {"type": "string"},
+        "lizenzanzahl": {"type": "integer"},
+        "lizenzgeber": {"type": "string"},
+        "kaufreferenz": {"type": "string"},
+        "nutzungssysteme": {"type": "string"},
+        "gueltigkeitsbeginn": {"type": "string"},
+        "gueltigkeitsende": {"type": "string"},
+        "gueltigkeitsdauer": {"type": "string"},
+        "sonderlizenz": {"type": "string"},
+    },
+    "required": ["lizenzcode", "product_id", "lizenzanzahl", "lizenzgeber", "gueltigkeitsende"],
+}
 
 
 def convert_raw_license_date(date_str):  # type: (str) -> Optional[datetime.date]
@@ -43,6 +66,7 @@ def convert_raw_license_date(date_str):  # type: (str) -> Optional[datetime.date
 
 
 def load_license(license_raw, school):  # type: (Dict[str, Any], str) -> License
+    validate(instance=license_raw, schema=LICENSE_SCHEMA)
     license = License(
         license_code=license_raw["lizenzcode"],
         product_id=license_raw["product_id"],
