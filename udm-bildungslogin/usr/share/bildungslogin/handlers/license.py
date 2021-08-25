@@ -271,7 +271,8 @@ class object(univention.admin.handlers.simpleLdap):
     def _load_expired(self):
         """The license is expired, when `validity_end_date` is later than 'today'."""
         if not self.get("validity_end_date"):
-            return "0"
+            self.info["expired"] = "0"
+            return
         validity_end_date = iso8601Date.to_datetime(self.get("validity_end_date"))
         self.info["expired"] = "1" if validity_end_date < datetime.date.today() else "0"
 

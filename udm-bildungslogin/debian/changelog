@@ -1,3 +1,9 @@
+udm-bildungslogin (0.2.1) unstable; urgency=low
+
+  * Issue #67: Fix num_expired for licenses without validity_end_date
+
+ -- Ole Schwiegert <schwiegert@univention.de>  Wed, 25 Aug 2021 09:11:21 +0200
+
 udm-bildungslogin (0.2.0) unstable; urgency=low
 
   * Issue #46: change namespace from 'vbm' to 'bildungslogin'
