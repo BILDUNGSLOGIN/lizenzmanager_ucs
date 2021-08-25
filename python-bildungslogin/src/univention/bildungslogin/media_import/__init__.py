@@ -35,11 +35,98 @@ from copy import deepcopy
 from typing import Any, Dict, List
 
 import requests
+from jsonschema import validate
 
 from univention.bildungslogin.handlers import BiloCreateError, BiloProductNotFoundError, MetaDataHandler
 from univention.bildungslogin.models import MetaData
 
 HTTP_URL_START = re.compile(r"^http.?://")
+
+
+MEDIA_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "definitions": {
+        "link": {
+            "description": "Ein Link-Element analog zum HTML-Link. Die Semantik (wohin f\u00fchrt der Link)"
+            " wird durch das rel-Attribut ausgedr\u00fcckt",
+            "properties": {
+                "href": {
+                    "description": "eine g\u00fcltige URL",
+                    "format": "uri",
+                    "maxLength": 500,
+                    "type": "string",
+                },
+                "rel": {"enum": ["src", "self"], "type": "string"},
+            },
+            "type": "object",
+        },
+        "timestamp": {
+            "description": "Ein Zeitstempel als POSIX timestamp integer (https://en.wikipedia.org/wiki/Unix_time)",
+            "type": "integer",
+        },
+        "urn": {
+            "description": "Uniform Resource Name, https://de.wikipedia.org/wiki/Uniform_Resource_Name",
+            "pattern": "^urn(:[a-z0-9]{1,32})+:[\\S]+$",
+            "type": "string",
+            "maxLength": 100,
+        },
+        "Author": {"description": "Autor des Medium", "maxLength": 100, "type": "string"},
+        "Cover": {
+            "description": "Bild zur Darstellung im Medienregal, in der Regalansicht."
+            " Breite 120px, Höhe max. 160px.",
+            "$ref": "#/definitions/link",
+        },
+        "CoverSmall": {
+            "description": "Bild zur Darstellung im Medienregal, in der Listenansicht. Höhe max. 65px.",
+            "$ref": "#/definitions/link",
+        },
+        "Description": {
+            "description": "Beschreibung des Mediums, verwendet zur Anzeige im Bildungslogin Medienregal",
+            "maxLength": 500,
+            "type": "string",
+        },
+        "MediumIdentifier": {
+            "$ref": "#/definitions/urn",
+            "description": "im Kontext eines Verlages eindeutiger Bezeichner eines Mediums. "
+            "Als Namespace Identifier wird 'bilo:medium' verwendet.",
+            "title": "MediumId",
+        },
+        "ModifiedTimestamp": {
+            "$ref": "#/definitions/timestamp",
+            "description": "Zeitstempel der letzten Änderung",
+        },
+        "Publisher": {
+            "description": "Der Verlag, der dieses Medium bereitstellt. "
+            "Als eindeutiger Bezeichner wird hier das Verlagskürzel verwendet, welches auch als Prefix "
+            "der BundleCodes dient",
+            "maxLength": 10,
+            "type": "string",
+        },
+        "Title": {
+            "description": "Titel des Angebots zur Anzeige im Medienregal, z.B. bei einem Buch der Buchtitel,"
+            " bei einer Anwendung Name der Anwendung etc.",
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string",
+        },
+    },
+    "description": "Ein Eintrag bzw. Element im Medienregal. Repräsentiert einen Verweis auf einen "
+    "digitalen Bildungsinhalt",
+    "id": "http://bildungslogin.t-systems-mms.eu/api/publisher/schemas/media.schema.json#",
+    "properties": {
+        "author": {"$ref": "#/definitions/Author"},
+        "cover": {"$ref": "#/definitions/Cover"},
+        "coverSmall": {"$ref": "#/definitions/CoverSmall"},
+        "description": {"$ref": "#/definitions/Description"},
+        "id": {"$ref": "#/definitions/MediumIdentifier"},
+        "modified": {"$ref": "#/definitions/ModifiedTimestamp"},
+        "publisher": {"$ref": "#/definitions/Publisher"},
+        "title": {"$ref": "#/definitions/Title"},
+    },
+    "required": ["id", "title", "publisher", "cover", "coverSmall", "modified"],
+    "title": "Medium",
+    "type": "object",
+}
 
 
 class AuthError(Exception):
@@ -93,6 +180,7 @@ def retrieve_media_feed(access_token, resource_server, modified_after):
 def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
     if raw_media_data["status"] == 200:
         data = cleaned_data(raw_media_data)
+        validate(instance=data, schema=MEDIA_SCHEMA)
         try:
             return MetaData(
                 product_id=data["id"],

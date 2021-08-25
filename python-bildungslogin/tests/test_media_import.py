@@ -3,8 +3,10 @@
 import datetime
 
 import attr
+import pytest
+from jsonschema import ValidationError, validate
 
-from univention.bildungslogin.media_import import load_media
+from univention.bildungslogin.media_import import MEDIA_SCHEMA, load_media
 from univention.bildungslogin.models import MetaData
 
 test_metadata_raw = {
@@ -44,3 +46,52 @@ def test_load_media():
     """Test that meta data loaded from dict are the same as a corresponding python object."""
     metadata = load_media(test_metadata_raw)
     assert metadata.__dict__ == attr.asdict(test_metadata)
+
+
+def test_media_schema():
+    """Test that the schema works with our sample test_metadata_raw. We assume the test_metadata_raw to be valid"""
+    validate(instance=test_metadata_raw["data"], schema=MEDIA_SCHEMA)
+
+
+@pytest.mark.parametrize("field_name", MEDIA_SCHEMA["required"])
+def test_media_schema_validation_required_fails(field_name):
+    """A missing value in the media should raise a ValidationError"""
+    test_media_broken = test_metadata_raw["data"].copy()
+    del test_media_broken[field_name]
+    with pytest.raises(ValidationError):
+        validate(instance=test_media_broken, schema=MEDIA_SCHEMA)
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    [name for name in MEDIA_SCHEMA["properties"] if name not in MEDIA_SCHEMA["required"]],
+)
+def test_media_schema_validation_optionals(field_name):
+    """An optional value can be left out from the media"""
+    test_license_broken = test_metadata_raw["data"].copy()
+    del test_license_broken[field_name]
+    validate(instance=test_license_broken, schema=MEDIA_SCHEMA)
+
+
+@pytest.mark.parametrize(
+    "definition_name,property_name",
+    zip(
+        ["Publisher", "Description", "Author", "Title", "MediumIdentifier"],
+        ["publisher", "description", "author", "title", "id"],
+    ),
+)
+def test_media_schema_validation_fails_for_incorrect_length(definition_name, property_name):
+    """Test a violation of string length raises a ValidationError."""
+    media_definition_value = MEDIA_SCHEMA["definitions"][definition_name]
+    test_media_broken = test_metadata_raw["data"].copy()
+    if "maxLength" in media_definition_value:
+        while len(test_media_broken[property_name]) < media_definition_value["maxLength"] + 1:
+            test_media_broken[property_name] += "t"
+        with pytest.raises(ValidationError):
+            validate(instance=test_media_broken, schema=MEDIA_SCHEMA)
+    if "minLength" in media_definition_value:
+        test_media_broken[property_name] = test_media_broken[property_name][
+            : min(media_definition_value["minLength"] - 1, 0)
+        ]
+        with pytest.raises(ValidationError):
+            validate(instance=test_media_broken, schema=MEDIA_SCHEMA)
