@@ -53,7 +53,7 @@ def test_media_schema():
     validate(instance=test_metadata_raw["data"], schema=MEDIA_SCHEMA)
 
 
-@pytest.mark.parametrize("field_name", MEDIA_SCHEMA["required"])
+@pytest.mark.parametrize("field_name", ["id", "title", "publisher", "cover", "coverSmall", "modified"])
 def test_media_schema_validation_required_fails(field_name):
     """A missing value in the media should raise a ValidationError"""
     test_media_broken = test_metadata_raw["data"].copy()
@@ -64,7 +64,7 @@ def test_media_schema_validation_required_fails(field_name):
 
 @pytest.mark.parametrize(
     "field_name",
-    [name for name in MEDIA_SCHEMA["properties"] if name not in MEDIA_SCHEMA["required"]],
+    ["author", "description"],
 )
 def test_media_schema_validation_optionals(field_name):
     """An optional value can be left out from the media"""

@@ -185,8 +185,8 @@ def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
             return MetaData(
                 product_id=data["id"],
                 title=data["title"],
-                description=data["description"],
-                author=data["author"],
+                description=data.get("description", ""),
+                author=data.get("author", ""),
                 publisher=data["publisher"],
                 cover=data["cover"][
                     "href"
