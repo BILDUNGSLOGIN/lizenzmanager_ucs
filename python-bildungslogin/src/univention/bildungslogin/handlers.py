@@ -743,7 +743,7 @@ class AssignmentHandler:
             try:
                 self.assign_to_license(code, username)
                 result["countSuccessfulAssignments"] += 1
-                if validity_start_date > datetime.date.today():
+                if validity_start_date and validity_start_date > datetime.date.today():
                     result["validityInFuture"].add(code)
             except BiloAssignmentError as exc:
                 result["failedAssignments"].add("{} -- {}".format(username, str(exc)))

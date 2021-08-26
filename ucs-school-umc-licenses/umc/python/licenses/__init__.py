@@ -58,6 +58,12 @@ from univention.udm import UDM
 _ = Translation("ucs-school-umc-licenses").translate
 
 
+def optional_date2str(date):
+    if date:
+        return iso8601Date.from_datetime(date)
+    return ""
+
+
 class Instance(SchoolBaseModule):
     @sanitize(
         isAdvancedSearch=BooleanSanitizer(required=True),
@@ -155,8 +161,8 @@ class Instance(SchoolBaseModule):
             "reference": license.purchasing_reference,
             "specialLicense": license.license_special_type,
             "usage": license.utilization_systems,
-            "validityStart": iso8601Date.from_datetime(license.validity_start_date),
-            "validityEnd": iso8601Date.from_datetime(license.validity_end_date),
+            "validityStart": optional_date2str(license.validity_start_date),
+            "validityEnd": optional_date2str(license.validity_end_date),
             "validitySpan": license.validity_duration,
             "author": meta_data.author,
             "cover": meta_data.cover or meta_data.cover_small,
@@ -406,9 +412,9 @@ class Instance(SchoolBaseModule):
             {
                 "licenseCode": license.license_code,
                 "licenseTypeLabel": LicenseType.label(license.license_type),
-                "validityStart": iso8601Date.from_datetime(license.validity_start_date),
-                "validityEnd": iso8601Date.from_datetime(license.validity_end_date),
-                "validitySpan": str(license.validity_duration),
+                "validityStart": optional_date2str(license.validity_start_date),
+                "validityEnd": optional_date2str(license.validity_end_date),
+                "validitySpan": str(license.validity_duration) if license.validity_duration else "",
                 "ignore": _("Yes") if license.ignored_for_display else _("No"),
                 "countAquired": str(license.license_quantity),
                 "countAssigned": str(license.num_assigned),
