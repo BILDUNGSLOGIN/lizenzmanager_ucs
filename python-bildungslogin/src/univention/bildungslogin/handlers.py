@@ -158,6 +158,20 @@ class LicenseHandler:
     def get_license_by_code(self, license_code):  # type: (str) -> License
         return self.from_udm_obj(self.get_udm_license_by_code(license_code))
 
+    def get_meta_data_by_product_id(self, product_id):
+        """
+        search for the product by product id. If there is none yet, return an empty object
+
+        TODO: This functions exists here, since we cannot have a MetadataHandler in the LicenseHandler due to
+        TODO: circular dependency problems of the handlers with each other.
+        """
+        filter_s = filter_format("(product_id=%s)", [product_id])
+        udm_meta_data = [o for o in self._meta_data_mod.search(filter_s)]
+        if not udm_meta_data:
+            return MetaData(product_id=product_id)
+        else:
+            return MetaDataHandler.from_udm_obj(udm_meta_data[0])
+
     def get_meta_data_for_license(self, license):  # type: (Union[UdmObject, License]) -> MetaData
         """search for the product of the license. If there is none yet, return an empty object."""
         if type(license) is License:
@@ -362,8 +376,12 @@ class LicenseHandler:
             filter_s = "(&(product_id={}){})".format(
                 ldap_escape(restrict_to_this_product_id, allow_asterisks=False), filter_s
             )
-        for license in self.get_all(filter_s=filter_s):
-            meta_data = self.get_meta_data_for_license(license)
+        licenses = self.get_all(filter_s=filter_s)
+        product_ids = set([license.product_id for license in licenses])
+        products = {
+            product_id: self.get_meta_data_by_product_id(product_id) for product_id in product_ids
+        }
+        for license in licenses:
             number_of_available_assignments = license.num_available
             if not only_available_licenses or (
                 not license.ignored_for_display and number_of_available_assignments > 0
@@ -371,8 +389,8 @@ class LicenseHandler:
                 rows.append(
                     {
                         "productId": license.product_id,
-                        "productName": meta_data.title,
-                        "publisher": meta_data.publisher,
+                        "productName": products[license.product_id].title,
+                        "publisher": products[license.product_id].publisher,
                         "licenseCode": license.license_code,
                         "licenseTypeLabel": LicenseType.label(license.license_type),
                         "countAquired": license.license_quantity,
