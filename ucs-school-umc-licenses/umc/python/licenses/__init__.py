@@ -247,7 +247,7 @@ class Instance(SchoolBaseModule):
         usernames = request.options.get("usernames")
         ah = AssignmentHandler(ldap_user_write)
         result = ah.assign_users_to_licenses(license_codes, usernames)
-        MODULE.info("licenses.remove_from_users: result: %s" % str(result))
+        MODULE.info("licenses.assign_to_users: result: %s" % str(result))
         self.finished(request.id, result)
 
     @sanitize(
