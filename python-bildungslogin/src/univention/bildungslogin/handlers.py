@@ -467,7 +467,8 @@ class MetaDataHandler:
         meta_data_objs = self._meta_data_mod.search(filter_s=filter_s)
         return [MetaDataHandler.from_udm_obj(obj) for obj in meta_data_objs]
 
-    def get_udm_licenses_by_product_id(self, product_id, school=None):  # type: (str) -> List[UdmObject]
+    def get_udm_licenses_by_product_id(self, product_id, school=None):
+        # type: (str, Optional[str]) -> List[UdmObject]
         if school:
             filter_s = filter_format(
                 "(&(bildungsloginProductId=%s)(bildungsloginLicenseSchool=%s))", (product_id, school)

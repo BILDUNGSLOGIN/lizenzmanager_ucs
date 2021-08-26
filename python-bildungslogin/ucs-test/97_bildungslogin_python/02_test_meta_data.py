@@ -143,6 +143,13 @@ def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_
             get_total_number_of_assignments(meta_data_handler, meta_data)
             == total_amount_of_licenses_for_product
         )
+        # ou is case insensitive. Because there is only one license, the number is the same if
+        # no school is passed.
+        for ou_name in (None, ou, ou.upper(), ou.swapcase()):
+            assert (
+                get_total_number_of_assignments(meta_data_handler, meta_data, ou_name)
+                == total_amount_of_licenses_for_product
+            )
 
 
 def test_product_license_numbers(
@@ -339,6 +346,13 @@ def test_number_of_provisioned_and_assigned_licenses(
                 license_code=license.license_code,
                 status=Status.PROVISIONED,
             )
+        # ou is case insensitive. Because there is only one license, the number is the same if
+        # no school is passed.
+        for ou_name in (None, ou, ou.upper(), ou.swapcase()):
+            num_assigned = get_number_of_provisioned_and_assigned_assignments(
+                meta_data_handler, meta_data, ou_name
+            )
+            assert num_assigned == num_students + num_teachers
         # after provisioning the code to some users, the number should still be the same.
         num_assigned = get_number_of_provisioned_and_assigned_assignments(meta_data_handler, meta_data)
         assert num_assigned == num_students + num_teachers
@@ -351,7 +365,7 @@ def test_number_of_provisioned_and_assigned_licenses(
 
 
 def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_data, n_expired_licenses):
-    """Test the numer of expired licenses is as expected"""
+    """Test the number of expired licenses is as expected"""
     total_amount_of_licenses_for_product = 0
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
