@@ -423,6 +423,7 @@ class Instance(SchoolBaseModule):
             "productId": meta_data.product_id,
             "publisher": meta_data.publisher,
             "author": meta_data.author,
+            "description": meta_data.description,
             "cover": meta_data.cover or meta_data.cover_small,
             "licenses": licenses,
         }

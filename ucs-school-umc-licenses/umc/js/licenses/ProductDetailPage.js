@@ -31,6 +31,8 @@
 define([
 	"dojo/_base/declare",
 	"dojo/_base/lang",
+	"dojo/on",
+	"dojo/dom-class",
 	"dojo/topic",
 	"dojo/store/Memory",
 	"dojo/store/Observable",
@@ -42,7 +44,8 @@ define([
 	"umc/widgets/Grid",
 	"put-selector/put",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, topic, Memory, Observable, _WidgetBase, _TemplatedMixin, entities, tools, Page, Grid, put, _) {
+], function(declare, lang, on, domClass, topic, Memory, Observable, _WidgetBase, _TemplatedMixin, entities, tools,
+		Page, Grid, put, _) {
 
 	const _Table = declare("umc.modules.licenses.Table", [_WidgetBase, _TemplatedMixin], {
 		//// overwrites
@@ -51,6 +54,10 @@ define([
 				<div
 					class="licensesTable__coverWrapper"
 				>
+					<div
+						data-dojo-attach-point="_coverFallbackNode"
+						class="licensesTable__coverFallback"
+					></div>
 					<img
 						data-dojo-attach-point="_coverNode"
 						class="licensesTable__cover"
@@ -69,9 +76,25 @@ define([
 
 		product: null,
 		_setProductAttr: function(product) {
-			this._coverNode.src = product.cover;
-			this._tableNode.innerHTML = '';
+			domClass.remove(this._coverFallbackNode, 'dijitDisplayNone');
+			domClass.add(this._coverNode, 'dijitDisplayNone');
+			if (product.cover) {
+				this._coverFallbackNode.innerHTML = _('Loading cover...');
+				const img = new Image();
+				on(img, 'load', lang.hitch(this, function() {
+					domClass.add(this._coverFallbackNode, 'dijitDisplayNone');
+					domClass.remove(this._coverNode, 'dijitDisplayNone');
+					this._coverNode.src = product.cover;
+				}));
+				on(img, 'error', lang.hitch(this, function() {
+					this._coverFallbackNode.innerHTML = _('No cover available');
+				}));
+				img.src = product.cover;
+			} else {
+				this._coverFallbackNode.innerHTML = _('No cover available');
+			}
 
+			this._tableNode.innerHTML = '';
 			function e(id) {
 				let val = product[id];
 				if (val === null) {
@@ -84,10 +107,11 @@ define([
 			}
 
 			const data = [
-				[_('Title'),      e('title')],
-				[_('Author'),     e('author')],
-				[_('Publisher'),  e('publisher')],
-				[_('Product ID'), e('productId')],
+				[_('Title'),       e('title')],
+				[_('Author'),      e('author')],
+				[_('Publisher'),   e('publisher')],
+				[_('Product ID'),  e('productId')],
+				[_('Description'), e('description')],
 			];
 
 			for (const row of data) {
