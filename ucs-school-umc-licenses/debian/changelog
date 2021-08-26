@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.8) unstable; urgency=medium
+
+  * Issue #19: assign license module
+
+ -- Johannes Keiser <keiser@univention.de>  Thu, 26 Aug 2021 09:22:20 +0200
+
 ucs-school-umc-licenses (0.1.7) unstable; urgency=medium
 
   * Issue #24: product detail page

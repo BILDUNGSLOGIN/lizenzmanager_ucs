@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.2) unstable; urgency=medium
+
+  * Issue #19: assign licenses module
+
+ -- Johannes Keiser <keiser@univention.de>  Thu, 26 Aug 2021 09:21:48 +0200
+
 python-bildungslogin (0.2.1) unstable; urgency=low
 
   * Issue #13: allow test execution also on backup and replication servers
