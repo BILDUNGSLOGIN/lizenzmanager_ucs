@@ -40,6 +40,7 @@ Depends:
  python-univention-directory-manager (>= 14.0.20-14),
  ucs-test-framework,
  ucs-test-ucsschool,
+ udm-bildungslogin-encoders (= ${binary:Version}),
 Description: test the udm modules for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),

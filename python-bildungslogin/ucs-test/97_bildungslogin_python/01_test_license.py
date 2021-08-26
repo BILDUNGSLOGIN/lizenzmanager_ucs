@@ -30,7 +30,8 @@
 ## desc: Test the license handler, i.e. the license view.
 ## exposure: dangerous
 ## tags: [bildungslogin]
-## roles: [domaincontroller_master]
+## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
+## packages: [python-bildungslogin, udm-bildungslogin-encoders]
 
 import datetime
 from hashlib import sha256

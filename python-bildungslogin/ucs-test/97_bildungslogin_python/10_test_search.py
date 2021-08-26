@@ -30,7 +30,8 @@
 ## desc: search for licenses
 ## exposure: dangerous
 ## tags: [bildungslogin]
-## roles: [domaincontroller_master]
+## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
+## packages: [python-bildungslogin, udm-bildungslogin-encoders]
 
 from copy import deepcopy
 from datetime import datetime, timedelta

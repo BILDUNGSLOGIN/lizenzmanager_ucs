@@ -52,7 +52,7 @@ Depends:
  ucs-test-ucsschool,
  python-pytest,
  python-bildungslogin,
- udm-bildungslogin,
+ udm-bildungslogin-encoders,
 Description: test the python libs for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),

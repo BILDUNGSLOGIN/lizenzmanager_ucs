@@ -30,7 +30,8 @@
 ## desc: Test the assignment handler, i.e. changing the status of the licenses
 ## exposure: dangerous
 ## tags: [bildungslogin]
-## roles: [domaincontroller_master]
+## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
+## packages: [python-bildungslogin, udm-bildungslogin-encoders]
 
 import datetime
 import random

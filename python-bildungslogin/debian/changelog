@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.1) unstable; urgency=low
+
+  * Issue #13: allow test execution also on backup and replication servers
+
+ -- Daniel Troeder <troeder@univention.de>  Thu, 26 Aug 2021 08:33:20 +0200
+
 python-bildungslogin (0.2.0) unstable; urgency=low
 
   * Issue #46: change namespace from 'vbm' to 'bildungslogin'

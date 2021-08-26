@@ -3,7 +3,7 @@
 ## desc: Run tests for the replication ACLs of the UDM modules
 ## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
 ## exposure: dangerous
-## tags: [bildungslogin]
+## tags: [udm-bildungslogin-encoders]
 #
 # Copyright 2021 Univention GmbH
 #

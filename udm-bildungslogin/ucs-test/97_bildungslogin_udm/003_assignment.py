@@ -1,10 +1,10 @@
 #!/usr/share/ucs-test/runner /usr/bin/py.test -slvv
 # -*- coding: utf-8 -*-
 ## desc: Run tests for the udm module bildungslogin/assignment
-## roles: [domaincontroller_master, domaincontroller_backup]
+## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
 ## exposure: dangerous
 ## tags: [bildungslogin]
-## packages: [udm-bildungslogin]
+## packages: [udm-bildungslogin-encoders]
 #
 # Copyright 2021 Univention GmbH
 #

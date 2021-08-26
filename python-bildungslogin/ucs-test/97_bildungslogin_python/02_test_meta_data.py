@@ -30,7 +30,8 @@
 ## desc: Test the metadata handler, i.e. the metadata view.
 ## exposure: dangerous
 ## tags: [bildungslogin]
-## roles: [domaincontroller_master]
+## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
+## packages: [python-bildungslogin, udm-bildungslogin-encoders]
 
 import datetime
 from hashlib import sha256
