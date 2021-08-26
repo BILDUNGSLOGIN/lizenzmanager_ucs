@@ -481,30 +481,6 @@ class MetaDataHandler:
         licenses_of_product = self.get_udm_licenses_by_product_id(product_id, school)
         return [udm_license for udm_license in licenses_of_product if not udm_license.props.ignored]
 
-    def get_number_of_available_assignments(self, meta_data, school=None):
-        # type: (MetaData, Optional[str]) -> int
-        """count the number of assignments with status available"""
-        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id, school)
-        return sum(udm_license.props.num_available for udm_license in licenses_of_product)
-
-    def get_number_of_provisioned_and_assigned_assignments(self, meta_data, school=None):
-        # type: (MetaData, Optional[str]) -> int
-        """count the number of assignments with status provisioned or assigned"""
-        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id, school)
-        return sum(udm_license.props.num_assigned for udm_license in licenses_of_product)
-
-    def get_number_of_expired_assignments(self, meta_data, school=None):
-        # type: (MetaData, Optional[str]) -> int
-        """count the number of assignments with status expired"""
-        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id, school)
-        return sum(udm_license.props.num_expired for udm_license in licenses_of_product)
-
-    def get_total_number_of_assignments(self, meta_data, school=None):
-        # type: (MetaData, Optional[str]) -> int
-        """count the total number of assignments"""
-        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id, school)
-        return sum(udm_license.props.quantity for udm_license in licenses_of_product)
-
     def get_meta_data_by_product_id(self, product_id):  # type: (str) -> UdmObject
         filter_s = filter_format("(product_id=%s)", [product_id])
         try:

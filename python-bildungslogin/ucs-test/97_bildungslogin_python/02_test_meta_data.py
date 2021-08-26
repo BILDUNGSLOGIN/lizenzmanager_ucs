@@ -35,6 +35,7 @@
 
 import datetime
 from hashlib import sha256
+from typing import TYPE_CHECKING, Optional
 
 import pytest
 
@@ -43,6 +44,10 @@ import univention.testing.ucsschool.ucs_test_school as utu
 from univention.bildungslogin.handlers import BiloAssignmentError
 from univention.bildungslogin.utils import Status
 from univention.testing.utils import verify_ldap_object
+
+if TYPE_CHECKING:
+    from univention.bildungslogin.handlers import MetaDataHandler
+    from univention.bildungslogin.models import MetaData
 
 
 def check_meta_data_is_correct(meta_data_obj, ldap_base):
@@ -64,6 +69,42 @@ def check_meta_data_is_correct(meta_data_obj, ldap_base):
         expected_attr=expected_attr,
         strict=True,
     )
+
+
+def get_total_number_of_assignments(meta_data_handler, meta_data, school=None):
+    # type: (MetaDataHandler, MetaData, Optional[str]) -> int
+    """count the total number of assignments"""
+    licenses_of_product = meta_data_handler.get_non_ignored_licenses_for_product_id(
+        meta_data.product_id, school
+    )
+    return sum(udm_license.props.quantity for udm_license in licenses_of_product)
+
+
+def get_number_of_available_assignments(meta_data_handler, meta_data, school=None):
+    # type: (MetaDataHandler, MetaData, Optional[str]) -> int
+    """count the number of assignments with status available"""
+    licenses_of_product = meta_data_handler.get_non_ignored_licenses_for_product_id(
+        meta_data.product_id, school
+    )
+    return sum(udm_license.props.num_available for udm_license in licenses_of_product)
+
+
+def get_number_of_provisioned_and_assigned_assignments(meta_data_handler, meta_data, school=None):
+    # type: (MetaDataHandler, MetaData, Optional[str]) -> int
+    """count the number of assignments with status provisioned or assigned"""
+    licenses_of_product = meta_data_handler.get_non_ignored_licenses_for_product_id(
+        meta_data.product_id, school
+    )
+    return sum(udm_license.props.num_assigned for udm_license in licenses_of_product)
+
+
+def get_number_of_expired_assignments(meta_data_handler, meta_data, school=None):
+    # type: (MetaDataHandler, MetaData, Optional[str]) -> int
+    """count the number of assignments with status expired"""
+    licenses_of_product = meta_data_handler.get_non_ignored_licenses_for_product_id(
+        meta_data.product_id, school
+    )
+    return sum(udm_license.props.num_expired for udm_license in licenses_of_product)
 
 
 def test_create_meta_data(meta_data_handler, meta_data, ldap_base):
@@ -99,7 +140,7 @@ def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_
                 # licenses with this attribute set are not counted.
                 total_amount_of_licenses_for_product += lic.license_quantity
         assert (
-            meta_data_handler.get_total_number_of_assignments(meta_data)
+            get_total_number_of_assignments(meta_data_handler, meta_data)
             == total_amount_of_licenses_for_product
         )
 
@@ -183,20 +224,17 @@ def test_product_license_numbers(
             license_quantity * num_of_licenses_per_type * 1
         ) - expected_count_assigned  # 1 = !expired
 
-        assert expected_count_aquired == meta_data_handler.get_total_number_of_assignments(
-            meta_data, ou_related
+        assert expected_count_aquired == get_total_number_of_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert expected_count_expired == meta_data_handler.get_number_of_expired_assignments(
-            meta_data, ou_related
+        assert expected_count_expired == get_number_of_expired_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert (
-            expected_count_assigned
-            == meta_data_handler.get_number_of_provisioned_and_assigned_assignments(
-                meta_data, ou_related
-            )
+        assert expected_count_assigned == get_number_of_provisioned_and_assigned_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert expected_count_available == meta_data_handler.get_number_of_available_assignments(
-            meta_data, ou_related
+        assert expected_count_available == get_number_of_available_assignments(
+            meta_data_handler, meta_data, ou_related
         )
 
         for (student_usernames, license) in for_assignment:
@@ -206,20 +244,17 @@ def test_product_license_numbers(
         expected_count_assigned = num_of_licenses_per_type * num_students
         expected_count_available = expected_count_available - expected_count_assigned
 
-        assert expected_count_aquired == meta_data_handler.get_total_number_of_assignments(
-            meta_data, ou_related
+        assert expected_count_aquired == get_total_number_of_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert expected_count_expired == meta_data_handler.get_number_of_expired_assignments(
-            meta_data, ou_related
+        assert expected_count_expired == get_number_of_expired_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert (
-            expected_count_assigned
-            == meta_data_handler.get_number_of_provisioned_and_assigned_assignments(
-                meta_data, ou_related
-            )
+        assert expected_count_assigned == get_number_of_provisioned_and_assigned_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert expected_count_available == meta_data_handler.get_number_of_available_assignments(
-            meta_data, ou_related
+        assert expected_count_available == get_number_of_available_assignments(
+            meta_data_handler, meta_data, ou_related
         )
 
         # after provisioning the code to some users, the numbers should still be the same.
@@ -233,20 +268,17 @@ def test_product_license_numbers(
             except BiloAssignmentError:
                 pass
 
-        assert expected_count_aquired == meta_data_handler.get_total_number_of_assignments(
-            meta_data, ou_related
+        assert expected_count_aquired == get_total_number_of_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert expected_count_expired == meta_data_handler.get_number_of_expired_assignments(
-            meta_data, ou_related
+        assert expected_count_expired == get_number_of_expired_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert (
-            expected_count_assigned
-            == meta_data_handler.get_number_of_provisioned_and_assigned_assignments(
-                meta_data, ou_related
-            )
+        assert expected_count_assigned == get_number_of_provisioned_and_assigned_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert expected_count_available == meta_data_handler.get_number_of_available_assignments(
-            meta_data, ou_related
+        assert expected_count_available == get_number_of_available_assignments(
+            meta_data_handler, meta_data, ou_related
         )
 
         # expire one of the licenses and check the counts again
@@ -262,20 +294,17 @@ def test_product_license_numbers(
         expected_count_expired = expected_count_expired + num_of_newly_expired_licenses
         expected_count_available = expected_count_available - num_of_newly_expired_licenses
 
-        assert expected_count_aquired == meta_data_handler.get_total_number_of_assignments(
-            meta_data, ou_related
+        assert expected_count_aquired == get_total_number_of_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert expected_count_expired == meta_data_handler.get_number_of_expired_assignments(
-            meta_data, ou_related
+        assert expected_count_expired == get_number_of_expired_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert (
-            expected_count_assigned
-            == meta_data_handler.get_number_of_provisioned_and_assigned_assignments(
-                meta_data, ou_related
-            )
+        assert expected_count_assigned == get_number_of_provisioned_and_assigned_assignments(
+            meta_data_handler, meta_data, ou_related
         )
-        assert expected_count_available == meta_data_handler.get_number_of_available_assignments(
-            meta_data, ou_related
+        assert expected_count_available == get_number_of_available_assignments(
+            meta_data_handler, meta_data, ou_related
         )
 
 
@@ -302,7 +331,7 @@ def test_number_of_provisioned_and_assigned_licenses(
         assignment_handler.assign_users_to_licenses(
             usernames=users, license_codes=[license.license_code]
         )
-        num_assigned = meta_data_handler.get_number_of_provisioned_and_assigned_assignments(meta_data)
+        num_assigned = get_number_of_provisioned_and_assigned_assignments(meta_data_handler, meta_data)
         assert num_assigned == num_students + num_teachers
         for user_name in users[:2]:
             assignment_handler.change_license_status(
@@ -311,12 +340,14 @@ def test_number_of_provisioned_and_assigned_licenses(
                 status=Status.PROVISIONED,
             )
         # after provisioning the code to some users, the number should still be the same.
-        num_assigned = meta_data_handler.get_number_of_provisioned_and_assigned_assignments(meta_data)
+        num_assigned = get_number_of_provisioned_and_assigned_assignments(meta_data_handler, meta_data)
         assert num_assigned == num_students + num_teachers
         # the number of available licenses for this product should be the total number - the number
         # of users which just got the license for this product
-        total_num = meta_data_handler.get_total_number_of_assignments(meta_data)
-        assert meta_data_handler.get_number_of_available_assignments(meta_data) == total_num - len(users)
+        total_num = get_total_number_of_assignments(meta_data_handler, meta_data)
+        assert get_number_of_available_assignments(meta_data_handler, meta_data) == total_num - len(
+            users
+        )
 
 
 def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_data, n_expired_licenses):
@@ -332,7 +363,7 @@ def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_dat
                 lic
             )
         assert (
-            meta_data_handler.get_number_of_expired_assignments(meta_data)
+            get_number_of_expired_assignments(meta_data_handler, meta_data)
             == total_amount_of_licenses_for_product
         )
 
