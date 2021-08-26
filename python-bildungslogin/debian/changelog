@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.7) unstable; urgency=low
+
+  * fix logger call in listener
+
+ -- Daniel Troeder <troeder@univention.de>  Thu, 26 Aug 2021 14:52:36 +0200
+
 python-bildungslogin (0.2.6) unstable; urgency=medium
 
   * Issue #61: validate media data in media import

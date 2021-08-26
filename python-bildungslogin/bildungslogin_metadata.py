@@ -59,7 +59,7 @@ class BildungsloginMetaDataDownloader(ListenerModuleHandler):
             "(&(objectClass=bildungsloginMetaData)(bildungsloginProductId=%s))", (product_id,)
         )
         if self.lo.searchDn(meta_data_filter):
-            self.logger.info("Meta data for product %r already exist in LDAP.")
+            self.logger.info("Meta data for product %r already exist in LDAP.", product_id)
             return
 
         self.logger.info("Fetching metadata for product %r...", product_id)
