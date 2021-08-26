@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.6) unstable; urgency=medium
+
+  * Issue #61: validate media data in media import
+
+ -- Tobias Wenzel <wenzel@univention.de>  Thu, 26 Aug 2021 14:06:25 +0200
+
 python-bildungslogin (0.2.5) unstable; urgency=medium
 
   * Issue #59: validate licenses file during license import
