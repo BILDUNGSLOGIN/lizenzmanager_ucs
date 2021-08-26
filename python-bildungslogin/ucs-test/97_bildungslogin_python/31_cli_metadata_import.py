@@ -47,7 +47,7 @@ from univention.bildungslogin.media_import import cmd_media_import
 # TODO test the actual cli tool
 
 
-TEST_PRODUCT_ID = "urn:univention-test:medium:1234567890"
+TEST_PRODUCT_ID = "urn:univentiontest:medium:1234567890"
 TEST_META_DATA = [
     {
         "author": None,
