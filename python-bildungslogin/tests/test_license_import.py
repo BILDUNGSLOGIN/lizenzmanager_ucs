@@ -57,7 +57,6 @@ def test_license_schema():
         "kaufreferenz",
         "nutzungssysteme",
         "gueltigkeitsbeginn",
-        "gueltigkeitsende",
         "gueltigkeitsdauer",
         "sonderlizenz",
     ],
@@ -72,7 +71,7 @@ def test_license_schema_validation_required_fails(field_name):
 
 @pytest.mark.parametrize(
     "field_name",
-    ["lizenzcode", "product_id", "lizenzgeber", "lizenzanzahl", "gueltigkeitsende"],
+    ["lizenzcode", "product_id", "lizenzgeber", "lizenzanzahl"],
 )
 def test_license_schema_validation_non_empty_string(field_name):
     """Some fields are required to have content"""

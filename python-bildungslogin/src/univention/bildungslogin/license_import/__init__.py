@@ -58,7 +58,7 @@ LICENSE_SCHEMA = {
             "kaufreferenz": {"type": "string"},
             "nutzungssysteme": {"type": "string"},
             "gueltigkeitsbeginn": {"type": "string"},
-            "gueltigkeitsende": {"$ref": "#/definitions/nonemptystring"},
+            "gueltigkeitsende": {"type": "string"},
             "gueltigkeitsdauer": {"type": "string"},
             "sonderlizenz": {"type": "string"},
         },
