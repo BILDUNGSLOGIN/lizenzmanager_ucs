@@ -40,8 +40,10 @@ import pytest
 
 import univention.testing.strings as uts
 import univention.testing.ucsschool.ucs_test_school as utu
+import univention.testing.utils as utils
+from univention.config_registry import ConfigRegistry
 from univention.admin.uexceptions import noObject
-from univention.admin.uldap import getAdminConnection
+from univention.admin.uldap import access as uldap_access
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.bildungslogin.models import License, MetaData
 from univention.testing.ucr import UCSTestConfigRegistry
@@ -172,7 +174,15 @@ def __lo():
         created_objs.append(_dn)
 
     created_objs = []
-    lo, po = getAdminConnection()
+    account = utils.UCSTestDomainAdminCredentials()
+    ucr = ConfigRegistry()
+    ucr.load()
+    lo = uldap_access(
+        host=ucr["ldap/master"],
+        base=ucr["ldap/base"],
+        binddn=account.binddn,
+        bindpw=account.bindpw,
+    )
     lo.add_orig = lo.add
     lo.add = add_temp
     try:

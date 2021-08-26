@@ -39,7 +39,6 @@ from typing import Any, Dict, List
 
 import pytest
 
-from univention.admin.uldap import getAdminConnection
 from univention.bildungslogin.exceptions import BiloProductNotFoundError
 from univention.bildungslogin.handlers import MetaDataHandler
 from univention.bildungslogin.media_import import cmd_media_import
@@ -119,7 +118,7 @@ def parse_args_mock(*args, **kwargs):
 
 
 @pytest.fixture
-def delete_metatdata_after_test():
+def delete_metatdata_after_test(lo):
     product_ids = []
 
     def _func(product_id):  # type: (str) -> None
@@ -127,7 +126,6 @@ def delete_metatdata_after_test():
 
     yield _func
 
-    lo, po = getAdminConnection()
     for product_id in product_ids:
         mh = MetaDataHandler(lo)
         try:
@@ -138,7 +136,7 @@ def delete_metatdata_after_test():
             pass
 
 
-def test_cli_import(delete_metatdata_after_test, mocker):
+def test_cli_import(delete_metatdata_after_test, lo, mocker):
     """Test that a metda data import os possible."""
     mocker.patch.object(cmd_media_import, "get_config", get_config_mock)
     mocker.patch.object(cmd_media_import, "parse_args", parse_args_mock)
@@ -147,7 +145,6 @@ def test_cli_import(delete_metatdata_after_test, mocker):
         retrieve_media_data_mock,
     )
     mocker.patch("univention.bildungslogin.media_import.cmd_media_import.get_access_token")
-    lo, po = getAdminConnection()
     mh = MetaDataHandler(lo)
     delete_metatdata_after_test(TEST_PRODUCT_ID)
     cmd_media_import.main()

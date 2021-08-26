@@ -52,7 +52,7 @@ def parse_args():  # type: () -> argparse.Namespace
     return args
 
 
-def import_licenses(license_file, school):
+def import_licenses(license_file, school, lo):
     try:
         licenses = load_license_file(license_file, school)
     except (ValidationError, ValueError) as exc:
@@ -62,7 +62,6 @@ def import_licenses(license_file, school):
         )
         sys.exit(1)
 
-    lo, po = getAdminConnection()
     license_handler = LicenseHandler(lo)
     errors = False
     for license in licenses:
@@ -84,7 +83,8 @@ def import_licenses(license_file, school):
 
 def main():  # type: () -> None
     args = parse_args()
-    import_licenses(args.license_file, args.school)
+    lo, _ = getAdminConnection()
+    import_licenses(args.license_file, args.school, lo)
 
 
 if __name__ == "__main__":

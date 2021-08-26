@@ -39,10 +39,9 @@ import subprocess
 from ldap.filter import filter_format
 
 import univention.testing.ucsschool.ucs_test_school as utu
-from univention.admin.uldap import getAdminConnection
 
 
-def test_cli_import(license_file, license_handler):
+def test_cli_import(license_file, license_handler, lo):
     """Test that a license can be imported by the CLI tool bildungslogin-license-import"""
     with open(str(license_file), "r") as license_file_fd:
         licenses_raw = json.load(license_file_fd)
@@ -50,7 +49,6 @@ def test_cli_import(license_file, license_handler):
         "(|{})".format("".join(["(code=%s)"] * len(licenses_raw))),
         [license_raw["lizenzcode"] for license_raw in licenses_raw],
     )
-    lo, po = getAdminConnection()
     print("filter for licenses: {}".format(filter_s))
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
