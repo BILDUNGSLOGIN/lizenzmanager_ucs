@@ -193,7 +193,12 @@ def test_assign_users_to_licenses_enough_licenses(
     # zip() will drop unused list items from used_licenses_codes (from license3):
     calls_to_assign_to_license = [call(l_c, u_n) for l_c, u_n in zip(used_licenses_codes, usernames)]
     assert assign_to_license_mock.call_args_list == calls_to_assign_to_license
-    assert result == {"countUsers": len(usernames), "errors": {}, "warnings": {}}
+    assert result == {
+        "countSuccessfulAssignments": len(usernames),
+        "notEnoughLicenses": False,
+        "failedAssignments": [],
+        "validityInFuture": [],
+    }
 
 
 @patch("univention.bildungslogin.handlers.UDM")
@@ -235,9 +240,10 @@ def test_assign_users_to_licenses_warning_expired_license(
     result = ah.assign_users_to_licenses([license1.props.code, license2.props.code], usernames)
 
     assert result == {
-        "countUsers": num_users,
-        "errors": {},
-        "warnings": {license1.props.code: _l10n("License is expired and thus can't be assigned!")},
+        "countSuccessfulAssignments": num_users,
+        "notEnoughLicenses": False,
+        "failedAssignments": [],
+        "validityInFuture": [],
     }
 
 
@@ -276,9 +282,10 @@ def test_assign_users_to_licenses_warning_validity_starts_in_the_future(
     result = ah.assign_users_to_licenses([license1.props.code, license2.props.code], usernames)
 
     assert result == {
-        "countUsers": num_users,
-        "errors": {},
-        "warnings": {license1.props.code: _l10n("License validity start is in the future.")},
+        "countSuccessfulAssignments": num_users,
+        "notEnoughLicenses": False,
+        "failedAssignments": [],
+        "validityInFuture": [license1.props.code],
     }
 
 
@@ -309,12 +316,8 @@ def test_assign_users_to_licenses_not_enough_licenses(
 
     assert assign_to_license_mock.call_args_list == []
     assert result == {
-        "countUsers": 0,
-        "errors": {
-            "*": _l10n(
-                "There are less available licenses than the number of users. No licenses have been "
-                "assigned."
-            )
-        },
-        "warnings": {},
+        "countSuccessfulAssignments": 0,
+        "notEnoughLicenses": True,
+        "failedAssignments": [],
+        "validityInFuture": [],
     }

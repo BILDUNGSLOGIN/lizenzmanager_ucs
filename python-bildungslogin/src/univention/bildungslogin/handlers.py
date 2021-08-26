@@ -784,8 +784,8 @@ class AssignmentHandler:
         result = {
             "countSuccessfulAssignments": 0,
             "notEnoughLicenses": False,
-            "failedAssignments": [],
-            "validityInFuture": [],
+            "failedAssignments": set(),
+            "validityInFuture": set(),
         }
         licenses = []
 
@@ -804,6 +804,8 @@ class AssignmentHandler:
         num_available_licenses = sum(lic.props.num_available for lic in licenses)
         if num_available_licenses < len(usernames):
             result["notEnoughLicenses"] = True
+            result["failedAssignments"] = list(result["failedAssignments"])
+            result["validityInFuture"] = list(result["validityInFuture"])
             return result
 
         # sort licenses by validity_end_date
@@ -828,12 +830,14 @@ class AssignmentHandler:
                 self.assign_to_license(code, username)
                 result["countSuccessfulAssignments"] += 1
                 if validity_start_date > datetime.date.today():
-                    result["validityInFuture"].append(code)
+                    result["validityInFuture"].add(code)
             except BiloAssignmentError as exc:
-                result["failedAssignments"].append("{} -- {}".format(username, str(exc)))
+                result["failedAssignments"].add("{} -- {}".format(username, str(exc)))
         self.logger.info(
             "Assigned licenses to %r/%r users.", result["countSuccessfulAssignments"], len(usernames)
         )
+        result["failedAssignments"] = list(result["failedAssignments"])
+        result["validityInFuture"] = list(result["validityInFuture"])
         return result
 
     def get_assignment_for_user_under_license(self, license_dn, assignee):

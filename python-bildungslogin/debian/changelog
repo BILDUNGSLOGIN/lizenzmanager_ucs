@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.3) unstable; urgency=medium
+
+  * Issue #19: remove duplicate warning messages
+
+ -- Johannes Keiser <keiser@univention.de>  Thu, 26 Aug 2021 10:39:13 +0200
+
 python-bildungslogin (0.2.2) unstable; urgency=medium
 
   * Issue #19: assign licenses module
