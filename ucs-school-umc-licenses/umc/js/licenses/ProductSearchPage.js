@@ -71,7 +71,11 @@ define([
 			const id = this.id + '-tooltipNode';
 			const msg = `
 				<p>
-					${entities.encode(count === 1 ? _('Assign licenses to 1 selected user.') : _('Assign licenses to %s selected users.', count))}
+					${entities.encode(
+						count === 1 ?
+						_('Assign licenses to 1 selected user.')
+						: _('Assign licenses to %s selected users.', count)
+					)}
 					<span id="${id}" class="licensesShowSelectedUsers">(show selected users)</span>
 				</p>
 				<p>

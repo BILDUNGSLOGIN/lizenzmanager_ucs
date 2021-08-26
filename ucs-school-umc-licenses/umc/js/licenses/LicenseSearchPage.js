@@ -107,7 +107,11 @@ define([
 			const id = this.id + '-tooltip';
 			const msg = `
 				<p>
-					${entities.encode(count === 1 ? _('Assign licenses to 1 selected user.') : _('Assign licenses to %s selected users.', count))}
+					${entities.encode(
+						count === 1 ?
+						_('Assign licenses to 1 selected user.')
+						: _('Assign licenses to %s selected users.', count)
+					)}
 					<span id="${id}" class="licensesShowSelectedUsers">(show selected users)</span>
 				</p>
 				<p>
@@ -217,7 +221,6 @@ define([
 				type: TextBox,
 				name: 'userPattern',
 				label: _('User identification'),
-				// description: 'TODO description',
 				size: 'TwoThirds',
 				visible: false,
 			}, {
@@ -303,7 +306,10 @@ define([
 					this._grid.filter(values);
 				}),
 			});
-			domClass.add(this._searchForm.getWidget('licenseCode').$refLabel$.domNode, 'umcSearchFormElementBeforeSubmitButton');
+			domClass.add(
+				this._searchForm.getWidget('licenseCode').$refLabel$.domNode,
+				'umcSearchFormElementBeforeSubmitButton'
+			);
 
 			const actions = [];
 			if (this.moduleFlavor === 'licenses/allocation') {
@@ -330,17 +336,29 @@ define([
 							if (result.countSuccessfulAssignments) {
 								if (result.countSuccessfulAssignments === this.allocation.usernames.length) {
 									msg += '<p>' +
-										entities.encode(_('Licenses were successfully assigned to all %s selected users.', result.countSuccessfulAssignments)) +
+										entities.encode(
+											_(
+												'Licenses were successfully assigned to all %s selected users.',
+												result.countSuccessfulAssignments
+											)
+										) +
 										'</p>';
 								} else {
 									msg += '<p>' +
-										entities.encode(_('Licenses were successfully assigned to %s of the %s selected users.', result.countSuccessfulAssignments, this.allocation.usernames.length)) +
+										entities.encode(
+											_(
+												'Licenses were successfully assigned to %s of the %s selected users.',
+												result.countSuccessfulAssignments, this.allocation.usernames.length
+											)
+										) +
 										'</p>';
 								}
 							}
 							if (result.failedAssignments.length) {
 								msg += '<p>';
-								msg += result.countSuccessfulAssignments > 0 ? entities.encode(_('Some selected users could not be assigned licenses:')) : entities.encode(_('Failed to assign licenses to the selected users:'));
+								msg += result.countSuccessfulAssignments > 0 ?
+									entities.encode(_('Some selected users could not be assigned licenses:'))
+									: entities.encode(_('Failed to assign licenses to the selected users:'));
 								msg += '<ul>';
 								for (const error of result.failedAssignments) {
 									msg += '<li>' + entities.encode(error) + '</li>';
@@ -350,7 +368,9 @@ define([
 							}
 							if (result.validityInFuture.length) {
 								msg += '<p>';
-								msg += entities.encode(_('Warning: The validity for the following assigned licenses lies in the future:'));
+								msg += entities.encode(
+									_('Warning: The validity for the following assigned licenses lies in the future:')
+								);
 								msg += '<ul>';
 								for (const licenseCode of result.validityInFuture) {
 									msg += '<li>' + entities.encode(licenseCode) + '</li>';
@@ -359,10 +379,7 @@ define([
 								msg += '</p>';
 							}
 							const title = _('Assigning licenses');
-							dialog.alert(msg, title).then(lang.hitch(this, function() {
-								console.log('after');
-							}));
-							console.log(result);
+							dialog.alert(msg, title);
 						}));
 					}),
 				});
