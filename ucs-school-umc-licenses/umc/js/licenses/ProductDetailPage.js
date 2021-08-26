@@ -38,13 +38,12 @@ define([
 	"dojo/store/Observable",
 	"dijit/_WidgetBase",
 	"dijit/_TemplatedMixin",
-	"dojox/html/entities",
 	"umc/tools",
 	"umc/widgets/Page",
 	"umc/widgets/Grid",
 	"put-selector/put",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, on, domClass, topic, Memory, Observable, _WidgetBase, _TemplatedMixin, entities, tools,
+], function(declare, lang, on, domClass, topic, Memory, Observable, _WidgetBase, _TemplatedMixin, tools,
 		Page, Grid, put, _) {
 
 	const _Table = declare("umc.modules.licenses.Table", [_WidgetBase, _TemplatedMixin], {
@@ -101,7 +100,7 @@ define([
 					val = '';
 				}
 				if (typeof val === 'string') {
-					val = entities.encode(val) || '---';
+					val = val || '---';
 				}
 				return val;
 			}

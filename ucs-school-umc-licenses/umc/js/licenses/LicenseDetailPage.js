@@ -37,7 +37,6 @@ define([
 	"dojo/store/Observable",
 	"dijit/_WidgetBase",
 	"dijit/_TemplatedMixin",
-	"dojox/html/entities",
 	"umc/tools",
 	"umc/dialog",
 	"umc/widgets/Page",
@@ -46,7 +45,8 @@ define([
 	"umc/widgets/ContainerWidget",
 	"put-selector/put",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, domClass, on, Memory, Observable, _WidgetBase, _TemplatedMixin, entities, tools, dialog, Page, Grid, CheckBox, ContainerWidget, put, _) {
+], function(declare, lang, domClass, on, Memory, Observable, _WidgetBase, _TemplatedMixin, tools, dialog, Page, Grid,
+		CheckBox, ContainerWidget, put, _) {
 
 	const _Table = declare("umc.modules.licenses.Table", [_WidgetBase, _TemplatedMixin], {
 		//// overwrites
@@ -102,7 +102,7 @@ define([
 					val = '';
 				}
 				if (typeof val === 'string') {
-					val = entities.encode(val) || '---';
+					val = val || '---';
 				}
 				return val;
 			}
@@ -215,8 +215,8 @@ define([
 					const table = put(container, 'table');
 					for (let failedAssignment of failedAssignments) {
 						const tr = put(table, 'tr');
-						put(tr, 'td', entities.encode(failedAssignment.username));
-						put(tr, 'td', entities.encode(failedAssignment.error));
+						put(tr, 'td', failedAssignment.username);
+						put(tr, 'td', failedAssignment.error);
 					}
 					dialog.alert(containerWidget);
 				}
