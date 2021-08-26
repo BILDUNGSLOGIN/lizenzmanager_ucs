@@ -79,21 +79,24 @@ ucs_registerLDAPExtension "$@" \
   --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
   --udm_module "/usr/share/bildungslogin/handlers/assignment.py" || die
 
-/usr/share/univention-ldap/ldap_setup_index \
-    --verbose \
-    --add-eq bildungsloginAssignmentAssignee \
-    --add-eq bildungsloginAssignmentStatus \
-    --add-eq bildungsloginLicenseCode \
-    --add-eq bildungsloginLicenseQuantity \
-    --add-eq bildungsloginLicenseSchool \
-    --add-eq bildungsloginMetaDataPublisher \
-    --add-eq bildungsloginMetaDataTitle \
-    --add-eq bildungsloginProductId \
-    --add-sub bildungsloginLicenseCode \
-    --add-sub bildungsloginMetaDataPublisher \
-    --add-sub bildungsloginMetaDataTitle \
-    --add-sub bildungsloginProductId || die
-service slapd restart
+if [ $JS_LAST_EXECUTED_VERSION -lt 5 ] ; then
+  service slapd stop
+  /usr/share/univention-ldap/ldap_setup_index \
+      --verbose \
+      --add-eq bildungsloginAssignmentAssignee \
+      --add-eq bildungsloginAssignmentStatus \
+      --add-eq bildungsloginLicenseCode \
+      --add-eq bildungsloginLicenseQuantity \
+      --add-eq bildungsloginLicenseSchool \
+      --add-eq bildungsloginMetaDataPublisher \
+      --add-eq bildungsloginMetaDataTitle \
+      --add-eq bildungsloginProductId \
+      --add-sub bildungsloginLicenseCode \
+      --add-sub bildungsloginMetaDataPublisher \
+      --add-sub bildungsloginMetaDataTitle \
+      --add-sub bildungsloginProductId || die
+  service slapd start
+fi
 
 joinscript_save_current_version
 
