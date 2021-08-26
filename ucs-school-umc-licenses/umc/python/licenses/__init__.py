@@ -359,25 +359,25 @@ class Instance(SchoolBaseModule):
         filter_s = "(|(product_id={0})(title={0})(publisher={0}))".format(pattern)
         meta_data_objs = mh.get_all(filter_s)
         for meta_datum_obj in meta_data_objs:
-            # TODO: change lib mh.get_*() to take a license obj.: Currently the following code fetches
-            # the same license object 5 times from LDAP - inside a for loop of unknown length!!
-            licenses = mh.get_udm_licenses_by_product_id(meta_datum_obj.product_id, school)
-            if licenses:
+            licenses_udm = mh.get_udm_licenses_by_product_id(meta_datum_obj.product_id, school)
+            if licenses_udm:
+                non_ignored_lics_udm = [lic_udm for lic_udm in licenses_udm if not lic_udm.props.ignored]
+                sum_quantity = sum(lic_udm.props.quantity for lic_udm in non_ignored_lics_udm)
+                sum_num_assigned = sum(lic_udm.props.num_assigned for lic_udm in non_ignored_lics_udm)
+                sum_num_expired = sum(lic_udm.props.num_expired for lic_udm in non_ignored_lics_udm)
+                sum_num_available = sum(lic_udm.props.num_available for lic_udm in non_ignored_lics_udm)
+                latest_delivery_date = max(lic_udm.props.delivery_date for lic_udm in licenses_udm)
                 result.append(
                     {
                         "productId": meta_datum_obj.product_id,
                         "title": meta_datum_obj.title,
                         "publisher": meta_datum_obj.publisher,
                         "cover": meta_datum_obj.cover_small or meta_datum_obj.cover,
-                        "countAquired": mh.get_total_number_of_assignments(meta_datum_obj, school),
-                        "countAssigned": mh.get_number_of_provisioned_and_assigned_assignments(
-                            meta_datum_obj, school
-                        ),
-                        "countExpired": mh.get_number_of_expired_assignments(meta_datum_obj, school),
-                        "countAvailable": mh.get_number_of_available_assignments(meta_datum_obj, school),
-                        "latestDeliveryDate": iso8601Date.from_datetime(
-                            max(license.props.delivery_date for license in licenses)
-                        ),
+                        "countAquired": sum_quantity,
+                        "countAssigned": sum_num_assigned,
+                        "countExpired": sum_num_expired,
+                        "countAvailable": sum_num_available,
+                        "latestDeliveryDate": iso8601Date.from_datetime(latest_delivery_date),
                     }
                 )
         MODULE.info("licenses.products.query: result: %s" % str(result))
