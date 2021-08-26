@@ -19,6 +19,7 @@ Build-Depends:
  python-ucsschool-lib,
  ucslint,
  univention-ucs-translation-template,
+ python-jsonschema,
 
 Package: python-bildungslogin
 Architecture: all
@@ -37,6 +38,7 @@ Depends:
  udm-bildungslogin-encoders (>=0.0.6),
  univention-config,
  univention-directory-listener,
+ python-jsonschema,
 Description: python libs for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),
