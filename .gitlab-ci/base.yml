@@ -7,7 +7,7 @@ variables:
   UCS_VERSION: "448"
   UCS_RELEASE: "4.4"
   BRANCH: "main"
-  SCOPE: "vbm"
+  SCOPE: "bildungslogin"
   LANG: "C.UTF-8"
   GIT_STRATEGY: fetch
   GIT_SUBMODULE_STRATEGY: none
