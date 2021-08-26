@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.5) unstable; urgency=medium
+
+  * Issue #59: validate licenses file during license import
+
+ -- Tobias Wenzel <wenzel@univention.de>  Thu, 26 Aug 2021 13:57:31 +0200
+
 python-bildungslogin (0.2.4) unstable; urgency=low
 
   * Issue #77: cleanup - remove dead code
