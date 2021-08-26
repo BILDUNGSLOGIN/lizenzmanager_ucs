@@ -79,37 +79,21 @@ ucs_registerLDAPExtension "$@" \
   --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
   --udm_module "/usr/share/bildungslogin/handlers/assignment.py" || die
 
-if [ $JS_LAST_EXECUTED_VERSION -lt 5 ] ; then
-	if [ -x /etc/init.d/slapd ] &&
-			[ -x /usr/share/univention-ldap/ldap_setup_index ] &&
-			[ -e /var/univention-join/joined ] &&
-			univention-ldapsearch -LLL -o ldif-wrap=no -b cn=Subschema -s base attributeTypes | grep -Fq "NAME 'bildungsloginAssignmentAssignee'"
-	then
-		echo "Updating LDAP indices..."
-		unset stop_and_start_slapd
-		pidof slapd >/dev/null 2>/dev/null && stop_and_start_slapd=yes
-		[ -n "$stop_and_start_slapd" ] && service slapd stop
-		/usr/share/univention-ldap/ldap_setup_index \
-			--verbose \
-			--add-eq bildungsloginAssignmentAssignee \
-			--add-eq bildungsloginAssignmentStatus \
-			--add-eq bildungsloginLicenseCode \
-			--add-eq bildungsloginLicenseQuantity \
-			--add-eq bildungsloginLicenseSchool \
-			--add-eq bildungsloginMetaDataPublisher \
-			--add-eq bildungsloginMetaDataTitle \
-			--add-eq bildungsloginProductId \
-			--add-sub bildungsloginLicenseCode \
-			--add-sub bildungsloginMetaDataPublisher \
-			--add-sub bildungsloginMetaDataTitle \
-			--add-sub bildungsloginProductId || die
-		[ -n "$stop_and_start_slapd" ] && service slapd start
-		echo "Finished updating LDAP indices."
-	else
-		echo "ERROR: cannot update LDAP indices (ldap server not running?) - stopping here"
-		exit 1
-	fi
-fi
+/usr/share/univention-ldap/ldap_setup_index \
+    --verbose \
+    --add-eq bildungsloginAssignmentAssignee \
+    --add-eq bildungsloginAssignmentStatus \
+    --add-eq bildungsloginLicenseCode \
+    --add-eq bildungsloginLicenseQuantity \
+    --add-eq bildungsloginLicenseSchool \
+    --add-eq bildungsloginMetaDataPublisher \
+    --add-eq bildungsloginMetaDataTitle \
+    --add-eq bildungsloginProductId \
+    --add-sub bildungsloginLicenseCode \
+    --add-sub bildungsloginMetaDataPublisher \
+    --add-sub bildungsloginMetaDataTitle \
+    --add-sub bildungsloginProductId || die
+service slapd restart
 
 joinscript_save_current_version
 
