@@ -47,12 +47,18 @@ LICENSE_SCHEMA = {
             "type": "string",
             "minLength": 1,
         },
+        "urn": {
+            "description": "Uniform Resource Name, https://de.wikipedia.org/wiki/Uniform_Resource_Name",
+            "pattern": "^urn(:[a-z0-9]{1,32})+:[\\S]+$",
+            "type": "string",
+            "maxLength": 100,
+        },
     },
     "items": {
         "type": "object",
         "properties": {
             "lizenzcode": {"$ref": "#/definitions/nonemptystring"},
-            "product_id": {"$ref": "#/definitions/nonemptystring"},
+            "product_id": {"$ref": "#/definitions/urn"},
             "lizenzanzahl": {"type": "integer"},
             "lizenzgeber": {"$ref": "#/definitions/nonemptystring"},
             "kaufreferenz": {"type": "string"},
