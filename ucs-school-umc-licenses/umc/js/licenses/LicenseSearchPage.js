@@ -177,7 +177,7 @@ define([
 			if (this.moduleFlavor === 'licenses/allocation') {
 				headerButtons.push({
 					name: 'changeUsers',
-					label: _('Change users'),
+					label: _('Change user selection'),
 					callback: lang.hitch(this, 'onChangeUsers'),
 				});
 				headerButtons.push({
