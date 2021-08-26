@@ -42,21 +42,38 @@ LICENSE_SCHEMA = {
     "title": "license-import",
     "description": "license-import data",
     "type": "array",
+    "definitions": {
+        "nonemptystring": {
+            "type": "string",
+            "minLength": 1,
+        },
+    },
     "items": {
         "type": "object",
         "properties": {
-            "lizenzcode": {"type": "string"},
-            "product_id": {"type": "string"},
+            "lizenzcode": {"$ref": "#/definitions/nonemptystring"},
+            "product_id": {"$ref": "#/definitions/nonemptystring"},
             "lizenzanzahl": {"type": "integer"},
-            "lizenzgeber": {"type": "string"},
+            "lizenzgeber": {"$ref": "#/definitions/nonemptystring"},
             "kaufreferenz": {"type": "string"},
             "nutzungssysteme": {"type": "string"},
             "gueltigkeitsbeginn": {"type": "string"},
-            "gueltigkeitsende": {"type": "string"},
+            "gueltigkeitsende": {"$ref": "#/definitions/nonemptystring"},
             "gueltigkeitsdauer": {"type": "string"},
             "sonderlizenz": {"type": "string"},
         },
-        "required": ["lizenzcode", "product_id", "lizenzanzahl", "lizenzgeber", "gueltigkeitsende"],
+        "required": [
+            "lizenzcode",
+            "product_id",
+            "lizenzanzahl",
+            "lizenzgeber",
+            "kaufreferenz",
+            "nutzungssysteme",
+            "gueltigkeitsbeginn",
+            "gueltigkeitsende",
+            "gueltigkeitsdauer",
+            "sonderlizenz",
+        ],
     },
 }
 

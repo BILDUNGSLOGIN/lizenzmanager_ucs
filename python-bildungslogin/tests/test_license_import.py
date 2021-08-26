@@ -47,9 +47,23 @@ def test_license_schema():
     validate(instance=test_licenses_raw, schema=LICENSE_SCHEMA)
 
 
-@pytest.mark.parametrize("field_name", LICENSE_SCHEMA["items"]["required"])
+@pytest.mark.parametrize(
+    "field_name",
+    [
+        "lizenzcode",
+        "product_id",
+        "lizenzanzahl",
+        "lizenzgeber",
+        "kaufreferenz",
+        "nutzungssysteme",
+        "gueltigkeitsbeginn",
+        "gueltigkeitsende",
+        "gueltigkeitsdauer",
+        "sonderlizenz",
+    ],
+)
 def test_license_schema_validation_required_fails(field_name):
-    """A missing value in the license should raise a ValidationError"""
+    """All fields have to be present at least. A missing value in the license should raise a ValidationError"""
     test_license_broken = deepcopy(test_licenses_raw)
     del test_license_broken[0][field_name]
     with pytest.raises(ValidationError):
@@ -58,17 +72,14 @@ def test_license_schema_validation_required_fails(field_name):
 
 @pytest.mark.parametrize(
     "field_name",
-    [
-        name
-        for name in LICENSE_SCHEMA["items"]["properties"]
-        if name not in LICENSE_SCHEMA["items"]["required"]
-    ],
+    ["lizenzcode", "product_id", "lizenzgeber", "lizenzanzahl", "gueltigkeitsende"],
 )
-def test_license_schema_validation_optionals(field_name):
-    """An optional value can be left out from the license"""
+def test_license_schema_validation_non_empty_string(field_name):
+    """Some fields are required to have content"""
     test_license_broken = deepcopy(test_licenses_raw)
-    del test_license_broken[0][field_name]
-    validate(instance=test_license_broken, schema=LICENSE_SCHEMA)
+    test_license_broken[0][field_name] = ""
+    with pytest.raises(ValidationError):
+        validate(instance=test_license_broken, schema=LICENSE_SCHEMA)
 
 
 def test_license_schema_validation_number_fails():
