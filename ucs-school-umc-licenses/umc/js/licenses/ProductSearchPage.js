@@ -31,31 +31,28 @@
 define([
 	"dojo/_base/declare",
 	"dojo/_base/lang",
+	"dojo/dom",
+	"dojo/dom-class",
 	"dojo/aspect",
 	"dojo/on",
 	"dojo/mouse",
 	"dojo/query",
+	"dojox/html/entities",
 	"dijit/Tooltip",
 	"umc/store",
 	"umc/widgets/Page",
 	"umc/widgets/Grid",
 	"umc/widgets/SearchForm",
+	"umc/widgets/Text",
 	"umc/widgets/TextBox",
 	"put-selector/put",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, aspect, on, mouse, query, Tooltip, store, Page, Grid, SearchForm, TextBox, put, _) {
+], function(declare, lang, dom, domClass, aspect, on, mouse, query, entities, Tooltip, store, Page, Grid, SearchForm,
+		Text, TextBox, put, _) {
 
 	return declare("umc.modules.licenses.ProductSearchPage", [ Page ], {
 		//// overwrites
 		fullWidth: true,
-
-		_onShow: function() {
-			this.standbyDuring(
-				this._searchForm.ready().then(lang.hitch(this, function() {
-					this._searchForm.submit();
-				}))
-			);
-		},
 
 
 		//// self
@@ -66,6 +63,56 @@ define([
 
 		_grid: null,
 		_searchForm: null,
+
+		alloction: null,
+		_setAllocationAttr: function(allocation) {
+			domClass.remove(this._assignmentText.domNode, 'dijitDisplayNone');
+			const count = allocation.usernames.length;
+			const id = this.id + '-tooltipNode';
+			const msg = `
+				<p>
+					${entities.encode(count === 1 ? _('Assign licenses to 1 selected user.') : _('Assign licenses to %s selected users.', count))}
+					<span id="${id}" class="licensesShowSelectedUsers">(show selected users)</span>
+				</p>
+				<p>
+					${entities.encode(_('Choose the product for which you want to assign licenses.'))}
+				</p>
+			`.trim();
+			this._assignmentText.set('content', msg);
+			const node = dom.byId(id);
+			on(node, 'click', lang.hitch(this, function(evt) {
+				let label = '';
+				for (const username of this.allocation.usernames) {
+					label += `<div>${entities.encode(username)}</div>`;
+				}
+				Tooltip.show(label, node);
+				evt.stopImmediatePropagation();
+				on.once(window, "click", lang.hitch(this, function(event) {
+					Tooltip.hide(node);
+				}));
+			}));
+			this._set('allocation', allocation);
+		},
+
+		query: function() {
+			this.standbyDuring(
+				this._searchForm.ready().then(lang.hitch(this, function() {
+					this._searchForm.submit();
+				}))
+			);
+		},
+
+		onBack: function() {
+			// event stub
+		},
+
+		onProductChosen: function() {
+			// event stub
+		},
+
+		onChangeUsers: function() {
+			// event stub
+		},
 
 		onChooseDifferentSchool: function() {
 			// event stub
@@ -79,23 +126,37 @@ define([
 		//// lifecycle
 		postMixInProperties: function() {
 			this.inherited(arguments);
+			const headerButtons = [];
 			if (this.showChangeSchoolButton) {
-				this.headerButtons = [{
+				headerButtons.push({
 					name: 'changeSchool',
 					label: _('Change school'),
 					callback: lang.hitch(this, 'onChooseDifferentSchool'),
-				}];
+				});
 			}
+			if (this.moduleFlavor === 'licenses/allocation') {
+				headerButtons.push({
+					name: 'close',
+					label: _('Change users'),
+					callback: lang.hitch(this, 'onChangeUsers'),
+				});
+			}
+			this.headerButtons = headerButtons;
 		},
 
 		buildRendering: function() {
 			this.inherited(arguments);
 
+			this._assignmentText = new Text({
+				region: 'nav',
+				'class': 'dijitDisplayNone',
+			});
+
 			const widgets = [{
 				type: TextBox,
 				name: 'pattern',
 				label: '&nbsp;',
-				inlineLabel: _('Search licensed products'),
+				inlineLabel: _('Search licensed media'),
 			}];
 			this._searchForm = new SearchForm({
 				'class': 'umcUDMSearchForm umcUDMSearchFormSimpleTextBox',
@@ -110,16 +171,30 @@ define([
 				}),
 			});
 
-			const actions = [{
-				name: 'edit',
-				label: _('Show details'),
-				isStandardAction: true,
-				isContextAction: true,
-				isMultiAction: false,
-				callback: lang.hitch(this, function(_idxs, products) {
-					this.onShowProduct(products[0].productId);
-				}),
-			}];
+			const actions = [];
+			if (this.moduleFlavor === 'licenses/allocation') {
+				actions.push({
+					name: 'edit',
+					label: _('Assign licenses'),
+					isStandardAction: true,
+					isContextAction: true,
+					isMultiAction: false,
+					callback: lang.hitch(this, function(_idxs, products) {
+						this.onProductChosen(products[0].productId, this.allocation.usernames);
+					}),
+				});
+			} else {
+				actions.push({
+					name: 'edit',
+					label: _('Show details'),
+					isStandardAction: true,
+					isContextAction: true,
+					isMultiAction: false,
+					callback: lang.hitch(this, function(_idxs, products) {
+						this.onShowProduct(products[0].productId);
+					}),
+				});
+			}
 			const columns = [{
 				name: 'productId',
 				label: _('Product ID'),
@@ -192,6 +267,7 @@ define([
 				})
 			}));
 
+			this.addChild(this._assignmentText);
 			this.addChild(this._searchForm);
 			this.addChild(this._grid);
 		},

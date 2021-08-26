@@ -37,8 +37,9 @@ define([
 	"umc/widgets/Page",
 	"umc/widgets/SearchBox",
 	"umc/widgets/SearchForm",
+	"umc/widgets/SuggestionBox",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, store, ComboBox, Grid, Page, SearchBox, SearchForm, _) {
+], function(declare, lang, store, ComboBox, Grid, Page, SearchBox, SearchForm, SuggestionBox, _) {
 
 	return declare("umc.modules.licenses.UserSelectionPage", [ Page ], {
 		//// overwrites
@@ -49,6 +50,14 @@ define([
 		standbyDuring: null, // required parameter
 		schoolId: null, // required parameter
 		showChangeSchoolButton: false,
+
+		query: function() {
+			this.standbyDuring(
+				this._searchForm.ready().then(lang.hitch(this, function() {
+					this._searchForm.submit();
+				}))
+			);
+		},
 
 		onBack: function() {
 			// event stub
@@ -79,7 +88,7 @@ define([
 			this.inherited(arguments);
 
 			const widgets = [{
-				type: ComboBox,
+				type: SuggestionBox,
 				name: 'class',
 				staticValues: [{id: '__all__', label: _('All classes')}],
 				dynamicValues: 'licenses/classes',
@@ -87,6 +96,7 @@ define([
 					school: this.schoolId,
 				},
 				label: _('Class'),
+				// description: 'asd',
 				size: 'TwoThirds',
 			}, {
 				type: ComboBox,
@@ -116,7 +126,7 @@ define([
 				],
 				hideSubmitButton: true,
 				onSearch: lang.hitch(this, function(values) {
-					values.school =
+					values.school = this.schoolId;
 					this._grid.filter(values);
 				}),
 			});
@@ -128,7 +138,7 @@ define([
 				isContextAction: true,
 				isMultiAction: true,
 				callback: lang.hitch(this, function() {
-					this.onUsersSelected(this._grid.getSelectedIds());
+					this.onUsersSelected(this._grid.getSelectedIDs());
 				}),
 			}];
 			const columns = [{
@@ -150,17 +160,11 @@ define([
 			this._grid = new Grid({
 				actions: actions,
 				columns: columns,
-				moduleStore: store('userId', 'licenses/users'),
+				moduleStore: store('username', 'licenses/users'),
 			});
 
 			this.addChild(this._searchForm);
 			this.addChild(this._grid);
-
-			this.standbyDuring(
-				this._searchForm.ready().then(lang.hitch(this, function() {
-					this._searchForm.submit();
-				}))
-			);
 		},
 	});
 });

@@ -23,6 +23,7 @@
 		<command name="licenses/classes" function="classes"></command>
 		<command name="licenses/workgroups" function="workgroups"></command>
 		<command name="licenses/set_ignore" function="set_ignore"></command>
+		<command name="licenses/assign_to_users" function="assign_to_users"></command>
 		<command name="licenses/remove_from_users" function="remove_from_users"></command>
 		<command name="licenses/schools" function="schools"></command>
 		<command name="licenses/users/query" function="users_query"></command>

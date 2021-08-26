@@ -261,6 +261,7 @@ class LicenseHandler:
         product="",  # type: Optional[str]
         license_code="",  # type: Optional[str]
         pattern="",  # type: Optional[str]
+        restrict_to_this_product_id="",  # type: Optional[str]
     ):
         def __get_possible_product_ids(search_values, search_combo="|"):
             attr_allow_list = (
@@ -325,14 +326,14 @@ class LicenseHandler:
                 filter_parts.append("(bildungsloginLicenseQuantity=1)")
             elif license_type == LicenseType.VOLUME:
                 filter_parts.append("(!(bildungsloginLicenseQuantity=1))")
-            if product_id != "*":
+            if product_id and product_id != "*":
                 filter_parts.append("(product_id={})".format(ldap_escape(product_id)))
-            if license_code != "*":
+            if license_code and license_code != "*":
                 filter_parts.append("(code={})".format(ldap_escape(license_code)))
             product_search = []
-            if product != "*":
+            if product and product != "*":
                 product_search.append(("title", product))
-            if publisher:
+            if publisher and publisher != "*":
                 product_search.append(("publisher", publisher))
             if product_search:
                 possible_product_ids = __get_possible_product_ids(product_search, search_combo="&")
@@ -349,7 +350,7 @@ class LicenseHandler:
                             )
                         )
                     )
-            if user_pattern != "*":
+            if user_pattern and user_pattern != "*":
                 possible_licenses = self.get_licenses_for_user(
                     "(|(firstname={user_pattern})(sn={user_pattern})(uid={user_pattern}))".format(
                         user_pattern=ldap_escape(user_pattern)
@@ -388,9 +389,15 @@ class LicenseHandler:
             filter_s = "(&{}{})".format(school_filter, filter_s)
         else:
             filter_s = school_filter
+        if restrict_to_this_product_id:
+            filter_s = "(&(product_id={}){})".format(
+                ldap_escape(restrict_to_this_product_id, allow_asterisks=False), filter_s
+            )
         for license in self.get_all(filter_s=filter_s):
             meta_data = self.get_meta_data_for_license(license)
-            if not only_available_licenses or self.get_number_of_available_assignments(license) > 0:
+            if not only_available_licenses or (
+                not license.ignored_for_display and self.get_number_of_available_assignments(license) > 0
+            ):
                 rows.append(
                     {
                         "productId": license.product_id,
@@ -728,11 +735,7 @@ class AssignmentHandler:
             base=udm_license.dn, assignee=user_entry_uuid
         )
         if assigned_to_user:
-            raise BiloAssignmentError(
-                _(
-                    "License with code {license_code!r} has already been assigned to {username!r}!"
-                ).format(license_code=license_code, username=username)
-            )
+            return True
         available_licenses = self._get_available_assignments(udm_license.dn)
         if not available_licenses:
             raise BiloAssignmentError(
@@ -764,14 +767,10 @@ class AssignmentHandler:
         error messages:
 
         {
-            "countUsers": int,  # number of users that licenses were assigned to
-            "errors": {
-                "license_code": "message",
-                ...
-            },
-            "warnings": {
-                "license_code": "message",
-            },
+            "countSuccessfulAssignments": int,  # number of users that licenses were assigned to
+            "notEnoughLicenses": bool,
+            "failedAssignments": List[str],  # list of error messages
+            "validityInFuture": List[str],  # list of license code whose validity lies in the future
         }
 
         :param list(str) license_codes: license codes to assign to users
@@ -783,9 +782,10 @@ class AssignmentHandler:
             the result dict.
         """
         result = {
-            "countUsers": 0,
-            "errors": {},
-            "warnings": {},
+            "countSuccessfulAssignments": 0,
+            "notEnoughLicenses": False,
+            "failedAssignments": [],
+            "validityInFuture": [],
         }
         licenses = []
 
@@ -794,15 +794,16 @@ class AssignmentHandler:
             try:
                 self.check_is_expired(license.props.expired)
                 licenses.append(license)
-            except BiloAssignmentError as exc:
-                result["warnings"][license.props.code] = str(exc)
+            except BiloAssignmentError:
+                # this can only happen if the license expires after it was shown in the list
+                # of assignable licenses (where expired licenses are filtered out)
+                # The complexity to show this in addition to the 'notEnoughLicenses' error
+                # seems not worth it.
+                pass
 
         num_available_licenses = sum(lic.props.num_available for lic in licenses)
         if num_available_licenses < len(usernames):
-            result["errors"]["*"] = _(
-                "There are less available licenses than the number of users. No licenses have been "
-                "assigned."
-            )
+            result["notEnoughLicenses"] = True
             return result
 
         # sort licenses by validity_end_date
@@ -825,12 +826,14 @@ class AssignmentHandler:
             code, validity_start_date = license_codes_to_use.next()
             try:
                 self.assign_to_license(code, username)
-                result["countUsers"] += 1
+                result["countSuccessfulAssignments"] += 1
                 if validity_start_date > datetime.date.today():
-                    result["warnings"][code] = _("License validity start is in the future.")
+                    result["validityInFuture"].append(code)
             except BiloAssignmentError as exc:
-                result["errors"][code] = str(exc)
-        self.logger.info("Assigned licenses to %r/%r users.", result["countUsers"], len(usernames))
+                result["failedAssignments"].append("{} -- {}".format(username, str(exc)))
+        self.logger.info(
+            "Assigned licenses to %r/%r users.", result["countSuccessfulAssignments"], len(usernames)
+        )
         return result
 
     def get_assignment_for_user_under_license(self, license_dn, assignee):

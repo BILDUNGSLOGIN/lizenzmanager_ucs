@@ -64,6 +64,7 @@ define([
 		_userSelectionPage: null,
 		_productSearchPage: null,
 		_productDetailPage: null,
+		_lastSelectedProductId: null,
 
 		_showLicense: function(licenseCode) {
 			this._licenseDetailPage.load(licenseCode).then(lang.hitch(this, function(licenseCode) {
@@ -104,11 +105,15 @@ define([
 			this.addChild(this._licenseDetailPage);
 
 			this.selectChild(this._licenseSearchPage);
+			this._licenseSearchPage.query();
 		},
 
 		_buildAssignmentModule: function(schoolId, hasMultipleSchools) {
 			if (this._userSelectionPage) {
 				this._userSelectionPage.destroyRecursive();
+			}
+			if (this._productSearchPage) {
+				this._productSearchPage.destroyRecursive();
 			}
 			if (this._licenseSearchPage) {
 				this._licenseSearchPage.destroyRecursive();
@@ -122,9 +127,31 @@ define([
 			on(this._userSelectionPage, 'chooseDifferentSchool', lang.hitch(this, function() {
 				this._chooseDifferentSchool();
 			}));
-			on(this._userSelectionPage, 'usersSelected', lang.hitch(this, function(userIds) {
-				this._licenseSearchPage.set('userIds', userIds);
+			on(this._userSelectionPage, 'usersSelected', lang.hitch(this, function(usernames) {
+				this._productSearchPage.set('allocation', {
+					usernames: usernames,
+				});
+				this.selectChild(this._productSearchPage);
+			}));
+
+			this._productSearchPage = new ProductSearchPage({
+				standbyDuring: lang.hitch(this, 'standbyDuring'),
+				schoolId: schoolId,
+				moduleFlavor: this.moduleFlavor,
+			});
+			on(this._productSearchPage, 'changeUsers', lang.hitch(this, function() {
+				this.selectChild(this._userSelectionPage);
+			}));
+			on(this._productSearchPage, 'productChosen', lang.hitch(this, function(productId, usernames) {
+				this._licenseSearchPage.set('allocation', {
+					productId: productId,
+					usernames: usernames,
+				});
 				this.selectChild(this._licenseSearchPage);
+				if (this._lastSelectedProductId !== productId) {
+					this._licenseSearchPage.query();
+				}
+				this._lastSelectedProductId = productId;
 			}));
 
 			this._licenseSearchPage = new LicenseSearchPage({
@@ -132,12 +159,20 @@ define([
 				schoolId: schoolId,
 				moduleFlavor: this.moduleFlavor,
 			});
-
+			on(this._licenseSearchPage, 'changeUsers', lang.hitch(this, function() {
+				this.selectChild(this._userSelectionPage);
+			}));
+			on(this._licenseSearchPage, 'changeProduct', lang.hitch(this, function() {
+				this.selectChild(this._productSearchPage);
+			}));
 
 			this.addChild(this._userSelectionPage);
+			this.addChild(this._productSearchPage);
 			this.addChild(this._licenseSearchPage);
 
 			this.selectChild(this._userSelectionPage);
+			this._userSelectionPage.query();
+			this._productSearchPage.query();
 		},
 
 		_showProduct: function(productId) {
@@ -180,6 +215,7 @@ define([
 			this.addChild(this._productDetailPage);
 
 			this.selectChild(this._productSearchPage);
+			this._productSearchPage.query();
 		},
 
 		_schoolLabelWidget: null,

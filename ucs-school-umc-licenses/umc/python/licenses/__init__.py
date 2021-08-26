@@ -32,7 +32,11 @@
 # <http://www.gnu.org/licenses/>.
 
 
-from ucsschool.lib.school_umc_base import SchoolBaseModule
+from ldap.dn import explode_dn, is_dn
+
+from ucsschool.lib.models.group import WorkGroup
+from ucsschool.lib.models.user import User
+from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
 from univention.admin.syntax import iso8601Date
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
@@ -44,8 +48,10 @@ from univention.management.console.modules.sanitizers import (
     BooleanSanitizer,
     LDAPSearchSanitizer,
     ListSanitizer,
+    PatternSanitizer,
     StringSanitizer,
 )
+from univention.udm import UDM
 
 _ = Translation("ucs-school-umc-licenses").translate
 
@@ -53,17 +59,18 @@ _ = Translation("ucs-school-umc-licenses").translate
 class Instance(SchoolBaseModule):
     @sanitize(
         isAdvancedSearch=BooleanSanitizer(required=True),
-        school=StringSanitizer(required=True),
-        timeFrom=LDAPSearchSanitizer(add_asterisks=False),
-        timeTo=LDAPSearchSanitizer(add_asterisks=False),
-        onlyAvailableLicenses=BooleanSanitizer(),
-        publisher=LDAPSearchSanitizer(add_asterisks=False),
-        licenseType=LDAPSearchSanitizer(add_asterisks=False),
-        userPattern=LDAPSearchSanitizer(),
-        productId=LDAPSearchSanitizer(),
-        product=LDAPSearchSanitizer(),
-        licenseCode=LDAPSearchSanitizer(),
-        pattern=LDAPSearchSanitizer(),
+        school=SchoolSanitizer(required=True),
+        onlyAvailableLicenses=BooleanSanitizer(required=True),
+        timeFrom=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
+        timeTo=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
+        publisher=LDAPSearchSanitizer(add_asterisks=False, default=""),
+        licenseType=LDAPSearchSanitizer(add_asterisks=False, default=""),
+        userPattern=LDAPSearchSanitizer(default=""),
+        productId=LDAPSearchSanitizer(default=""),
+        product=LDAPSearchSanitizer(default=""),
+        licenseCode=LDAPSearchSanitizer(default=""),
+        pattern=LDAPSearchSanitizer(default=""),
+        allocationProductId=LDAPSearchSanitizer(add_asterisks=False, default=""),
     )
     @LDAP_Connection(USER_WRITE)
     def licenses_query(self, request, ldap_user_write=None):
@@ -102,6 +109,7 @@ class Instance(SchoolBaseModule):
             product=request.options.get("product"),
             license_code=request.options.get("licenseCode"),
             pattern=request.options.get("pattern"),
+            restrict_to_this_product_id=request.options.get("allocationProductId"),
         )
         for res in result:
             res["importDate"] = iso8601Date.from_datetime(res["importDate"])
@@ -222,56 +230,115 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.remove_from_users: result: %s" % str(result))
         self.finished(request.id, result)
 
-    # TODO real backend call
-    def users_query(self, request):
+    @sanitize(
+        licenseCodes=ListSanitizer(required=True),
+        usernames=ListSanitizer(required=True),
+    )
+    @LDAP_Connection(USER_WRITE)
+    def assign_to_users(self, request, ldap_user_write=None):
+        """Assign licenses to users
+        requests.options = {
+            licenseCodes -- List[str]
+            usernames -- List[str]
+        }
+        """
+        MODULE.info("licenses.assign_to_users: options: %s" % str(request.options))
+        license_codes = request.options.get("licenseCodes")
+        usernames = request.options.get("usernames")
+        ah = AssignmentHandler(ldap_user_write)
+        result = ah.assign_users_to_licenses(license_codes, usernames)
+        MODULE.info("licenses.remove_from_users: result: %s" % str(result))
+        self.finished(request.id, result)
+
+    @sanitize(
+        **{
+            "school": SchoolSanitizer(required=True),
+            "class": StringSanitizer(required=True),
+            "workgroup": StringSanitizer(required=True),
+            "pattern": LDAPSearchSanitizer(
+                required=True,
+            ),
+        }
+    )
+    @LDAP_Connection(USER_WRITE)
+    def users_query(self, request, ldap_user_write=None):
         """Searches for users
         requests.options = {
-                        class
-                        workgroup
-                        pattern
+            school
+            class
+            workgroup
+            pattern
         }
         """
         MODULE.info("licenses.query: options: %s" % str(request.options))
+        udm = UDM(ldap_user_write).version(1)
+        users_mod = udm.get("users/user")
+        groups_mod = udm.get("groups/group")
+        school = request.options.get("school")
+        pattern = request.options.get("pattern")
+        workgroup = request.options.get("workgroup")
+        users_filter = (
+            "(&"
+            "(school={school})"
+            "(|"
+            "(firstname={pattern})"
+            "(lastname={pattern})"
+            "(username={pattern})"
+            ")"
+            ")"
+        ).format(school=school, pattern=pattern)
+        if workgroup == "__all__":
+            users = list(users_mod.search(users_filter))
+        else:
+            users = []
+            group = groups_mod.get(workgroup)
+            for user_dn in group.props.users:
+                users.extend(list(users_mod.search(users_filter, base=user_dn)))
+        klass = request.options.get("class")
+        if klass != "__all__":
+            if is_dn(klass):
+                users = [user for user in users if klass in user.props.groups]
+            else:
+                klass_pattern = PatternSanitizer().sanitize("p", {"p": klass})
+                _users = []
+
+                def _maybe_add_user(user):
+                    for group_dn in user.props.groups:
+                        cn = explode_dn(group_dn, notypes=True)[0]
+                        if klass_pattern.match(cn):
+                            _users.append(user)
+                            return
+
+                for user in users:
+                    _maybe_add_user(user)
+                users = _users
+        workgroups = {wg.dn: wg.name for wg in WorkGroup.get_all(ldap_user_write, school)}
+        prefix = school + "-"
         result = [
             {
-                "userId": 0,
-                "username": "bmusterm",
-                "firstname": "Bernd",
-                "lastname": "Mustermann",
-                "class": "5C",
-                "workgroup": "Singen",
-            },
-            {
-                "userId": 1,
-                "username": "amusterf",
-                "firstname": "Anna",
-                "lastname": "Musterfrau",
-                "class": "4A",
-                "workgroup": "Fußball",
-            },
-            {
-                "userId": 2,
-                "username": "imusterm",
-                "firstname": "Immanuel",
-                "lastname": "Mustermann",
-                "class": "5B",
-                "workgroup": "Fußball",
-            },
-            {
-                "userId": 3,
-                "username": "lmusterf",
-                "firstname": "Linda",
-                "lastname": "Musterfrau",
-                "class": "5C",
-                "workgroup": "Singen",
-            },
+                "firstname": user.props.firstname,
+                "lastname": user.props.lastname,
+                "username": user.props.username,
+                "class": ", ".join(
+                    [
+                        _cls[len(prefix) :] if _cls.startswith(prefix) else _cls
+                        for _cls in User.from_dn(user.dn, school, ldap_user_write).school_classes.get(
+                            school, []
+                        )
+                    ]
+                ),
+                "workgroup": ", ".join(
+                    wg[len(prefix) :] if wg.startswith(prefix) else wg
+                    for wg in [workgroups[g] for g in user.props.groups if g in workgroups]
+                ),
+            }
+            for user in users
         ]
-
         MODULE.info("licenses.query: result: %s" % str(result))
         self.finished(request.id, result)
 
     @sanitize(
-        school=StringSanitizer(required=True),
+        school=SchoolSanitizer(required=True),
         pattern=LDAPSearchSanitizer(),
     )
     @LDAP_Connection(USER_WRITE)
@@ -314,7 +381,7 @@ class Instance(SchoolBaseModule):
         self.finished(request.id, result)
 
     @sanitize(
-        school=StringSanitizer(required=True),
+        school=SchoolSanitizer(required=True),
         productId=StringSanitizer(required=True),
     )
     @LDAP_Connection(USER_WRITE)

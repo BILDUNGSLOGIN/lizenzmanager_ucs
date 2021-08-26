@@ -51,3 +51,8 @@
 	max-width: 380px;
 	max-height: 380px;
 }
+
+.licensesShowSelectedUsers {
+	cursor: pointer;
+	color: #5a5a5a;
+}
