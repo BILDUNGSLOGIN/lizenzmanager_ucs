@@ -32,6 +32,8 @@ from __future__ import print_function
 import argparse
 import sys
 
+from jsonschema import ValidationError
+
 from univention.admin.uldap import getAdminConnection
 
 from ..handlers import BiloCreateError, LicenseHandler
@@ -51,7 +53,15 @@ def parse_args():  # type: () -> argparse.Namespace
 
 
 def import_licenses(license_file, school):
-    licenses = load_license_file(license_file, school)
+    try:
+        licenses = load_license_file(license_file, school)
+    except (ValidationError, ValueError) as exc:
+        print(
+            "Error: The license file could not be imported due to the following error \n{}".format(exc),
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     lo, po = getAdminConnection()
     license_handler = LicenseHandler(lo)
     errors = False
@@ -66,6 +76,7 @@ def import_licenses(license_file, school):
                 ),
                 file=sys.stderr,
             )
+
     if errors:
         print("Error: Not all licenses were imported successful", file=sys.stderr)
         sys.exit(1)

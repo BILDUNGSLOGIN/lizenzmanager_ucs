@@ -41,20 +41,23 @@ LICENSE_SCHEMA = {
     "$comment": "License Import configuration schema. License: GNU AGPL v3, Copyright 2021 Univention GmbH",
     "title": "license-import",
     "description": "license-import data",
-    "type": "object",
-    "properties": {
-        "lizenzcode": {"type": "string"},
-        "product_id": {"type": "string"},
-        "lizenzanzahl": {"type": "integer"},
-        "lizenzgeber": {"type": "string"},
-        "kaufreferenz": {"type": "string"},
-        "nutzungssysteme": {"type": "string"},
-        "gueltigkeitsbeginn": {"type": "string"},
-        "gueltigkeitsende": {"type": "string"},
-        "gueltigkeitsdauer": {"type": "string"},
-        "sonderlizenz": {"type": "string"},
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "lizenzcode": {"type": "string"},
+            "product_id": {"type": "string"},
+            "lizenzanzahl": {"type": "integer"},
+            "lizenzgeber": {"type": "string"},
+            "kaufreferenz": {"type": "string"},
+            "nutzungssysteme": {"type": "string"},
+            "gueltigkeitsbeginn": {"type": "string"},
+            "gueltigkeitsende": {"type": "string"},
+            "gueltigkeitsdauer": {"type": "string"},
+            "sonderlizenz": {"type": "string"},
+        },
+        "required": ["lizenzcode", "product_id", "lizenzanzahl", "lizenzgeber", "gueltigkeitsende"],
     },
-    "required": ["lizenzcode", "product_id", "lizenzanzahl", "lizenzgeber", "gueltigkeitsende"],
 }
 
 
@@ -66,7 +69,6 @@ def convert_raw_license_date(date_str):  # type: (str) -> Optional[datetime.date
 
 
 def load_license(license_raw, school):  # type: (Dict[str, Any], str) -> License
-    validate(instance=license_raw, schema=LICENSE_SCHEMA)
     license = License(
         license_code=license_raw["lizenzcode"],
         product_id=license_raw["product_id"],
@@ -89,6 +91,7 @@ def load_license(license_raw, school):  # type: (Dict[str, Any], str) -> License
 def load_license_file(license_file, school):  # type: (str, str) -> List[License]
     with open(license_file, "r") as license_file_fd:
         licenses_raw = json.load(license_file_fd)
+    validate(instance=licenses_raw, schema=LICENSE_SCHEMA)
     licenses = [load_license(license_raw, school) for license_raw in licenses_raw]
     return licenses
 

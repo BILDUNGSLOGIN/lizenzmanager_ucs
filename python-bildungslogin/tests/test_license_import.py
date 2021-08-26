@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+from copy import deepcopy
 
 import attr
 import pytest
@@ -21,6 +22,8 @@ test_license_raw = {
     "sonderlizenz": "Lehrer",
 }
 
+test_licenses_raw = [test_license_raw]
+
 
 test_license = License(
     license_code="VHT-7bd46a45-345c-4237-a451-4444736eb011",
@@ -41,33 +44,37 @@ test_license = License(
 
 def test_license_schema():
     """Test that the schema works with our sample test_license_raw. We assume the test_license_raw to be valid"""
-    validate(instance=test_license_raw, schema=LICENSE_SCHEMA)
+    validate(instance=test_licenses_raw, schema=LICENSE_SCHEMA)
 
 
-@pytest.mark.parametrize("field_name", LICENSE_SCHEMA["required"])
+@pytest.mark.parametrize("field_name", LICENSE_SCHEMA["items"]["required"])
 def test_license_schema_validation_required_fails(field_name):
     """A missing value in the license should raise a ValidationError"""
-    test_license_broken = test_license_raw.copy()
-    del test_license_broken[field_name]
+    test_license_broken = deepcopy(test_licenses_raw)
+    del test_license_broken[0][field_name]
     with pytest.raises(ValidationError):
         validate(instance=test_license_broken, schema=LICENSE_SCHEMA)
 
 
 @pytest.mark.parametrize(
     "field_name",
-    [name for name in LICENSE_SCHEMA["properties"] if name not in LICENSE_SCHEMA["required"]],
+    [
+        name
+        for name in LICENSE_SCHEMA["items"]["properties"]
+        if name not in LICENSE_SCHEMA["items"]["required"]
+    ],
 )
 def test_license_schema_validation_optionals(field_name):
     """An optional value can be left out from the license"""
-    test_license_broken = test_license_raw.copy()
-    del test_license_broken[field_name]
+    test_license_broken = deepcopy(test_licenses_raw)
+    del test_license_broken[0][field_name]
     validate(instance=test_license_broken, schema=LICENSE_SCHEMA)
 
 
 def test_license_schema_validation_number_fails():
     """'Lizenzanzahl' has to be a number"""
-    test_license_broken = test_license_raw.copy()
-    test_license_broken["lizenzanzahl"] = "wrong"
+    test_license_broken = deepcopy(test_licenses_raw)
+    test_license_broken[0]["lizenzanzahl"] = "wrong"
     with pytest.raises(ValidationError):
         validate(instance=test_license_broken, schema=LICENSE_SCHEMA)
 

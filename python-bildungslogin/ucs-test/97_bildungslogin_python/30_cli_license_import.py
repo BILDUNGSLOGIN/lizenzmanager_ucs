@@ -74,3 +74,48 @@ def test_cli_import(license_file, license_handler):
     assert set(license.license_code for license in licenses) == set(
         license_raw["lizenzcode"] for license_raw in licenses_raw
     )
+
+
+def test_cli_import_graceful_exit_with_invalid_license_format(license_file):
+    """Test that a license import with invalid license format exits gracefully"""
+    with open(str(license_file), "r") as license_file_fd:
+        licenses_raw = json.load(license_file_fd)
+    del licenses_raw[0]["lizenzanzahl"]
+    with open(str(license_file), "w") as license_file_fd:
+        json.dump(licenses_raw, license_file_fd)
+    pipes = subprocess.Popen(
+        [
+            "bildungslogin-license-import",
+            "--license-file",
+            str(license_file),
+            "--school",
+            "SOMESCHOOL",  # we do not reach the school validation
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    std_out, std_err = pipes.communicate()
+    assert pipes.returncode == 1
+    assert "Error: The license file could not be imported" in std_err
+
+
+def test_cli_import_graceful_exit_with_invalid_json(license_file):
+    """Test that a license import with invalid json format exits gracefully"""
+    with open(str(license_file), "r") as license_file_fd:
+        licenses_raw = json.load(license_file_fd)
+    with open(str(license_file), "w") as license_file_fd:
+        license_file_fd.write(json.dumps(licenses_raw).strip()[1:])
+    pipes = subprocess.Popen(
+        [
+            "bildungslogin-license-import",
+            "--license-file",
+            str(license_file),
+            "--school",
+            "SOMESCHOOL",  # we do not reach the school validation
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    std_out, std_err = pipes.communicate()
+    assert pipes.returncode == 1
+    assert "Error: The license file could not be imported" in std_err
