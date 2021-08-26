@@ -45,7 +45,3 @@ class BiloProductNotFoundError(Exception):
 
 class BiloLicenseNotFoundError(Exception):
     pass
-
-
-class BiloLicenseInvalidError(Exception):
-    pass

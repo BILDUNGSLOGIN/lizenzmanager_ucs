@@ -69,7 +69,7 @@ def product_id():
     )
 
 
-def get_license(ou):
+def get_license(ou):  # type: (str) -> License
     today = datetime.date.today()
     start = today + datetime.timedelta(days=random.randint(0, 365))
     duration = "Unbeschränkt"
@@ -123,7 +123,7 @@ def n_expired_licenses(expired_license_obj):
 
 @pytest.fixture(scope="function")
 def license_obj():
-    def _func(ou):
+    def _func(ou):  # type: (str) -> License
         return get_license(ou)
 
     return _func

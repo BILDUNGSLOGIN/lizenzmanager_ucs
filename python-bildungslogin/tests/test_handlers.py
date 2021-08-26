@@ -101,9 +101,8 @@ def fake_udm_license_object(unsaved_udm_object):
 
 @pytest.fixture
 def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object, random_username):
-    def _func(
-        assignment_total, assignment_available
-    ):  # type: (int, int) -> Tuple[BaseObject, Dict[str, BaseObject]]
+    def _func(assignment_total, assignment_available):
+        # type: (int, int) -> Tuple[BaseObject, Dict[str, BaseObject]]
         license = fake_udm_license_object()  # type: BaseObject
         license.props.quantity = assignment_total
         license.props.num_available = assignment_available

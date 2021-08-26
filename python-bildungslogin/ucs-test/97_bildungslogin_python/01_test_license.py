@@ -35,6 +35,7 @@
 
 import datetime
 from hashlib import sha256
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -43,6 +44,9 @@ from univention.bildungslogin.handlers import BiloCreateError
 from univention.bildungslogin.utils import LicenseType, Status
 from univention.testing.utils import verify_ldap_object
 from univention.udm import UDM
+
+if TYPE_CHECKING:
+    from univention.bildungslogin.models import License
 
 
 def test_license_type(license_obj):
@@ -93,25 +97,11 @@ def test_create(lo, license_handler, license_obj, ldap_base):
             license_handler.create(license)
 
 
-def test_get_assignments_for_license(license_handler, license_obj):
-    """Test that a license assignment is in atatus AVAILABLE"""
-    with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
-        license = license_obj(ou)
-        license_handler.create(license)
-        assignments = license_handler.get_assignments_for_license(license)
-        for assignment in assignments:
-            assert assignment.status == Status.AVAILABLE
-            assert assignment.license == license.license_code
-
-
-def test_get_total_number_of_licenses(license_handler, license_obj):
-    """Test that the number of license assignments is the same as its quantity"""
-    with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
-        license = license_obj(ou)
-        license_handler.create(license)
-        assert license_handler.get_total_number_of_assignments(license) == license.license_quantity
+@pytest.mark.xfail(reason="Not implemented yet.")
+def test_get_assignments_for_license_with_filter():
+    raise NotImplementedError(
+        "Missing test for LicenseHandler.get_assignments_for_license_with_filter()"
+    )
 
 
 def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment_handler, license_obj):
@@ -124,14 +114,14 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
         student_usernames = [schoolenv.create_student(ou)[0] for _ in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
         users = student_usernames + teacher_usernames
-        license = license_obj(ou)
+        license = license_obj(ou)  # type: License
         license.license_quantity = len(users) + 1
         license_handler.create(license)
         assignment_handler.assign_users_to_licenses(
             usernames=users, license_codes=[license.license_code]
         )
-        num_assigned = license_handler.get_number_of_provisioned_and_assigned_assignments(license)
-        assert num_assigned == num_students + num_teachers
+        license = license_handler.get_license_by_code(license.license_code)  # refresh object from LDAP
+        assert license.num_assigned == num_students + num_teachers
         for user_name in users[:2]:
             assignment_handler.change_license_status(
                 username=user_name,
@@ -139,12 +129,12 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
                 status=Status.PROVISIONED,
             )
         # after provisioning the code to some users, the number should still be the same.
-        num_assigned = license_handler.get_number_of_provisioned_and_assigned_assignments(license)
-        assert num_assigned == num_students + num_teachers
+        license = license_handler.get_license_by_code(license.license_code)  # refresh object from LDAP
+        assert license.num_assigned == num_students + num_teachers
         # the number of available license-assignments for this license should be the total number - the
         # number of users which just a license-assignment for this license
-        total_num = license_handler.get_total_number_of_assignments(license)
-        assert license_handler.get_number_of_available_assignments(license) == total_num - len(users)
+        total_num = license.license_quantity
+        assert license.num_available == total_num - len(users)
 
 
 def test_get_number_of_expired_assignments(lo, license_handler, expired_license_obj):
@@ -185,17 +175,6 @@ def test_get_meta_data_for_license(license_handler, meta_data_handler, license_o
         assert meta_data.modified == meta_data.modified
 
 
-def test_get_time_of_last_assignment(license_handler, assignment_handler, license_obj):
-    """Test that the date and time of a license assignment is uptodate"""
-    with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
-        license = license_obj(ou)
-        license_handler.create(license)
-        username, _ = schoolenv.create_student(ou)
-        assignment_handler.assign_to_license(username=username, license_code=license.license_code)
-        assert license_handler.get_time_of_last_assignment(license) == datetime.date.today()
-
-
 def test_set_license_ignore(license_handler, assignment_handler, license_obj, ldap_base):
     """Test that a license can be set to ignored and can not assigned afterwards"""
     with utu.UCSTestSchool() as schoolenv:
@@ -233,3 +212,8 @@ def test_get_license_types(license_handler):
     assert {"Volume license", "Single license"} == {
         t["label"] for t in license_handler.get_license_types()
     }
+
+
+@pytest.mark.xfail(reason="Not implemented yet.")
+def test_get_all():
+    raise NotImplementedError("Missing test for LicenseHandler.get_all()")

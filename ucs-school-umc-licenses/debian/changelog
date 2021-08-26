@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.9) unstable; urgency=low
+
+  * Issue #77: cleanup - remove dead code
+
+ -- Daniel Troeder <troeder@univention.de>  Thu, 26 Aug 2021 12:49:58 +0200
+
 ucs-school-umc-licenses (0.1.8) unstable; urgency=medium
 
   * Issue #19: assign license module

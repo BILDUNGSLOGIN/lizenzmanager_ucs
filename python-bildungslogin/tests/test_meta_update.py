@@ -9,7 +9,8 @@ if sys.version_info[0] >= 3:
 else:
     from mock import MagicMock, call, patch, sentinel
 
-    import univention.bildungslogin.media_import.cmd_media_update
+import univention.bildungslogin.media_import.cmd_media_update
+from univention.bildungslogin.models import MetaData
 
 
 def test_load_last_update_timestamp_no_ts_file(random_name):
@@ -59,9 +60,9 @@ def test_save_last_update_timestamp():
     return_value=sentinel.access_token,
 )
 @patch("univention.bildungslogin.media_import.cmd_media_update.get_config_from_file")
-@patch("univention.bildungslogin.handlers.MetaDataHandler.get_all_product_ids")
+@patch("univention.bildungslogin.handlers.MetaDataHandler.get_all")
 def test_update_ldap_meta_data(
-    get_all_product_ids_mock,
+    get_all_mock,
     get_config_from_file_mock,
     get_access_token_mock,
     retrieve_media_feed_mock,
@@ -73,9 +74,8 @@ def test_update_ldap_meta_data(
 ):
     """Test the meta data update function."""
     # product IDs in LDAP:
-    get_all_product_ids_mock.return_value = [
-        "urn:bilo:medium:ABC-{}".format(random.randint(10000, 20000)) for _ in range(30)
-    ]
+    p_ids = {"urn:bilo:medium:ABC-{}".format(random.randint(10000, 20000)) for _ in range(30)}
+    get_all_mock.return_value = [MetaData(product_id=p_id) for p_id in p_ids]
     get_config_from_file_mock.return_value = {
         "client_id": None,
         "client_secret": None,
@@ -85,16 +85,12 @@ def test_update_ldap_meta_data(
     }
     num_returned_p_ids = random.randint(5, 15)
     # product IDs updated on server:
-    retrieve_media_feed_mock.return_value = random.sample(
-        get_all_product_ids_mock.return_value, num_returned_p_ids
-    )
+    retrieve_media_feed_mock.return_value = random.sample(p_ids, num_returned_p_ids)
     # dates in meta data:
     dates = [random.randint(1, 2000) for _ in range(num_returned_p_ids)]
     raw_media_data = [{"status": 200, "data": {"modified": d}} for d in dates]
     retrieve_media_data_mock.return_value = raw_media_data
-    product_ids_to_update = set(retrieve_media_feed_mock.return_value).intersection(
-        set(get_all_product_ids_mock.return_value)
-    )
+    product_ids_to_update = set(retrieve_media_feed_mock.return_value).intersection(p_ids)
 
     result = univention.bildungslogin.media_import.cmd_media_update.update_ldap_meta_data(MagicMock())
 

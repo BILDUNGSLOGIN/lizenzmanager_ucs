@@ -35,13 +35,15 @@
 
 import datetime
 import random
+from typing import List
 
 import pytest
+from ldap.filter import filter_format
 
 import univention.testing.ucsschool.ucs_test_school as utu
 from ucsschool.lib.roles import get_role_info
-from univention.bildungslogin.handlers import AssignmentHandler, BiloAssignmentError
-from univention.bildungslogin.models import Assignment
+from univention.bildungslogin.handlers import AssignmentHandler, BiloAssignmentError, LicenseHandler
+from univention.bildungslogin.models import Assignment, License
 from univention.bildungslogin.utils import Status
 
 
@@ -54,6 +56,35 @@ def license_was_assigned_correct_to_user(assignments, username):
             assert Status.ASSIGNED == assignment.status
             assert assignment.time_of_assignment == datetime.date.today()
             break
+
+
+def get_assignments_from_dn(assignment_handler, dn):  # type: (AssignmentHandler, str) -> Assignment
+    udm_license = assignment_handler._assignments_mod.get(dn)
+    return assignment_handler.from_udm_obj(udm_license)
+
+
+def get_assignments_for_license(assignment_handler, license_handler, license):
+    # type: (AssignmentHandler, LicenseHandler, License) -> List[Assignment]
+    """helper function to search in udm layer"""
+    udm_obj = license_handler.get_udm_license_by_code(license.license_code)
+    assignment_dns = udm_obj.props.assignments
+    return [get_assignments_from_dn(assignment_handler, dn) for dn in assignment_dns]
+
+
+def get_assignments_for_product_id_for_user(assignment_handler, username, product_id):
+    # type: (AssignmentHandler, str, str) -> List[Assignment]
+    """get all assignments for a product, which are assigned to a user."""
+    user_entry_uuid = assignment_handler._get_entry_uuid_by_username(username)
+    filter_s = filter_format("(product_id=%s)", [product_id])
+    udm_licenses = assignment_handler._licenses_mod.search(filter_s)
+    assignments = []
+    for udm_license in udm_licenses:
+        assignments.extend(
+            assignment_handler.get_all_assignments_for_user(
+                assignee=user_entry_uuid, base=udm_license.dn
+            )
+        )
+    return assignments
 
 
 @pytest.mark.parametrize("user_type", ["student", "teacher"])
@@ -71,12 +102,13 @@ def test_assign_user_to_license(assignment_handler, license_handler, license_obj
             username=username, license_code=license.license_code
         )
         assert success is True
-        assignments = license_handler.get_assignments_for_license(license)
+        assignments = get_assignments_for_license(assignment_handler, license_handler, license)
         license_was_assigned_correct_to_user(assignments, username)
         # (username, license_code) is unique
-        with pytest.raises(BiloAssignmentError) as excinfo:
-            assignment_handler.assign_to_license(username=username, license_code=license.license_code)
-        assert "has already been assigned to" in str(excinfo.value)
+        success2 = assignment_handler.assign_to_license(
+            username=username, license_code=license.license_code
+        )
+        assert success2 is True
 
 
 @pytest.mark.parametrize("ignored", [True, False])
@@ -148,14 +180,14 @@ def test_remove_assignment_from_users(assignment_handler, license_handler, licen
         assignment_handler.assign_users_to_licenses(
             usernames=usernames, license_codes=[license.license_code]
         )
-        assignments = license_handler.get_assignments_for_license(license)
+        assignments = get_assignments_for_license(assignment_handler, license_handler, license)
         for username in usernames:
             license_was_assigned_correct_to_user(assignments, username)
         failed_assignments = assignment_handler.remove_assignment_from_users(
             usernames=usernames, license_code=license.license_code
         )
         assert len(failed_assignments) == 0
-        assignments = license_handler.get_assignments_for_license(license)
+        assignments = get_assignments_for_license(assignment_handler, license_handler, license)
         assignees = [a.assignee for a in assignments]
         for username in usernames:
             assert username not in assignees
@@ -171,7 +203,7 @@ def test_assign_users_to_licenses(assignment_handler, license_handler, license_o
         assignment_handler.assign_users_to_licenses(
             usernames=usernames, license_codes=[license.license_code]
         )
-        assignments = license_handler.get_assignments_for_license(license)
+        assignments = get_assignments_for_license(assignment_handler, license_handler, license)
         for username in usernames:
             license_was_assigned_correct_to_user(assignments, username)
 
@@ -184,8 +216,8 @@ def test_get_assignments_for_product_id_for_user(license_handler, assignment_han
         license_handler.create(license)
         username = schoolenv.create_student(ou)[0]
         assignment_handler.assign_to_license(username=username, license_code=license.license_code)
-        assignments = assignment_handler.get_assignments_for_product_id_for_user(
-            username=username, product_id=license.product_id
+        assignments = get_assignments_for_product_id_for_user(
+            assignment_handler=assignment_handler, username=username, product_id=license.product_id
         )
         assert len(assignments) == 1
         license_was_assigned_correct_to_user(assignments, username)
@@ -206,8 +238,8 @@ def test_positive_change_license_status(license_handler, assignment_handler, use
             username=username, license_code=license.license_code
         )
         assert success is True
-        assignments = assignment_handler.get_assignments_for_product_id_for_user(
-            username=username, product_id=license.product_id
+        assignments = get_assignments_for_product_id_for_user(
+            assignment_handler=assignment_handler, username=username, product_id=license.product_id
         )
         assignment = assignments[0]
         assert assignment.status == Status.ASSIGNED
@@ -217,8 +249,8 @@ def test_positive_change_license_status(license_handler, assignment_handler, use
             status=Status.AVAILABLE,
         )
         assert success is True
-        assignments = assignment_handler.get_assignments_for_product_id_for_user(
-            username=username, product_id=license.product_id
+        assignments = get_assignments_for_product_id_for_user(
+            assignment_handler=assignment_handler, username=username, product_id=license.product_id
         )
         assert len(assignments) == 0
         # license has to be reassigned to also have a username at the assignment
@@ -226,8 +258,8 @@ def test_positive_change_license_status(license_handler, assignment_handler, use
             username=username, license_code=license.license_code
         )
         assert success is True
-        assignment = assignment_handler.get_assignments_for_product_id_for_user(
-            username=username, product_id=license.product_id
+        assignment = get_assignments_for_product_id_for_user(
+            assignment_handler=assignment_handler, username=username, product_id=license.product_id
         )[0]
         assert assignment.status == Status.ASSIGNED
         success = assignment_handler.change_license_status(
@@ -236,8 +268,8 @@ def test_positive_change_license_status(license_handler, assignment_handler, use
             status=Status.PROVISIONED,
         )
         assert success is True
-        assignment = assignment_handler.get_assignments_for_product_id_for_user(
-            username=username, product_id=license.product_id
+        assignment = get_assignments_for_product_id_for_user(
+            assignment_handler=assignment_handler, username=username, product_id=license.product_id
         )[0]
         assert assignment.status == Status.PROVISIONED
 

@@ -50,7 +50,8 @@ from .models import Assignment, License, MetaData
 from .utils import LicenseType, Status, get_entry_uuid, ldap_escape
 
 if TYPE_CHECKING:
-    from ucsschool.lib.models.base import LoType, UdmObject
+    from univention.admin.uldap import access as LoType
+    from univention.udm.base import BaseObject as UdmObject
 
 _ = Translation("bildungslogin").translate
 
@@ -134,11 +135,9 @@ class LicenseHandler:
             ignored_for_display=udm_obj.props.ignored,
             license_special_type=udm_obj.props.special_type,
             purchasing_reference=udm_obj.props.purchasing_reference,
+            num_assigned=udm_obj.props.num_assigned,
+            num_available=udm_obj.props.num_available,
         )
-
-    def from_dn(self, dn):  # type: (str) -> License
-        udm_license = self._licenses_mod.get(dn)
-        return self.from_udm_obj(udm_license)
 
     def _get_all(self, filter_s=None):  # type: (Optional[str]) -> List[UdmObject]
         return [o for o in self._licenses_mod.search(filter_s=filter_s)]
@@ -156,6 +155,9 @@ class LicenseHandler:
                 _("License with code {license_code!r} does not exist.").format(license_code=license_code)
             )
 
+    def get_license_by_code(self, license_code):  # type: (str) -> License
+        return self.from_udm_obj(self.get_udm_license_by_code(license_code))
+
     def get_meta_data_for_license(self, license):  # type: (Union[UdmObject, License]) -> MetaData
         """search for the product of the license. If there is none yet, return an empty object."""
         if type(license) is License:
@@ -171,18 +173,6 @@ class LicenseHandler:
         else:
             return MetaDataHandler.from_udm_obj(udm_meta_data[0])
 
-    def get_assignments_for_license(self, license):
-        # type: (Union[License,UdmObject]) -> List[Assignment]
-        """helper function to search in udm layer"""
-        if type(license) is License:
-            udm_obj = self.get_udm_license_by_code(license.license_code)
-        elif type(license) is str:
-            raise ValueError("Wrong type for get_assignments_for_license!")
-        else:
-            udm_obj = license
-        assignment_dns = udm_obj.props.assignments
-        return [self.ah.from_dn(dn) for dn in assignment_dns]
-
     def get_assignments_for_license_with_filter(self, license, filter_s):
         # type: (License, str) -> List[Assignment]
         """search in assignments for license with license_code for filter_s e.g. for status"""
@@ -191,15 +181,6 @@ class LicenseHandler:
             self.ah.from_udm_obj(obj)
             for obj in self._assignments_mod.search(base=udm_obj.dn, filter_s=filter_s)
         ]
-
-    def get_all_assignments(self, license):  # type: (License) -> List[UdmObject]
-        """search for assignments in leaves of license"""
-        return self.get_assignments_for_license(license=license)
-
-    def get_number_of_available_assignments(self, license):  # type: (License) -> int
-        """count the number of assignments with status available"""
-        udm_license = self.get_udm_license_by_code(license.license_code)
-        return udm_license.props.num_available
 
     def get_number_of_provisioned_and_assigned_assignments(self, license):  # type: (License) -> int
         """count the number of assignments with status provisioned or assigned
@@ -211,18 +192,6 @@ class LicenseHandler:
         """count the number of assignments with status expired"""
         udm_license = self.get_udm_license_by_code(license.license_code)
         return udm_license.props.num_expired
-
-    def get_total_number_of_assignments(self, license):  # type: (License) -> int
-        """count the number of assignments for this license"""
-        udm_license = self.get_udm_license_by_code(license.license_code)
-        return udm_license.props.quantity
-
-    def get_time_of_last_assignment(self, license):  # type: (License) -> datetime.date
-        """Get all assignments of this license and return the date of assignment,
-        which was assigned last."""
-        filter_s = filter_format("(|(status=%s)(status=%s))", [Status.ASSIGNED, Status.PROVISIONED])
-        assignments = self.get_assignments_for_license_with_filter(filter_s=filter_s, license=license)
-        return max(a.time_of_assignment for a in assignments)
 
     def get_licenses_for_user(self, filter_s):  # type: (str) -> Set[UdmObject]
         users = self._users_mod.search(filter_s)
@@ -352,7 +321,7 @@ class LicenseHandler:
                     )
             if user_pattern and user_pattern != "*":
                 possible_licenses = self.get_licenses_for_user(
-                    "(|(firstname={user_pattern})(sn={user_pattern})(uid={user_pattern}))".format(
+                    "(|(givenName={user_pattern})(sn={user_pattern})(uid={user_pattern}))".format(
                         user_pattern=ldap_escape(user_pattern)
                     )
                 )
@@ -395,8 +364,9 @@ class LicenseHandler:
             )
         for license in self.get_all(filter_s=filter_s):
             meta_data = self.get_meta_data_for_license(license)
+            number_of_available_assignments = license.num_available
             if not only_available_licenses or (
-                not license.ignored_for_display and self.get_number_of_available_assignments(license) > 0
+                not license.ignored_for_display and number_of_available_assignments > 0
             ):
                 rows.append(
                     {
@@ -405,12 +375,12 @@ class LicenseHandler:
                         "publisher": meta_data.publisher,
                         "licenseCode": license.license_code,
                         "licenseTypeLabel": LicenseType.label(license.license_type),
-                        "countAquired": self.get_total_number_of_assignments(license),
+                        "countAquired": license.license_quantity,
                         "countAssigned": self.get_number_of_provisioned_and_assigned_assignments(
                             license
                         ),
                         "countExpired": self.get_number_of_expired_assignments(license),
-                        "countAvailable": self.get_number_of_available_assignments(license),
+                        "countAvailable": number_of_available_assignments,
                         "importDate": license.delivery_date,
                     }
                 )
@@ -475,75 +445,46 @@ class MetaDataHandler:
             modified=udm_obj.props.modified,
         )
 
-    def from_dn(self, dn):  # type: (str) -> MetaData
-        udm_license = self._meta_data_mod.get(dn)
-        return self.from_udm_obj(udm_license)
-
     def get_all(self, filter_s=None):  # type: (str) -> List[MetaData]
         meta_data_objs = self._meta_data_mod.search(filter_s=filter_s)
         return [MetaDataHandler.from_udm_obj(obj) for obj in meta_data_objs]
 
-    def get_udm_licenses_by_product_id(self, product_id):  # type: (str) -> List[UdmObject]
-        filter_s = filter_format("(product_id=%s)", [product_id])
+    def get_udm_licenses_by_product_id(self, product_id, school=None):  # type: (str) -> List[UdmObject]
+        if school:
+            filter_s = filter_format(
+                "(&(bildungsloginProductId=%s)(bildungsloginLicenseSchool=%s))", (product_id, school)
+            )
+        else:
+            filter_s = filter_format("(bildungsloginProductId=%s)", (product_id,))
         return [o for o in self._licenses_mod.search(filter_s)]
 
-    def get_assignments_for_meta_data(self, meta_data):  # type: (MetaData) -> List[Assignment]
-        """assignments of license with productID"""
-        # get licenses objects from udm with the given product id.
-        licenses_of_product = self.get_udm_licenses_by_product_id(meta_data.product_id)
-        assignments = []
-        for udm_license in licenses_of_product:
-            # get the assignments placed below the licenses.
-            assignments.extend(self.lh.get_assignments_for_license(udm_license))
-
-        return assignments
-
-    def get_non_ignored_licenses_for_product_id(self, product_id):  # type: (str) -> List[UdmObject]
-        licenses_of_product = self.get_udm_licenses_by_product_id(product_id)
+    def get_non_ignored_licenses_for_product_id(self, product_id, school=None):
+        # type: (str, Optional[str]) -> List[UdmObject]
+        licenses_of_product = self.get_udm_licenses_by_product_id(product_id, school)
         return [udm_license for udm_license in licenses_of_product if not udm_license.props.ignored]
 
-    def get_number_of_available_assignments(
-        self, meta_data, school=None
-    ):  # type: (MetaData, Optional[str]) -> int
+    def get_number_of_available_assignments(self, meta_data, school=None):
+        # type: (MetaData, Optional[str]) -> int
         """count the number of assignments with status available"""
-        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
-        if school:
-            licenses_of_product = [
-                license for license in licenses_of_product if license.props.school == school
-            ]
+        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id, school)
         return sum(udm_license.props.num_available for udm_license in licenses_of_product)
 
-    def get_number_of_provisioned_and_assigned_assignments(
-        self, meta_data, school=None
-    ):  # type: (MetaData, Optional[str]) -> int
+    def get_number_of_provisioned_and_assigned_assignments(self, meta_data, school=None):
+        # type: (MetaData, Optional[str]) -> int
         """count the number of assignments with status provisioned or assigned"""
-        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
-        if school:
-            licenses_of_product = [
-                license for license in licenses_of_product if license.props.school == school
-            ]
+        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id, school)
         return sum(udm_license.props.num_assigned for udm_license in licenses_of_product)
 
-    def get_number_of_expired_assignments(
-        self, meta_data, school=None
-    ):  # type: (MetaData, Optional[str]) -> int
+    def get_number_of_expired_assignments(self, meta_data, school=None):
+        # type: (MetaData, Optional[str]) -> int
         """count the number of assignments with status expired"""
-        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
-        if school:
-            licenses_of_product = [
-                license for license in licenses_of_product if license.props.school == school
-            ]
+        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id, school)
         return sum(udm_license.props.num_expired for udm_license in licenses_of_product)
 
-    def get_total_number_of_assignments(
-        self, meta_data, school=None
-    ):  # type: (MetaData, Optional[str]) -> int
+    def get_total_number_of_assignments(self, meta_data, school=None):
+        # type: (MetaData, Optional[str]) -> int
         """count the total number of assignments"""
-        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id)
-        if school:
-            licenses_of_product = [
-                license for license in licenses_of_product if license.props.school == school
-            ]
+        licenses_of_product = self.get_non_ignored_licenses_for_product_id(meta_data.product_id, school)
         return sum(udm_license.props.quantity for udm_license in licenses_of_product)
 
     def get_meta_data_by_product_id(self, product_id):  # type: (str) -> UdmObject
@@ -555,13 +496,6 @@ class MetaDataHandler:
                 _("Meta data object with product id {p_id!r} does not exist!").format(p_id=product_id)
             )
 
-    def get_all_product_ids(self):  # type: () -> List[str]
-        # todo udm kann nicht einzelne attr abfragen -> Performance problem
-        return [o.product_id for o in self.get_all()]
-
-    def get_all_publishers(self):  # type: () -> Set[str]
-        return set(o.publisher for o in self.get_all())
-
 
 class AssignmentHandler:
     def __init__(self, lo):  # type: (LoType) -> None
@@ -572,14 +506,14 @@ class AssignmentHandler:
         self._lo = lo
         self.logger = logging.getLogger(__name__)
 
-    def get_license_of_assignment(self, dn):  # type: (str) -> UdmObject
+    def get_license_of_assignment(self, assignment_dn):  # type: (str) -> UdmObject
         """Return the udm object of the license which is placed
         above the assignment. This is like 'get_parent'."""
         try:
-            return self._licenses_mod.get(dn)
+            return self._licenses_mod.get(assignment_dn)
         except UdmNoObject:
             raise BiloLicenseNotFoundError(
-                _("There is no license for the assignment {dn!r}!").format(dn=dn)
+                _("There is no license for the assignment {dn!r}!").format(dn=assignment_dn)
             )
 
     def from_udm_obj(self, udm_obj):  # type: (UdmObject) -> Assignment
@@ -597,10 +531,6 @@ class AssignmentHandler:
             time_of_assignment=udm_obj.props.time_of_assignment,
             status=udm_obj.props.status,
         )
-
-    def from_dn(self, dn):  # type: (str) -> Assignment
-        udm_license = self._assignments_mod.get(dn)
-        return self.from_udm_obj(udm_license)
 
     def _get_all(self, base=None, filter_s=None):  # type: (str, str) -> List[UdmObject]
         return [o for o in self._assignments_mod.search(base=base, filter_s=filter_s)]
@@ -626,23 +556,10 @@ class AssignmentHandler:
         udm_user = self.get_user_by_username(username)
         return get_entry_uuid(self._lo, dn=udm_user.dn)
 
-    def get_assignments_for_product_id_for_user(self, username, product_id):
-        # type: (str, str) -> List[Assignment]
-        """get all assignments for a product, which are assigned to a user."""
-        user_entry_uuid = self._get_entry_uuid_by_username(username)
-        filter_s = filter_format("(product_id=%s)", [product_id])
-        udm_licenses = self._licenses_mod.search(filter_s)
-        assignments = []
-        for udm_license in udm_licenses:
-            assignments.extend(
-                self.get_all_assignments_for_user(assignee=user_entry_uuid, base=udm_license.dn)
-            )
-        return assignments
-
     @staticmethod
     def check_license_can_be_assigned_to_school_user(license_school, ucsschool_schools):
         # type: (str, List[str]) -> None
-        ucsschool_schools = [s.lower() for s in ucsschool_schools]
+        ucsschool_schools = {s.lower() for s in ucsschool_schools}
         if license_school.lower() not in ucsschool_schools:
             raise BiloAssignmentError(
                 _("License can't be assigned to user in schools {ous}!").format(ous=ucsschool_schools)
@@ -686,10 +603,10 @@ class AssignmentHandler:
     @staticmethod
     def check_license_type_is_correct(username, user_roles, license_type):
         # type: (str, List[str], str) -> None
-        # todo check if we need this in mvb, also make this more robust
+        # todo check if we need this in mvp, also make this more robust
         if license_type == "Lehrer":
             roles = [get_role_info(role)[0] for role in user_roles]
-            if "student" in roles:
+            if "teacher" not in roles:
                 raise BiloAssignmentError(
                     _(
                         "License with special type 'Lehrer' can't be assigned to user {username!r} with "
@@ -736,21 +653,24 @@ class AssignmentHandler:
         )
         if assigned_to_user:
             return True
-        available_licenses = self._get_available_assignments(udm_license.dn)
-        if not available_licenses:
+        available_assignments = self._get_available_assignments(udm_license.dn)
+        if not available_assignments:
             raise BiloAssignmentError(
                 _(
                     "No assignment left of license with code {license_code!r}. Failed to assign "
                     "{username!r}!"
                 ).format(license_code=license_code, username=username)
             )
-        udm_assignment = available_licenses[0]
+        udm_assignment = available_assignments[0]
         udm_assignment.props.status = Status.ASSIGNED
         udm_assignment.props.assignee = user_entry_uuid
         udm_assignment.props.time_of_assignment = datetime.date.today()
         udm_assignment.save()
         self.logger.debug(
-            "Assigned license %r (%d left) to %r.", license_code, len(available_licenses) - 1, username
+            "Assigned license %r (%d left) to %r.",
+            license_code,
+            len(available_assignments) - 1,
+            username,
         )
         return True
 
@@ -842,7 +762,7 @@ class AssignmentHandler:
 
     def get_assignment_for_user_under_license(self, license_dn, assignee):
         # type: (str, str)  -> UdmObject
-        """Search for license with license id and user with username and change the status
+        """Search for license with license id and user with entryUUID and change the status
         If a user has more than one license with license code under license_dn,
         we take the first license we can find."""
         filter_s = filter_format("(assignee=%s)", [assignee])

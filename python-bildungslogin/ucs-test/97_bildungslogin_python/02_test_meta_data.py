@@ -36,6 +36,8 @@
 import datetime
 from hashlib import sha256
 
+import pytest
+
 import univention.testing.strings as uts
 import univention.testing.ucsschool.ucs_test_school as utu
 from univention.bildungslogin.handlers import BiloAssignmentError
@@ -82,19 +84,6 @@ def test_save_meta_data(meta_data_handler, meta_data, ldap_base):
     meta_data.modified = datetime.date.today()
     meta_data_handler.save(meta_data)
     check_meta_data_is_correct(meta_data, ldap_base)
-
-
-def test_get_assignments_for_meta_data(license_handler, meta_data_handler, license_obj, meta_data):
-    """Test that license assignments are created with AVAILABLE status and have meta data"""
-    with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
-        license = license_obj(ou)
-        license.product_id = meta_data.product_id
-        license_handler.create(license)
-        assignments = meta_data_handler.get_assignments_for_meta_data(meta_data)
-        for assignment in assignments:
-            assert assignment.status == Status.AVAILABLE
-            assert assignment.license == license.license_code
 
 
 def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_licenses):
@@ -348,19 +337,6 @@ def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_dat
         )
 
 
-def test_get_all_product_ids(meta_data_handler, n_meta_data):
-    """Test that the value of all product ids in meta data are as expected"""
-    product_ids_expected = set()
-    for m in n_meta_data:
-        meta_data_handler.create(m)
-        product_ids_expected.add(m.product_id)
-    assert product_ids_expected.issubset(set(meta_data_handler.get_all_product_ids()))
-
-
-def test_get_all_publishers(meta_data_handler, n_meta_data):
-    """Test that the value of all publishers in meta data are as expected"""
-    publishers = []
-    for m in n_meta_data:
-        meta_data_handler.create(m)
-        publishers.append(m.publisher)
-    assert set(publishers).issubset(set(meta_data_handler.get_all_publishers()))
+@pytest.mark.xfail(reason="Not implemented yet.")
+def test_get_all():
+    raise NotImplementedError("Missing test for MetadataHandler.get_all()")

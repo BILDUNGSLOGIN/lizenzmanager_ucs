@@ -31,6 +31,7 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
 
+from typing import Dict, List
 
 from ldap.dn import explode_dn, is_dn
 
@@ -40,6 +41,7 @@ from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
 from univention.admin.syntax import iso8601Date
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
+from univention.bildungslogin.models import License
 from univention.bildungslogin.utils import LicenseType
 from univention.lib.i18n import Translation
 from univention.management.console.log import MODULE
@@ -133,7 +135,7 @@ class Instance(SchoolBaseModule):
         # school = request.options.get("school")
         license_code = request.options.get("licenseCode")
         lh = LicenseHandler(ldap_user_write)
-        license = lh.from_udm_obj(lh.get_udm_license_by_code(license_code))
+        license = lh.get_license_by_code(license_code)
         assigned_users = lh.get_assigned_users(license)
         for assigned_user in assigned_users:
             assigned_user["dateOfAssignment"] = iso8601Date.from_datetime(
@@ -141,9 +143,9 @@ class Instance(SchoolBaseModule):
             )
         meta_data = lh.get_meta_data_for_license(license)
         result = {
-            "countAquired": lh.get_total_number_of_assignments(license),
+            "countAquired": license.license_quantity,
             "countAssigned": lh.get_number_of_provisioned_and_assigned_assignments(license),
-            "countAvailable": lh.get_number_of_available_assignments(license),
+            "countAvailable": license.num_available,
             "countExpired": lh.get_number_of_expired_assignments(license),
             "ignore": license.ignored_for_display,
             "importDate": iso8601Date.from_datetime(license.delivery_date),
@@ -169,7 +171,7 @@ class Instance(SchoolBaseModule):
     def publishers(self, request, ldap_user_write=None):
         MODULE.info("licenses.publishers: options: %s" % str(request.options))
         mh = MetaDataHandler(ldap_user_write)
-        result = [{"id": p, "label": p} for p in mh.get_all_publishers()]
+        result = [{"id": md.publisher, "label": md.publisher} for md in mh.get_all()]
         MODULE.info("licenses.publishers: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -357,8 +359,9 @@ class Instance(SchoolBaseModule):
         filter_s = "(|(product_id={0})(title={0})(publisher={0}))".format(pattern)
         meta_data_objs = mh.get_all(filter_s)
         for meta_datum_obj in meta_data_objs:
-            licenses = mh.get_udm_licenses_by_product_id(meta_datum_obj.product_id)
-            licenses = [license for license in licenses if license.props.school == school]
+            # TODO: change lib mh.get_*() to take a license obj.: Currently the following code fetches
+            # the same license object 5 times from LDAP - inside a for loop of unknown length!!
+            licenses = mh.get_udm_licenses_by_product_id(meta_datum_obj.product_id, school)
             if licenses:
                 result.append(
                     {
@@ -397,12 +400,9 @@ class Instance(SchoolBaseModule):
         product_id = request.options.get("productId")
         mh = MetaDataHandler(ldap_user_write)
         lh = LicenseHandler(ldap_user_write)
-        meta_data = mh.get_meta_data_by_product_id(product_id)
-        meta_data = mh.from_udm_obj(meta_data)
-        licenses = mh.get_udm_licenses_by_product_id(meta_data.product_id)
-        licenses = [license for license in licenses if license.props.school == school]
-        licenses = [lh.from_udm_obj(license) for license in licenses]
-        licenses = [
+        licenses_udm = mh.get_udm_licenses_by_product_id(product_id, school)
+        licenses = [lh.from_udm_obj(license) for license in licenses_udm]  # type: List[License]
+        license_js_objs = [
             {
                 "licenseCode": license.license_code,
                 "licenseTypeLabel": LicenseType.label(license.license_type),
@@ -410,14 +410,16 @@ class Instance(SchoolBaseModule):
                 "validityEnd": iso8601Date.from_datetime(license.validity_end_date),
                 "validitySpan": str(license.validity_duration),
                 "ignore": _("Yes") if license.ignored_for_display else _("No"),
-                "countAquired": str(lh.get_total_number_of_assignments(license)),
-                "countAssigned": str(lh.get_number_of_provisioned_and_assigned_assignments(license)),
+                "countAquired": str(license.license_quantity),
+                "countAssigned": str(license.num_assigned),
                 "countExpired": str(lh.get_number_of_expired_assignments(license)),
-                "countAvailable": str(lh.get_number_of_available_assignments(license)),
+                "countAvailable": str(license.num_available),
                 "importDate": iso8601Date.from_datetime(license.delivery_date),
             }
             for license in licenses
-        ]
+        ]  # type: List[Dict[str, str]]
+        meta_data_udm = mh.get_meta_data_by_product_id(product_id)
+        meta_data = mh.from_udm_obj(meta_data_udm)
         result = {
             "title": meta_data.title,
             "productId": meta_data.product_id,
@@ -425,7 +427,7 @@ class Instance(SchoolBaseModule):
             "author": meta_data.author,
             "description": meta_data.description,
             "cover": meta_data.cover or meta_data.cover_small,
-            "licenses": licenses,
+            "licenses": license_js_objs,
         }
         MODULE.info("licenses.products.get: result: %s" % str(result))
         self.finished(request.id, result)

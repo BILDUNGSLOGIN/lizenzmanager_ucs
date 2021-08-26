@@ -59,6 +59,7 @@ class License(object):
     ignored_for_display = attr.ib()  # type: bool
     delivery_date = attr.ib()  # type: Optional[datetime.date]
     license_school = attr.ib()  # type: str
+    num_assigned = attr.ib(default=0)  # type: Optional[int]
     num_available = attr.ib(default=0)  # type: Optional[int]
 
     @property
