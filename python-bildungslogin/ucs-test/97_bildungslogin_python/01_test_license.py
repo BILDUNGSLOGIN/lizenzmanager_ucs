@@ -58,10 +58,10 @@ def test_license_type(license_obj):
     assert license.license_type == LicenseType.SINGLE
 
 
-def test_create(lo, license_handler, license_obj, ldap_base):
+def test_create(lo, license_handler, license_obj, ldap_base, hostname):
     """Test that a license assignment can be used once in atatus AVAILABLE and can not assigned multiple times."""
     with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
         license = license_obj(ou)
         license_handler.create(license)
         cn = sha256(license.license_code).hexdigest()
@@ -104,13 +104,15 @@ def test_get_assignments_for_license_with_filter():
     )
 
 
-def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment_handler, license_obj):
+def test_number_of_provisioned_and_assigned_licenses(
+    license_handler, assignment_handler, license_obj, hostname
+):
     """Test that the number of license assignments is the same as the number of selected teachers and students"""
     # the number of provisioned licenses is included in the number of assigned licenses
     num_students = 3
     num_teachers = 3
     with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
         student_usernames = [schoolenv.create_student(ou)[0] for _ in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for _ in range(num_teachers)]
         users = student_usernames + teacher_usernames
@@ -137,10 +139,10 @@ def test_number_of_provisioned_and_assigned_licenses(license_handler, assignment
         assert license.num_available == total_num - len(users)
 
 
-def test_get_number_of_expired_assignments(lo, license_handler, expired_license_obj):
+def test_get_number_of_expired_assignments(lo, license_handler, expired_license_obj, hostname):
     """Test that the number of expired license assignments is as expected"""
     with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
         expired_license = expired_license_obj(ou)
         license_handler.create(expired_license)
         license_obj = license_handler.get_udm_license_by_code(expired_license.license_code)
@@ -156,10 +158,10 @@ def test_get_number_of_expired_assignments(lo, license_handler, expired_license_
         assert license_handler.get_number_of_expired_assignments(expired_license) == expected_num
 
 
-def test_get_meta_data_for_license(license_handler, meta_data_handler, license_obj, meta_data):
+def test_get_meta_data_for_license(license_handler, meta_data_handler, license_obj, meta_data, hostname):
     """Test that for a license the meta data is available"""
     with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
         license = license_obj(ou)
         license.product_id = meta_data.product_id
         license_handler.create(license)

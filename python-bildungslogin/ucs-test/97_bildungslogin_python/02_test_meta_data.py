@@ -127,10 +127,10 @@ def test_save_meta_data(meta_data_handler, meta_data, ldap_base):
     check_meta_data_is_correct(meta_data, ldap_base)
 
 
-def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_licenses):
+def test_total_number_licenses(license_handler, meta_data_handler, meta_data, n_licenses, hostname):
     """Test that the total number of licenses in meta data backend is as expected without ignored licenses"""
     with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
         total_amount_of_licenses_for_product = 0
         for lic in n_licenses(ou):
             # comment: we do not have to create the actual meta-data object for this.
@@ -159,6 +159,7 @@ def test_product_license_numbers(
     meta_data_handler,
     meta_data,
     assignment_handler,
+    hostname,
 ):
     """
     Test to create a MetaData object and all combinations of licenses with the following properties in
@@ -174,11 +175,11 @@ def test_product_license_numbers(
     # - expired is False
     """
     with utu.UCSTestSchool() as schoolenv:
-        ou_related, _ = schoolenv.create_ou()
+        ou_related, _ = schoolenv.create_ou(name_edudc=hostname)
         ou_unrelated = uts.random_name()
         while ou_related == ou_unrelated:
             ou_unrelated = uts.random_name()
-        ou_unrelated, _ = schoolenv.create_ou(ou_unrelated)
+        ou_unrelated, _ = schoolenv.create_ou(ou_unrelated, name_edudc=hostname)
         product_id_related = "xxx"
         product_id_unrelated = "yyy"
         meta_data.product_id = product_id_related
@@ -321,12 +322,13 @@ def test_number_of_provisioned_and_assigned_licenses(
     assignment_handler,
     meta_data,
     license_obj,
+    hostname,
 ):
     """Test the number of provisioned licenses is included in the number of assigned licenses"""
     num_students = 3
     num_teachers = 3
     with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
         student_usernames = [schoolenv.create_student(ou)[0] for i in range(num_students)]
         teacher_usernames = [schoolenv.create_teacher(ou)[0] for i in range(num_teachers)]
         users = student_usernames + teacher_usernames
@@ -364,11 +366,13 @@ def test_number_of_provisioned_and_assigned_licenses(
         )
 
 
-def test_number_of_expired_licenses(license_handler, meta_data_handler, meta_data, n_expired_licenses):
+def test_number_of_expired_licenses(
+    license_handler, meta_data_handler, meta_data, n_expired_licenses, hostname
+):
     """Test the number of expired licenses is as expected"""
     total_amount_of_licenses_for_product = 0
     with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
         # an assignment is not expired if end_date + duration < today
         for lic in n_expired_licenses(ou):
             lic.product_id = meta_data.product_id

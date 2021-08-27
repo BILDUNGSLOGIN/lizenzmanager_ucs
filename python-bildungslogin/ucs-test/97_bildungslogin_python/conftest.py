@@ -280,5 +280,10 @@ def ucr():
 
 
 @pytest.fixture
+def hostname(ucr):
+    return ucr.get("hostname")
+
+
+@pytest.fixture
 def ldap_base(ucr):
     return ucr["ldap/base"]

@@ -30,7 +30,7 @@
 ## desc: Test the cli bilo license import
 ## exposure: dangerous
 ## tags: [bildungslogin]
-## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
+## roles: [domaincontroller_master, domaincontroller_backup]
 ## packages: [python-bildungslogin, udm-bildungslogin-encoders]
 
 import json
@@ -41,7 +41,7 @@ from ldap.filter import filter_format
 import univention.testing.ucsschool.ucs_test_school as utu
 
 
-def test_cli_import(license_file, license_handler, lo):
+def test_cli_import(license_file, license_handler, lo, hostname):
     """Test that a license can be imported by the CLI tool bildungslogin-license-import"""
     with open(str(license_file), "r") as license_file_fd:
         licenses_raw = json.load(license_file_fd)
@@ -51,7 +51,7 @@ def test_cli_import(license_file, license_handler, lo):
     )
     print("filter for licenses: {}".format(filter_s))
     with utu.UCSTestSchool() as schoolenv:
-        ou, _ = schoolenv.create_ou()
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
         try:
             subprocess.check_call(
                 [

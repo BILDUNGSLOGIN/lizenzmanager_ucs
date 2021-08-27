@@ -30,7 +30,7 @@
 ## desc: Test the cli bilo metadata import
 ## exposure: dangerous
 ## tags: [bildungslogin]
-## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
+## roles: [domaincontroller_master, domaincontroller_backup]
 ## packages: [python-bildungslogin, udm-bildungslogin-encoders]
 
 import datetime
