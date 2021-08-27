@@ -132,6 +132,9 @@ def create_license(udm):
 @pytest.fixture(scope="session")
 def scramble_case():
     def _func(text):  # type: (str) -> str
-        return "".join(random.choice((str.lower, str.upper))(t) for t in text)
+        result = text
+        while result == text:
+            result = "".join(random.choice((str.lower, str.upper))(t) for t in text)
+        return result
 
     return _func
