@@ -33,10 +33,12 @@
 ## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]
 ## packages: [python-bildungslogin]
 
+import os.path
+
 import pytest
 
 
 def test_unittests():
     """Execute unittests"""
-    retcode = pytest.main(["-lvvx", "unittests"])
+    retcode = pytest.main(["-lvvx", os.path.join(os.path.dirname(__file__), "unittests")])
     assert retcode == 0

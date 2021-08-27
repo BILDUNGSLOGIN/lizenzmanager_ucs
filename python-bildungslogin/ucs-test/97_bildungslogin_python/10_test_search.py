@@ -38,7 +38,6 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 import pytest
-from conftest import get_license, get_meta_data
 
 from ucsschool.lib.models.user import Student
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
@@ -65,6 +64,8 @@ def test_user(lo_module, ou):
 
 @pytest.fixture(scope="module")
 def single_license(
+    get_license,
+    get_meta_data,
     lo_module,
     ou,
     test_user,
@@ -88,6 +89,8 @@ def single_license(
 
 @pytest.fixture(scope="module")
 def volume_license(
+    get_license,
+    get_meta_data,
     lo_module,
     ou,
     test_user,

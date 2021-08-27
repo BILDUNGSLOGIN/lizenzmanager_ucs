@@ -41,11 +41,11 @@ import pytest
 import univention.testing.strings as uts
 import univention.testing.ucsschool.ucs_test_school as utu
 import univention.testing.utils as utils
-from univention.config_registry import ConfigRegistry
 from univention.admin.uexceptions import noObject
 from univention.admin.uldap import access as uldap_access
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.bildungslogin.models import License, MetaData
+from univention.config_registry import ConfigRegistry
 from univention.testing.ucr import UCSTestConfigRegistry
 
 
@@ -71,50 +71,59 @@ def product_id():
     )
 
 
-def get_license(ou):  # type: (str) -> License
-    today = datetime.date.today()
-    start = today + datetime.timedelta(days=random.randint(0, 365))
-    duration = "Unbeschränkt"
-    end = start + datetime.timedelta(days=random.randint(0, 365))
-    provider = uts.random_username()
-    return License(
-        license_code="{}-{}".format(provider, str(uuid.uuid4())),
-        product_id=product_id(),
-        license_quantity=random.randint(2, 10),
-        license_provider=provider,
-        purchasing_reference=today.isoformat(),  # could be just a random string
-        utilization_systems=uts.random_username(),
-        validity_start_date=start,
-        validity_end_date=end,
-        validity_duration=duration,
-        license_special_type="",
-        ignored_for_display=False,
-        delivery_date=today,
-        license_school=ou,
-    )
+@pytest.fixture(scope="session")
+def get_license():
+    def _func(ou):  # type: (str) -> License
+        today = datetime.date.today()
+        start = today + datetime.timedelta(days=random.randint(0, 365))
+        duration = "Unbeschränkt"
+        end = start + datetime.timedelta(days=random.randint(0, 365))
+        provider = uts.random_username()
+        return License(
+            license_code="{}-{}".format(provider, str(uuid.uuid4())),
+            product_id=product_id(),
+            license_quantity=random.randint(2, 10),
+            license_provider=provider,
+            purchasing_reference=today.isoformat(),  # could be just a random string
+            utilization_systems=uts.random_username(),
+            validity_start_date=start,
+            validity_end_date=end,
+            validity_duration=duration,
+            license_special_type="",
+            ignored_for_display=False,
+            delivery_date=today,
+            license_school=ou,
+        )
+
+    return _func
 
 
-def get_expired_license(ou):
+@pytest.fixture(scope="session")
+def get_expired_license(get_license):
     """the validity_end_date < today"""
-    today = datetime.date.today()
-    duration = "Ein Schuljahr"
-    start = today - datetime.timedelta(days=random.randint(2, 365))
-    license = get_license(ou)
-    license.validity_start_date = start
-    license.validity_end_date = today - datetime.timedelta(1)
-    license.validity_duration = duration
-    return license
+
+    def _func(ou):
+        today = datetime.date.today()
+        duration = "Ein Schuljahr"
+        start = today - datetime.timedelta(days=random.randint(2, 365))
+        license = get_license(ou)
+        license.validity_start_date = start
+        license.validity_end_date = today - datetime.timedelta(1)
+        license.validity_duration = duration
+        return license
+
+    return _func
 
 
-@pytest.fixture(scope="function")
-def expired_license_obj():
+@pytest.fixture(scope="session")
+def expired_license_obj(get_expired_license):
     def _func(ou):
         return get_expired_license(ou)
 
     return _func
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def n_expired_licenses(expired_license_obj):
     def _func(ou):
         n = random.randint(1, 10)
@@ -123,16 +132,16 @@ def n_expired_licenses(expired_license_obj):
     return _func
 
 
-@pytest.fixture(scope="function")
-def license_obj():
+@pytest.fixture(scope="session")
+def license_obj(get_license):
     def _func(ou):  # type: (str) -> License
         return get_license(ou)
 
     return _func
 
 
-@pytest.fixture(scope="function")
-def n_licenses():
+@pytest.fixture(scope="session")
+def n_licenses(get_license):
     def _func(ou):
         n = random.randint(1, 10)
         return [get_license(ou) for _ in range(n)]
@@ -140,26 +149,30 @@ def n_licenses():
     return _func
 
 
+@pytest.fixture(scope="session")
 def get_meta_data():
-    return MetaData(
-        product_id=uts.random_name(),
-        title=uts.random_name(),
-        description="some description",
-        author=uts.random_name(),
-        publisher=uts.random_name(),
-        cover=uts.random_name(),
-        cover_small=uts.random_name(),
-        modified=datetime.date.today(),
-    )
+    def _func():
+        return MetaData(
+            product_id=uts.random_name(),
+            title=uts.random_name(),
+            description="some description",
+            author=uts.random_name(),
+            publisher=uts.random_name(),
+            cover=uts.random_name(),
+            cover_small=uts.random_name(),
+            modified=datetime.date.today(),
+        )
+
+    return _func
 
 
-@pytest.fixture(scope="function")
-def meta_data():
+@pytest.fixture
+def meta_data(get_meta_data):
     return get_meta_data()
 
 
-@pytest.fixture(scope="function")
-def n_meta_data():
+@pytest.fixture
+def n_meta_data(get_meta_data):
     n = random.randint(1, 10)
     return [get_meta_data() for _ in range(n)]
 

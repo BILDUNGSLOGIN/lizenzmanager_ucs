@@ -41,7 +41,48 @@ A [Jenkins Job](https://jenkins.knut.univention.de:8181/job/Customers/job/172906
   - `announce_ucs_customer_scope --skip-tag -c 172906 -r 4.4-0 -s bildungslogin`
   - `sudo update_customer_mirror.sh 172906`
 
-# Debuging
+# Debugging
+
+TODO
+
+## Development
+
+### Coverage
+
+#### in host
+
+Create a `.coveragerc` with the following content:
+
+```ini
+[run]
+branch = False
+parallel = True
+source = univention.bildungslogin
+        univention.udm.modules
+        univention.admin.handlers.bildungslogin
+[report]
+ignore_errors = False
+show_missing = True
+omit = handlers/ucstest
+        syntax.d/*
+        hooks.d/*
+include = /usr/lib/python2.7/dist-packages/univention/bildungslogin/*
+        /usr/lib/python2.7/dist-packages/univention/admin/handlers/bildungslogin/*.py
+        /usr/lib/python2.7/dist-packages/univention/udm/modules/bildungslogin_*.py
+```
+
+Then run (from the directory where `.coveragerc` is):
+
+```bash
+python -m coverage run /usr/bin/pytest -lvvx /usr/share/ucs-test/*_bildungslogin_*/*_*.py && \
+  python -m coverage combine && \
+  python -m coverage report && \
+  python -m coverage html --directory=./htmlcov
+```
+
+#### in Docker container
+
+TODO
 
 ## Beispiel Lizenzzuweisung
 
