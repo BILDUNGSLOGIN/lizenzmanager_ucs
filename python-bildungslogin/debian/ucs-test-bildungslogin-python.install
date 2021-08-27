@@ -1,1 +1,2 @@
 ucs-test usr/share
+tests/* usr/share/ucs-test/97_bildungslogin_python/unittests
