@@ -1,5 +1,28 @@
 # Changelog
 
+## 2021-08-27
+
+## Hinzugefügt
+- Validierung der Medienmetadaten.
+- Validierung der Lizenzdaten.
+
+### Geändert
+- Die Anzeige im UMC-Modul ***Medienlizenzen anzeigen*** wurde beschleunigt.
+- In LDAP-Attributen und UDM-Modulen wurde `vbm` zu `bildungslogin` umbenannt.
+- Über das UMC-Modul ***Medienlizenzen zuweisen*** lassen sich jetzt Lizenzen zuweisen.
+- Die Detailansicht im UMC-Modul ***Lizenzierte Medien*** enthält jetzt Daten zu den Lizenzen, Medien und zugewiesenen Nutzern.
+- Das Joinscript `39bildungslogin-plugin-openapi-client.inst` muss nicht mehr doppelt ausgeführt werden.
+- Die Suche nach `Produkt ID`, `Lizenz Code` und `Schulen` ist jetzt case insensitive.
+- Lizenzen ohne Laufzeitende erzeugen keinen Fehler mehr und werden nicht als verfallen angezeigt.
+- Die Deinstallationsskripte wurden verbessert. Zur restlosen Entfernung aller Daten, wird eine Anleitung zur Verfügung gestellt.
+
+### Anmerkung: Umbenennung `vbm` zu `bildungslogin`
+
+Wenn ein bereits installiertes System aktualisiert werden soll, sind die Hinweise im [Getting started](getting_started.md) zu beachten.
+
+Auf dem von uns zur Verfügung gestelltem System sind diese Schritte bereits durchgeführt.
+Dort sind keine weiteren Schritte erforderlich.
+
 ## 2021-08-20
 
 ### Hinzugefügt
