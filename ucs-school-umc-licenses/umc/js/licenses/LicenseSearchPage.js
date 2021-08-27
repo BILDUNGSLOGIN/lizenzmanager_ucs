@@ -221,6 +221,7 @@ define([
 				type: TextBox,
 				name: 'userPattern',
 				label: _('User identification'),
+				description: _("Search for licenses that have this user assigned. (Searches for 'first name', 'last name' and 'username')"),
 				size: 'TwoThirds',
 				visible: false,
 			}, {

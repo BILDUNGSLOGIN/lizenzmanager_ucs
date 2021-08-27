@@ -96,7 +96,7 @@ define([
 					school: this.schoolId,
 				},
 				label: _('Class'),
-				// description: 'asd',
+				description: _('Select a class or enter free text (e.g. a part of a class name)'),
 				size: 'TwoThirds',
 			}, {
 				type: ComboBox,
