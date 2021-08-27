@@ -37,9 +37,22 @@ import datetime
 import random
 import uuid
 
+import pytest
+
 import univention.testing.ucsschool.ucs_test_school as utu
+from univention.config_registry import ConfigRegistry
 from univention.testing.utils import verify_ldap_object
 from univention.udm.base import BaseObject
+
+ucr = ConfigRegistry()
+ucr.load()
+
+# verify_ldap_object does not support connecting to the LDAP on the primary node. Since
+# licenses and assignments are never replicated to replication nodes, this tests would fail.
+pytestmark = pytest.mark.skipif(
+    not ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"],
+    reason="Does not run on replication nodes",
+)
 
 
 def test_bildungslogin_assignment(create_license, udm):
