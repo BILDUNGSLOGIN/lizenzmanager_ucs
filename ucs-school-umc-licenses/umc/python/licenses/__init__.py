@@ -33,16 +33,17 @@
 
 from typing import Dict, List
 
-from ldap.dn import explode_dn, is_dn
+from ldap.dn import is_dn
+from ldap.filter import escape_filter_chars
 
-from ucsschool.lib.models.group import WorkGroup
+from ucsschool.lib.models.group import SchoolClass, WorkGroup
 from ucsschool.lib.models.user import User
 from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
 from univention.admin.syntax import iso8601Date
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
 from univention.bildungslogin.models import License
-from univention.bildungslogin.utils import LicenseType
+from univention.bildungslogin.utils import LicenseType, ldap_escape
 from univention.lib.i18n import Translation
 from univention.management.console.log import MODULE
 from univention.management.console.modules.decorators import sanitize
@@ -50,7 +51,6 @@ from univention.management.console.modules.sanitizers import (
     BooleanSanitizer,
     LDAPSearchSanitizer,
     ListSanitizer,
-    PatternSanitizer,
     StringSanitizer,
 )
 from univention.udm import UDM
@@ -281,45 +281,35 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.query: options: %s" % str(request.options))
         udm = UDM(ldap_user_write).version(1)
         users_mod = udm.get("users/user")
-        groups_mod = udm.get("groups/group")
         school = request.options.get("school")
         pattern = request.options.get("pattern")
         workgroup = request.options.get("workgroup")
-        users_filter = (
-            "(&"
-            "(school={school})"
-            "(|"
-            "(firstname={pattern})"
-            "(lastname={pattern})"
-            "(username={pattern})"
-            ")"
-            ")"
-        ).format(school=school, pattern=pattern)
-        if workgroup == "__all__":
-            users = list(users_mod.search(users_filter))
-        else:
-            users = []
-            group = groups_mod.get(workgroup)
-            for user_dn in group.props.users:
-                users.extend(list(users_mod.search(users_filter, base=user_dn)))
+        parts = [
+            "(school={})".format(escape_filter_chars(school)),
+            "(|(firstname={0})(lastname={0})(username={0}))".format(pattern),
+        ]
+        if workgroup != "__all__":
+            parts.append("(memberOf={})".format(escape_filter_chars(workgroup)))
         klass = request.options.get("class")
         if klass != "__all__":
             if is_dn(klass):
-                users = [user for user in users if klass in user.props.groups]
+                parts.append("(memberOf={})".format(escape_filter_chars(klass)))
             else:
-                klass_pattern = PatternSanitizer().sanitize("p", {"p": klass})
-                _users = []
-
-                def _maybe_add_user(user):
-                    for group_dn in user.props.groups:
-                        cn = explode_dn(group_dn, notypes=True)[0]
-                        if klass_pattern.match(cn):
-                            _users.append(user)
-                            return
-
-                for user in users:
-                    _maybe_add_user(user)
-                users = _users
+                klass = LDAPSearchSanitizer().sanitize("p", {"p": klass})
+                filter_s = "(name={school}-{klass})".format(
+                    school=escape_filter_chars(school), klass=ldap_escape(klass)
+                )
+                class_dns = [cls.dn for cls in SchoolClass.get_all(ldap_user_write, school, filter_s)]
+                if class_dns:
+                    parts.append(
+                        "(|{})".format(
+                            "".join(["(memberOf={})".format(class_dn) for class_dn in class_dns])
+                        )
+                    )
+                else:
+                    return []
+        users_filter = "(&{})".format("".join(parts))
+        users = users_mod.search(users_filter)
         workgroups = {wg.dn: wg.name for wg in WorkGroup.get_all(ldap_user_write, school)}
         prefix = school + "-"
         result = [
@@ -330,9 +320,9 @@ class Instance(SchoolBaseModule):
                 "class": ", ".join(
                     [
                         _cls[len(prefix) :] if _cls.startswith(prefix) else _cls
-                        for _cls in User.from_dn(user.dn, school, ldap_user_write).school_classes.get(
-                            school, []
-                        )
+                        for _cls in User.from_udm_obj(
+                            user._orig_udm_object, school, ldap_user_write
+                        ).school_classes.get(school, [])
                     ]
                 ),
                 "workgroup": ", ".join(
