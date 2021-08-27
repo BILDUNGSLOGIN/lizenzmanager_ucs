@@ -75,7 +75,6 @@ def test_unique_product_ids_case_insensitive(create_metadata, scramble_case):
     in a case insensitive way."""
     product_id = uts.random_name()
     product_id_other_case = scramble_case(product_id)
-    assert product_id != product_id_other_case
     create_metadata(product_id, datetime.date(2000, 1, 1))
     with pytest.raises(CreateError) as exinfo:
         create_metadata(product_id_other_case, datetime.date(2000, 1, 2))

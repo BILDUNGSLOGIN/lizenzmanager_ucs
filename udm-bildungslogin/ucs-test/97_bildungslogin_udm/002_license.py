@@ -58,7 +58,6 @@ def test_license_code_insensitive(create_license, scramble_case):
     """Test that for a license the product id has to be unique in a case insensitive way."""
     code = uts.random_name()
     code_other_case = scramble_case(code)
-    assert code != code_other_case
     create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
     with pytest.raises(CreateError) as exinfo:
         create_license(code_other_case, "PRODUCT_ID", 22, "DEMOSCHOOL")
