@@ -176,22 +176,18 @@ def parse_args(args=None):  # type: (Optional[List[str]]) -> argparse.Namespace
 
 
 def main():  # type: () -> None
-    args = parse_args()
-    config = get_config(args)
-    lo, _ = getAdminConnection()
-    import_all_media_data(
-        lo,
-        config["client_id"],
-        config["client_secret"],
-        config["scope"],
-        config["auth_server"],
-        config["resource_server"],
-        args.product_ids,
-    )
-
-
-if __name__ == "__main__":
     try:
-        main()
+        args = parse_args()
+        config = get_config(args)
+        lo, _ = getAdminConnection()
+        import_all_media_data(
+            lo,
+            config["client_id"],
+            config["client_secret"],
+            config["scope"],
+            config["auth_server"],
+            config["resource_server"],
+            args.product_ids,
+        )
     except ScriptError as err:
         print("Error: %s" % (err,), file=sys.stderr)
