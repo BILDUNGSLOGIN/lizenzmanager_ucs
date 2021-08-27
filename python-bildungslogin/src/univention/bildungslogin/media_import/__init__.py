@@ -35,7 +35,7 @@ from copy import deepcopy
 from typing import Any, Dict, List
 
 import requests
-from jsonschema import validate
+from jsonschema import ValidationError, validate
 
 from univention.bildungslogin.handlers import BiloCreateError, BiloProductNotFoundError, MetaDataHandler
 from univention.bildungslogin.models import MetaData
@@ -180,7 +180,12 @@ def retrieve_media_feed(access_token, resource_server, modified_after):
 def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
     if raw_media_data["status"] == 200:
         data = cleaned_data(raw_media_data)
-        validate(instance=data, schema=MEDIA_SCHEMA)
+        try:
+            validate(instance=data, schema=MEDIA_SCHEMA)
+        except ValidationError as exc:
+            raise MediaImportError(
+                "Downloaded json does not conform to required json format: {}".format(exc.message)
+            )
         try:
             return MetaData(
                 product_id=data["id"],
@@ -188,10 +193,8 @@ def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
                 description=data.get("description", ""),
                 author=data.get("author", ""),
                 publisher=data["publisher"],
-                cover=data["cover"][
-                    "href"
-                ],  # TODO what does data['cover'] look like if there is no cover
-                cover_small=data["coverSmall"]["href"],
+                cover=data.get("cover", {}).get("href", ""),
+                cover_small=data.get("coverSmall", {}).get("href", ""),
                 modified=datetime.datetime.utcfromtimestamp(data["modified"] // 1000).date(),
             )
         except (KeyError, ValueError) as exc:

@@ -58,7 +58,6 @@ def import_multiple_raw_media_data(meta_data_handler, raw_media_data):
         try:
             import_single_media_data(meta_data_handler, raw_data)
         except MediaImportError as exc:
-            print(raw_data)
             import_errors.append(
                 "%s -- %s"
                 % (
