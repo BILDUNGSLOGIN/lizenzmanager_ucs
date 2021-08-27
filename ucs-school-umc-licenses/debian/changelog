@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.11) unstable; urgency=medium
+
+  * Issue #19: fix umc request not finishing
+
+ -- Johannes Keiser <keiser@univention.de>  Fri, 27 Aug 2021 15:03:16 +0200
+
 ucs-school-umc-licenses (0.1.10) unstable; urgency=medium
 
   * Issue #19: fix search for classes and simplify search

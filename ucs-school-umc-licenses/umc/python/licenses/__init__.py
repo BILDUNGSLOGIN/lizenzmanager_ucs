@@ -307,7 +307,8 @@ class Instance(SchoolBaseModule):
                         )
                     )
                 else:
-                    return []
+                    MODULE.info("licenses.query: result: %s" % str([]))
+                    self.finished(request.id, [])
         users_filter = "(&{})".format("".join(parts))
         users = users_mod.search(users_filter)
         workgroups = {wg.dn: wg.name for wg in WorkGroup.get_all(ldap_user_write, school)}
