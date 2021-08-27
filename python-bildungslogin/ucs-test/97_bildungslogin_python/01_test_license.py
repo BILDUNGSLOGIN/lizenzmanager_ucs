@@ -42,11 +42,15 @@ import pytest
 import univention.testing.ucsschool.ucs_test_school as utu
 from univention.bildungslogin.handlers import BiloCreateError
 from univention.bildungslogin.utils import LicenseType, Status
+from univention.config_registry import ConfigRegistry
 from univention.testing.utils import verify_ldap_object
 from univention.udm import UDM
 
 if TYPE_CHECKING:
     from univention.bildungslogin.models import License
+
+ucr = ConfigRegistry()
+ucr.load()
 
 
 def test_license_type(license_obj):
@@ -58,6 +62,10 @@ def test_license_type(license_obj):
     assert license.license_type == LicenseType.SINGLE
 
 
+@pytest.mark.skipif(
+    not ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"],
+    reason="Does not run on replication nodes",
+)
 def test_create(lo, license_handler, license_obj, ldap_base, hostname):
     """Test that a license assignment can be used once in atatus AVAILABLE and can not assigned multiple times."""
     with utu.UCSTestSchool() as schoolenv:
@@ -177,6 +185,10 @@ def test_get_meta_data_for_license(license_handler, meta_data_handler, license_o
         assert meta_data.modified == meta_data.modified
 
 
+@pytest.mark.skipif(
+    not ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"],
+    reason="Does not run on replication nodes",
+)
 def test_set_license_ignore(license_handler, assignment_handler, license_obj, ldap_base):
     """Test that a license can be set to ignored and can not assigned afterwards"""
     with utu.UCSTestSchool() as schoolenv:

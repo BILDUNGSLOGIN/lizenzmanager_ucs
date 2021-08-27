@@ -43,13 +43,21 @@ import univention.testing.strings as uts
 import univention.testing.ucsschool.ucs_test_school as utu
 from univention.bildungslogin.handlers import BiloAssignmentError
 from univention.bildungslogin.utils import Status
+from univention.config_registry import ConfigRegistry
 from univention.testing.utils import verify_ldap_object
 
 if TYPE_CHECKING:
     from univention.bildungslogin.handlers import MetaDataHandler
     from univention.bildungslogin.models import MetaData
 
+ucr = ConfigRegistry()
+ucr.load()
 
+
+@pytest.mark.skipif(
+    not ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"],
+    reason="Does not run on replication nodes",
+)
 def check_meta_data_is_correct(meta_data_obj, ldap_base):
     cn = sha256(meta_data_obj.product_id).hexdigest()
     expected_attr = {
