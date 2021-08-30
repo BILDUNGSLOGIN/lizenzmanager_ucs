@@ -37,8 +37,6 @@ import datetime
 import random
 import uuid
 
-import pytest
-
 import univention.testing.ucsschool.ucs_test_school as utu
 from univention.config_registry import ConfigRegistry
 from univention.testing.utils import verify_ldap_object
@@ -46,13 +44,6 @@ from univention.udm.base import BaseObject
 
 ucr = ConfigRegistry()
 ucr.load()
-
-# verify_ldap_object does not support connecting to the LDAP on the primary node. Since
-# licenses and assignments are never replicated to replication nodes, this tests would fail.
-pytestmark = pytest.mark.skipif(
-    not ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"],
-    reason="Does not run on replication nodes",
-)
 
 
 def test_bildungslogin_assignment(create_license, udm):
@@ -73,6 +64,7 @@ def test_bildungslogin_assignment(create_license, udm):
                 "univentionObjectType": ["bildungslogin/assignment"],
                 "bildungsloginAssignmentStatus": [assignment.props.status],
             },
+            primary=True,
         )
 
         assignment.props.status = "ASSIGNED"
@@ -90,6 +82,7 @@ def test_bildungslogin_assignment(create_license, udm):
                     assignment.props.time_of_assignment.strftime("%Y-%m-%d")
                 ],
             },
+            primary=True,
         )
 
 
@@ -119,6 +112,7 @@ def test_bildungslogin_license(create_license, udm):
                     license_obj.props.validity_start_date.strftime("%Y-%m-%d")
                 ],
             },
+            primary=True,
         )
 
         # test UDM conversion for virtual properties
@@ -166,4 +160,5 @@ def test_bildungslogin_metadata(create_metadata, udm):
             "bildungsloginMetaDataTitle": [metadate_obj.props.title],
             "bildungsloginProductId": [metadate_obj.props.product_id],
         },
+        primary=True,
     )

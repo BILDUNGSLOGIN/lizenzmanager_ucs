@@ -38,8 +38,8 @@ Depends:
  ${misc:Depends},
  python-pytest,
  python-univention-directory-manager (>= 14.0.20-14),
- ucs-test-framework,
- ucs-test-ucsschool,
+ ucs-test-framework (>= 9.0.7-57),
+ ucs-test-ucsschool (>= 6.0.242),
  udm-bildungslogin-encoders (= ${binary:Version}),
 Description: test the udm modules for bildungslogin
  .

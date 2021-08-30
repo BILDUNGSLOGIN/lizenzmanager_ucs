@@ -50,8 +50,8 @@ Package: ucs-test-bildungslogin-python
 Architecture: all
 Depends:
  ${misc:Depends},
- ucs-test-framework,
- ucs-test-ucsschool,
+ ucs-test-framework (>= 9.0.7-57),
+ ucs-test-ucsschool (>= 6.0.242),
  python-pytest,
  python-bildungslogin,
  udm-bildungslogin-encoders,
