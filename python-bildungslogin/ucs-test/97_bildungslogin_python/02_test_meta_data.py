@@ -115,12 +115,20 @@ def get_number_of_expired_assignments(meta_data_handler, meta_data, school=None)
     return sum(udm_license.props.num_expired for udm_license in licenses_of_product)
 
 
+@pytest.mark.skipif(
+    not ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"],
+    reason="Does not run on replication nodes",
+)
 def test_create_meta_data(meta_data_handler, meta_data, ldap_base):
     """Test that meta data can be created"""
     meta_data_handler.create(meta_data)
     check_meta_data_is_correct(meta_data, ldap_base)
 
 
+@pytest.mark.skipif(
+    not ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"],
+    reason="Does not run on replication nodes",
+)
 def test_save_meta_data(meta_data_handler, meta_data, ldap_base):
     """Test that meta data can be saved"""
     meta_data_handler.create(meta_data)
