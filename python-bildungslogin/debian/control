@@ -53,6 +53,7 @@ Depends:
  ucs-test-framework (>= 9.0.7-57),
  ucs-test-ucsschool (>= 6.0.242),
  python-pytest,
+ python-pytest-cov,
  python-bildungslogin,
  udm-bildungslogin-encoders,
 Description: test the python libs for bildungslogin

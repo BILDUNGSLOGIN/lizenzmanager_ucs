@@ -1,0 +1,15 @@
+[run]
+branch = False
+parallel = True
+source = univention.bildungslogin
+        univention.udm.modules
+        univention.admin.handlers.bildungslogin
+[report]
+ignore_errors = False
+show_missing = True
+omit = handlers/ucstest
+        syntax.d/*
+        hooks.d/*
+include = /usr/lib/python2.7/dist-packages/univention/bildungslogin/*
+        /usr/lib/python2.7/dist-packages/univention/admin/handlers/bildungslogin/*.py
+        /usr/lib/python2.7/dist-packages/univention/udm/modules/bildungslogin_*.py

@@ -1,4 +1,4 @@
-#!/usr/share/ucs-test/runner /usr/bin/py.test -slv
+#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv --cov-config=.coveragerc --cov-report=
 # -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH

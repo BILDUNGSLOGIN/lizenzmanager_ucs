@@ -5,7 +5,7 @@
 ## packages: [bildungslogin-plugin]
 
 APP="ucsschool-apis"
-CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/; python3 -m pytest -lvvx --cov=bildungslogin_plugin --cov-append --cov-report=term-missing --cov-report=html:/var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/tests/covhtml tests/integration_tests"
+CMD="cd /var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/; python3 -m pytest -lvvx --cov=bildungslogin_plugin --cov-append --cov-report=term-missing --cov-report=html:/var/lib/univention-appcenter/apps/$APP/data/plugins/bildungslogin-plugin/tests/coverage-docker-html tests/integration_tests"
 
 echo "Running in container: sh -c \"$CMD\""
 

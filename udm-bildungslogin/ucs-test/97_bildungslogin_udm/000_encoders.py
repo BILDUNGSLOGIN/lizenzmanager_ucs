@@ -1,4 +1,4 @@
-#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv
+#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv --cov-config=.coveragerc --cov-append --cov-report=
 # -*- coding: utf-8 -*-
 ## desc: Test simple UDM API encoders for bildungslogin/*
 ## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]

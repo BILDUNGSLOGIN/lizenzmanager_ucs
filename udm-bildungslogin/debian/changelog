@@ -1,3 +1,9 @@
+udm-bildungslogin (0.2.6) unstable; urgency=low
+
+  * Issue #78: create coverage report
+
+ -- Daniel Troeder <troeder@univention.de>  Mon, 30 Aug 2021 15:30:06 +0200
+
 udm-bildungslogin (0.2.5) unstable; urgency=low
 
   * Bug #53717: connect to primary when using verify_ldap_object()

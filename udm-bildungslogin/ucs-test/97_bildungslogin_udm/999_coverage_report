@@ -1,0 +1,9 @@
+#!/usr/share/ucs-test/runner bash
+## desc: create coverage reports
+## exposure: safe
+
+set -x
+
+python -m coverage combine ../97_bildungslogin_python/ .
+python -m coverage report
+python -m coverage html --directory=/tmp/coverage-host-html
