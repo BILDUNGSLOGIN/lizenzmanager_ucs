@@ -41,7 +41,7 @@ import pytest
 
 import univention.testing.ucsschool.ucs_test_school as utu
 from univention.bildungslogin.handlers import BiloCreateError
-from univention.bildungslogin.utils import LicenseType, Status
+from univention.bildungslogin.utils import LicenseType, Status, get_entry_uuid
 from univention.testing.utils import verify_ldap_object
 from univention.udm import UDM
 
@@ -98,11 +98,25 @@ def test_create(lo, license_handler, license_obj, ldap_base, hostname):
             license_handler.create(license)
 
 
-@pytest.mark.xfail(reason="Not implemented yet.")
-def test_get_assignments_for_license_with_filter():
-    raise NotImplementedError(
-        "Missing test for LicenseHandler.get_assignments_for_license_with_filter()"
-    )
+def test_get_assignments_for_license_with_filter(
+    license_handler, assignment_handler, license_obj, hostname, lo
+):
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
+        user_name, user_dn = schoolenv.create_student(ou)
+        user_entryuuid = get_entry_uuid(lo, user_dn)
+        license = license_obj(ou)
+        license.license_quantity = 2
+        license_handler.create(license)
+        assignment_handler.assign_users_to_licenses(
+            usernames=[user_name], license_codes=[license.license_code]
+        )
+        result = license_handler.get_assignments_for_license_with_filter(
+            license, "(bildungsloginAssignmentStatus=ASSIGNED)"
+        )
+        assert len(result) == 1
+        assert result[0].license == license.license_code
+        assert result[0].assignee == user_entryuuid
 
 
 def test_number_of_provisioned_and_assigned_licenses(
@@ -159,7 +173,10 @@ def test_get_number_of_expired_assignments(lo, license_handler, expired_license_
         assert license_handler.get_number_of_expired_assignments(expired_license) == expected_num
 
 
-def test_get_meta_data_for_license(license_handler, meta_data_handler, license_obj, meta_data, hostname):
+@pytest.mark.parametrize("use_udm", [True, False])
+def test_get_meta_data_for_license(
+    license_handler, meta_data_handler, license_obj, meta_data, hostname, use_udm
+):
     """Test that for a license the meta data is available"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou(name_edudc=hostname)
@@ -167,7 +184,11 @@ def test_get_meta_data_for_license(license_handler, meta_data_handler, license_o
         license.product_id = meta_data.product_id
         license_handler.create(license)
         meta_data_handler.create(meta_data)
-        meta_data = license_handler.get_meta_data_for_license(license)
+        if use_udm:
+            argument = license_handler.get_udm_license_by_code(license.license_code)
+        else:
+            argument = license
+        meta_data = license_handler.get_meta_data_for_license(argument)
         assert meta_data.product_id == meta_data.product_id
         assert meta_data.title == meta_data.title
         assert meta_data.description == meta_data.description

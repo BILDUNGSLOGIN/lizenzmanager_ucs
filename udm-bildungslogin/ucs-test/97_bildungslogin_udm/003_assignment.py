@@ -82,6 +82,7 @@ def test_wrong_status(create_license, udm):
         ("AVAILABLE", "ASSIGNED", "", "USER"),
         ("ASSIGNED", "AVAILABLE", "USER", ""),
         ("ASSIGNED", "PROVISIONED", "USER", "USER"),
+        ("AVAILABLE", "AVAILABLE", "", ""),
     ],
 )
 def test_allowed_status_transitions(

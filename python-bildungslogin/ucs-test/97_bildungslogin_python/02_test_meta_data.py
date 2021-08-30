@@ -37,8 +37,6 @@ import datetime
 from hashlib import sha256
 from typing import TYPE_CHECKING, Optional
 
-import pytest
-
 import univention.testing.strings as uts
 import univention.testing.ucsschool.ucs_test_school as utu
 from univention.bildungslogin.handlers import BiloAssignmentError
@@ -387,6 +385,11 @@ def test_number_of_expired_licenses(
         )
 
 
-@pytest.mark.xfail(reason="Not implemented yet.")
-def test_get_all():
-    raise NotImplementedError("Missing test for MetadataHandler.get_all()")
+def test_get_all(get_meta_data, meta_data_handler, hostname):
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
+        data = [get_meta_data() for _ in range(5)]
+        [meta_data_handler.create(meta) for meta in data]
+        result = meta_data_handler.get_all("(bildungsloginProductId={})".format(data[0].product_id))
+        assert len(result) == 1
+        assert result[0].product_id == data[0].product_id

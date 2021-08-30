@@ -87,6 +87,20 @@ def get_assignments_for_product_id_for_user(assignment_handler, username, produc
     return assignments
 
 
+def test_assign_to_license_none_left(assignment_handler, license_handler, license_obj, hostname):
+    """Tests that an exception is thrown if a license is assigned a user with no assignments left"""
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
+        username, _ = schoolenv.create_student(ou)
+        username2, _ = schoolenv.create_student(ou)
+        license = license_obj(ou)
+        license.license_quantity = 1
+        license_handler.create(license)
+        assignment_handler.assign_to_license(license.license_code, username)
+        with pytest.raises(BiloAssignmentError):
+            assignment_handler.assign_to_license(license.license_code, username2)
+
+
 @pytest.mark.parametrize("user_type", ["student", "teacher"])
 def test_assign_user_to_license(assignment_handler, license_handler, license_obj, user_type, hostname):
     """Test that a license can be assigned to a user"""
@@ -227,6 +241,26 @@ def test_get_assignments_for_product_id_for_user(
         )
         assert len(assignments) == 1
         license_was_assigned_correct_to_user(assignments, username)
+
+
+def test_no_change_change_license_status(hostname, license_obj, license_handler, assignment_handler):
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
+        username, _ = schoolenv.create_student(ou)
+        license = license_obj(ou)
+        license_handler.create(license)
+        assert (
+            assignment_handler.change_license_status(license.license_code, username, Status.ASSIGNED)
+            is True
+        )
+        assert (
+            assignment_handler.change_license_status(license.license_code, username, Status.PROVISIONED)
+            is True
+        )
+        assert (
+            assignment_handler.change_license_status(license.license_code, username, Status.PROVISIONED)
+            is False
+        )
 
 
 @pytest.mark.parametrize("user_type", ["student", "teacher"])

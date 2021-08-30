@@ -9,6 +9,9 @@ from typing import Dict, Tuple
 import pytest
 
 import univention.bildungslogin.handlers
+from univention.bildungslogin.exceptions import BiloAssignmentError, BiloLicenseNotFoundError
+from univention.bildungslogin.models import Assignment, MetaData
+from univention.bildungslogin.utils import Status
 
 try:
     from univention.lib.i18n import Translation
@@ -320,3 +323,92 @@ def test_assign_users_to_licenses_not_enough_licenses(
         "failedAssignments": [],
         "validityInFuture": [],
     }
+
+
+@patch.object(
+    univention.bildungslogin.handlers.LicenseHandler, "get_assignments_for_license_with_filter"
+)
+def test_get_assigned_users(get_assignments_mock, license_with_assignments):
+    """Test that verifies the generation of the correct assigned users dictionary."""
+    license, assignments = license_with_assignments(1, 0)
+    assignment_object = Assignment(
+        assignee="TESTUSER",
+        license="CODE",
+        time_of_assignment=datetime.date.today(),
+        status=Status.ASSIGNED,
+    )
+    get_assignments_mock.return_value = [assignment_object]
+    lh = univention.bildungslogin.handlers.LicenseHandler(MagicMock())
+    with patch.object(lh, "_users_mod") as users_mod_mock:
+        udm_user = MagicMock()
+        udm_user.props.username = "TESTUSER"
+        users_mod_mock.search.return_value = (value for value in (udm_user,))
+        result = lh.get_assigned_users(license)
+    assert result == [
+        {
+            "username": assignment_object.assignee,
+            "status": assignment_object.status,
+            "statusLabel": Status.label(assignment_object.status),
+            "dateOfAssignment": assignment_object.time_of_assignment,
+        }
+    ]
+
+
+def test_get_udm_license_by_code_index_error():
+    """Tests that get_udm_license_by_code raises an Exception if no license with code was found."""
+    lh = univention.bildungslogin.handlers.LicenseHandler(MagicMock())
+    with patch.object(lh, "_get_all") as get_all_mock:
+        get_all_mock.return_value = []
+        with pytest.raises(BiloLicenseNotFoundError):
+            lh.get_udm_license_by_code("CODE")
+
+
+def test_get_meta_data_by_product_id_no_data_found():
+    """Tests that an empty Metadata object is returned if no Metadata was found for a given product id"""
+    lh = univention.bildungslogin.handlers.LicenseHandler(MagicMock())
+    with patch.object(lh, "_meta_data_mod") as meta_data_mod_mock:
+        meta_data_mod_mock.search.return_value = []
+        result = lh.get_meta_data_by_product_id("ID")
+    assert result == MetaData(product_id="ID")
+
+
+def test_get_meta_data_for_license_no_data_found(license_with_assignments):
+    """Tests that an empty Metadata object is returned if no Metadata was found for a given license"""
+    license, _ = license_with_assignments(1, 1)
+    license.props.product_id = "ID"
+    lh = univention.bildungslogin.handlers.LicenseHandler(MagicMock())
+    with patch.object(lh, "_meta_data_mod") as meta_data_mod_mock:
+        meta_data_mod_mock.search.return_value = []
+        result = lh.get_meta_data_for_license(license)
+    assert result == MetaData(product_id="ID")
+
+
+def test_remove_assignment_from_users_failed_assignments():
+    ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
+    with patch.object(ah, "change_license_status") as change_mock:
+        change_mock.side_effect = BiloAssignmentError("ERROR_MSG")
+        result = ah.remove_assignment_from_users("CODE", ["A"])
+    assert len(result) == 1
+    assert result[0] == ("A", "ERROR_MSG")
+
+
+def test_change_license_status_invalid_status():
+    ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
+    with pytest.raises(BiloAssignmentError):
+        ah.change_license_status("CODE", "USERNAME", "INVALID_STATUS")
+
+
+def test_get_license_by_license_code_not_found():
+    ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
+    with patch.object(ah, "_licenses_mod") as license_mod_mock:
+        license_mod_mock.search.side_effect = IndexError
+        with pytest.raises(BiloLicenseNotFoundError):
+            ah.get_license_by_license_code("SOME_INVALID_CODE")
+
+
+def test_get_user_by_username_no_users():
+    ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
+    with patch.object(ah, "_users_mod") as users_mod_mock:
+        users_mod_mock.search.return_value = []
+        with pytest.raises(BiloAssignmentError):
+            ah.get_user_by_username("SOME_USERNAME")
