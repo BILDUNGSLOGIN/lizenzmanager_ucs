@@ -4,6 +4,8 @@ import random
 import sys
 import tempfile
 
+import pytest
+
 if sys.version_info[0] >= 3:
     from unittest.mock import MagicMock, call, patch, sentinel
 else:
@@ -107,3 +109,85 @@ def test_update_ldap_meta_data(
     )
     assert save_last_update_timestamp_mock.call_args == call(min(dates))
     assert result is True
+
+
+@patch("univention.bildungslogin.media_import.cmd_media_update.save_last_update_timestamp")
+@patch(
+    "univention.bildungslogin.media_import.cmd_media_update.load_last_update_timestamp", return_value=0
+)
+@patch("univention.bildungslogin.media_import.cmd_media_update.retrieve_media_data")
+@patch("univention.bildungslogin.media_import.cmd_media_update.retrieve_media_feed")
+@patch(
+    "univention.bildungslogin.media_import.cmd_media_update.get_access_token",
+    return_value=sentinel.access_token,
+)
+@patch("univention.bildungslogin.media_import.cmd_media_update.get_config_from_file")
+@patch("univention.bildungslogin.handlers.MetaDataHandler.get_all")
+@patch("univention.bildungslogin.media_import.cmd_media_update.import_multiple_raw_media_data")
+def test_error_message_after_failed_import(
+    get_all_mock,
+    get_config_from_file_mock,
+    get_access_token_mock,
+    retrieve_media_feed_mock,
+    retrieve_media_data_mock,
+    load_last_update_timestamp_mock,
+    save_last_update_timestamp_mock,
+    import_multiple_raw_media_data_mock,
+):
+    """Test that update_ldap_meta_data return False if errors were raised during the media import."""
+    import_multiple_raw_media_data_mock.return_value = "something_went_wrong"
+    result = univention.bildungslogin.media_import.cmd_media_update.update_ldap_meta_data(MagicMock())
+    assert result is False
+
+
+@patch("univention.bildungslogin.handlers.UDM")
+@patch("univention.bildungslogin.media_import.cmd_media_update.save_last_update_timestamp")
+@patch(
+    "univention.bildungslogin.media_import.cmd_media_update.load_last_update_timestamp", return_value=0
+)
+@patch(
+    "univention.bildungslogin.media_import.cmd_media_update.import_multiple_raw_media_data",
+    return_value="",
+)
+@patch("univention.bildungslogin.media_import.cmd_media_update.retrieve_media_data")
+@patch("univention.bildungslogin.media_import.cmd_media_update.retrieve_media_feed")
+@patch(
+    "univention.bildungslogin.media_import.cmd_media_update.get_access_token",
+    return_value=sentinel.access_token,
+)
+@patch("univention.bildungslogin.media_import.cmd_media_update.get_config_from_file")
+@patch("univention.bildungslogin.handlers.MetaDataHandler.get_all")
+def test_update_ldap_meta_data_with_no_updated_products(
+    get_all_mock,
+    get_config_from_file_mock,
+    get_access_token_mock,
+    retrieve_media_feed_mock,
+    retrieve_media_data_mock,
+    import_multiple_raw_media_data_mock,
+    load_last_update_timestamp_mock,
+    save_last_update_timestamp_mock,
+    udm_mock,
+):
+    """Test that update_ldap_meta_data returns True no product ids were updated."""
+    retrieve_media_feed_mock.return_value = []
+    result = univention.bildungslogin.media_import.cmd_media_update.update_ldap_meta_data(MagicMock())
+    assert result is True
+
+
+@pytest.mark.parametrize(
+    "update_ldap_meta_data_return,exit_code",
+    [(True, 1), (False, 0)],
+)
+def test_main(mocker, update_ldap_meta_data_return, exit_code):
+    """Test that update_ldap_meta_data passed the correct return value."""
+    mocker.patch(
+        "univention.bildungslogin.media_import.cmd_media_update.getAdminConnection",
+        return_value=("lo", "pos"),
+    )
+    mocker.patch(
+        "univention.bildungslogin.media_import.cmd_media_update.update_ldap_meta_data",
+        return_value=update_ldap_meta_data_return,
+    )
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        univention.bildungslogin.media_import.cmd_media_update.main()
+        assert pytest_wrapped_e.value.code == exit_code
