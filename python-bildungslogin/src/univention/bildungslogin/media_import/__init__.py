@@ -214,7 +214,7 @@ def cleaned_data(raw_media_data):  # type: (Dict[str, Any]) -> Dict[str, Any]
 
 
 def import_single_media_data(meta_data_handler, raw_media_data):
-    # type: (MetaDataHandler, List[dict]) -> None
+    # type: (MetaDataHandler, Dict[str, Any]) -> None
     md = load_media(raw_media_data)
     try:
         meta_data_handler.get_meta_data_by_product_id(md.product_id)
