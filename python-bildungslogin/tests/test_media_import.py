@@ -83,7 +83,8 @@ def test_media_schema_validation_required_fails(field_name):
         "id",
         "title",
         "publisher",
-        # "cover", "coverSmall", # todo this will raise a key error because the clean function runs before!
+        "cover",
+        "coverSmall",
         "modified",
     ],
 )

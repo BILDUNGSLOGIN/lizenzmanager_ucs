@@ -179,13 +179,13 @@ def retrieve_media_feed(access_token, resource_server, modified_after):
 
 def load_media(raw_media_data):  # type: (Dict[str, Any]) -> MetaData
     if raw_media_data["status"] == 200:
-        data = cleaned_data(raw_media_data)
         try:
-            validate(instance=data, schema=MEDIA_SCHEMA)
+            validate(instance=raw_media_data["data"], schema=MEDIA_SCHEMA)
         except ValidationError as exc:
             raise MediaImportError(
                 "Downloaded json does not conform to required json format: {}".format(exc.message)
             )
+        data = cleaned_data(raw_media_data)
         try:
             return MetaData(
                 product_id=data["id"],
