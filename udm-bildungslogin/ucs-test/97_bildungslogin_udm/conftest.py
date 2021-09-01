@@ -27,11 +27,15 @@
 # <https://www.gnu.org/licenses/>.
 import datetime
 import random
+from contextlib import contextmanager
 
+import ldap
 import pytest
 
 import univention.testing.strings as uts
 import univention.testing.utils as utils
+from univention.admin.uexceptions import noObject
+from univention.admin.uldap import access as uldap_access
 from univention.config_registry import ConfigRegistry
 from univention.udm import UDM
 
@@ -138,3 +142,44 @@ def scramble_case():
         return result
 
     return _func
+
+
+@contextmanager
+def __lo():
+    """this is to simplify some of our tests with the simple udm api,
+    so we do not have to use the ucs-test school env all the time."""
+
+    def add_temp(_dn, *args, **kwargs):
+        lo.add_orig(_dn, *args, **kwargs)
+        created_objs.append(_dn)
+
+    created_objs = []
+    account = utils.UCSTestDomainAdminCredentials()
+    ucr = ConfigRegistry()
+    ucr.load()
+    lo = uldap_access(
+        host=ucr["ldap/master"],
+        base=ucr["ldap/base"],
+        binddn=account.binddn,
+        bindpw=account.bindpw,
+    )
+    lo.add_orig = lo.add
+    lo.add = add_temp
+    try:
+        yield lo
+    finally:
+        # we need to sort the dns to first delete the child-nodes
+        created_objs.sort(key=lambda _dn: len(ldap.explode_dn(_dn)), reverse=True)
+        for dn in created_objs:
+            try:
+                lo.delete(dn)
+            except noObject:
+                pass
+        lo.add = lo.add_orig
+        lo.unbind()
+
+
+@pytest.fixture()
+def lo():
+    with __lo() as lo:
+        yield lo

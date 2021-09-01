@@ -37,6 +37,8 @@ import datetime
 import random
 import uuid
 
+import pytest
+
 import univention.testing.ucsschool.ucs_test_school as utu
 from univention.config_registry import ConfigRegistry
 from univention.testing.utils import verify_ldap_object
@@ -46,6 +48,33 @@ ucr = ConfigRegistry()
 ucr.load()
 
 
+@pytest.mark.parametrize("correct_assignee", [True, False])
+def test_assignment_dn_encoder(create_license, udm, lo, correct_assignee):
+    assert udm.api_version >= 1
+
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou()
+        username, user_dn = schoolenv.create_student(ou)
+        entry_uuid = lo.get(user_dn, attr=["entryUUID"])["entryUUID"][0]
+        license_obj = create_license(str(uuid.uuid4()), str(uuid.uuid4()), 1, ou)
+        assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
+        assignment.props.status = "AVAILABLE"
+        assignment.save()
+
+        assignment.props.status = "ASSIGNED"
+        if correct_assignee:
+            assignment.props.assignee = entry_uuid
+        else:
+            assignment.props.assignee = "SOME_STRING"
+        assignment.props.time_of_assignment = datetime.date.today()
+        assignment.save()
+
+        if correct_assignee:
+            assert assignment.props.assignee.obj.dn == user_dn
+        else:
+            assert assignment.props.assignee.obj == None  # noqa: E711
+
+
 def test_bildungslogin_assignment(create_license, udm):
     """Test that the license assignment is stored in LDAP with the expected type for each attribute"""
     assert udm.api_version >= 1
@@ -53,7 +82,6 @@ def test_bildungslogin_assignment(create_license, udm):
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         license_obj = create_license(str(uuid.uuid4()), str(uuid.uuid4()), 1, ou)
-
         assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
         assignment.props.status = "AVAILABLE"
         assignment.save()
