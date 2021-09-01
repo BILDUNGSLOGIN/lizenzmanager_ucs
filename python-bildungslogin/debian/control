@@ -12,6 +12,7 @@ Build-Depends:
  python-debian,
  python-mock,
  python-pytest,
+ python-pytest-mock,
  python-typing,
  python-ldap,
  python-univention-directory-manager,
