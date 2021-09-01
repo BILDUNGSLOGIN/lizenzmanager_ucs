@@ -123,6 +123,7 @@ def test_update_ldap_meta_data(
 )
 @patch("univention.bildungslogin.media_import.cmd_media_update.get_config_from_file")
 @patch("univention.bildungslogin.handlers.MetaDataHandler.get_all")
+@patch("univention.bildungslogin.handlers.UDM")
 @patch("univention.bildungslogin.media_import.cmd_media_update.import_multiple_raw_media_data")
 def test_error_message_after_failed_import(
     get_all_mock,
@@ -132,6 +133,7 @@ def test_error_message_after_failed_import(
     retrieve_media_data_mock,
     load_last_update_timestamp_mock,
     save_last_update_timestamp_mock,
+    udm_mock,
     import_multiple_raw_media_data_mock,
 ):
     """Test that update_ldap_meta_data return False if errors were raised during the media import."""
