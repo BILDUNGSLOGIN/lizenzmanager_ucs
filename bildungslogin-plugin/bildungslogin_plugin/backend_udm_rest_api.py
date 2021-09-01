@@ -116,30 +116,30 @@ class UdmRestApiBackend(DbBackend):
             if match:
                 ou = match.groupdict()["ou"]
                 name = match.groupdict()["name"]
-                school_classes[ou].append(name)
+                try:
+                    school_classes[ou].append(name)
+                except KeyError:
+                    logger.warning(
+                        "User %r is in school class group(s) %r of school %r, which is missing in "
+                        "'schools' property. Ignoring class.",
+                        user.dn,
+                        group_dn,
+                        ou,
+                    )
         context = {}
         for ou, classes in school_classes.items():
-            if ou not in user.props.school:
+            roles = self.get_roles_for_school(user.props.ucsschoolRole, ou)
+            if not roles:
                 logger.warning(
-                    "User %r is in school class group(s) of school %r, which is missing in 'schools'. "
-                    "Ignoring classes for that OU. Users groups: %r.",
+                    "Cannot get roles of user %r at OU %r from 'ucsschool_roles' %r. Using "
+                    "objectClass fallback, options: %r.",
                     user.dn,
                     ou,
-                    user.props.groups,
+                    user.props.ucsschoolRole,
+                    user.options,
                 )
-            else:
-                roles = self.get_roles_for_school(user.props.ucsschoolRole, ou)
-                if not roles:
-                    logger.warning(
-                        "Cannot get roles of user %r at OU %r from 'ucsschool_roles' %r. Using "
-                        "objectClass fallback, options: %r.",
-                        user.dn,
-                        ou,
-                        user.props.ucsschoolRole,
-                        user.options,
-                    )
-                    roles = self.get_roles_oc_fallback(user.options)
-                context[ou] = SchoolContext(classes=classes, roles=roles)
+                roles = self.get_roles_oc_fallback(user.options)
+            context[ou] = SchoolContext(classes=classes, roles=roles)
         return context
 
     async def get_licenses_and_set_assignment_status(self, user: UdmObject) -> Set[str]:
