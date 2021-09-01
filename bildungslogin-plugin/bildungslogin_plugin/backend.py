@@ -34,7 +34,7 @@ class DbBackend(abc.ABC):
         :return: nothing if successful or raises an error
         :raises DbConnectionError: if connecting failed
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     async def get_user(self, username: str) -> User:
         """
@@ -46,4 +46,4 @@ class DbBackend(abc.ABC):
         :raises ConnectionError: when a problem with the connection happens
         :raises UserNotFound: when a user could not be found in the DB
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover

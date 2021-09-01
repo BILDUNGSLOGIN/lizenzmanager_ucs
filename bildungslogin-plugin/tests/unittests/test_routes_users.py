@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
+
 import random
 
 import faker
+import nest_asyncio
+import pytest
 
 from bildungslogin_plugin.models import SchoolContext
-from bildungslogin_plugin.routes.v1.users import DbBackend, User, set_backend
+from bildungslogin_plugin.routes.v1.users import DbBackend, User
 
 fake = faker.Faker()
+# pytest event loop is already running: https://github.com/encode/starlette/issues/440
+nest_asyncio.apply()  # patches asyncio to allow nested use of asyncio.run and loop.run_until_complete
 
 
-def test_routes_v1_users_get(client, fake_db_backend):
+@pytest.mark.asyncio
+async def test_routes_v1_users_get(client, fake_db_backend, set_the_backend):
     """Test that the REST API returns for a User-ID a JSON-Object."""
     user = User(
         id=fake.uuid4(),
@@ -26,7 +32,14 @@ def test_routes_v1_users_get(client, fake_db_backend):
     )
     backend: DbBackend = fake_db_backend()
     backend._user = user
-    set_backend(backend)
+    await set_the_backend(backend)
     response = client.get(f"/v1/user/{user.id}")
     assert response.status_code == 200
     assert User(**response.json()) == user
+
+
+@pytest.mark.asyncio
+async def test_missing_plugin_initialization(client, set_the_backend):
+    await set_the_backend(None)
+    with pytest.raises(RuntimeError):
+        client.get(f"/v1/user/{fake.uuid4()}")

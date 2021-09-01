@@ -60,7 +60,7 @@ async def get(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No user with id {user_id!r} found.",
         )
-    except Exception as exc:
+    except Exception as exc:  # pragma: no cover
         error_id = uuid.uuid4()
         logger.exception("[%s] Error looking for user with id %r: %s", error_id, user_id, exc)
         raise HTTPException(

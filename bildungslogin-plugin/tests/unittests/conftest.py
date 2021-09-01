@@ -1,14 +1,23 @@
 # -*- coding: utf-8 -*-
-from typing import Callable, Mapping, Optional
 
+import os
+from typing import Any, Callable, Dict, List, Mapping, Optional
+
+import faker
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from bildungslogin_plugin.backend import UserNotFound
+from bildungslogin_plugin.models import SchoolContext, User
 from bildungslogin_plugin.plugin import router
-from bildungslogin_plugin.routes.v1.users import DbBackend, User
+from bildungslogin_plugin.routes.v1.users import DbBackend, get_backend, set_backend
 from ucsschool.apis.opa import opa_instance
 from ucsschool.apis.plugins.auth import get_token
+from udm_rest_client.base import BaseObject, BaseObjectProperties
+
+_ori_backend = None
+fake = faker.Faker()
 
 
 class FakeDbBackend(DbBackend):
@@ -20,7 +29,10 @@ class FakeDbBackend(DbBackend):
         pass
 
     async def get_user(self, username: str) -> User:
-        return self._user
+        if self._user:
+            return self._user
+        else:
+            raise UserNotFound
 
 
 @pytest.fixture(scope="session")
@@ -76,3 +88,93 @@ def client(app, dependency_overrides, fake_opa):
     dependency_overrides(overrides)
     app.include_router(router)
     return TestClient(app)
+
+
+@pytest.fixture(scope="session")
+def set_the_backend():
+    global _ori_backend
+
+    async def _func(backend, connection_test=True):
+        global _ori_backend
+        try:
+            _ori_backend = get_backend()
+        except RuntimeError:
+            _ori_backend = None
+
+        if backend and connection_test:
+            await backend.connection_test()
+        set_backend(backend)
+
+    yield _func
+
+    set_backend(_ori_backend)
+
+
+@pytest.fixture(scope="session")
+def valid_user_kwargs():
+    def _func() -> Dict[str, Any]:
+        return {
+            "id": fake.uuid4(),
+            "first_name": fake.first_name(),
+            "last_name": fake.last_name(),
+            "licenses": set(fake.words(fake.pyint(1, 5))),
+            "context": {fake.word(): SchoolContext(classes=set(fake.words(2)), roles={"student"})},
+        }
+
+    return _func
+
+
+@pytest.fixture(scope="session")
+def empty_udm_obj():
+    def _func() -> BaseObject:
+        obj = BaseObject()
+        obj.props = BaseObjectProperties(obj)
+        return obj
+
+    return _func
+
+
+@pytest.fixture(scope="session")
+def fake_udm_user(empty_udm_obj):
+    def _func(roles: List[str], ous: List[str] = None) -> BaseObject:
+        """
+        First role will be used to determine LDAP container. Alph. 1st OU will be used for LDAP position.
+        """
+        base_dn = os.environ["LDAP_BASE"]
+        container = {
+            "school_admin": "admins",
+            "staff": "mitarbeiter",
+            "student": "schueler",
+            "teacher": "lehrer",
+            "teacher_and_staff": "lehrer und mitarbeiter",
+        }[roles[0]]
+        if "teacher_and_staff" in roles:
+            roles.remove("teacher_and_staff")
+            roles.extend(["staff", "teacher"])
+        if not ous:
+            ous = [f"ou{fake.word()}", f"ou{fake.word()}"]
+
+        obj = empty_udm_obj()
+        obj.props.first_name = fake.first_name()
+        obj.props.last_name = fake.last_name()
+        obj.props.user_name = fake.user_name()
+        obj.props.school = ous
+        obj.props.groups = [f"cn=Domain Users {ou},cn=groups,ou={ou},{base_dn}" for ou in ous]
+        obj.props.groups.extend(
+            [f"cn={ou}-{fake.word()},cn=klassen,cn=schueler,cn=groups,ou={ou},{base_dn}" for ou in ous]
+        )
+        obj.props.ucsschoolRole = [f"{role}:school:{ou}" for ou in ous for role in roles]
+
+        obj.position = f"cn={container},ou={sorted(obj.props.school)[0]},{base_dn}"
+        obj.dn = f"uid={obj.props.user_name},{obj.position}"
+        obj.options = {
+            "ucsschoolAdministrator": "school_admin" in roles,
+            "ucsschoolExam": False,
+            "ucsschoolTeacher": "teacher" in roles,
+            "ucsschoolStudent": "student" in roles,
+            "ucsschoolStaff": "staff" in roles,
+            "pki": False,
+        }
+        return obj
+
+    return _func

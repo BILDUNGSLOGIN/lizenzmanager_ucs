@@ -40,5 +40,14 @@ import pytest
 
 def test_unittests():
     """Execute unittests"""
-    retcode = pytest.main(["-lvvx", "--cov", "--cov-config=.coveragerc", "--cov-append", "--cov-report=", os.path.join(os.path.dirname(__file__), "unittests")])
+    retcode = pytest.main(
+        [
+            "-lvvx",
+            "--cov",
+            "--cov-config=.coveragerc",
+            "--cov-append",
+            "--cov-report=",
+            os.path.join(os.path.dirname(__file__), "unittests"),
+        ]
+    )
     assert retcode == 0
