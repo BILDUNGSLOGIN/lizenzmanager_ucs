@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.12) unstable; urgency=low
+
+  * Issue #78: fix pytest-cov call
+
+ -- Daniel Troeder <troeder@univention.de>  Wed, 01 Sep 2021 09:56:38 +0200
+
 python-bildungslogin (0.2.11) unstable; urgency=low
 
   * Issue #78: create coverage report

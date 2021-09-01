@@ -1,7 +1,10 @@
 #!/usr/share/ucs-test/runner bash
 ## desc: create coverage reports
 ## exposure: safe
-#
+## tags:
+##  - bildungslogin
+##  - udm-bildungslogin-encoders
+
 # Copyright 2021 Univention GmbH
 #
 # https://www.univention.de/

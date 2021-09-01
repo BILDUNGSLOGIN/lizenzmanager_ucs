@@ -1,4 +1,4 @@
-#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv --cov-config=.coveragerc --cov-append --cov-report=
+#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv --cov --cov-config=.coveragerc --cov-append --cov-report=
 # -*- coding: utf-8 -*-
 ## desc: Run tests for the udm module bildungslogin/assignment
 ## roles: [domaincontroller_master, domaincontroller_backup, domaincontroller_slave]

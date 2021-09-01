@@ -1,4 +1,4 @@
-#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv --cov-config=.coveragerc --cov-report=
+#!/usr/share/ucs-test/runner /usr/bin/py.test -slvv --cov --cov-config=.coveragerc --cov-report=
 # -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH
@@ -40,5 +40,5 @@ import pytest
 
 def test_unittests():
     """Execute unittests"""
-    retcode = pytest.main(["-lvvx", os.path.join(os.path.dirname(__file__), "unittests")])
+    retcode = pytest.main(["-lvvx", "--cov", "--cov-config=.coveragerc", "--cov-append", "--cov-report=", os.path.join(os.path.dirname(__file__), "unittests")])
     assert retcode == 0
