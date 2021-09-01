@@ -119,6 +119,25 @@ def test_get_assignments_for_license_with_filter(
         assert result[0].assignee == user_entryuuid
 
 
+def test_get_assigned_users(license_handler, assignment_handler, license_obj, lo, hostname):
+    with utu.UCSTestSchool() as schoolenv:
+        ou, _ = schoolenv.create_ou(name_edudc=hostname)
+        stu, stu_dn = schoolenv.create_student(ou)
+        tea, tea_dn = schoolenv.create_teacher(ou)
+        license = license_obj(ou)
+        license.license_quantity = 2
+        license_handler.create(license)
+        assignment_handler.assign_users_to_licenses(
+            usernames=[stu, tea], license_codes=[license.license_code]
+        )
+        user_assignments = license_handler.get_assigned_users(license)
+        for assignment in user_assignments:
+            if assignment["username"] in (stu, tea):
+                assert assignment["status"] == Status.ASSIGNED
+                assert assignment["statusLabel"] == Status.label(Status.ASSIGNED)
+                assert "dateOfAssignment" in assignment.keys()
+
+
 def test_number_of_provisioned_and_assigned_licenses(
     license_handler, assignment_handler, license_obj, hostname
 ):
