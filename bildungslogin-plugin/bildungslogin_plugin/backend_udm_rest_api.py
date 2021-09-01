@@ -7,11 +7,13 @@ import re
 import zlib
 from typing import Dict, List, Pattern, Set
 
+# TODO: UDM REST client should raise application specific exception:
+from aiohttp.client_exceptions import ClientConnectorError
 from ldap3.utils.conv import escape_filter_chars
 
 from udm_rest_client.udm import UDM, UdmObject
 
-from .backend import ConfigurationError, DbBackend, UserNotFound
+from .backend import ConfigurationError, DbBackend, DbConnectionError, UserNotFound
 from .models import AssignmentStatus, SchoolContext, User
 
 UCR_CONTAINER_CLASS = ("ucsschool_ldap_default_container_class", "klassen")
@@ -59,8 +61,11 @@ class UdmRestApiBackend(DbBackend):
         :raises DbConnectionError: if connecting failed
         """
         logger.debug("Starting connection test for UDM REST API...")
-        ldap_base = await self.udm.session.base_dn
-        if ldap_base != self.ldap_base:
+        try:
+            ldap_base = await self.udm.session.base_dn
+        except ClientConnectorError as exc:
+            raise DbConnectionError(str(exc)) from exc
+        if ldap_base != self.ldap_base:  # pragma: no cover
             raise ConfigurationError(
                 f"LDAP base in environment ({self.ldap_base!r}) and UDM REST API ({ldap_base!r}) differ."
             )
@@ -75,14 +80,20 @@ class UdmRestApiBackend(DbBackend):
         :raises ConnectionError: when a problem with the connection happens
         :raises UserNotFound: when a user could not be found in the DB
         """
-        async for user in self.user_mod.search(f"(uid={escape_filter_chars(username)})"):
-            break
-        else:
-            raise UserNotFound
+        try:
+            async for user in self.user_mod.search(f"(uid={escape_filter_chars(username)})"):
+                break
+            else:
+                raise UserNotFound
+        except ClientConnectorError as exc:
+            raise DbConnectionError(str(exc)) from exc
         # UDM REST API exposes the entryUUID attribut only when fetching the object by DN, not in the
         # results of the search operation. Getting the DN first directly by LDAP saves very little time.
         # So we fetch the user again using the UDM REST API:
-        udm_user = await self.user_mod.get(user.dn)
+        try:
+            udm_user = await self.user_mod.get(user.dn)
+        except ClientConnectorError as exc:  # pragma: no cover
+            raise DbConnectionError(str(exc)) from exc
         user_id = udm_user.props.username
         # in the first iteration (MVP) given names and family names are not allowed to be exposed:
         first_name = f"Vorname ({zlib.crc32(udm_user.props.firstname.encode('UTF-8'))})"
