@@ -6,7 +6,7 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path
-from pydantic import ValidationError, constr
+from pydantic import constr
 from starlette import status
 
 from bildungslogin_plugin.backend import DbBackend, DbConnectionError, UserNotFound
@@ -48,11 +48,6 @@ async def get(
     )
     try:
         return await backend.get_user(user_id)
-    except (ValidationError, ValueError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Validation error: {exc!s}",
-        )
     except DbConnectionError as exc:
         error_id = uuid.uuid4()
         logger.exception("[%s] Error connecting to database: %s", error_id, exc)
