@@ -329,7 +329,7 @@ def test_assign_users_to_licenses_not_enough_licenses(
 @patch.object(
     univention.bildungslogin.handlers.LicenseHandler, "get_assignments_for_license_with_filter"
 )
-def test_get_assigned_users(get_assignments_mock, license_with_assignments):
+def test_get_assigned_users(get_assignments_mock, _udm_mock, license_with_assignments):
     """Test that verifies the generation of the correct assigned users dictionary."""
     license, assignments = license_with_assignments(1, 0)
     assignment_object = Assignment(
@@ -356,7 +356,7 @@ def test_get_assigned_users(get_assignments_mock, license_with_assignments):
 
 
 @patch("univention.bildungslogin.handlers.UDM")
-def test_get_udm_license_by_code_index_error():
+def test_get_udm_license_by_code_index_error(_udm_mock):
     """Tests that get_udm_license_by_code raises an Exception if no license with code was found."""
     lh = univention.bildungslogin.handlers.LicenseHandler(MagicMock())
     with patch.object(lh, "_get_all") as get_all_mock:
@@ -366,7 +366,7 @@ def test_get_udm_license_by_code_index_error():
 
 
 @patch("univention.bildungslogin.handlers.UDM")
-def test_get_meta_data_by_product_id_no_data_found():
+def test_get_meta_data_by_product_id_no_data_found(_udm_mock):
     """Tests that an empty Metadata object is returned if no Metadata was found for a given product id"""
     lh = univention.bildungslogin.handlers.LicenseHandler(MagicMock())
     with patch.object(lh, "_meta_data_mod") as meta_data_mod_mock:
@@ -376,7 +376,7 @@ def test_get_meta_data_by_product_id_no_data_found():
 
 
 @patch("univention.bildungslogin.handlers.UDM")
-def test_get_meta_data_for_license_no_data_found(license_with_assignments):
+def test_get_meta_data_for_license_no_data_found(udm_mock, license_with_assignments):
     """Tests that an empty Metadata object is returned if no Metadata was found for a given license"""
     license, _ = license_with_assignments(1, 1)
     license.props.product_id = "ID"
@@ -388,7 +388,7 @@ def test_get_meta_data_for_license_no_data_found(license_with_assignments):
 
 
 @patch("univention.bildungslogin.handlers.UDM")
-def test_remove_assignment_from_users_failed_assignments():
+def test_remove_assignment_from_users_failed_assignments(_udm_mock):
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
     with patch.object(ah, "change_license_status") as change_mock:
         change_mock.side_effect = BiloAssignmentError("ERROR_MSG")
@@ -398,14 +398,14 @@ def test_remove_assignment_from_users_failed_assignments():
 
 
 @patch("univention.bildungslogin.handlers.UDM")
-def test_change_license_status_invalid_status():
+def test_change_license_status_invalid_status(_udm_mock):
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
     with pytest.raises(BiloAssignmentError):
         ah.change_license_status("CODE", "USERNAME", "INVALID_STATUS")
 
 
 @patch("univention.bildungslogin.handlers.UDM")
-def test_get_license_by_license_code_not_found():
+def test_get_license_by_license_code_not_found(_udm_mock):
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
     with patch.object(ah, "_licenses_mod") as license_mod_mock:
         license_mod_mock.search.side_effect = IndexError
@@ -414,7 +414,7 @@ def test_get_license_by_license_code_not_found():
 
 
 @patch("univention.bildungslogin.handlers.UDM")
-def test_get_user_by_username_no_users():
+def test_get_user_by_username_no_users(_udm_mock):
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
     with patch.object(ah, "_users_mod") as users_mod_mock:
         users_mod_mock.search.return_value = []
