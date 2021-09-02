@@ -33,3 +33,18 @@ Description: UMC module to administrate licenses
  integrated, directory driven solution for managing
  corporate environments. For more information about UCS,
  refer to: http://www.univention.de/
+
+Package: ucs-test-bildungslogin-umc
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ucs-test-framework (>= 9.0.7-57),
+ ucs-test-ucsschool (>= 6.0.242),
+ python-pytest,
+ python-pytest-cov,
+Description: test the UMC modules for bildungslogin
+ .
+ This package is part of Univention Corporate Server (UCS),
+ an integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/
