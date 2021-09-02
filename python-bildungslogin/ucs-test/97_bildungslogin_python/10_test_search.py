@@ -251,7 +251,7 @@ def test_search_for_license_pattern(
     "publisher",
     [
         ("", True),
-        # ("*vention{}", True),
+        ("*vention{}", True),
         # ("univention{}", True),
         # ("foobar", False),
     ],
@@ -278,7 +278,7 @@ def test_search_for_license_pattern(
     "product_id",
     [
         ("*", True),
-        # ("*vention{}", True),
+        ("*vention{}", True),
         # ("univention{}", True),
         # ("foobar", False),
     ],
@@ -288,14 +288,14 @@ def test_search_for_license_pattern(
     [
         ("*", True),
         ("*vention{}", True),
-        ("univention{}", True),
+        # ("univention{}", True),
         ("foobar", False),
     ],
 )
 @pytest.mark.parametrize(
     "license_code",
     [
-        # ("*", True),
+        ("*", True),
         ("*vention{}", True),
         # ("univention{}", True),
         # ("foobar", False),
@@ -316,6 +316,10 @@ def test_search_for_license_advance(
     product_id,
     product,
     license_code,
+    restrict_to_this_product_id=(
+        "",
+        True,
+    ),
 ):
     """Test advanced search with AND in start period/end period, only available licenses,
     user identification, product id (case sensitive), title and  license code (case sensitive)"""
@@ -334,6 +338,7 @@ def test_search_for_license_advance(
         product_id=product_id[0].format(license_appendix),
         product=product[0].format(license_appendix),
         license_code=license_code[0].format(license_appendix),
+        restrict_to_this_product_id=restrict_to_this_product_id[0],
         school=ou + "_different_school",
     )
     assert len(res) == 0
@@ -348,6 +353,7 @@ def test_search_for_license_advance(
         product_id=product_id[0].format(license_appendix),
         product=product[0].format(license_appendix),
         license_code=license_code[0].format(license_appendix),
+        restrict_to_this_product_id=restrict_to_this_product_id[0],
         school=ou,
     )
     should_be_found = all(
@@ -362,6 +368,7 @@ def test_search_for_license_advance(
             product_id[1],
             product[1],
             license_code[1],
+            restrict_to_this_product_id[1],
         )
     )
     if license_type[0] == LicenseType.SINGLE:
@@ -372,3 +379,71 @@ def test_search_for_license_advance(
         assert (
             volume_license.license_code in set(res_l["licenseCode"] for res_l in res)
         ) == should_be_found
+
+
+def test_search_for_license_advance_all_empty(
+    ou,
+    udm_license_mod,
+    license_handler,
+    single_license,
+    volume_license,
+):
+    test_search_for_license_advance(
+        ou,
+        udm_license_mod,
+        license_handler,
+        single_license,
+        volume_license,
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+    )
+
+
+def test_search_for_license_advance_restricted(
+    ou,
+    udm_license_mod,
+    license_handler,
+    single_license,
+    volume_license,
+):
+    test_search_for_license_advance(
+        ou,
+        udm_license_mod,
+        license_handler,
+        single_license,
+        volume_license,
+        ("", True),
+        ("", True),
+        ("", True),
+        ("univention{}", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        (volume_license.license_code, True),
+    )
+    test_search_for_license_advance(
+        ou,
+        udm_license_mod,
+        license_handler,
+        single_license,
+        volume_license,
+        ("", True),
+        ("", True),
+        ("", True),
+        ("univention{}", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        ("", True),
+        (volume_license.license_code + "NOT_FOUND", False),
+    )
