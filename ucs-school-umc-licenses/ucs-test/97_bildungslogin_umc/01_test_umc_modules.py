@@ -33,6 +33,7 @@
 ## packages: [python-bildungslogin, udm-bildungslogin-encoders]
 
 import random
+import time
 from datetime import datetime, timedelta
 
 import pytest
@@ -722,6 +723,7 @@ def test_assignment_module_assignment(selenium, schoolenv, create_license, creat
 
         selenium.wait_for_text("Licenses were successfully assigned to all 2 selected users.")
         selenium.click_button("Ok")
+        time.sleep(2)  # Wait for the Success message to disappear
         selenium.click_button("Change user selection")
         selenium.click_button("Close")
 
