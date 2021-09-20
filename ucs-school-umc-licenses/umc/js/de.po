@@ -164,8 +164,8 @@ msgid "Ignore"
 msgstr "Ignorieren"
 
 #: umc/js/licenses/ProductSearchPage.js:229
-msgid "Last delivery"
-msgstr "Letzte Lieferung"
+msgid "Import date"
+msgstr "Importiert am"
 
 #: umc/js/licenses/UserSelectionPage.js:149
 msgid "Last name"

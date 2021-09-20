@@ -226,7 +226,7 @@ define([
 				width: 'adjust',
 			}, {
 				name: 'latestDeliveryDate',
-				label: _('Last delivery'),
+				label: _('Import date'),
 			}];
 			this._grid = new Grid({
 				actions: actions,
