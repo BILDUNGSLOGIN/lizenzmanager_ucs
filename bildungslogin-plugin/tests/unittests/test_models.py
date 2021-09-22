@@ -11,13 +11,14 @@ def test_user_with_valid_attributes(valid_user_kwargs):
 
 
 @pytest.mark.parametrize(
-    "test_data", (
+    "test_data",
+    (
         ("id", ""),
         ("first_name", ""),
         ("last_name", ""),
         ("licenses", {""}),
         ("context", {}),
-    )
+    ),
 )
 def test_user_attribute_validation(test_data, valid_user_kwargs):
     attr, bad_value = test_data

@@ -5,8 +5,8 @@
 			<category name="ucs-school-class"/>
 		</categories>
 		<flavor id="licenses/licenses" priority="53">
-			<name>View media licenses</name>
-			<description>Display and search media licenses in the BILDUNGSLOGIN license manager</description>
+			<name>Media license overview</name>
+			<description>Display, search and revoke media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
 		<flavor id="licenses/allocation" priority="52">
 			<name>Assign media licenses</name>

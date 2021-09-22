@@ -107,7 +107,7 @@ def test_licenses_module_school_selection(selenium, schoolenv, create_license):
         license_school2 = create_license(school=school2_ou)
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school1_ou)
         check_cell(selenium, "licenseCode", license_school1.props.code)
@@ -135,7 +135,7 @@ def test_licenses_module_simple_search(selenium, schoolenv, create_license, crea
         )
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
 
@@ -189,7 +189,7 @@ def test_licenses_module_advanced_search_time(selenium, schoolenv, create_licens
         )
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
 
@@ -313,7 +313,7 @@ def test_licenses_module_advanced_search_ignored_for_display(
         )
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
 
@@ -346,7 +346,7 @@ def test_licenses_module_advanced_search_publisher(selenium, schoolenv, create_l
         )
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
 
@@ -380,7 +380,7 @@ def test_licenses_module_advanced_search_license_type(
         )
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
 
@@ -420,7 +420,7 @@ def test_licenses_module_advanced_search_user_ident(
         )
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
 
@@ -447,7 +447,7 @@ def test_licenses_module_advanced_search(selenium, schoolenv, create_license, cr
         )
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
 
@@ -471,7 +471,7 @@ def test_licenses_module_save_ignore(selenium, schoolenv, create_license, create
         )
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
 
@@ -511,7 +511,7 @@ def test_licenses_module_remove_license(selenium, schoolenv, create_license, cre
         ah.assign_users_to_licenses([license.props.code], [username])
 
         selenium.do_login()
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
 
@@ -727,7 +727,7 @@ def test_assignment_module_assignment(selenium, schoolenv, create_license, creat
         selenium.click_button("Change user selection")
         selenium.click_button("Close")
 
-        selenium.open_module("View media licenses", do_reload=False)
+        selenium.open_module("Media license overview", do_reload=False)
         select_school(selenium, school_ou)
         selenium.wait_until_standby_animation_appears_and_disappears()
         selenium.click_grid_entry(license1.props.code)

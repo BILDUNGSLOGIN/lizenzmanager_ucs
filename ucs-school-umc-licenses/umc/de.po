@@ -18,8 +18,8 @@ msgstr "Medienlizenzen zuweisen"
 msgid "Assign media licenses in the BILDUNGSLOGIN license manager"
 msgstr "Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager zuweisen"
 
-msgid "Display and search media licenses in the BILDUNGSLOGIN license manager"
-msgstr "Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager anzeigen und durchsuchen"
+msgid "Display, search and revoke media licenses in the BILDUNGSLOGIN license manager"
+msgstr "Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager anzeigen, suchen, entziehen"
 
 msgid "Licensed media"
 msgstr "Lizenzierte Medien"
@@ -27,5 +27,5 @@ msgstr "Lizenzierte Medien"
 msgid "View and search licensed media in the BILDUNGSLOGIN license manager"
 msgstr "Lizenzierte Medien im BILDUNGSLOGIN-Lizenzmanager anzeigen und durchsuchen"
 
-msgid "View media licenses"
-msgstr "Medienlizenzen anzeigen"
+msgid "Media license overview"
+msgstr "Medienlizenz-Übersicht"

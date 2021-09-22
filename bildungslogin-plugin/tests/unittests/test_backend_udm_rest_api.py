@@ -3,15 +3,15 @@
 import copy
 import os
 from unittest.mock import patch
+
 import faker
-import pytest
 import nest_asyncio
+import pytest
 
 from bildungslogin_plugin.backend import ConfigurationError, DbConnectionError
 from bildungslogin_plugin.backend_udm_rest_api import UdmRestApiBackend
 from bildungslogin_plugin.models import SchoolContext
 from bildungslogin_plugin.routes.v1.users import get_backend, set_backend
-
 
 fake = faker.Faker()
 # pytest event loop is already running: https://github.com/encode/starlette/issues/440
@@ -101,7 +101,7 @@ def roles_id(roles) -> str:
         ["teacher_and_staff"],
         ["teacher_and_staff", "school_admin"],
     ),
-    ids=roles_id
+    ids=roles_id,
 )
 @pytest.mark.asyncio
 async def test_get_school_context(fake_udm_user, roles):
@@ -125,14 +125,18 @@ async def test_get_school_context_ignore_bad_class(fake_udm_user):
     user = fake_udm_user(["student"])
     base_dn = os.environ["LDAP_BASE"]
     bad_ou = fake.word()
-    user.props.groups.append(f"cn={bad_ou}-{fake.word()},cn=klassen,cn=schueler,cn=groups,ou={bad_ou},{base_dn}")
+    user.props.groups.append(
+        f"cn={bad_ou}-{fake.word()},cn=klassen,cn=schueler,cn=groups,ou={bad_ou},{base_dn}"
+    )
     backend = UdmRestApiBackend(
         username=fake.user_name(),
         password=fake.password(),
         url="http://127.0.0.1/univention/udm",
     )
     result = await backend.get_school_context(user)
-    expected = {ou: SchoolContext(classes=set(), roles={"student"}) for ou in user.props.school if ou != bad_ou}
+    expected = {
+        ou: SchoolContext(classes=set(), roles={"student"}) for ou in user.props.school if ou != bad_ou
+    }
     for dn in [dn for dn in user.props.groups if "cn=klassen,cn=schueler" in dn]:
         ou, kls = dn.split(",")[0].split("=")[1].split("-")
         if ou == bad_ou:
@@ -173,7 +177,7 @@ def data_id(data) -> str:
         (["staff:school:School1", "staff:school:School2"], "School3", set()),
         (["teacher:school:School1", "student:school:School1"], "School1", {"student", "teacher"}),
     ),
-    ids=data_id
+    ids=data_id,
 )
 def test_get_roles_for_school(data):
     roles, school, expected = data
@@ -202,7 +206,7 @@ def roles2_id(data) -> str:
         ({"ucsschoolTeacher": True, "ucsschoolStaff": False, "foo": True}, {"teacher"}),
         ({"foo": True}, {"RuntimeError"}),
     ),
-    ids=roles2_id
+    ids=roles2_id,
 )
 def test_get_roles_oc_fallback(data):
     options, expected = data
