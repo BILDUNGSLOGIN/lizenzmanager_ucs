@@ -82,8 +82,8 @@ msgid "Back"
 msgstr "Zurück"
 
 #: umc/js/licenses/LicenseSearchPage.js:185
-msgid "Change product"
-msgstr "Produkt ändern"
+msgid "Change medium"
+msgstr "Medium ändern"
 
 #: umc/js/licenses/ProductSearchPage.js:137
 #: umc/js/licenses/LicenseSearchPage.js:173
@@ -101,8 +101,8 @@ msgid "Choose the licenses you want to assign."
 msgstr "Wählen Sie die Lizenzen, die Sie zuweisen möchten."
 
 #: umc/js/licenses/ProductSearchPage.js:82
-msgid "Choose the product for which you want to assign licenses."
-msgstr "Wählen Sie das Produkt, für das Sie Lizenzen zuweisen möchten."
+msgid "Choose the medium for which you want to assign licenses."
+msgstr "Wählen Sie das Medium, für das Sie Lizenzen zuweisen möchten."
 
 #: umc/js/licenses/UserSelectionPage.js:98
 #: umc/js/licenses/UserSelectionPage.js:155
@@ -229,20 +229,20 @@ msgstr "Bitte eine Schule auswählen"
 
 #: umc/js/licenses/ProductSearchPage.js:207
 #: umc/js/licenses/LicenseSearchPage.js:408
-msgid "Product"
-msgstr "Produkt"
+msgid "Medium"
+msgstr "Medium"
 
 #: umc/js/licenses/ProductDetailPage.js:112
 #: umc/js/licenses/LicenseDetailPage.js:124
 #: umc/js/licenses/ProductSearchPage.js:204
 #: umc/js/licenses/LicenseSearchPage.js:249
 #: umc/js/licenses/LicenseSearchPage.js:405
-msgid "Product ID"
-msgstr "Produkt ID"
+msgid "Medium ID"
+msgstr "Medien ID"
 
 #: umc/js/licenses/LicenseSearchPage.js:243
-msgid "Product name"
-msgstr "Produktname"
+msgid "Medium name"
+msgstr "Name des Mediums"
 
 #: umc/js/licenses/ProductDetailPage.js:111
 #: umc/js/licenses/LicenseDetailPage.js:123
@@ -278,7 +278,7 @@ msgstr ""
 
 #: umc/js/licenses/ProductSearchPage.js:163
 msgid "Search licensed media"
-msgstr "Lizenzierte Medien suchen"
+msgstr "Lizenzierte Medien durchsuchen"
 
 #: umc/js/licenses/LicenseSearchPage.js:237
 msgid "Search licenses"

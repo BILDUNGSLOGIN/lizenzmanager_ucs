@@ -182,7 +182,7 @@ define([
 				});
 				headerButtons.push({
 					name: 'close',
-					label: _('Change product'),
+					label: _('Change medium'),
 					callback: lang.hitch(this, 'onChangeProduct'),
 				});
 			}
@@ -240,13 +240,13 @@ define([
 				widgets.push({
 					type: TextBox,
 					name: 'product',
-					label: _('Product name'),
+					label: _('Medium name'),
 					size: 'TwoThirds',
 					visible: false,
 				}, {
 					type: TextBox,
 					name: 'productId',
-					label: _('Product ID'),
+					label: _('Medium ID'),
 					size: 'TwoThirds',
 					visible: false,
 				}, {
@@ -402,10 +402,10 @@ define([
 				label: _('License code'),
 			}, {
 				name: 'productId',
-				label: _('Product ID'),
+				label: _('Medium ID'),
 			}, {
 				name: 'productName',
-				label: _('Product'),
+				label: _('Medium'),
 			}, {
 				name: 'publisher',
 				label: _('Publisher'),

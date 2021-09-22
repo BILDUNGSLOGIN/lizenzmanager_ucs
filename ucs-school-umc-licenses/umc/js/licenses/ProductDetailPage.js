@@ -109,7 +109,7 @@ define([
 				[_('Title'),       e('title')],
 				[_('Author'),      e('author')],
 				[_('Publisher'),   e('publisher')],
-				[_('Product ID'),  e('productId')],
+				[_('Medium ID'),  e('productId')],
 				[_('Description'), e('description')],
 			];
 

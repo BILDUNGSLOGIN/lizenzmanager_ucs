@@ -79,7 +79,7 @@ define([
 					<span id="${id}" class="licensesShowSelectedUsers">(show selected users)</span>
 				</p>
 				<p>
-					${entities.encode(_('Choose the product for which you want to assign licenses.'))}
+					${entities.encode(_('Choose the medium for which you want to assign licenses.'))}
 				</p>
 			`.trim();
 			this._assignmentText.set('content', msg);
@@ -201,10 +201,10 @@ define([
 			}
 			const columns = [{
 				name: 'productId',
-				label: _('Product ID'),
+				label: _('Medium ID'),
 			}, {
 				name: 'title',
-				label: _('Product'),
+				label: _('Medium'),
 			}, {
 				name: 'publisher',
 				label: _('Publisher'),
