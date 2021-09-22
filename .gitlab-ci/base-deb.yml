@@ -1,6 +1,6 @@
 stages:
   - lint
-  # build stages will be dynamically added
+  - build
 
 .lint:
   stage: lint
@@ -14,6 +14,7 @@ stages:
       junit: ucslint.xml
 
 .deb:
+  stage: build
   variables:
     GIT_STRATEGY: none  # disables `git clone` altogether
   image:
