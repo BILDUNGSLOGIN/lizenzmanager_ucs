@@ -53,7 +53,7 @@ if TYPE_CHECKING:
     from univention.admin.uldap import access as LoType
     from univention.udm.base import BaseObject as UdmObject
 
-_ = Translation("bildungslogin").translate
+_ = Translation("python-bildungslogin").translate
 
 
 class LicenseHandler:

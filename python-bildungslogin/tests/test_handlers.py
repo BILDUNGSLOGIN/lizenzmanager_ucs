@@ -16,7 +16,7 @@ from univention.bildungslogin.utils import Status
 try:
     from univention.lib.i18n import Translation
 
-    _l10n = Translation("bildungslogin").translate
+    _l10n = Translation("python-bildungslogin").translate
 except ImportError:
     _l10n = lambda x: x  # noqa: E731
 
