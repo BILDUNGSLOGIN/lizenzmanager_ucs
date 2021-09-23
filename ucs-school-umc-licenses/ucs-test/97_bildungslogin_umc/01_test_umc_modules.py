@@ -641,6 +641,7 @@ def test_assignment_module_user_search(selenium, schoolenv, create_license, crea
         selenium.open_module("Assign media licenses", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")
 
         check_cell(selenium, "username", username)
         check_cell(selenium, "username", username2)
@@ -701,6 +702,7 @@ def test_assignment_module_assignment(selenium, schoolenv, create_license, creat
         selenium.open_module("Assign media licenses", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")
 
         selenium.click_checkbox_of_grid_entry(username)
         selenium.click_checkbox_of_grid_entry(username2)
@@ -729,6 +731,7 @@ def test_assignment_module_assignment(selenium, schoolenv, create_license, creat
 
         selenium.open_module("Media license overview", do_reload=False)
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")
         selenium.wait_until_standby_animation_appears_and_disappears()
         selenium.click_grid_entry(license1.props.code)
         check_cell(selenium, "username", username)

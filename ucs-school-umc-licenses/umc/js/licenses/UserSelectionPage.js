@@ -54,7 +54,7 @@ define([
 		query: function() {
 			this.standbyDuring(
 				this._searchForm.ready().then(lang.hitch(this, function() {
-					this._searchForm.submit();
+					// this._searchForm.submit(); Deactivated due to Issue #85
 				}))
 			);
 		},

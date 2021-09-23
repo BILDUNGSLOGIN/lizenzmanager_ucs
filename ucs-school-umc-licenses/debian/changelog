@@ -2,6 +2,7 @@ ucs-school-umc-licenses (0.1.13) unstable; urgency=medium
 
   * Issue #68: adapted text for "Last delivery"
   * Issue #81: Adapt texts for "Medienlizenz"
+  * Issue #85: No automatic user search in assignment module
 
  -- Joerg Baach <baach@univention.de>  Wed, 22 Sep 2021 13:53:01 +0200
 
