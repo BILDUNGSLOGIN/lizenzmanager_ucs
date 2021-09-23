@@ -126,6 +126,11 @@ define([
 				],
 				hideSubmitButton: true,
 				onSearch: lang.hitch(this, function(values) {
+					if (values.class.trim() === '') {
+						const classWidget = this._searchForm.getWidget('class');
+						classWidget.reset();
+						values.class = classWidget.get('value');
+					}
 					values.school = this.schoolId;
 					this._grid.filter(values);
 				}),
