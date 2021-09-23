@@ -414,7 +414,7 @@ define([
 				label: _('License type'),
 			}, {
 				name: 'countAquired',
-				label: _('Aquired'),
+				label: _('Acquired'),
 				width: 'adjust',
 			}, {
 				name: 'countAssigned',

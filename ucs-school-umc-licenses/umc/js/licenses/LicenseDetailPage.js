@@ -123,7 +123,7 @@ define([
 				[_('Publisher'),       e('publisher'),        _('Validity start'), e('validityStart') ],
 				[_('Medium ID'),      e('productId'),        _('Validity end'),   e('validityEnd')   ],
 				[_('License code'),    e('licenseCode'),      _('Validity span'),  e('validitySpan')  ],
-				[_('License type'),    e('licenseTypeLabel'), _('Aquired'),        e('countAquired')  ],
+				[_('License type'),    e('licenseTypeLabel'), _('Acquired'),       e('countAquired')  ],
 				[_('Special license'), e('specialLicense'),   _('Available'),      e('countAvailable')],
 				[_('Reference'),       e('reference'),        _('Assigned'),       e('countAssigned') ],
 				[_('Usage'),           e('usage'),            _('Expired'),        e('countExpired')  ],
