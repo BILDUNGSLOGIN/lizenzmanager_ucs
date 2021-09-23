@@ -53,7 +53,7 @@ if TYPE_CHECKING:
     from univention.admin.uldap import access as LoType
     from univention.udm.base import BaseObject as UdmObject
 
-_ = Translation("bildungslogin").translate
+_ = Translation("python-bildungslogin").translate
 
 
 class LicenseHandler:
@@ -652,8 +652,8 @@ class AssignmentHandler:
         if not available_assignments:
             raise BiloAssignmentError(
                 _(
-                    "No assignment left of license with code {license_code!r}. Failed to assign "
-                    "{username!r}!"
+                    "There are no more assignments available for the license with code {license_code!r}. "
+                    "No license has been assigned to the user {username!r}!"
                 ).format(license_code=license_code, username=username)
             )
         udm_assignment = available_assignments[0]

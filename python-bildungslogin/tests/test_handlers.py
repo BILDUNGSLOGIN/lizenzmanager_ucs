@@ -13,13 +13,6 @@ from univention.bildungslogin.exceptions import BiloAssignmentError, BiloLicense
 from univention.bildungslogin.models import Assignment, MetaData
 from univention.bildungslogin.utils import Status
 
-try:
-    from univention.lib.i18n import Translation
-
-    _l10n = Translation("bildungslogin").translate
-except ImportError:
-    _l10n = lambda x: x  # noqa: E731
-
 if sys.version_info[0] >= 3:
     from unittest.mock import MagicMock, call, patch
 else:

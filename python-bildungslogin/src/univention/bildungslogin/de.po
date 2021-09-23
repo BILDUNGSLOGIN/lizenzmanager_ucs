@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-bildungslogin 0.0.3\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2021-08-18 04:47+0200\n"
+"POT-Creation-Date: 2021-09-23 09:09+0200\n"
 "PO-Revision-Date: 2021-08-12 11:58+0200\n"
 "Last-Translator: Daniel Tröder <troeder@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -16,15 +16,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/univention/bildungslogin/utils.py:51
+#: src/univention/bildungslogin/utils.py:46
 msgid "Assigned"
 msgstr "Zugewiesen"
 
-#: src/univention/bildungslogin/utils.py:53
+#: src/univention/bildungslogin/utils.py:48
 msgid "Available"
 msgstr "Verfügbar"
 
-#: src/univention/bildungslogin/handlers.py:537
+#: src/univention/bildungslogin/handlers.py:589
 msgid ""
 "Error creating assignment for {license_code!r}!\n"
 "{exc!s}"
@@ -32,7 +32,7 @@ msgstr ""
 "Fehler beim Zuweisen für die Lizenz {license_code!r}!\n"
 "{exc!s}"
 
-#: src/univention/bildungslogin/handlers.py:89
+#: src/univention/bildungslogin/handlers.py:90
 msgid ""
 "Error creating license {license_code!r}!\n"
 "{exc}"
@@ -40,7 +40,7 @@ msgstr ""
 "Fehler beim anlegen der Lizenz {license_code!r}!\n"
 "{exc}"
 
-#: src/univention/bildungslogin/handlers.py:299
+#: src/univention/bildungslogin/handlers.py:433
 msgid ""
 "Error creating meta data for product id {p_id!r}!\n"
 "{exc}"
@@ -48,11 +48,11 @@ msgstr ""
 "Fehler beim Erstellen von Metadaten für das Produkt mit der ID {p_id!r}!\n"
 "{exc}"
 
-#: src/univention/bildungslogin/handlers.py:735
+#: src/univention/bildungslogin/handlers.py:788
 msgid "Illegal status change to {status!r}!"
 msgstr "Ungültiger Statusübergang zu {status!r}!"
 
-#: src/univention/bildungslogin/handlers.py:767
+#: src/univention/bildungslogin/handlers.py:821
 #, python-brace-format
 msgid ""
 "Invalid assignment status change!\n"
@@ -61,46 +61,26 @@ msgstr ""
 "Ungültige Änderung des Zuweisungsstatus!\n"
 "{exc}"
 
-#: src/univention/bildungslogin/handlers.py:508
+#: src/univention/bildungslogin/handlers.py:560
 #, python-brace-format
 msgid "License can't be assigned to user in schools {ous}!"
 msgstr "Lizenz kann nicht an User in Schulen {ous} zugewiesen werden!"
 
-#: src/univention/bildungslogin/handlers.py:564
+#: src/univention/bildungslogin/handlers.py:615
 msgid "License is 'ignored for display' and thus can't be assigned!"
 msgstr ""
 "Die Lizenz ist auf 'In Ansicht ignorieren' gesetzt und kann daher nicht "
 "zugewiesen werden!"
 
-#: src/univention/bildungslogin/handlers.py:569
+#: src/univention/bildungslogin/handlers.py:620
 msgid "License is expired and thus can't be assigned!"
 msgstr "Die Lizenz ist abgelaufen und kann nicht mehr zugewiesen werden!"
 
-#: src/univention/bildungslogin/handlers.py:699
-msgid "License validity start is in the future."
-msgstr "Gültigkeitsbeginn liegt in der Zukunft."
-
-#: src/univention/bildungslogin/handlers.py:157
+#: src/univention/bildungslogin/handlers.py:155
 msgid "License with code {license_code!r} does not exist."
 msgstr "Lizenz mit Code {license_code!r} existiert nicht."
 
-#: src/univention/bildungslogin/handlers.py:601
-msgid ""
-"License with code {license_code!r} has already been assigned to "
-"{username!r}!"
-msgstr ""
-"Die Lizenz mit dem Lizenzcode {license_code!r} ist bereits dem User "
-"{username!r} zugewiesen!"
-
-#: src/univention/bildungslogin/handlers.py:736
-msgid ""
-"No assignment left of license with code {license_code!r}. Failed to assign "
-"{username!r}!"
-msgstr ""
-"Es sind keine Zuweisungen für die Lizenz mit dem Code {license_code!r} "
-"mehr verfügbar. Dem Nutzer {username!r} wurde keine Lizenz zugewiesen!"
-
-#: src/univention/bildungslogin/handlers.py:555
+#: src/univention/bildungslogin/handlers.py:607
 msgid ""
 "License with special type 'Lehrer' can't be assigned to user {username!r} "
 "with roles {roles!r}!"
@@ -108,39 +88,50 @@ msgstr ""
 "Die Lizenz mit dem Sondertyp 'Lehrer' kann dem User {username!r} mit den "
 "Rollen {roles!r} nicht zugewiesen werden!"
 
-#: src/univention/bildungslogin/handlers.py:415
+#: src/univention/bildungslogin/handlers.py:491
 msgid "Meta data object with product id {p_id!r} does not exist!"
 msgstr "Metadaten Objekt mit Produkt ID {p_id!r} existiert nicht!"
 
-#: src/univention/bildungslogin/handlers.py:715
+#: src/univention/bildungslogin/handlers.py:768
 msgid "No assignment for license with {dn!r} was found for user {username!r}."
 msgstr ""
 "Keine Zuweisung für die Lizenz {dn!r} wurde für den User {username!r} "
 "gefunden."
 
-#: src/univention/bildungslogin/handlers.py:525
+#: src/univention/bildungslogin/handlers.py:577
 msgid "No license with code {license_code!r} was found!"
 msgstr "Lizenz mit Code {license_code!r} nicht gefunden!"
 
-#: src/univention/bildungslogin/handlers.py:515
+#: src/univention/bildungslogin/handlers.py:567
 msgid "No user with username {un!r} exists!"
 msgstr "Es existiert kein User mit Username {un!r}!"
 
-#: src/univention/bildungslogin/utils.py:52
+#: src/univention/bildungslogin/utils.py:47
 msgid "Provisioned"
 msgstr "Provisioniert"
 
-#: src/univention/bildungslogin/handlers.py:672
-msgid ""
-"There are less available licenses than the number of users. No licenses have"
-" been assigned."
-msgstr ""
-"Es sind nicht genügend Lizenzen für die Zuweisung verfügbar. Keine Lizenzen "
-"wurden zugewiesen."
+#: src/univention/bildungslogin/utils.py:60
+msgid "Single license"
+msgstr "Einzellizenz"
 
-#: src/univention/bildungslogin/handlers.py:442
+#: src/univention/bildungslogin/handlers.py:655
+msgid ""
+"There are no more assignments available for the license with code "
+"{license_code!r}. No license has been assigned to the user {username!r}!"
+msgstr ""
+"Es sind keine Zuweisungen für die Lizenz mit dem Code {license_code!r} mehr "
+"verfügbar. Dem Nutzer {username!r} wurde keine Lizenz zugewiesen!"
+
+#: src/univention/bildungslogin/handlers.py:511
 msgid "There is no license for the assignment {dn!r}!"
 msgstr "Es existiert keine Lizenz für die Zuweisung {dn!r}!"
+
+#: src/univention/bildungslogin/utils.py:59
+msgid "Volume license"
+msgstr "Volumenlizenz"
+
+#~ msgid "License validity start is in the future."
+#~ msgstr "Gültigkeitsbeginn liegt in der Zukunft."
 
 #~ msgid ""
 #~ "License with code {lc!r} already has {num} assignments. It can't be the set "
@@ -148,3 +139,17 @@ msgstr "Es existiert keine Lizenz für die Zuweisung {dn!r}!"
 #~ msgstr ""
 #~ "Lizenz mit Code {lc!r} hat bereits {num} Zuweisungen. Sie kann nicht mehr "
 #~ "auf ignorieren gesetzt werden!"
+
+#~ msgid ""
+#~ "License with code {license_code!r} has already been assigned to "
+#~ "{username!r}!"
+#~ msgstr ""
+#~ "Die Lizenz mit dem Lizenzcode {license_code!r} ist bereits dem User "
+#~ "{username!r} zugewiesen!"
+
+#~ msgid ""
+#~ "There are less available licenses than the number of users. No licenses have"
+#~ " been assigned."
+#~ msgstr ""
+#~ "Es sind nicht genügend Lizenzen für die Zuweisung verfügbar. Keine Lizenzen "
+#~ "wurden zugewiesen."
