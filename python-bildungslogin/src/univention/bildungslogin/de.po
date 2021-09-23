@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-bildungslogin 0.0.3\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2021-09-22 15:29+0200\n"
+"POT-Creation-Date: 2021-09-23 09:09+0200\n"
 "PO-Revision-Date: 2021-08-12 11:58+0200\n"
 "Last-Translator: Daniel Tröder <troeder@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -98,14 +98,6 @@ msgstr ""
 "Keine Zuweisung für die Lizenz {dn!r} wurde für den User {username!r} "
 "gefunden."
 
-#: src/univention/bildungslogin/handlers.py:655
-msgid ""
-"No assignment left of license with code {license_code!r}. Failed to assign "
-"{username!r}!"
-msgstr ""
-"Es sind keine Zuweisungen für die Lizenz mit dem Code {license_code!r} mehr "
-"verfügbar. Dem Nutzer {username!r} wurde keine Lizenz zugewiesen!"
-
 #: src/univention/bildungslogin/handlers.py:577
 msgid "No license with code {license_code!r} was found!"
 msgstr "Lizenz mit Code {license_code!r} nicht gefunden!"
@@ -121,6 +113,14 @@ msgstr "Provisioniert"
 #: src/univention/bildungslogin/utils.py:60
 msgid "Single license"
 msgstr "Einzellizenz"
+
+#: src/univention/bildungslogin/handlers.py:655
+msgid ""
+"There are no more assignments available for the license with code "
+"{license_code!r}. No license has been assigned to the user {username!r}!"
+msgstr ""
+"Es sind keine Zuweisungen für die Lizenz mit dem Code {license_code!r} mehr "
+"verfügbar. Dem Nutzer {username!r} wurde keine Lizenz zugewiesen!"
 
 #: src/univention/bildungslogin/handlers.py:511
 msgid "There is no license for the assignment {dn!r}!"
