@@ -34,6 +34,7 @@ define([
 	"dojo/dom",
 	"dojo/dom-class",
 	"dojo/on",
+	"dojo/date/locale",
 	"dojox/html/entities",
 	"dijit/Tooltip",
 	"umc/dialog",
@@ -48,8 +49,8 @@ define([
 	"umc/widgets/Text",
 	"umc/widgets/TextBox",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, dom, domClass, on, entities, Tooltip, dialog, store, tools, Page, Grid, CheckBox, DateBox,
-		ComboBox, SearchForm, Text, TextBox, _) {
+], function(declare, lang, dom, domClass, on, dateLocale, entities, Tooltip, dialog, store, tools, Page, Grid,
+		CheckBox, DateBox, ComboBox, SearchForm, Text, TextBox, _) {
 
 	return declare("umc.modules.licenses.LicenseSearchPage", [ Page ], {
 		//// overwrites
@@ -431,6 +432,15 @@ define([
 			}, {
 				name: 'importDate',
 				label: _('Delivery'),
+				formatter: function(value, object) {
+					if (value) {
+						value = dateLocale.format(new Date(value), {
+							fullYear: true,
+							selector: 'date',
+						});
+					}
+					return value;
+				},
 			}];
 			this._grid = new Grid({
 				actions: actions,

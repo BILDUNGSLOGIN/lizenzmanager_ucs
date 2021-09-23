@@ -37,6 +37,7 @@ define([
 	"dojo/on",
 	"dojo/mouse",
 	"dojo/query",
+	"dojo/date/locale",
 	"dojox/html/entities",
 	"dijit/Tooltip",
 	"umc/store",
@@ -47,8 +48,8 @@ define([
 	"umc/widgets/TextBox",
 	"put-selector/put",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, dom, domClass, aspect, on, mouse, query, entities, Tooltip, store, Page, Grid, SearchForm,
-		Text, TextBox, put, _) {
+], function(declare, lang, dom, domClass, aspect, on, mouse, query, dateLocale, entities, Tooltip, store, Page, Grid,
+		SearchForm, Text, TextBox, put, _) {
 
 	return declare("umc.modules.licenses.ProductSearchPage", [ Page ], {
 		//// overwrites
@@ -227,6 +228,15 @@ define([
 			}, {
 				name: 'latestDeliveryDate',
 				label: _('Import date'),
+				formatter: function(value, object) {
+					if (value) {
+						value = dateLocale.format(new Date(value), {
+							fullYear: true,
+							selector: 'date',
+						});
+					}
+					return value;
+				},
 			}];
 			this._grid = new Grid({
 				actions: actions,

@@ -194,9 +194,27 @@ define([
 			}, {
 				name: 'validityStart',
 				label: _('Validity start'),
+				formatter: function(value, object) {
+					if (value) {
+						value = dateLocale.format(new Date(value), {
+							fullYear: true,
+							selector: 'date',
+						});
+					}
+					return value;
+				},
 			}, {
 				name: 'validityEnd',
 				label: _('Validity end'),
+				formatter: function(value, object) {
+					if (value) {
+						value = dateLocale.format(new Date(value), {
+							fullYear: true,
+							selector: 'date',
+						});
+					}
+					return value;
+				},
 			}, {
 				name: 'validitySpan',
 				label: _('Validity span'),
@@ -224,6 +242,15 @@ define([
 			}, {
 				name: 'importDate',
 				label: _('Delivery'),
+				formatter: function(value, object) {
+					if (value) {
+						value = dateLocale.format(new Date(value), {
+							fullYear: true,
+							selector: 'date',
+						});
+					}
+					return value;
+				},
 			}];
 			this._grid = new Grid({
 				actions: actions,
