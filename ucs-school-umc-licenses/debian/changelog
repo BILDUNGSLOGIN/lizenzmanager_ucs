@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.15) unstable; urgency=medium
+
+  * Issue #94: fix typo
+
+ -- Johannes Keiser <keiser@univention.de>  Fri, 24 Sep 2021 09:44:57 +0200
+
 ucs-school-umc-licenses (0.1.14) unstable; urgency=medium
 
   * Issue #103: reset 'class' selection when empty on search
