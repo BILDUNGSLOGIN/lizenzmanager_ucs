@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2021-08-27 15:21+0200\n"
+"POT-Creation-Date: 2021-09-23 10:51+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -11,6 +11,13 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: umc/js/licenses/ProductDetailPage.js:210
+#: umc/js/licenses/LicenseDetailPage.js:126
+#: umc/js/licenses/ProductSearchPage.js:213
+#: umc/js/licenses/LicenseSearchPage.js:417
+msgid "Acquired"
+msgstr "Erworben"
 
 #: umc/js/licenses/LicenseSearchPage.js:98
 #: umc/js/licenses/LicenseSearchPage.js:289
@@ -24,13 +31,6 @@ msgstr "Alle Klassen"
 #: umc/js/licenses/UserSelectionPage.js:104
 msgid "All workgroups"
 msgstr "Alle Arbeitsgruppen"
-
-#: umc/js/licenses/ProductDetailPage.js:210
-#: umc/js/licenses/LicenseDetailPage.js:126
-#: umc/js/licenses/ProductSearchPage.js:213
-#: umc/js/licenses/LicenseSearchPage.js:417
-msgid "Aquired"
-msgstr "Erworben"
 
 #: umc/js/licenses/ProductSearchPage.js:182
 #: umc/js/licenses/LicenseSearchPage.js:319
@@ -204,6 +204,23 @@ msgstr ""
 msgid "Loading cover..."
 msgstr "Lade Buchdeckel..."
 
+#: umc/js/licenses/ProductSearchPage.js:207
+#: umc/js/licenses/LicenseSearchPage.js:408
+msgid "Medium"
+msgstr "Medium"
+
+#: umc/js/licenses/ProductDetailPage.js:112
+#: umc/js/licenses/LicenseDetailPage.js:124
+#: umc/js/licenses/ProductSearchPage.js:204
+#: umc/js/licenses/LicenseSearchPage.js:249
+#: umc/js/licenses/LicenseSearchPage.js:405
+msgid "Medium ID"
+msgstr "Medien ID"
+
+#: umc/js/licenses/LicenseSearchPage.js:243
+msgid "Medium name"
+msgstr "Name des Mediums"
+
 #: umc/js/licenses/ChooseSchoolPage.js:88
 msgid "Next"
 msgstr "Weiter"
@@ -226,23 +243,6 @@ msgstr "Lizenz öffnen"
 #: umc/js/licenses/ChooseSchoolPage.js:78
 msgid "Please select a school"
 msgstr "Bitte eine Schule auswählen"
-
-#: umc/js/licenses/ProductSearchPage.js:207
-#: umc/js/licenses/LicenseSearchPage.js:408
-msgid "Medium"
-msgstr "Medium"
-
-#: umc/js/licenses/ProductDetailPage.js:112
-#: umc/js/licenses/LicenseDetailPage.js:124
-#: umc/js/licenses/ProductSearchPage.js:204
-#: umc/js/licenses/LicenseSearchPage.js:249
-#: umc/js/licenses/LicenseSearchPage.js:405
-msgid "Medium ID"
-msgstr "Medien ID"
-
-#: umc/js/licenses/LicenseSearchPage.js:243
-msgid "Medium name"
-msgstr "Name des Mediums"
 
 #: umc/js/licenses/ProductDetailPage.js:111
 #: umc/js/licenses/LicenseDetailPage.js:123
@@ -273,8 +273,8 @@ msgid ""
 "Search for licenses that have this user assigned. (Searches for 'first "
 "name', 'last name' and 'username')"
 msgstr ""
-"Suche nach Lizenzen, denen dieser Benutzer zugewiesen ist. "
-"(Sucht nach 'Vorname', 'Nachname' und 'Benutzername')"
+"Suche nach Lizenzen, denen dieser Benutzer zugewiesen ist. (Sucht nach "
+"'Vorname', 'Nachname' und 'Benutzername')"
 
 #: umc/js/licenses/ProductSearchPage.js:163
 msgid "Search licensed media"
@@ -291,8 +291,8 @@ msgstr "Nutzer suchen"
 #: umc/js/licenses/UserSelectionPage.js:99
 msgid "Select a class or enter free text (e.g. a part of a class name)"
 msgstr ""
-"Wählen Sie eine Klasse oder geben Sie einen freien Text ein "
-"(z. B. einen Teil eines Klassennamens)"
+"Wählen Sie eine Klasse oder geben Sie einen freien Text ein (z. B. einen "
+"Teil eines Klassennamens)"
 
 #: umc/js/licenses/ProductSearchPage.js:193
 msgid "Show details"
@@ -387,6 +387,6 @@ msgstr ""
 msgid "Workgroup"
 msgstr "Arbeitsgruppe"
 
-#: umc/js/licenses.js:311
+#: umc/js/licenses.js:312
 msgid "for %(school)s"
 msgstr "für %(school)s"

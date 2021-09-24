@@ -207,7 +207,7 @@ define([
 				width: '65px',
 			}, {
 				name: 'countAquired',
-				label: _('Aquired'),
+				label: _('Acquired'),
 				width: '60px',
 			}, {
 				name: 'countAssigned',
