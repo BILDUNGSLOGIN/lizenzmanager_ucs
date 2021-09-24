@@ -34,6 +34,7 @@ define([
 	"dojo/on",
 	"dojo/dom-class",
 	"dojo/topic",
+	"dojo/date/locale",
 	"dojo/store/Memory",
 	"dojo/store/Observable",
 	"dijit/_WidgetBase",
@@ -43,7 +44,7 @@ define([
 	"umc/widgets/Grid",
 	"put-selector/put",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, on, domClass, topic, Memory, Observable, _WidgetBase, _TemplatedMixin, tools,
+], function(declare, lang, on, domClass, topic, dateLocale, Memory, Observable, _WidgetBase, _TemplatedMixin, tools,
 		Page, Grid, put, _) {
 
 	const _Table = declare("umc.modules.licenses.Table", [_WidgetBase, _TemplatedMixin], {

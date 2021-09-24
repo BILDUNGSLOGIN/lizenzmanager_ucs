@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.17) unstable; urgency=medium
+
+  * Issue #72: add missing import
+
+ -- Johannes Keiser <keiser@univention.de>  Fri, 24 Sep 2021 13:39:57 +0200
+
 ucs-school-umc-licenses (0.1.16) unstable; urgency=medium
 
   * Bug #72: dates are now displayed in a format
