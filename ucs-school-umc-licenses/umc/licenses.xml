@@ -4,6 +4,10 @@
 		<categories>
 			<category name="ucs-school-class"/>
 		</categories>
+		<flavor id="licenses/products" priority="54">
+			<name>Licensed media</name>
+			<description>View and search licensed media in the BILDUNGSLOGIN license manager</description>
+		</flavor>
 		<flavor id="licenses/licenses" priority="53">
 			<name>Media license overview</name>
 			<description>Display, search and revoke media licenses in the BILDUNGSLOGIN license manager</description>
@@ -11,10 +15,6 @@
 		<flavor id="licenses/allocation" priority="52">
 			<name>Assign media licenses</name>
 			<description>Assign media licenses in the BILDUNGSLOGIN license manager</description>
-		</flavor>
-		<flavor id="licenses/products" priority="52">
-			<name>Licensed media</name>
-			<description>View and search licensed media in the BILDUNGSLOGIN license manager</description>
 		</flavor>
 		<command name="licenses/query" function="licenses_query"></command>
 		<command name="licenses/get" function="licenses_get"></command>

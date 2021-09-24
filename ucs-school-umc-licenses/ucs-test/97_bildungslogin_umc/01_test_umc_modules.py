@@ -738,3 +738,16 @@ def test_assignment_module_assignment(selenium, schoolenv, create_license, creat
         check_cell(selenium, "username", username2)
     finally:
         schoolenv.cleanup_ou(school_ou)
+
+
+def test_education_tile_order(selenium):
+    """Check if the licensing related modules appear in the right order. See issue #96"""
+    selenium.do_login()
+    selenium.click_button("Education")
+
+    # according to the interwebs, find_elements keeps the correct order:
+    # https://stackoverflow.com/a/31234367/2539828
+    tiles = selenium.driver.find_elements_by_class_name("umcGalleryName")
+
+    for i, value in enumerate(["Licensed media", "Media license overview", "Assign media licenses"]):
+        assert tiles[i].text == value
