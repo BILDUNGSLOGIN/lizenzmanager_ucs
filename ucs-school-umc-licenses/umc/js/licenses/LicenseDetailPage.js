@@ -33,6 +33,7 @@ define([
 	"dojo/_base/lang",
 	"dojo/dom-class",
 	"dojo/on",
+	"dojo/date/locale",
 	"dojo/store/Memory",
 	"dojo/store/Observable",
 	"dijit/_WidgetBase",
@@ -45,8 +46,8 @@ define([
 	"umc/widgets/ContainerWidget",
 	"put-selector/put",
 	"umc/i18n!umc/modules/licenses"
-], function(declare, lang, domClass, on, Memory, Observable, _WidgetBase, _TemplatedMixin, tools, dialog, Page, Grid,
-		CheckBox, ContainerWidget, put, _) {
+], function(declare, lang, domClass, on, dateLocale, Memory, Observable, _WidgetBase, _TemplatedMixin, tools, dialog,
+		Page, Grid, CheckBox, ContainerWidget, put, _) {
 
 	const _Table = declare("umc.modules.licenses.Table", [_WidgetBase, _TemplatedMixin], {
 		//// overwrites
@@ -107,6 +108,19 @@ define([
 				return val;
 			}
 
+			function d(id) {
+				let date = license[id];
+				if (date) {
+					date = dateLocale.format(new Date(date), {
+						fullYear: true,
+						selector: 'date',
+					});
+				} else {
+					date = '---';
+				}
+				return date;
+			}
+
 			const ignore = lang.hitch(this, function ignore() {
 				this._ignore = new CheckBox({
 					value: license.ignore,
@@ -119,9 +133,9 @@ define([
 
 			const data = [
 				[_('Title'),           e('productName'),      _('Ignore'),         ignore()           ],
-				[_('Author'),          e('author'),           _('Delivery'),       e('importDate')    ],
-				[_('Publisher'),       e('publisher'),        _('Validity start'), e('validityStart') ],
-				[_('Medium ID'),      e('productId'),        _('Validity end'),   e('validityEnd')   ],
+				[_('Author'),          e('author'),           _('Delivery'),       d('importDate')    ],
+				[_('Publisher'),       e('publisher'),        _('Validity start'), d('validityStart') ],
+				[_('Medium ID'),       e('productId'),        _('Validity end'),   d('validityEnd')   ],
 				[_('License code'),    e('licenseCode'),      _('Validity span'),  e('validitySpan')  ],
 				[_('License type'),    e('licenseTypeLabel'), _('Acquired'),       e('countAquired')  ],
 				[_('Special license'), e('specialLicense'),   _('Available'),      e('countAvailable')],
@@ -287,6 +301,15 @@ define([
 			}, {
 				name: 'dateOfAssignment',
 				label: _('Date of assignment'),
+				formatter: function(value, object) {
+					if (value) {
+						value = dateLocale.format(new Date(value), {
+							fullYear: true,
+							selector: 'date',
+						});
+					}
+					return value;
+				},
 			}];
 			this._grid = new Grid({
 				actions: actions,
