@@ -41,7 +41,6 @@ from selenium.common.exceptions import NoSuchElementException
 
 import univention.testing.strings as uts
 import univention.testing.ucsschool.ucs_test_school as utu
-from univention.admin.syntax import iso8601Date
 from univention.bildungslogin.handlers import AssignmentHandler
 from univention.testing import selenium as sel
 from univention.testing.selenium.utils import expand_path
@@ -93,6 +92,10 @@ def select_school(selenium, ou):
     selenium.click_button("Next")
     selenium.wait_until_standby_animation_appears_and_disappears()
     selenium.wait_for_text("for {}".format(ou))
+
+
+def english_datestring_from_date(date):
+    return "{month}/{day}/{year}".format(month=date.month, day=date.day, year=date.year)
 
 
 def test_licenses_module_school_selection(selenium, schoolenv, create_license):
@@ -149,7 +152,7 @@ def test_licenses_module_simple_search(selenium, schoolenv, create_license, crea
             ("countAssigned", str(license.props.num_assigned)),
             ("countExpired", str(license.props.num_expired)),
             ("countAvailable", str(license.props.num_available)),
-            ("importDate", iso8601Date.from_datetime(license.props.delivery_date)),
+            ("importDate", english_datestring_from_date(license.props.delivery_date)),
         ]:
             check_cell(selenium, cell_name, content)
 
@@ -162,9 +165,6 @@ def test_licenses_module_simple_search(selenium, schoolenv, create_license, crea
 
 
 def test_licenses_module_advanced_search_time(selenium, schoolenv, create_license, create_metadata):
-    def _d(date):
-        return "{month}/{day}/{year}".format(month=date.month, day=date.day, year=date.year)
-
     school_ou = uts.random_name()
     schoolenv.create_ou(school_ou)
     try:
@@ -196,19 +196,19 @@ def test_licenses_module_advanced_search_time(selenium, schoolenv, create_licens
         selenium.click_element('//*[@title="Advanced search"]')
 
         # test only timeFrom
-        selenium.enter_input_date("timeFrom", _d(date1))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code, False)
         check_cell(selenium, "licenseCode", license_after.props.code)
         date1_before = date1 - timedelta(days=1)
-        selenium.enter_input_date("timeFrom", _d(date1_before))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1_before))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code, False)
         check_cell(selenium, "licenseCode", license_after.props.code)
         date1_after = date1 + timedelta(days=1)
-        selenium.enter_input_date("timeFrom", _d(date1_after))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1_after))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code, False)
         check_cell(selenium, "licenseCode", license_before.props.code, False)
@@ -216,69 +216,69 @@ def test_licenses_module_advanced_search_time(selenium, schoolenv, create_licens
         selenium.enter_input_date("timeFrom", "")
 
         # test only timeTo
-        selenium.enter_input_date("timeTo", _d(date1))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code)
         check_cell(selenium, "licenseCode", license_after.props.code, False)
         date1_before = date1 - timedelta(days=1)
-        selenium.enter_input_date("timeTo", _d(date1_before))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1_before))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code, False)
         check_cell(selenium, "licenseCode", license_before.props.code)
         check_cell(selenium, "licenseCode", license_after.props.code, False)
         date1_after = date1 + timedelta(days=1)
-        selenium.enter_input_date("timeTo", _d(date1_after))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1_after))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code)
         check_cell(selenium, "licenseCode", license_after.props.code, False)
 
         # test both timeFrom and timeTo
-        selenium.enter_input_date("timeFrom", _d(date1 - timedelta(days=3)))
-        selenium.enter_input_date("timeTo", _d(date1 + timedelta(days=3)))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1 - timedelta(days=3)))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1 + timedelta(days=3)))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code)
         check_cell(selenium, "licenseCode", license_after.props.code)
 
-        selenium.enter_input_date("timeFrom", _d(date1 - timedelta(days=2)))
-        selenium.enter_input_date("timeTo", _d(date1 + timedelta(days=3)))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1 - timedelta(days=2)))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1 + timedelta(days=3)))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code)
         check_cell(selenium, "licenseCode", license_after.props.code)
 
-        selenium.enter_input_date("timeFrom", _d(date1 - timedelta(days=1)))
-        selenium.enter_input_date("timeTo", _d(date1 + timedelta(days=3)))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1 - timedelta(days=1)))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1 + timedelta(days=3)))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code, False)
         check_cell(selenium, "licenseCode", license_after.props.code)
 
-        selenium.enter_input_date("timeFrom", _d(date1 - timedelta(days=0)))
-        selenium.enter_input_date("timeTo", _d(date1 + timedelta(days=3)))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1 - timedelta(days=0)))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1 + timedelta(days=3)))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code, False)
         check_cell(selenium, "licenseCode", license_after.props.code)
 
-        selenium.enter_input_date("timeFrom", _d(date1 - timedelta(days=3)))
-        selenium.enter_input_date("timeTo", _d(date1 + timedelta(days=2)))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1 - timedelta(days=3)))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1 + timedelta(days=2)))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code)
         check_cell(selenium, "licenseCode", license_after.props.code)
 
-        selenium.enter_input_date("timeFrom", _d(date1 - timedelta(days=3)))
-        selenium.enter_input_date("timeTo", _d(date1 + timedelta(days=1)))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1 - timedelta(days=3)))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1 + timedelta(days=1)))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code)
         check_cell(selenium, "licenseCode", license_after.props.code, False)
 
-        selenium.enter_input_date("timeFrom", _d(date1 - timedelta(days=3)))
-        selenium.enter_input_date("timeTo", _d(date1 + timedelta(days=0)))
+        selenium.enter_input_date("timeFrom", english_datestring_from_date(date1 - timedelta(days=3)))
+        selenium.enter_input_date("timeTo", english_datestring_from_date(date1 + timedelta(days=0)))
         selenium.submit_input("licenseCode")
         check_cell(selenium, "licenseCode", license.props.code)
         check_cell(selenium, "licenseCode", license_before.props.code)
