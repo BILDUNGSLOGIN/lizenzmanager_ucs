@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.23) unstable; urgency=medium
+
+  * Fix 01_test_umc_modules
+
+ -- Johannes Keiser <keiser@univention.de>  Tue, 28 Sep 2021 13:55:43 +0200
+
 ucs-school-umc-licenses (0.1.22) unstable; urgency=medium
 
   * Issue #111: add missing translation
