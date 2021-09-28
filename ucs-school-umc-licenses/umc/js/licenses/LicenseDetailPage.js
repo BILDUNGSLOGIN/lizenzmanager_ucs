@@ -180,6 +180,7 @@ define([
 		_setLicenseAttr: function(license) {
 			this._table.set('license', license);
 			this._grid.moduleStore.setData(license.users);
+			this._grid.filter();
 			this._set('license', license);
 		},
 
