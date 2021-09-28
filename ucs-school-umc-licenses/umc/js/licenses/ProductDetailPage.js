@@ -139,7 +139,6 @@ define([
 		_setProductAttr: function(product) {
 			this._table.set('product', product);
 			this._grid.moduleStore.setData(product.licenses);
-			this._grid.filter();
 			this._set('product', product);
 		},
 
@@ -269,6 +268,10 @@ define([
 
 			this.addChild(this._table);
 			this.addChild(this._grid);
+		},
+
+		_onShow: function() {
+			this._grid.filter();
 		},
 	});
 });
