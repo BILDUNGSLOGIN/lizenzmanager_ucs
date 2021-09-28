@@ -1,5 +1,19 @@
 # Changelog
 
+## 2021-09-28
+
+## Hinzugefügt
+- Die automatische Suche für das UMC Modul ***Medienlizenz-Übersicht*** und die Nutzerauswahl bei der Zuweisung
+von Lizenzen wurde abgeschaltet.
+- Das UMC Modul ***Medienlizenz-Übersicht*** berücksichtigt nun die UCR Variable `directory/manager/web/sizelimit`
+und erfordert eine Präzisierung der Suchparameter, wenn die Suchergebnisse das Limit übersteigen.
+
+## Geändert
+- Das Suchfeld *Klasse* beim Zuweisen von Lizenzen fällt auf die Auswahl *Alle Klassen* zurück, wenn ein leerer
+String als Wert eingegeben wird.
+- Diverse Text- und Übersetzungsänderungen in den UMC Modulen
+- Die Reihenfolge der UMC Module wurde angepasst
+
 ## 2021-08-27
 
 ## Hinzugefügt
