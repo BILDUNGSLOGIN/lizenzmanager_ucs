@@ -77,7 +77,9 @@ define([
 						_('Assign licenses to 1 selected user.')
 						: _('Assign licenses to %s selected users.', count)
 					)}
-					<span id="${id}" class="licensesShowSelectedUsers">(show selected users)</span>
+					<span id="${id}" class="licensesShowSelectedUsers">
+						(${entities.encode(_("show selected users"))})
+					</span>
 				</p>
 				<p>
 					${entities.encode(_('Choose the medium for which you want to assign licenses.'))}
