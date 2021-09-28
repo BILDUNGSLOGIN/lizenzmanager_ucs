@@ -45,6 +45,8 @@ from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler,
 from univention.bildungslogin.models import License
 from univention.bildungslogin.utils import LicenseType, ldap_escape
 from univention.lib.i18n import Translation
+from univention.management.console.config import ucr
+from univention.management.console.error import UMC_Error
 from univention.management.console.log import MODULE
 from univention.management.console.modules.decorators import sanitize
 from univention.management.console.modules.sanitizers import (
@@ -54,6 +56,7 @@ from univention.management.console.modules.sanitizers import (
     StringSanitizer,
 )
 from univention.udm import UDM
+from univention.udm.exceptions import SearchLimitReached
 
 _ = Translation("ucs-school-umc-licenses").translate
 
@@ -99,26 +102,38 @@ class Instance(SchoolBaseModule):
         }
         """
         MODULE.error("licenses.licenses_query: options: %s" % str(request.options))
+        sizelimit = int(ucr.get("directory/manager/web/sizelimit", 2000))
         lh = LicenseHandler(ldap_user_write)
         time_from = request.options.get("timeFrom")
         time_from = iso8601Date.to_datetime(time_from) if time_from else None
         time_to = request.options.get("timeTo")
         time_to = iso8601Date.to_datetime(time_to) if time_to else None
-        result = lh.search_for_licenses(
-            is_advanced_search=request.options.get("isAdvancedSearch"),
-            school=request.options.get("school"),
-            time_from=time_from,
-            time_to=time_to,
-            only_available_licenses=request.options.get("onlyAvailableLicenses"),
-            publisher=request.options.get("publisher"),
-            license_type=request.options.get("licenseType"),
-            user_pattern=request.options.get("userPattern"),
-            product_id=request.options.get("productId"),
-            product=request.options.get("product"),
-            license_code=request.options.get("licenseCode"),
-            pattern=request.options.get("pattern"),
-            restrict_to_this_product_id=request.options.get("allocationProductId"),
-        )
+        try:
+            result = lh.search_for_licenses(
+                is_advanced_search=request.options.get("isAdvancedSearch"),
+                school=request.options.get("school"),
+                time_from=time_from,
+                time_to=time_to,
+                only_available_licenses=request.options.get("onlyAvailableLicenses"),
+                publisher=request.options.get("publisher"),
+                license_type=request.options.get("licenseType"),
+                user_pattern=request.options.get("userPattern"),
+                product_id=request.options.get("productId"),
+                product=request.options.get("product"),
+                license_code=request.options.get("licenseCode"),
+                pattern=request.options.get("pattern"),
+                restrict_to_this_product_id=request.options.get("allocationProductId"),
+                sizelimit=sizelimit,
+            )
+        except SearchLimitReached:
+            raise UMC_Error(
+                _(
+                    "The query you have entered yields too many matching entries. "
+                    "Please narrow down your search by specifying more query parameters. "
+                    "The current size limit of {} can be configured with the UCR variable "
+                    "directory/manager/web/sizelimit."
+                ).format(sizelimit)
+            )
         for res in result:
             res["importDate"] = iso8601Date.from_datetime(res["importDate"])
         MODULE.info("licenses.licenses_query: result: %s" % str(result))

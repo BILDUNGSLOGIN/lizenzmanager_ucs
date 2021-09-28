@@ -24,6 +24,17 @@ msgstr ""
 "Der Status 'Ignorieren' kann nicht geändert werden, da der Lizenz bereits "
 "Benutzer zugewiesen sind."
 
+msgid ""
+"The query you have entered yields too many matching entries. "
+"Please narrow down your search by specifying more query parameters. "
+"The current size limit of {} can be configured with the UCR variable "
+"directory/manager/web/sizelimit."
+msgstr ""
+"Die angeforderte Suche lieferte zu viele Ergebnisse und wurde abgebrochen. "
+"Bitte schränken Sie die Suche durch weitere Suchparameter ein. "
+"Die momentane Begrenzung der Anzahl an Treffern beträgt {} und kann mit "
+"der UCR-Variable directory/manager/web/sizelimit angepasst werden."
+
 #: umc/python/licenses/__init__.py:345
 msgid "Yes"
 msgstr "Ja"

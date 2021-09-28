@@ -113,12 +113,14 @@ def test_licenses_module_school_selection(selenium, schoolenv, create_license):
         selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school1_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
         check_cell(selenium, "licenseCode", license_school1.props.code)
         check_cell(selenium, "licenseCode", license_school2.props.code, False)
 
         selenium.click_button("Change school")
 
         select_school(selenium, school2_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
         check_cell(selenium, "licenseCode", license_school1.props.code, False)
         check_cell(selenium, "licenseCode", license_school2.props.code)
     finally:
@@ -141,6 +143,7 @@ def test_licenses_module_simple_search(selenium, schoolenv, create_license, crea
         selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
 
         for cell_name, content in [
             ("licenseCode", license.props.code),
@@ -316,6 +319,7 @@ def test_licenses_module_advanced_search_ignored_for_display(
         selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
 
         selenium.click_element('//*[@title="Advanced search"]')
         check_cell(selenium, "licenseCode", license_ignored.props.code)
@@ -349,6 +353,7 @@ def test_licenses_module_advanced_search_publisher(selenium, schoolenv, create_l
         selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
 
         selenium.click_element('//*[@title="Advanced search"]')
         check_cell(selenium, "licenseCode", license.props.code)
@@ -383,6 +388,7 @@ def test_licenses_module_advanced_search_license_type(
         selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
 
         selenium.click_element('//*[@title="Advanced search"]')
         check_cell(selenium, "licenseCode", license_single.props.code)
@@ -423,6 +429,7 @@ def test_licenses_module_advanced_search_user_ident(
         selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
 
         selenium.click_element('//*[@title="Advanced search"]')
         check_cell(selenium, "licenseCode", license.props.code)
@@ -450,6 +457,7 @@ def test_licenses_module_advanced_search(selenium, schoolenv, create_license, cr
         selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
 
         selenium.click_element('//*[@title="Advanced search"]')
         check_cell(selenium, "licenseCode", license.props.code)
@@ -474,6 +482,7 @@ def test_licenses_module_save_ignore(selenium, schoolenv, create_license, create
         selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
 
         selenium.click_grid_entry(license.props.code)
         selenium.wait_until_standby_animation_appears_and_disappears()
@@ -514,6 +523,7 @@ def test_licenses_module_remove_license(selenium, schoolenv, create_license, cre
         selenium.open_module("Media license overview", do_reload=False)
 
         select_school(selenium, school_ou)
+        selenium.submit_input("pattern")  # due to no autosearch
 
         selenium.click_grid_entry(license.props.code)
         check_cell(selenium, "username", username)
@@ -702,7 +712,7 @@ def test_assignment_module_assignment(selenium, schoolenv, create_license, creat
         selenium.open_module("Assign media licenses", do_reload=False)
 
         select_school(selenium, school_ou)
-        selenium.submit_input("pattern")
+        selenium.submit_input("pattern")  # due to no autosearch
 
         selenium.click_checkbox_of_grid_entry(username)
         selenium.click_checkbox_of_grid_entry(username2)
@@ -713,6 +723,7 @@ def test_assignment_module_assignment(selenium, schoolenv, create_license, creat
         check_cell(selenium, "productId", metadata2.props.product_id)
 
         selenium.click_grid_entry(metadata.props.product_id)
+        selenium.submit_input("pattern")  # due to no autosearch
 
         check_cell(selenium, "licenseCode", license1.props.code)
         check_cell(selenium, "licenseCode", license2.props.code)
@@ -731,7 +742,7 @@ def test_assignment_module_assignment(selenium, schoolenv, create_license, creat
 
         selenium.open_module("Media license overview", do_reload=False)
         select_school(selenium, school_ou)
-        selenium.submit_input("pattern")
+        selenium.submit_input("pattern")  # due to no autosearch
         selenium.wait_until_standby_animation_appears_and_disappears()
         selenium.click_grid_entry(license1.props.code)
         check_cell(selenium, "username", username)

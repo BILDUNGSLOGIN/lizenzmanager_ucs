@@ -139,12 +139,19 @@ class LicenseHandler:
             num_available=udm_obj.props.num_available,
         )
 
-    def _get_all(self, filter_s=None):  # type: (Optional[str]) -> List[UdmObject]
-        return [o for o in self._licenses_mod.search(filter_s=filter_s)]
+    def _get_all(
+        self, filter_s=None, sizelimit=0
+    ):  # type: (Optional[str], Optional[int]) -> List[UdmObject]
+        return [o for o in self._licenses_mod.search(filter_s=filter_s, sizelimit=sizelimit)]
 
-    def get_all(self, filter_s=None):  # type: (Optional[str]) -> List[License]
+    def get_all(
+        self, filter_s=None, sizelimit=0
+    ):  # type: (Optional[str], Optional[int]) -> List[License]
         """get all licenses"""
-        return [self.from_udm_obj(udm_obj) for udm_obj in self._get_all(filter_s=filter_s)]
+        return [
+            self.from_udm_obj(udm_obj)
+            for udm_obj in self._get_all(filter_s=filter_s, sizelimit=sizelimit)
+        ]
 
     def get_udm_license_by_code(self, license_code):  # type: (str) -> UdmObject
         filter_s = filter_format("(code=%s)", [license_code])
@@ -245,6 +252,7 @@ class LicenseHandler:
         license_code="",  # type: Optional[str]
         pattern="",  # type: Optional[str]
         restrict_to_this_product_id="",  # type: Optional[str]
+        sizelimit=0,  # type: int
     ):
         def __get_possible_product_ids(search_values, search_combo="|"):
             attr_allow_list = (
@@ -376,7 +384,7 @@ class LicenseHandler:
             filter_s = "(&(product_id={}){})".format(
                 ldap_escape(restrict_to_this_product_id, allow_asterisks=False), filter_s
             )
-        licenses = self.get_all(filter_s=filter_s)
+        licenses = self.get_all(filter_s=filter_s, sizelimit=sizelimit)
         product_ids = set([license.product_id for license in licenses])
         products = {
             product_id: self.get_meta_data_by_product_id(product_id) for product_id in product_ids
