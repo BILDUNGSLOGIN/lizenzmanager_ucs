@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.22) unstable; urgency=medium
+
+  * Issue #111: add missing translation
+
+ -- Johannes Keiser <keiser@univention.de>  Tue, 28 Sep 2021 11:23:37 +0200
+
 ucs-school-umc-licenses (0.1.21) unstable; urgency=medium
 
   * Issue #110: Fix broken Grid in UMC module
