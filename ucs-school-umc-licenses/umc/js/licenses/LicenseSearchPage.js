@@ -139,8 +139,11 @@ define([
 
 		query: function() {
 			this.standbyDuring(
+				// Deactivated in this flavor due to Issue #97
 				this._searchForm.ready().then(lang.hitch(this, function() {
-					// this._searchForm.submit(); Deactivated due to Issue #97
+					if (this.moduleFlavor !== "licenses/licenses") {
+						this._searchForm.submit();
+					}
 				}))
 			);
 		},
