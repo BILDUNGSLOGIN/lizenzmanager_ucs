@@ -1,5 +1,10 @@
 # Changelog
 
+## 2021-10-01
+
+## Geändert
+- Das Verhalten der automatischen Suche des UMC Moduls ***Medienlizenzen zuweisen*** wurde wiederhergestellt.
+
 ## 2021-09-28
 
 ## Hinzugefügt
