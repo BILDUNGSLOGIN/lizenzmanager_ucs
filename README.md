@@ -132,3 +132,12 @@ Löschen einer Lizenz
 root@dc1:~# udm bildungslogin/license remove --dn cn=0fb9155c27655c172f2b2149108ed7736da6595eef302c8b160b95ee6112a0f8,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=vbm,dc=schule-univention,dc=de
 ...
 ```
+## Beispiel alle Daten löschen
+
+Zum Aufräumen einer Testumgebung
+
+Alle Lizenzen löschen:
+```shell
+root@dc0:~# for dn in $(udm bildungslogin/license list | sed -n 's/DN: //p'); do udm bildungslogin/license remove --dn $dn; done
+```
+
