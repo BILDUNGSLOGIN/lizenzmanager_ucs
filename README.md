@@ -1,17 +1,9 @@
-# vbm-dev
+# bildungslogin
 
 ## Getting started:
 
 [Installation and usage](getting_started.md)
 
-## Release:
-
-- [Changelog](CHANGELOG.md) aktualisieren.
-- [getting started](getting_started.md) prüfen und gegebenenfalls aktualisieren.
-- Nach Möglichkeit Update vom letzten Release zum aktuellen Stand prüfen.
-- Release von `omar`
-  - `announce_ucs_customer_scope --skip-tag -c 172906 -r 4.4-0 -s bildungslogin`
-  - `sudo update_customer_mirror.sh 172906`
 
 # Debugging
 
