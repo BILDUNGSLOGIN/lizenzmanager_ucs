@@ -96,6 +96,10 @@ Einschränkung durch Suchparameter verlangen. Dieses Limit kann durch die UCR Va
 gesetzt werden und ist standardmäßig auf 2000 eingestellt. Aktuell enmpfiehlt es sich dieses Limit für das Lizenzmanagement
 auf 500 zu setzen. Dies kann mit dem Befehl `ucr set directory/manager/web/sizelimit=500` erreicht werden.
 
+## 5. Portal-Eintrag hinzufügen
+
+- Anlegen der Portal-Kachel mit der von Bildungslogin erhaltenen **ucs-id**, siehe auch [UCS Handbuch](https://docs.software-univention.de/handbuch-4.4.html#central:portal).
+
 ### Installationsprobleme
 
 Probleme bei der Installation können häufig durch das erneute Ausführen der Join Skripte behoben werden:
