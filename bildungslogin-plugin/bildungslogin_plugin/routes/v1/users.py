@@ -5,9 +5,8 @@ import logging
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from pydantic import constr
-from starlette import status
 
 from bildungslogin_plugin.backend import DbBackend, DbConnectionError, UserNotFound
 from bildungslogin_plugin.models import User

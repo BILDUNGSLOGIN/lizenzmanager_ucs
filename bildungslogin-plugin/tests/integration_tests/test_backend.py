@@ -108,7 +108,7 @@ async def ldap_auth_modify(
     try:
         with Connection(
             self.server_master,
-            user=f"{self.credentials.cn_admin},{self.settings.ldap_base}",  # <-- TODO: fix this in app
+            user=self.credentials.cn_admin_dn,
             password=self.credentials.cn_admin_password,
             auto_bind=AUTO_BIND_TLS_BEFORE_BIND,
             authentication=SIMPLE,
@@ -121,7 +121,7 @@ async def ldap_auth_modify(
         self.logger.exception(
             "When connecting to %r with bind_dn %r: %s",
             self.settings.master_fqdn,
-            self.credentials.cn_admin,
+            self.credentials.cn_admin_dn,
             exc,
         )
         raise
