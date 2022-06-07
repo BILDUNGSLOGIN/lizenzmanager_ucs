@@ -64,7 +64,7 @@ Informationen zur Deinstallation sind in einem separaten Kapitel weiter unten.
 ## 1. Apps installieren
 
 1. Als erstes muss UCS@school installiert sein.
-2. Anschließend muss die UCS@school APIs app installiert werden: `univention-app install ucsschool-apis`
+2. Anschließend muss die UCS@school APIs app installiert werden: `univention-app install ucsschool-apis=0.1.0`
 
 ## 2. Pakete installieren
 
