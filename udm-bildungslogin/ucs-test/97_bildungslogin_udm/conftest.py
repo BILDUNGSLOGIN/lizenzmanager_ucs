@@ -99,6 +99,7 @@ def create_license(udm):
         product_id,
         quantity,
         school,
+        license_type,
         validity_start_date=datetime.date(2000, 1, 1),
         validity_end_date=datetime.date(2000, 1, 1),
         delivery_date=datetime.date(2000, 1, 1),
@@ -122,6 +123,7 @@ def create_license(udm):
         license_obj.props.purchasing_reference = purchasing_reference or uts.random_name()
         license_obj.props.utilization_systems = utilization_systems or uts.random_name()
         license_obj.props.validity_duration = validity_duration or uts.random_name()
+        license_obj.props.license_type = license_type
         license_obj.props.special_type = special_type
         license_obj.save()
         created_licenses.append(license_obj)

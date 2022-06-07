@@ -34,7 +34,7 @@ from typing import Any, Dict, List, Optional
 from jsonschema import validate
 
 from ..handlers import LicenseHandler
-from ..models import License
+from ..models import License, LicenseType
 
 LICENSE_SCHEMA = {
     "$schema": "http://json-schema.org/schema#",
@@ -67,6 +67,9 @@ LICENSE_SCHEMA = {
             "gueltigkeitsende": {"type": "string"},
             "gueltigkeitsdauer": {"type": "string"},
             "sonderlizenz": {"type": "string"},
+            "lizenztyp": {"type": "string", "enum": ["Einzellizenz", "Volumenlizenz",
+                                                     "Lerngruppenlizenz", "Schullizenz", "Gruppenlizenz"]},
+            "school_ID": {"type": "string"},
         },
         "required": [
             "lizenzcode",
@@ -78,7 +81,7 @@ LICENSE_SCHEMA = {
             "gueltigkeitsbeginn",
             "gueltigkeitsende",
             "gueltigkeitsdauer",
-            "sonderlizenz",
+            "lizenztyp",
         ],
     },
 }
@@ -102,7 +105,8 @@ def load_license(license_raw, school):  # type: (Dict[str, Any], str) -> License
         validity_start_date=convert_raw_license_date(license_raw["gueltigkeitsbeginn"]),
         validity_end_date=convert_raw_license_date(license_raw["gueltigkeitsende"]),
         validity_duration=license_raw["gueltigkeitsdauer"],
-        license_special_type=license_raw["sonderlizenz"],
+        license_type=LicenseType.init_from_api(license_raw["lizenztyp"]),
+        license_special_type=license_raw.get("sonderlizenz"),
         ignored_for_display=False,
         delivery_date=datetime.date.today(),
         license_school=school,

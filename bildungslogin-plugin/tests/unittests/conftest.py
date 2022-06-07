@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from bildungslogin_plugin.backend import UserNotFound
-from bildungslogin_plugin.models import SchoolContext, User
+from bildungslogin_plugin.models import Class, SchoolContext, User, Workgroup
 from bildungslogin_plugin.plugin import router
 from bildungslogin_plugin.routes.v1.users import DbBackend, get_backend, set_backend
 from ucsschool.apis.opa import opa_instance
@@ -113,13 +113,34 @@ def set_the_backend():
 @pytest.fixture(scope="session")
 def valid_user_kwargs():
     def _func() -> Dict[str, Any]:
-        return {
-            "id": fake.uuid4(),
-            "first_name": fake.first_name(),
-            "last_name": fake.last_name(),
-            "licenses": set(fake.words(fake.pyint(1, 5))),
-            "context": {fake.word(): SchoolContext(classes=set(fake.words(2)), roles={"student"})},
-        }
+        def _get_licenses():
+            return fake.words(nb=3, unique=True)
+
+        return User(
+            id=fake.uuid4(),
+            first_name=fake.first_name(),
+            last_name=fake.last_name(),
+            licenses=_get_licenses(),
+            context={
+                ou: SchoolContext(
+                    school_authority=None,
+                    school_code=fake.unique.word(),
+                    school_identifier=fake.unique.word(),
+                    school_name=fake.unique.word(),
+                    licenses=_get_licenses(),
+                    classes=[Class(name=n,
+                                   id="".join(reversed(n)),
+                                   licenses=_get_licenses())
+                             for n in fake.words(nb=3, unique=True)],
+                    workgroups=[Workgroup(name=n,
+                                          id="".join(reversed(n)),
+                                          licenses=_get_licenses())
+                                for n in fake.words(nb=3, unique=True)],
+                    roles=["staff", "student", "teacher"],
+                )
+                for ou in fake.words(nb=3, unique=True)
+            },
+        ).dict()
 
     return _func
 

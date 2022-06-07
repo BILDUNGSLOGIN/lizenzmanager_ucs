@@ -16,6 +16,10 @@
 			<name>Assign media licenses</name>
 			<description>Assign media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
+		<flavor id="licenses/import" priority="51">
+			<name>Import media licenses</name>
+			<description>Importing media licences into the BILDUNGSLOGIN licence manager</description>
+		</flavor>
 		<command name="licenses/query" function="licenses_query"></command>
 		<command name="licenses/get" function="licenses_get"></command>
 		<command name="licenses/publishers" function="publishers"></command>
@@ -25,9 +29,13 @@
 		<command name="licenses/set_ignore" function="set_ignore"></command>
 		<command name="licenses/assign_to_users" function="assign_to_users"></command>
 		<command name="licenses/remove_from_users" function="remove_from_users"></command>
+		<command name="licenses/assign_to_school" function="assign_to_school"></command>
+		<command name="licenses/assign_to_class" function="assign_to_class"></command>
+		<command name="licenses/assign_to_workgroup" function="assign_to_workgroup"></command>
 		<command name="licenses/schools" function="schools"></command>
 		<command name="licenses/users/query" function="users_query"></command>
 		<command name="licenses/products/query" function="products_query"></command>
 		<command name="licenses/products/get" function="products_get"></command>
+		<command name="licenses/import/get" function="get_license"></command>
 	</module>
 </umc>

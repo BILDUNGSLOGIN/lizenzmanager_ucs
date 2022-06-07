@@ -47,7 +47,7 @@ ucr.load()
 
 def test_license_acl_machine(create_license):
     code = "CODE"
-    bilo_license = create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
+    bilo_license = create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL", "VOLUME")
     lo, _ = getMachineConnection()
     if ucr.get("server/role") in ["domaincontroller_master", "domaincontroller_backup"]:
         assert lo.searchDn(base=bilo_license.dn)
@@ -58,7 +58,7 @@ def test_license_acl_machine(create_license):
 
 def test_license_acl_user(create_license):
     code = "CODE"
-    bilo_license = create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
+    bilo_license = create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL", "VOLUME")
     user_pw = "univention"
     with udm_test.UCSTestUDM() as udm:
         userdn, username = udm.create_user(password=user_pw)
@@ -73,7 +73,7 @@ def test_license_acl_user(create_license):
 )
 def test_license_acl_school_admin(create_license):
     code = "CODE"
-    create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
+    create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL", "VOLUME")
     user_pw = "univention"
     with udm_test.UCSTestUDM() as udm:
         userdn, username = udm.create_user(password=user_pw, options=["ucsschoolAdministrator"])

@@ -1,25 +1,40 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import enum
+
+from hashlib import sha256
+
 import logging
 import os
-import re
 import zlib
-from typing import Dict, List, Pattern, Set
+from typing import Dict, List, Optional, Set
 
 # TODO: UDM REST client should raise application specific exception:
 from aiohttp.client_exceptions import ClientConnectorError
-from ldap3.utils.conv import escape_filter_chars
 
 from udm_rest_client.udm import UDM, UdmObject
 
 from .backend import ConfigurationError, DbBackend, DbConnectionError, UserNotFound
-from .models import AssignmentStatus, SchoolContext, User
+from .models import AssignmentStatus, Class, SchoolContext, User, Workgroup
 
 UCR_CONTAINER_CLASS = ("ucsschool_ldap_default_container_class", "klassen")
 UCR_CONTAINER_PUPILS = ("ucsschool_ldap_default_container_pupils", "schueler")
 
 logger = logging.getLogger(__name__)
+
+
+def _return_none_if_empty(input_string: str) -> Optional[str]:
+    """ Returns None is string is empty """
+    if input_string == "":
+        return None
+    return input_string
+
+
+class ObjectType(enum.Enum):
+    GROUP = "group"
+    SCHOOL = "school"
+    USER = "user"
 
 
 class UdmRestApiBackend(DbBackend):
@@ -35,23 +50,9 @@ class UdmRestApiBackend(DbBackend):
         self.assignment_mod = self.udm.get("bildungslogin/assignment")
         self.license_mod = self.udm.get("bildungslogin/license")
         self.user_mod = self.udm.get("users/user")
+        self.group_mod = self.udm.get("groups/group")
+        self.school_mod = self.udm.get("container/ou")
         self.ldap_base = os.environ["LDAP_BASE"]
-        self.school_class_dn_regex = self._school_class_dn_regex()
-
-    @staticmethod
-    def _school_class_dn_regex() -> Pattern:
-        """Regex to match 'cn=DEMOSCHOOL-1a,cn=klassen,cn=schueler,cn=groups,ou=DEMOSCHOOL,...'."""
-        # copied from ucsschool-id-connector/src/ucsschool_id_connector/utils.py
-        base_dn = os.environ["LDAP_BASE"]
-        c_class = os.environ.get(UCR_CONTAINER_CLASS[0]) or UCR_CONTAINER_CLASS[1]
-        c_student = os.environ.get(UCR_CONTAINER_PUPILS[0]) or UCR_CONTAINER_PUPILS[1]
-        return re.compile(
-            f"cn=(?P<ou>[^,]+?)-(?P<name>[^,]+?),"
-            f"cn={c_class},cn={c_student},cn=groups,"
-            f"ou=(?P=ou),"
-            f"{base_dn}",
-            flags=re.IGNORECASE,
-        )
 
     async def connection_test(self) -> None:
         """
@@ -81,79 +82,165 @@ class UdmRestApiBackend(DbBackend):
         :raises UserNotFound: when a user could not be found in the DB
         """
         try:
-            async for user in self.user_mod.search(f"(uid={escape_filter_chars(username)})"):
-                break
-            else:
-                raise UserNotFound
+            user = await self._get_object_by_name(ObjectType.USER, username)
+        except ValueError:
+            raise UserNotFound
+        user_id = user.props.username
+        # in the first iteration (MVP) given names and family names are not allowed to be exposed:
+        first_name = None
+        if user.props.firstname:
+            first_name = f"Vorname ({zlib.crc32(user.props.firstname.encode('UTF-8'))})"
+        last_name = None
+        if user.props.lastname:
+            last_name = f"Nachname ({zlib.crc32(user.props.lastname.encode('UTF-8'))})"
+        licenses = await self.get_licenses_and_set_assignment_status(ObjectType.USER, user)
+        return User(id=user_id,
+                    first_name=first_name,
+                    last_name=last_name,
+                    context=await self.get_school_context(user),
+                    licenses=self._get_licenses_codes(licenses))
+
+    async def _get_object_by_name(self, object_type: ObjectType, name: str) -> UdmObject:
+        """
+        Get group/user/school based on its name
+        1. Search the object
+        2. Obtain the object by its DN, as UDM REST API provides certain information
+            (e.g. entryUUID) only in this case
+        """
+        if object_type is ObjectType.GROUP:
+            mod = self.group_mod
+            filter_string = f"(name={name})"
+        elif object_type is ObjectType.USER:
+            mod = self.user_mod
+            filter_string = f"(username={name})"
+        elif object_type is ObjectType.SCHOOL:
+            mod = self.school_mod
+            filter_string = f"(&(name={name})(objectClass=ucsschoolOrganizationalUnit))"
+        else:
+            raise RuntimeError("Cannot handle object type: {}".format(object_type))
+
+        try:
+            objects = [o async for o in mod.search(filter_string)]
         except ClientConnectorError as exc:
             raise DbConnectionError(str(exc)) from exc
-        # UDM REST API exposes the entryUUID attribut only when fetching the object by DN, not in the
-        # results of the search operation. Getting the DN first directly by LDAP saves very little time.
-        # So we fetch the user again using the UDM REST API:
-        try:
-            udm_user = await self.user_mod.get(user.dn)
-        except ClientConnectorError as exc:  # pragma: no cover
-            raise DbConnectionError(str(exc)) from exc
-        user_id = udm_user.props.username
-        # in the first iteration (MVP) given names and family names are not allowed to be exposed:
-        first_name = f"Vorname ({zlib.crc32(udm_user.props.firstname.encode('UTF-8'))})"
-        last_name = f"Nachname ({zlib.crc32(udm_user.props.lastname.encode('UTF-8'))})"
-        context = await self.get_school_context(udm_user)
-        licenses = await self.get_licenses_and_set_assignment_status(udm_user)
 
-        return User(
-            id=user_id,
-            first_name=first_name,
-            last_name=last_name,
-            context=context,
-            licenses=licenses,
-        )
+        if len(objects) == 0:
+            raise ValueError(f"No {object_type.value}-object found with the name '{name}'")
+        try:
+            [obj] = objects
+        except ValueError:
+            raise ValueError(f"More than one {object_type.value} found with the name '{name}'")
+        return await mod.get(obj.dn)
+
+    @staticmethod
+    def _get_object_id(school_uuid: str, object_uuid: str) -> str:
+        """ Create an ID for the object """
+        string = school_uuid + object_uuid
+        return sha256(string.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _get_licenses_codes(licenses: List[UdmObject]) -> List[str]:
+        """ Extract a list of unique licenses codes """
+        return sorted(set(l.props.code for l in licenses))
+
+    async def _get_groups_with_role(self, user: UdmObject, role: str) -> List[UdmObject]:
+        """ Obtain user groups, that have specific role """
+        groups = []
+        for group_dn in user.props.groups:
+            group = await self.udm.obj_by_dn(group_dn)
+            if any(r == role for r in group.props.ucsschoolRole):
+                groups.append(group)
+        return groups
+
+    @staticmethod
+    def extract_group_name(school: UdmObject, group: UdmObject) -> str:
+        """
+        In LDAP classes/workgroups are prepended with the school name:
+        Example: DEMOSCHOOL-Group
+
+        This function is meant to extract the name of the group
+        """
+        _, group_name = group.props.name.split(f"{school.props.name}-", 1)
+        return group_name
+
+    async def get_classes(self, user: UdmObject, school: UdmObject) -> List[UdmObject]:
+        """
+        Get a list of classes that user is assigned to,
+        and they belong to the given school
+        """
+        class_school_role = f"school_class:school:{school.props.name}"
+        classes = await self._get_groups_with_role(user, class_school_role)
+        return classes
+
+    async def get_class_info(self, school: UdmObject, class_obj: UdmObject) -> Class:
+        """ Obtain relevant information about the class and initialize Class instance """
+        licenses = await self.get_licenses_and_set_assignment_status(ObjectType.GROUP, class_obj)
+        return Class(id=self._get_object_id(school.uuid, class_obj.uuid),
+                     name=self.extract_group_name(school, class_obj),
+                     licenses=self._get_licenses_codes(licenses))
+
+    async def get_workgroups(self, user: UdmObject, school: UdmObject) -> List[UdmObject]:
+        """
+        Get a list of workgroups that user is assigned to,
+        and they belong to the given school
+        """
+        class_school_role = f"workgroup:school:{school.props.name}"
+        return await self._get_groups_with_role(user, class_school_role)
+
+    async def get_workgroup_info(self, school: UdmObject, workgroup: UdmObject) -> Workgroup:
+        """ Obtain relevant information about the workgroup and initialize Workgroup instance """
+        licenses = await self.get_licenses_and_set_assignment_status(ObjectType.GROUP, workgroup)
+        return Workgroup(id=self._get_object_id(school.uuid, workgroup.uuid),
+                         name=self.extract_group_name(school, workgroup),
+                         licenses=self._get_licenses_codes(licenses))
 
     async def get_school_context(self, user: UdmObject) -> Dict[str, SchoolContext]:
-        school_classes = {ou: [] for ou in user.props.school}
-        for group_dn in user.props.groups:
-            match = self.school_class_dn_regex.match(group_dn)
-            if match:
-                ou = match.groupdict()["ou"]
-                name = match.groupdict()["name"]
-                try:
-                    school_classes[ou].append(name)
-                except KeyError:
-                    logger.warning(
-                        "User %r is in school class group(s) %r of school %r, which is missing in "
-                        "'schools' property. Ignoring class.",
-                        user.dn,
-                        group_dn,
-                        ou,
-                    )
-        context = {}
-        for ou, classes in school_classes.items():
-            roles = self.get_roles_for_school(user.props.ucsschoolRole, ou)
-            if not roles:
-                logger.warning(
-                    "Cannot get roles of user %r at OU %r from 'ucsschool_roles' %r. Using "
-                    "objectClass fallback, options: %r.",
-                    user.dn,
-                    ou,
-                    user.props.ucsschoolRole,
-                    user.options,
-                )
-                roles = self.get_roles_oc_fallback(user.options)
-            context[ou] = SchoolContext(classes=classes, roles=roles)
-        return context
+        output = {}
+        for school_ou in user.props.school:
+            school = await self._get_object_by_name(ObjectType.SCHOOL, school_ou)
+            school_id = self._get_object_id(school.uuid, school.uuid)
 
-    async def get_licenses_and_set_assignment_status(self, user: UdmObject) -> Set[str]:
+            # Get all licenses, but filter out those with special type "Lehrkraft"
+            # in case the user doesn't have a "teacher" role
+            user_roles = self.get_roles(user, school_ou)
+            all_licenses = \
+                await self.get_licenses_and_set_assignment_status(ObjectType.SCHOOL, school)
+            applicable_licenses = []
+            for lic in all_licenses:
+                if lic.props.special_type == "Lehrkraft" and "teacher" not in user_roles:
+                    continue
+                applicable_licenses.append(lic)
+            # Create school context object
+            school_context = SchoolContext(
+                school_authority=None,  # the value is not present in LDAP schema yet
+                school_code=school.props.name,
+                school_identifier=_return_none_if_empty(school_id),
+                school_name=_return_none_if_empty(school.props.displayName),
+                roles=user_roles,
+                classes=[await self.get_class_info(school, c)
+                         for c in await self.get_classes(user, school)],
+                workgroups=[await self.get_workgroup_info(school, w)
+                            for w in await self.get_workgroups(user, school)],
+                licenses=self._get_licenses_codes(applicable_licenses))
+            output[school_id] = school_context
+        return output
+
+    async def get_licenses_and_set_assignment_status(self, object_type: ObjectType,
+                                                     obj: UdmObject) -> List[UdmObject]:
         license_dns = set()
+        obj_name = getattr(obj.props, "username", None)
+        if not obj_name:
+            obj_name =getattr(obj.props, "name", None)
+
         async for assignment in self.assignment_mod.search(
-            f"(bildungsloginAssignmentAssignee={user.uuid})"
-        ):
+                f"(bildungsloginAssignmentAssignee={obj.uuid})"):
             if assignment.props.status == AssignmentStatus.AVAILABLE.name:
                 logger.error(
-                    "License assignment for user %r has invalid status 'AVAILABLE', setting to "
+                    "License assignment for %s %r has invalid status 'AVAILABLE', setting to "
                     "'ASSIGNED' (and then to 'PROVISIONED'): %r.",
-                    user.props.username,
-                    assignment.dn,
-                )
+                    object_type.value,
+                    obj_name,
+                    assignment.dn)
                 assignment.props.status = AssignmentStatus.ASSIGNED.name
                 await assignment.save()
             if assignment.props.status != AssignmentStatus.PROVISIONED.name:
@@ -162,14 +249,33 @@ class UdmRestApiBackend(DbBackend):
                 await assignment.save()
             license_dns.add(assignment.position)
 
-        return {(await self.license_mod.get(license_dn)).props.code for license_dn in license_dns}
+        return [(await self.license_mod.get(license_dn)) for license_dn in license_dns]
+
+    def get_roles(self, user: UdmObject, school_ou: str) -> List[str]:
+        """
+        Returns a list of unique roles the user is assigned to in the given school
+        First, tries to obtain the roles via user's ucsschoolRole property
+        If this doesn't work out, falls back to general user's roles (defined via options)
+        """
+        roles = self._get_roles_for_school(user.props.ucsschoolRole, school_ou)
+        if not roles:
+            logger.warning(
+                "Cannot get roles of user %r at OU %r from 'ucsschool_roles' %r. Using "
+                "objectClass fallback, options: %r.",
+                user.dn,
+                school_ou,
+                user.props.ucsschoolRole,
+                user.options,
+            )
+            roles = self._get_roles_oc_fallback(user.options)
+        return sorted(roles)
 
     @staticmethod
-    def get_roles_for_school(roles: List[str], school: str) -> Set[str]:
+    def _get_roles_for_school(roles: List[str], school: str) -> Set[str]:
         """
         Takes a list of ucsschool_roles and returns a list of user roles for the given school.
 
-        >>> UdmRestApiBackend.get_roles_for_school(
+        >>> UdmRestApiBackend._get_roles_for_school(
         ... ["teacher:school:School1", "student:school:School2"],
         ... "school1"
         ... )
@@ -195,7 +301,7 @@ class UdmRestApiBackend(DbBackend):
         return filtered_roles
 
     @staticmethod
-    def get_roles_oc_fallback(options: Dict[str, bool]) -> Set[str]:
+    def _get_roles_oc_fallback(options: Dict[str, bool]) -> Set[str]:
         ocs = set(key for key, val in options.items() if val is True)
         if ocs >= {"ucsschoolTeacher", "ucsschoolStaff"}:
             return {"staff", "teacher"}

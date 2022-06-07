@@ -44,7 +44,7 @@ import univention.testing.utils as utils
 from univention.admin.uexceptions import noObject
 from univention.admin.uldap import access as uldap_access
 from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
-from univention.bildungslogin.models import License, MetaData
+from univention.bildungslogin.models import License, LicenseType, MetaData
 from univention.config_registry import ConfigRegistry
 from univention.testing.ucr import UCSTestConfigRegistry
 
@@ -73,7 +73,7 @@ def product_id():
 
 @pytest.fixture(scope="session")
 def get_license():
-    def _func(ou):  # type: (str) -> License
+    def _func(ou, license_type=LicenseType.VOLUME):  # type: (str, str) -> License
         today = datetime.date.today()
         start = today + datetime.timedelta(days=random.randint(0, 365))
         duration = "Unbeschränkt"
@@ -93,6 +93,7 @@ def get_license():
             ignored_for_display=False,
             delivery_date=today,
             license_school=ou,
+            license_type=license_type,
         )
 
     return _func
@@ -252,7 +253,8 @@ def license_file(tmpdir_factory):
             "gueltigkeitsbeginn": "15-08-2021",
             "gueltigkeitsende": "14-08-2022",
             "gueltigkeitsdauer": "365",
-            "sonderlizenz": "Lehrer",
+            "sonderlizenz": "Lehrkraft",
+            "lizenztyp": "Einzellizenz",
         },
         {
             "lizenzcode": "UNI-{}".format(uuid.uuid4()),
@@ -264,7 +266,32 @@ def license_file(tmpdir_factory):
             "gueltigkeitsbeginn": "15-08-2021",
             "gueltigkeitsende": "14-08-2022",
             "gueltigkeitsdauer": "365",
-            "sonderlizenz": "",
+            "lizenztyp": "Volumenlizenz",
+        },
+        {
+            "lizenzcode": "UNI-{}".format(uuid.uuid4()),
+            "product_id": "urn:bilo:medium:Test3",
+            "lizenzanzahl": 0,
+            "lizenzgeber": "UNI",
+            "kaufreferenz": "2014-04-11T03:28:16 -02:00 4572022",
+            "nutzungssysteme": "Antolin",
+            "gueltigkeitsbeginn": "15-08-2021",
+            "gueltigkeitsende": "14-08-2022",
+            "gueltigkeitsdauer": "365",
+            "lizenztyp": "Lerngruppenlizenz",
+        },
+        {
+            "lizenzcode": "UNI-{}".format(uuid.uuid4()),
+            "product_id": "urn:bilo:medium:Test4",
+            "lizenzanzahl": 1,
+            "lizenzgeber": "UNI",
+            "kaufreferenz": "2014-04-11T03:28:16 -02:00 4572022",
+            "nutzungssysteme": "Antolin",
+            "gueltigkeitsbeginn": "15-08-2021",
+            "gueltigkeitsende": "14-08-2022",
+            "gueltigkeitsdauer": "365",
+            "sonderlizenz": "Demo",
+            "lizenztyp": "Schullizenz",
         },
     ]
     fn = tmpdir_factory.mktemp("data").join("license.json")

@@ -6,7 +6,7 @@ import faker
 import nest_asyncio
 import pytest
 
-from bildungslogin_plugin.models import SchoolContext
+from bildungslogin_plugin.models import Class, SchoolContext, Workgroup
 from bildungslogin_plugin.routes.v1.users import DbBackend, User
 
 fake = faker.Faker()
@@ -17,15 +17,30 @@ nest_asyncio.apply()  # patches asyncio to allow nested use of asyncio.run and l
 @pytest.mark.asyncio
 async def test_routes_v1_users_get(client, fake_db_backend, set_the_backend):
     """Test that the REST API returns for a User-ID a JSON-Object."""
+    def _get_licenses():
+        return fake.words(nb=3, unique=True)
+
     user = User(
         id=fake.uuid4(),
         first_name=fake.first_name(),
         last_name=fake.last_name(),
-        licenses=set(fake.words(nb=3, unique=True)),
+        licenses=_get_licenses(),
         context={
             ou: SchoolContext(
-                classes=set(fake.words(nb=2, unique=True)),
-                roles={random.choice(("staff", "student", "teacher"))},
+                school_authority=None,
+                school_code=fake.unique.word(),
+                school_identifier=fake.unique.word(),
+                school_name=fake.unique.word(),
+                licenses=_get_licenses(),
+                classes=[Class(name=n,
+                               id="".join(reversed(n)),
+                               licenses=_get_licenses())
+                         for n in fake.words(nb=3, unique=True)],
+                workgroups=[Workgroup(name=n,
+                                      id="".join(reversed(n)),
+                                      licenses=_get_licenses())
+                         for n in fake.words(nb=3, unique=True)],
+                roles=[random.choice(("staff", "student", "teacher"))],
             )
             for ou in fake.words(nb=3, unique=True)
         },

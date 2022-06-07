@@ -47,6 +47,7 @@ setup(
         "univention.bildungslogin",
         "univention.bildungslogin.license_import",
         "univention.bildungslogin.media_import",
+        "univention.bildungslogin.license_retrieval"
     ],
     package_dir={"": "src"},
     entry_points={
@@ -54,6 +55,7 @@ setup(
             "bildungslogin-license-import=univention.bildungslogin.license_import.cmd_license_import:main",
             "bildungslogin-media-import=univention.bildungslogin.media_import.cmd_media_import:main",
             "bildungslogin-media-update=univention.bildungslogin.media_import.cmd_media_update:main",
+            "bildungslogin-license-retrieval=univention.bildungslogin.license_retrieval.cmd_license_retrieval:main",
         ]
     },
     url="https://www.univention.de/",

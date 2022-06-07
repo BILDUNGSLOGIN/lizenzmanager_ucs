@@ -50,7 +50,7 @@ ucr.load()
 
 
 def test_create_license(create_license):
-    license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "demoSCHOOL")
+    license_obj = create_license("LICENSE_CODE", "PRODUCT_ID", 10, "demoSCHOOL", "VOLUME")
     assert license_obj.props.cn == sha256("LICENSE_CODE").hexdigest()
 
 
@@ -58,9 +58,9 @@ def test_license_code_insensitive(create_license, scramble_case):
     """Test that for a license the product id has to be unique in a case insensitive way."""
     code = uts.random_name()
     code_other_case = scramble_case(code)
-    create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
+    create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL", "VOLUME")
     with pytest.raises(CreateError) as exinfo:
-        create_license(code_other_case, "PRODUCT_ID", 22, "DEMOSCHOOL")
+        create_license(code_other_case, "PRODUCT_ID", 22, "DEMOSCHOOL", "VOLUME")
     assert "A license with that code already exists" in exinfo.value.message
 
 
@@ -106,9 +106,9 @@ def test_unrequired_attributes(attr_name, udm):
 def test_unique_codes(create_license):
     """Test that for a license object the CODE has to be unique"""
     code = "CODE"
-    create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL")
+    create_license(code, "PRODUCT_ID", 10, "DEMOSCHOOL", "VOLUME")
     with pytest.raises(CreateError) as exinfo:
-        create_license(code, "PRODUCT_ID2", 22, "DEMOSCHOOL")
+        create_license(code, "PRODUCT_ID2", 22, "DEMOSCHOOL", "VOLUME")
     assert "A license with that code already exists" in exinfo.value.message
 
 
@@ -117,7 +117,7 @@ def test_existing_school(create_license):
     code = "CODE"
     non_existing_school = "DEMOSCHOOL" + str(uuid.uuid4())
     with pytest.raises(CreateError) as exinfo:
-        create_license(code, "PRODUCT_ID", 10, non_existing_school)
+        create_license(code, "PRODUCT_ID", 10, non_existing_school, "VOLUME")
     assert 'The school "{}" does not exist.'.format(non_existing_school) in exinfo.value.message
 
 
@@ -126,7 +126,8 @@ def test_assignments(create_license, udm):
     num_licenses = random.randint(2, 10)
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license_obj = create_license(uts.random_name(), uts.random_name(), num_licenses, ou)
+        license_obj = create_license(uts.random_name(), uts.random_name(),
+                                     num_licenses, ou, "VOLUME")
         for _ in range(num_licenses):
             assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
             assignment.props.status = "AVAILABLE"
@@ -154,30 +155,48 @@ def test_expired(create_license, udm, expired, validity_end_date):
     """Test that a license can be set to expired in LDAP"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license_obj = create_license(
-            uts.random_name(), uts.random_name(), 2, ou, validity_end_date=validity_end_date
-        )
+        license_obj = create_license(uts.random_name(), uts.random_name(), 2, ou, "VOLUME",
+                                     validity_end_date=validity_end_date)
         license_obj_fresh = udm.get("bildungslogin/license").get(license_obj.dn)
         assert license_obj_fresh.props.expired == expired
 
 
 @pytest.mark.parametrize(
+    "license_type",
+    (
+        "SINGLE",
+        "VOLUME",
+        "WORKGROUP",
+        "SCHOOL",
+    ))
+@pytest.mark.parametrize(
     "validity_end_date,expected_expired",
     (
-        (datetime.date.today() - datetime.timedelta(days=1), 9),
-        (datetime.date.today() + datetime.timedelta(days=1), 0),
-        ("", 0),
-        (None, 0),
+        (datetime.date.today() - datetime.timedelta(days=1), True),
+        (datetime.date.today() + datetime.timedelta(days=1), False),
+        ("", False),
+        (None, False),
     ),
 )
-def test_num_expired(create_license, udm, validity_end_date, expected_expired):
+def test_num_expired(create_license, udm, license_type, validity_end_date, expected_expired):
     """Test that a license shows the right amount of expired licenses depending on expired status"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license_obj = create_license(
-            uts.random_name(), uts.random_name(), 10, ou, validity_end_date=validity_end_date
-        )
-        # Assign one of the 10 licenses
+        license_obj = create_license(uts.random_name(), uts.random_name(), 10, ou, license_type,
+                                     validity_end_date=validity_end_date)
+        # Check before assignment
+        if expected_expired:
+            if license_type in ["WORKGROUP", "SCHOOL"]:
+                expected_num_expired = 1
+            elif license_type in ["SINGLE", "VOLUME"]:
+                expected_num_expired = 10
+            else:
+                raise RuntimeError
+        else:
+            expected_num_expired = 0
+        assert license_obj.props.num_expired == expected_num_expired
+
+        # Make one assignment
         assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
         assignment.props.status = "AVAILABLE"
         assignment.save()
@@ -186,34 +205,46 @@ def test_num_expired(create_license, udm, validity_end_date, expected_expired):
         assignment.props.time_of_assignment = datetime.date.today()
         assignment.save()
         license_obj_fresh = udm.get("bildungslogin/license").get(license_obj.dn)
-        assert license_obj_fresh.props.num_expired == expected_expired
+
+        # Check after assignment
+        if expected_expired:
+            expected_num_expired -= 1
+        assert license_obj_fresh.props.num_expired == expected_num_expired
 
 
-def test_num_available(create_license, udm):
+@pytest.mark.parametrize("license_type", ("SINGLE", "VOLUME", "WORKGROUP", "SCHOOL"))
+def test_num_available(license_type, create_license, udm):
     """Test that number of licenses is expected including the expired licenses in LDAP"""
-    num_licenses = 10
-    num_assigned = random.randint(2, num_licenses - 1)
-    num_expired = num_licenses - num_assigned
+    quantity = 10
+    if license_type in ["WORKGROUP", "SCHOOL"]:
+        num_assignments = 1
+    elif license_type in ["SINGLE", "VOLUME"]:
+        num_assignments = quantity
+    else:
+        raise RuntimeError
+    num_assigned = 1
+    num_expired = num_assignments - num_assigned
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
         # create an expired license
-        license_obj = create_license(uts.random_name(), uts.random_name(), num_licenses, ou)
-        for _ in range(num_licenses):
+        license_obj = create_license(uts.random_name(), uts.random_name(),
+                                     quantity, ou, license_type)
+        for _ in range(num_assignments):
             assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
             assignment.props.status = "AVAILABLE"
             assignment.save()
         # all licenses are expired, as none are assigned
         license_obj_expired = udm.get("bildungslogin/license").get(license_obj.dn)
-        assert len(license_obj_expired.props.assignments) == num_licenses
-        assert license_obj_expired.props.num_expired == num_licenses
-        # assign a few licenses
+        assert len(license_obj_expired.props.assignments) == num_assignments
+        assert license_obj_expired.props.num_expired == num_assignments
+        # make one assignment
         assignment_mod = udm.get("bildungslogin/assignment")
-        for assignment_dn in license_obj_expired.props.assignments[:num_assigned]:
-            assignment_obj = assignment_mod.get(assignment_dn)
-            assignment_obj.props.assignee = "foo"
-            assignment_obj.props.time_of_assignment = datetime.date.today()
-            assignment_obj.props.status = "ASSIGNED"
-            assignment_obj.save()
+        assignment_obj = assignment_mod.get(license_obj_expired.props.assignments[0])
+        assignment_obj.props.assignee = "foo"
+        assignment_obj.props.time_of_assignment = datetime.date.today()
+        assignment_obj.props.status = "ASSIGNED"
+        assignment_obj.save()
+        # get the license back and check
         license_obj_fresh = udm.get("bildungslogin/license").get(license_obj_expired.dn)
-        assert len(license_obj_expired.props.assignments) == num_licenses
+        assert len(license_obj_expired.props.assignments) == num_assignments
         assert license_obj_fresh.props.num_expired == num_expired

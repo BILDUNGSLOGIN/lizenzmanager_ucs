@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: Thu, 19 Aug 2021 22:29:45 +0200\n"
+"POT-Creation-Date: Fri, 13 May 2022 13:28:23 +0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention GmbH <packages@univention.de>\n"
 "Language-Team: Univention GmbH <packages@univention.de>\n"
@@ -18,14 +18,24 @@ msgstr "Medienlizenzen zuweisen"
 msgid "Assign media licenses in the BILDUNGSLOGIN license manager"
 msgstr "Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager zuweisen"
 
-msgid "Display, search and revoke media licenses in the BILDUNGSLOGIN license manager"
-msgstr "Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager anzeigen, suchen, entziehen"
+msgid ""
+"Display, search and revoke media licenses in the BILDUNGSLOGIN license "
+"manager"
+msgstr ""
+"Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager anzeigen, suchen, entziehen"
+
+msgid "Import media licenses"
+msgstr "Medienlizenzen importieren"
+
+msgid "Importing media licences into the BILDUNGSLOGIN licence manager"
+msgstr "Medien-Lizenzen in den BILDUNGSLOGIN-Lizenzmanager importieren"
 
 msgid "Licensed media"
 msgstr "Lizenzierte Medien"
 
-msgid "View and search licensed media in the BILDUNGSLOGIN license manager"
-msgstr "Lizenzierte Medien im BILDUNGSLOGIN-Lizenzmanager anzeigen und durchsuchen"
-
 msgid "Media license overview"
 msgstr "Medienlizenz-Übersicht"
+
+msgid "View and search licensed media in the BILDUNGSLOGIN license manager"
+msgstr ""
+"Lizenzierte Medien im BILDUNGSLOGIN-Lizenzmanager anzeigen und durchsuchen"

@@ -40,8 +40,9 @@ from uuid import uuid4
 import pytest
 
 from ucsschool.lib.models.user import Student
-from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
-from univention.bildungslogin.utils import LicenseType
+from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler, \
+    ObjectType
+from univention.bildungslogin.models import LicenseType
 from univention.udm import UDM
 
 GOOD_SEARCH = "FOUND"
@@ -73,17 +74,18 @@ def single_license(
     license_handler = LicenseHandler(lo_module)
     meta_data_handler = MetaDataHandler(lo_module)
     assignment_handler = AssignmentHandler(lo_module)
-    license = get_license(ou)
+    license = get_license(ou, license_type=LicenseType.SINGLE)
     meta_data = get_meta_data()
-    meta_data.title = "univention_s"
-    meta_data.publisher = "univention_s"
-    license.license_code = "univention_s"
-    meta_data.product_id = "univention_s"
+    meta_data.title = "univention_single"
+    meta_data.publisher = "univention_single"
+    license.license_code = "univention_single"
+    meta_data.product_id = "univention_single"
     license.license_quantity = 1
     license.product_id = meta_data.product_id
     license_handler.create(license)
     meta_data_handler.create(meta_data)
-    assignment_handler.assign_to_license(license.license_code, test_user)
+    udm_license = license_handler.get_udm_license_by_code(license.license_code)
+    assignment_handler.assign_license(udm_license, ObjectType.USER, test_user)
     return license
 
 
@@ -98,17 +100,18 @@ def volume_license(
     license_handler = LicenseHandler(lo_module)
     meta_data_handler = MetaDataHandler(lo_module)
     assignment_handler = AssignmentHandler(lo_module)
-    license = get_license(ou)
+    license = get_license(ou, license_type=LicenseType.VOLUME)
     meta_data = get_meta_data()
-    meta_data.title = "univention_v"
-    meta_data.publisher = "univention_v"
-    license.license_code = "univention_v"
-    meta_data.product_id = "univention_v"
+    meta_data.title = "univention_volume"
+    meta_data.publisher = "univention_volume"
+    license.license_code = "univention_volume"
+    meta_data.product_id = "univention_volume"
     license.license_quantity = 2
     license.product_id = meta_data.product_id
     license_handler.create(license)
     meta_data_handler.create(meta_data)
-    assignment_handler.assign_to_license(license.license_code, test_user)
+    udm_license = license_handler.get_udm_license_by_code(license.license_code)
+    assignment_handler.assign_license(udm_license, ObjectType.USER, test_user)
     return license
 
 
@@ -323,17 +326,26 @@ def test_search_for_license_advance(
 ):
     """Test advanced search with AND in start period/end period, only available licenses,
     user identification, product id (case sensitive), title and  license code (case sensitive)"""
-    if license_type[0] == LicenseType.SINGLE:
-        license_appendix = "_s"
+    if license_type[0] == "":
+        license_appendix = "*"
+    elif license_type[0] == LicenseType.SINGLE:
+        license_appendix = "_single"
+    elif license_type[0] == LicenseType.VOLUME:
+        license_appendix = "_volume"
+    elif license_type[0] == LicenseType.SCHOOL:
+        license_appendix = "_school"
+    elif license_type[0] == LicenseType.WORKGROUP:
+        license_appendix = "_workgroup"
     else:
-        license_appendix = "_v"
+        raise RuntimeError
+
     res = license_handler.search_for_licenses(
         is_advanced_search=True,
         time_to=time_to[0],
         time_from=time_from[0],
         only_available_licenses=only_available_licenses[0],
         publisher=publisher[0].format(license_appendix),
-        license_type=license_type[0],
+        license_types=license_type[0],
         user_pattern=user_pattern[0],
         product_id=product_id[0].format(license_appendix),
         product=product[0].format(license_appendix),
@@ -348,7 +360,7 @@ def test_search_for_license_advance(
         time_from=time_from[0],
         only_available_licenses=only_available_licenses[0],
         publisher=publisher[0].format(license_appendix),
-        license_type=license_type[0],
+        license_types=license_type[0],
         user_pattern=user_pattern[0],
         product_id=product_id[0].format(license_appendix),
         product=product[0].format(license_appendix),
@@ -371,14 +383,17 @@ def test_search_for_license_advance(
             restrict_to_this_product_id[1],
         )
     )
-    if license_type[0] == LicenseType.SINGLE:
-        assert (
-            single_license.license_code in set(res_l["licenseCode"] for res_l in res)
-        ) == should_be_found
+    result_licenses = set(res_l["licenseCode"] for res_l in res)
+    if license_type[0] == "":
+        expected_result = (volume_license.license_code in result_licenses
+                           or single_license.license_code in result_licenses)
+    elif license_type[0] == LicenseType.SINGLE:
+        expected_result = single_license.license_code in result_licenses
+    elif license_type[0] == LicenseType.VOLUME:
+        expected_result = volume_license.license_code in result_licenses
     else:
-        assert (
-            volume_license.license_code in set(res_l["licenseCode"] for res_l in res)
-        ) == should_be_found
+        raise NotImplementedError
+    assert expected_result == should_be_found
 
 
 def test_search_for_license_advance_all_empty(

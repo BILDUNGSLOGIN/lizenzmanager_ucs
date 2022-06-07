@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2021-08-24 17:13+0200\n"
+"POT-Creation-Date: 2022-05-13 13:28+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -12,11 +12,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: umc/python/licenses/__init__.py:345
+#: umc/python/licenses/__init__.py:516
 msgid "No"
 msgstr "Nein"
 
-#: umc/python/licenses/__init__.py:196
+#: umc/python/licenses/__init__.py:250
 msgid ""
 "The 'Ignore' state cannot be changed because users are already assigned to "
 "the license."
@@ -24,17 +24,22 @@ msgstr ""
 "Der Status 'Ignorieren' kann nicht geändert werden, da der Lizenz bereits "
 "Benutzer zugewiesen sind."
 
+#: umc/python/licenses/__init__.py:137
 msgid ""
-"The query you have entered yields too many matching entries. "
-"Please narrow down your search by specifying more query parameters. "
-"The current size limit of {} can be configured with the UCR variable "
-"directory/manager/web/sizelimit."
+"The query you have entered yields too many matching entries. Please narrow "
+"down your search by specifying more query parameters. The current size limit "
+"of {} can be configured with the UCR variable directory/manager/web/"
+"sizelimit."
 msgstr ""
 "Die angeforderte Suche lieferte zu viele Ergebnisse und wurde abgebrochen. "
-"Bitte schränken Sie die Suche durch weitere Suchparameter ein. "
-"Die momentane Begrenzung der Anzahl an Treffern beträgt {} und kann mit "
-"der UCR-Variable directory/manager/web/sizelimit angepasst werden."
+"Bitte schränken Sie die Suche durch weitere Suchparameter ein. Die momentane "
+"Begrenzung der Anzahl an Treffern beträgt {} und kann mit der UCR-Variable "
+"directory/manager/web/sizelimit angepasst werden."
 
-#: umc/python/licenses/__init__.py:345
+#: umc/python/licenses/__init__.py:516
 msgid "Yes"
 msgstr "Ja"
+
+#: umc/python/licenses/__init__.py:145
+msgid "undefined"
+msgstr "unbestimmt"

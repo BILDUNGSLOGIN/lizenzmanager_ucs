@@ -29,19 +29,95 @@
 # <https://www.gnu.org/licenses/>.
 
 import datetime
-from typing import Optional
+from typing import Optional, Type
 
 import attr
 
-from .utils import LicenseType, Status
+from .utils import _
+
+
+class Status(object):
+    """ Assignment status """
+    ASSIGNED = "ASSIGNED"
+    PROVISIONED = "PROVISIONED"
+    AVAILABLE = "AVAILABLE"
+
+    @classmethod
+    def label(cls, status):
+        return {
+            cls.ASSIGNED: _("Assigned"),
+            cls.PROVISIONED: _("Provisioned"),
+            cls.AVAILABLE: _("Available"),
+        }[status]
+
+
+class LicenseType(object):
+    """ Type of the license """
+    VOLUME = "VOLUME"
+    SINGLE = "SINGLE"
+    WORKGROUP = "WORKGROUP"
+    SCHOOL = "SCHOOL"
+
+    @classmethod
+    def label(cls, license_type):
+        return {
+            cls.VOLUME: _("Volume license"),
+            cls.SINGLE: _("Single license"),
+            cls.WORKGROUP: _("Workgroup license"),
+            cls.SCHOOL: _("School license"),
+        }[license_type]
+
+    @classmethod
+    def init_from_api(cls, license_type):
+        # type: (Type[LicenseType], str) -> str
+        """ Initialize the LicenseType from the value defined in the API """
+        if license_type == "Schullizenz":
+            return cls.SCHOOL
+        elif license_type == "Lerngruppenlizenz":
+            return cls.WORKGROUP
+        elif license_type == "Volumenlizenz":
+            return cls.VOLUME
+        elif license_type == "Einzellizenz":
+            return cls.SINGLE
+        raise ValueError("Unknown license type value: '{}'".format(license_type))
+
+
+class Role(object):
+    """ Role of the user """
+    STAFF = "staff"
+    STUDENT = "student"
+    TEACHER = "teacher"
+    TEACHER_STAFF = "teacher_and_staff"
+    SCHOOL_ADMIN = "school_admin"
+
+    @classmethod
+    def label(cls, role):
+        role_list = []
+        for role in cls.roles_labels(role):
+            role_label = {
+                cls.STAFF: _("Staff"),
+                cls.STUDENT: _("Student"),
+                cls.TEACHER: _("Teacher"),
+                cls.TEACHER_STAFF: _("Teacher and staff"),
+                cls.SCHOOL_ADMIN: _("Admin")
+            }[role]
+            role_list.append(role_label)
+        return role_list
+
+    @classmethod
+    def roles_labels(cls, roles):
+        roles_labels = []
+        for role in roles:
+            roles_labels.append(role.split(':')[0])
+        return roles_labels
 
 
 @attr.s
 class Assignment(object):
     assignee = attr.ib()  # type: str
     time_of_assignment = attr.ib()  # type: datetime.date
-    status = attr.ib()  # type: str
-    license = attr.ib()  # type: Status
+    status = attr.ib()  # type: Status
+    license = attr.ib()  # type: str
 
 
 @attr.s
@@ -55,6 +131,7 @@ class License(object):
     validity_start_date = attr.ib()  # type: Optional[datetime.date]
     validity_end_date = attr.ib()  # type: Optional[datetime.date]
     validity_duration = attr.ib()  # type: str
+    license_type = attr.ib()  # type: str
     license_special_type = attr.ib()  # type: str
     ignored_for_display = attr.ib()  # type: bool
     delivery_date = attr.ib()  # type: Optional[datetime.date]
@@ -63,12 +140,11 @@ class License(object):
     num_available = attr.ib(default=0)  # type: Optional[int]
 
     @property
-    def license_type(self):  # type: () -> str
-        """we only have volume and single-licenses, not mass-licenses"""
-        if self.license_quantity > 1:
-            return LicenseType.VOLUME
-        else:
-            return LicenseType.SINGLE
+    def is_expired(self):
+        """ Check if license is expired """
+        if self.validity_end_date is None:
+            return False
+        return self.validity_end_date < datetime.date.today()
 
 
 @attr.s

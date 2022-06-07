@@ -38,6 +38,8 @@ pytest = "^6.2"
 pytest-asyncio = "^0.15.1"
 pytest-cov = "^2.12.1"
 toml = "^0.10.2"
+click = "7.1.2"
+packaging = "20.9"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

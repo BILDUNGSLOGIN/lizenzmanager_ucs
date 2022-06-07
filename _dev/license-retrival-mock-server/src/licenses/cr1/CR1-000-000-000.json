@@ -1,0 +1,26 @@
+[
+  {
+    "sonderlizenz": "",
+    "product_id": "urn:bilo:medium:WEB-14-124227",
+    "lizenzanzahl": 60,
+    "gueltigkeitsende": "",
+    "kaufreferenz": "Lizenzmanager-Testcode",
+    "lizenzcode": "CR1-DEMO-CODE-01",
+    "gueltigkeitsbeginn": "",
+    "gueltigkeitsdauer": "Schuljahreslizenz",
+    "lizenzgeber": "WES",
+    "nutzungssysteme": "Testcode ohne Medienzugriff"
+  },
+  {
+    "sonderlizenz": "",
+    "product_id": "urn:bilo:medium:WEB-14-124782",
+    "lizenzanzahl": 40,
+    "gueltigkeitsende": "",
+    "kaufreferenz": "Lizenzmanager-Testcode",
+    "lizenzcode": "CR1-DEMO-CODE-02",
+    "gueltigkeitsbeginn": "",
+    "gueltigkeitsdauer": "397 Tage",
+    "lizenzgeber": "WES",
+    "nutzungssysteme": "Testcode ohne Medienzugriff"
+  }
+]

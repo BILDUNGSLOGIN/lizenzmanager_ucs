@@ -4,7 +4,6 @@
 
 [Installation and usage](getting_started.md)
 
-
 # Debugging
 
 TODO
@@ -38,7 +37,7 @@ include = /usr/lib/python2.7/dist-packages/univention/bildungslogin/*
 Then run (from the directory where `.coveragerc` is):
 
 ```bash
-python -m coverage run /usr/bin/pytest -lvvx /usr/share/ucs-test/*_bildungslogin_*/*_*.py && \
+python -m coverage run /usr/bin/pytest -lvvx /usr/share/ucs-test/*_bildungslogin_*/*_*.py && /usr/share/ucs-test/selenium-pytest && \
   python -m coverage combine && \
   python -m coverage report && \
   python -m coverage html --directory=./htmlcov
@@ -86,22 +85,26 @@ zugeordnet ist.
 Das Ändern der Lizenzzuweisung im "Provisioned" Status wird unterbunden, da diese bereits im Medienregal eingelöst wurden. Es ist aber möglich eine komplette Lizenz zu löschen, damit werden alle Zuordungen auch entfernt, da diese im LDAP Kind-Objekte sind.
 
 Anzeige aller Informationen und Zuordungen einer Lizenz:
+
 ```shell
 root@dc0:~# udm bildungslogin/license list --filter code="WES-TEST-CODE-LZL07"
 code=WES-TEST-CODE-LZL07
 DN: cn=0fb9155c27655c172f2b2149108ed7736da6595eef302c8b160b95ee6112a0f8,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=vbm,dc=schule-univention,dc=de
 ```
+
 Löschen einer Lizenz
+
 ```shell
 root@dc1:~# udm bildungslogin/license remove --dn cn=0fb9155c27655c172f2b2149108ed7736da6595eef302c8b160b95ee6112a0f8,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=vbm,dc=schule-univention,dc=de
 ...
 ```
+
 ## Beispiel alle Daten löschen
 
 Zum Aufräumen einer Testumgebung
 
 Alle Lizenzen löschen:
+
 ```shell
 root@dc0:~# for dn in $(udm bildungslogin/license list | sed -n 's/DN: //p'); do udm bildungslogin/license remove --dn $dn; done
 ```
-

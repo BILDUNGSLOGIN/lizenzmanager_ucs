@@ -197,6 +197,13 @@ property_descriptions = {
         dontsearch=True,
         editable=False,
     ),
+    "license_type": univention.admin.property(
+        short_description=_("License Type"),
+        long_description=_("The type of the license as provided by the publisher"),
+        syntax=univention.admin.syntax.string,
+        required=True,
+        may_change=False,
+    )
 }
 
 layout = [
@@ -210,7 +217,7 @@ layout = [
             ["provider", "purchasing_reference"],
             ["utilization_systems"],
             ["validity_start_date", "validity_end_date"],
-            ["validity_duration", "special_type"],
+            ["validity_duration", "special_type", "license_type"],
             ["delivery_date", "school"],
             ["num_assigned", "num_expired"],
         ],
@@ -233,13 +240,25 @@ for udm_name, ldap_name in [
     ("ignored", "bildungsloginIgnoredForDisplay"),
     ("delivery_date", "bildungsloginDeliveryDate"),
     ("school", "bildungsloginLicenseSchool"),
+    ("license_type", "bildungsloginLicenseType")
 ]:
     mapping.register(udm_name, ldap_name, None, univention.admin.mapping.ListToString)
 
 
 class object(univention.admin.handlers.simpleLdap):
-
     module = module
+
+    def _get_total_number_of_assignments(self):  # type: () -> int
+        """
+        Get the total number of assignments for the license.
+        The SINGLE and VOLUME licenses use the quantity field to represent this information.
+        However, the WORKGROUP and SCHOOL licenses use the quantity field for different purpose:
+            To represent, how many users can the assigned object (group/school) contain.
+            But such licenses can only be assigned once -> returning 1 for these cases
+        """
+        if self["license_type"] in ["WORKGROUP", "SCHOOL"]:
+            return 1
+        return self._to_int(self["quantity"])
 
     def _load_num_assigned(self):
         if self.exists():
@@ -254,13 +273,14 @@ class object(univention.admin.handlers.simpleLdap):
             )
 
     def _load_num_expired(self):
+        """ Count the number of expired unassigned licenses """
         if self.exists():
             if self["expired"] == "0":
                 self.info["num_expired"] = "0"
             else:
-                quantity = self._to_int(self["quantity"])
+                num_assignments_total = self._get_total_number_of_assignments()
                 num_assigned = self._to_int(self["num_assigned"])
-                self.info["num_expired"] = str(quantity - num_assigned)
+                self.info["num_expired"] = str(num_assignments_total - num_assigned)
 
     def _load_assignments(self):
         if self.exists():
@@ -279,9 +299,9 @@ class object(univention.admin.handlers.simpleLdap):
     def _load_num_available(self):
         if self.exists():
             if self["expired"] == "0":
-                quantity = self._to_int(self["quantity"])
+                num_assignments_total = self._get_total_number_of_assignments()
                 num_assigned = self._to_int(self["num_assigned"])
-                self.info["num_available"] = str(quantity - num_assigned)
+                self.info["num_available"] = str(num_assignments_total - num_assigned)
             else:
                 self.info["num_available"] = "0"
 

@@ -29,7 +29,7 @@
 # <https://www.gnu.org/licenses/>.
 
 import datetime
-import itertools
+import enum
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
@@ -39,21 +39,23 @@ from ucsschool.lib.roles import get_role_info
 from univention.admin.syntax import iso8601Date
 from univention.lib.i18n import Translation
 from univention.udm import UDM, CreateError, ModifyError, NoObject as UdmNoObject
-
+# from .license_retrieval import PULL_LICENSE_RESPONSE_MOCK
+from .license_retrieval.cmd_license_retrieval import retrieve_licenses
 from .exceptions import (
     BiloAssignmentError,
     BiloCreateError,
     BiloLicenseNotFoundError,
     BiloProductNotFoundError,
 )
-from .models import Assignment, License, MetaData
-from .utils import LicenseType, Status, get_entry_uuid, ldap_escape
+from .models import Assignment, License, LicenseType, MetaData, Status
+from .utils import get_entry_uuid, ldap_escape
 
 if TYPE_CHECKING:
     from univention.admin.uldap import access as LoType
     from univention.udm.base import BaseObject as UdmObject
 
 _ = Translation("python-bildungslogin").translate
+
 
 
 class LicenseHandler:
@@ -63,6 +65,8 @@ class LicenseHandler:
         self._assignments_mod = udm.get("bildungslogin/assignment")
         self._meta_data_mod = udm.get("bildungslogin/metadata")
         self._users_mod = udm.get("users/user")
+        self._groups_mod = udm.get("groups/group")
+        self._schools_mod = udm.get("container/ou")
         self.ah = AssignmentHandler(lo)
         self.logger = logging.getLogger(__name__)
 
@@ -83,6 +87,7 @@ class LicenseHandler:
             udm_obj.props.ignored = license.ignored_for_display
             udm_obj.props.special_type = license.license_special_type
             udm_obj.props.purchasing_reference = license.purchasing_reference
+            udm_obj.props.license_type = license.license_type
             udm_obj.save()
             self.logger.debug("Created License object %r: %r", udm_obj.dn, udm_obj.props)
         except CreateError as exc:
@@ -91,22 +96,66 @@ class LicenseHandler:
                     license_code=license.license_code, exc=exc
                 )
             )
-        for i in range(license.license_quantity):
+        if license.license_type in [LicenseType.WORKGROUP, LicenseType.SCHOOL]:
+            # Create 1 assignment for these types
+            # (one license can be assigned only to one group/school)
             self.ah.create_assignment_for_license(license_code=license.license_code)
+        elif license.license_type in [LicenseType.SINGLE, LicenseType.VOLUME]:
+            # Create an assignment as per quantity
+            for i in range(license.license_quantity):
+                self.ah.create_assignment_for_license(license_code=license.license_code)
+        else:
+            raise RuntimeError("Unknown license type: {}".format(license.license_type))
 
     def get_assigned_users(self, license):  # type: (License) -> List[Dict[str, Any]]
-        users = [
-            {
-                "username": a.assignee,
-                "status": a.status,
-                "statusLabel": Status.label(a.status),
-                "dateOfAssignment": a.time_of_assignment,
+        """
+        Get users assigned to the license:
+        - Directly assigned users for the SINGLE/VOLUME licenses
+        - Members of school/group licenses for the SCHOOL/WORKGROUP licenses
+        """
+        def _object_factory(input_user, input_assignment):
+            # type: (UdmObject, Assignment) -> Dict[str, Any]
+            """ Create an object required for the output """
+            return {
+                "username": input_user.props.username,
+                "status": input_assignment.status,
+                "statusLabel": Status.label(input_assignment.status),
+                "dateOfAssignment": input_assignment.time_of_assignment,
             }
-            for a in self.get_assignments_for_license_with_filter(license, "(assignee=*)")
-        ]
-        for user in users:
-            udm_user = self._users_mod.search(filter_format("(entryUUID=%s)", [user["username"]])).next()
-            user["username"] = udm_user.props.username
+
+        assignments = self.get_assignments_for_license_with_filter(license, "(assignee=*)")
+        users = []
+        if license.license_type in [LicenseType.SINGLE, LicenseType.VOLUME]:
+            for assignment in assignments:
+                try:
+                    [udm_user] = self._users_mod.search(
+                        filter_format("(entryUUID=%s)", [assignment.assignee]))
+                    users.append(_object_factory(udm_user, assignment))
+                except:
+                    pass
+        elif license.license_type == LicenseType.WORKGROUP:
+            for assignment in assignments:
+                try:
+                    [group] = self._groups_mod.search(
+                        filter_format("(entryUUID=%s)", [assignment.assignee]))
+                    for udm_user in group.props.users.objs:
+                        users.append(_object_factory(udm_user, assignment))
+                except:
+                    pass
+        elif license.license_type == LicenseType.SCHOOL:
+            for assignment in assignments:
+                [school] = self._schools_mod.search(
+                    filter_format("(entryUUID=%s)", [assignment.assignee]))
+                udm_users = self._users_mod.search(
+                    filter_format("(school=%s)", [school.props.name]))
+                for udm_user in udm_users:
+                    # filter out users without "teacher" role for the "Lehrkraft"-type license
+                    roles = {get_role_info(role)[0] for role in udm_user.props.ucsschoolRole}
+                    if license.license_special_type == "Lehrkraft" and "teacher" not in roles:
+                        continue
+                    users.append(_object_factory(udm_user, assignment))
+        else:
+            raise RuntimeError("Unknown license type: {}".format(license.license_type))
         return users
 
     def set_license_ignore(self, license_code, ignore):  # type: (str, bool) -> bool
@@ -134,18 +183,19 @@ class LicenseHandler:
             license_school=udm_obj.props.school,
             ignored_for_display=udm_obj.props.ignored,
             license_special_type=udm_obj.props.special_type,
+            license_type=udm_obj.props.license_type,
             purchasing_reference=udm_obj.props.purchasing_reference,
             num_assigned=udm_obj.props.num_assigned,
             num_available=udm_obj.props.num_available,
         )
 
     def _get_all(
-        self, filter_s=None, sizelimit=0
+            self, filter_s=None, sizelimit=0
     ):  # type: (Optional[str], Optional[int]) -> List[UdmObject]
         return [o for o in self._licenses_mod.search(filter_s=filter_s, sizelimit=sizelimit)]
 
     def get_all(
-        self, filter_s=None, sizelimit=0
+            self, filter_s=None, sizelimit=0
     ):  # type: (Optional[str], Optional[int]) -> List[License]
         """get all licenses"""
         return [
@@ -159,8 +209,8 @@ class LicenseHandler:
             return self._get_all(filter_s)[0]
         except IndexError:
             raise BiloLicenseNotFoundError(
-                _("License with code {license_code!r} does not exist.").format(license_code=license_code)
-            )
+                _("License with code {license_code!r} does not exist.")
+                .format(license_code=license_code))
 
     def get_license_by_code(self, license_code):  # type: (str) -> License
         return self.from_udm_obj(self.get_udm_license_by_code(license_code))
@@ -203,23 +253,44 @@ class LicenseHandler:
             for obj in self._assignments_mod.search(base=udm_obj.dn, filter_s=filter_s)
         ]
 
-    def get_number_of_provisioned_and_assigned_assignments(self, license):  # type: (License) -> int
-        """count the number of assignments with status provisioned or assigned
-        provisioned is also assigned"""
-        udm_license = self.get_udm_license_by_code(license.license_code)
-        return udm_license.props.num_assigned
+    def get_number_of_assigned_users(self, license):  # type: (License) -> int
+        """ Count the number of users that were assigned to the license """
+        return len(self.get_assigned_users(license))
 
-    def get_number_of_expired_assignments(self, license):  # type: (License) -> int
-        """count the number of assignments with status expired"""
-        udm_license = self.get_udm_license_by_code(license.license_code)
-        return udm_license.props.num_expired
+    def _count_leftover_users(self, license):  # type: (License) -> Optional[int]
+        """
+        Subtracts the assigned users from the maximum number of users for the license
+        NOTES:
+            - Returns None in case the number of available users is infinite
+            -In case the number of assigned users is higher than the total, returns 0.
+                Such case is possible for the SCHOOL / WORKGROUP types of licenses
+        """
+        if license.license_quantity == 0:
+            return None
+        num_assigned_users = self.get_number_of_assigned_users(license)
+        num_leftover_users = license.license_quantity - num_assigned_users
+        if num_leftover_users < 0:
+            return 0
+        return num_leftover_users
+
+    def get_number_of_available_users(self, license):  # type: (License) -> Optional[int]
+        """ Count the number of available user assignments """
+        if license.is_expired:
+            return 0
+        return self._count_leftover_users(license)
+
+    def get_number_of_expired_unassigned_users(self, license):  # type: (License) -> Optional[int]
+        """ Count the number of user assignments that have expired due to the license expiration """
+        if not license.is_expired:
+            return 0
+        return self._count_leftover_users(license)
 
     def get_licenses_for_user(self, filter_s):  # type: (str) -> Set[UdmObject]
         users = self._users_mod.search(filter_s)
         licenses = set()
         for user in users:
             entry_uuid = get_entry_uuid(self._users_mod.connection, user.dn)
-            assignments = self.ah.get_all_assignments_for_user(entry_uuid)
+            assignments = self.ah.get_all_assignments_for_uuid(entry_uuid)
             for assignment in assignments:
                 licenses.add(self.ah.get_license_by_license_code(str(assignment.license)))
         return licenses
@@ -235,25 +306,36 @@ class LicenseHandler:
                 "id": LicenseType.VOLUME,
                 "label": LicenseType.label(LicenseType.VOLUME),
             },
+            {
+                "id": LicenseType.WORKGROUP,
+                "label": LicenseType.label(LicenseType.WORKGROUP),
+            },
+            {
+                "id": LicenseType.SCHOOL,
+                "label": LicenseType.label(LicenseType.SCHOOL),
+            },
         ]
 
     def search_for_licenses(
-        self,
-        school,  # type: str
-        is_advanced_search,  # type: bool
-        time_from=None,  # type: Optional[datetime.date]
-        time_to=None,  # type: Optional[datetime.date]
-        only_available_licenses=False,  # type: Optional[bool]
-        publisher="",  # type: Optional[str]
-        license_type="",  # type: Optional[str]
-        user_pattern="",  # type: Optional[str]
-        product_id="",  # type: Optional[str]
-        product="",  # type: Optional[str]
-        license_code="",  # type: Optional[str]
-        pattern="",  # type: Optional[str]
-        restrict_to_this_product_id="",  # type: Optional[str]
-        sizelimit=0,  # type: int
+            self,
+            school,  # type: str
+            is_advanced_search,  # type: bool
+            time_from=None,  # type: Optional[datetime.date]
+            time_to=None,  # type: Optional[datetime.date]
+            only_available_licenses=False,  # type: Optional[bool]
+            publisher="",  # type: Optional[str]
+            license_types=None,  # type: Optional[list]
+            user_pattern="",  # type: Optional[str]
+            product_id="",  # type: Optional[str]
+            product="",  # type: Optional[str]
+            license_code="",  # type: Optional[str]
+            pattern="",  # type: Optional[str]
+            restrict_to_this_product_id="",  # type: Optional[str]
+            sizelimit=0,  # type: int
     ):
+        if license_types is None:
+            license_types = []
+
         def __get_possible_product_ids(search_values, search_combo="|"):
             attr_allow_list = (
                 "title",
@@ -265,7 +347,8 @@ class LicenseHandler:
                     raise AttributeError(
                         "attr {} not in allowed search attr {}".format(attr, attr_allow_list)
                     )
-                filter_parts.append("({attr}={pattern})".format(attr=attr, pattern=ldap_escape(pattern)))
+                filter_parts.append("({attr}={pattern})"
+                                    .format(attr=attr, pattern=ldap_escape(pattern)))
             if not filter_parts:
                 filter_s = ""
             elif len(filter_parts) == 1:
@@ -313,10 +396,16 @@ class LicenseHandler:
                         "(bildungsloginDeliveryDate<=%s)", (iso8601Date.from_datetime(time_to),)
                     )
                 )
-            if license_type == LicenseType.SINGLE:
-                filter_parts.append("(bildungsloginLicenseQuantity=1)")
-            elif license_type == LicenseType.VOLUME:
-                filter_parts.append("(!(bildungsloginLicenseQuantity=1))")
+
+            license_types_filter_parts = []
+            for license_typ in license_types:
+                license_types_filter_parts.append("(bildungsloginLicenseType={})".format(license_typ))
+            if license_types_filter_parts:
+                if len(license_types_filter_parts) == 1:
+                    filter_parts.append(license_types_filter_parts[0])
+                else:
+                    filter_parts.append("(|{})".format("".join(license_types_filter_parts)))
+
             if product_id and product_id != "*":
                 filter_parts.append("(product_id={})".format(ldap_escape(product_id)))
             if license_code and license_code != "*":
@@ -390,10 +479,8 @@ class LicenseHandler:
             product_id: self.get_meta_data_by_product_id(product_id) for product_id in product_ids
         }
         for license in licenses:
-            number_of_available_assignments = license.num_available
-            if not only_available_licenses or (
-                not license.ignored_for_display and number_of_available_assignments > 0
-            ):
+            if not only_available_licenses \
+                    or (not license.ignored_for_display and license.num_available > 0):
                 rows.append(
                     {
                         "productId": license.product_id,
@@ -401,16 +488,25 @@ class LicenseHandler:
                         "publisher": products[license.product_id].publisher,
                         "licenseCode": license.license_code,
                         "licenseTypeLabel": LicenseType.label(license.license_type),
+                        "for": license.license_special_type,
                         "countAquired": license.license_quantity,
-                        "countAssigned": self.get_number_of_provisioned_and_assigned_assignments(
-                            license
-                        ),
-                        "countExpired": self.get_number_of_expired_assignments(license),
-                        "countAvailable": number_of_available_assignments,
+                        "countAssigned": self.get_number_of_assigned_users(license),
+                        "countExpired": self.get_number_of_expired_unassigned_users(license),
+                        "countAvailable": self.get_number_of_available_users(license),
                         "importDate": license.delivery_date,
+                        "licenseType": license.license_type,
+                        "validityStart": license.validity_start_date,
+                        "validityEnd": license.validity_end_date
                     }
                 )
         return rows
+
+    def retrieve_license_data(self, pickup_number):
+        self.logger.info(
+            "Pickup number: %r received.",
+            pickup_number
+        )
+        return retrieve_licenses(None, pickup_number)
 
 
 class MetaDataHandler:
@@ -475,14 +571,23 @@ class MetaDataHandler:
         meta_data_objs = self._meta_data_mod.search(filter_s=filter_s)
         return [MetaDataHandler.from_udm_obj(obj) for obj in meta_data_objs]
 
-    def get_udm_licenses_by_product_id(self, product_id, school=None):
-        # type: (str, Optional[str]) -> List[UdmObject]
+    def get_udm_licenses_by_product_id(self, product_id, school=None, license_types=None):
+        # type: (str, Optional[str], Optional[list]) -> List[UdmObject]
+
+        filter_s = ["(bildungsloginProductId={})".format(product_id)]
         if school:
-            filter_s = filter_format(
-                "(&(bildungsloginProductId=%s)(bildungsloginLicenseSchool=%s))", (product_id, school)
-            )
-        else:
-            filter_s = filter_format("(bildungsloginProductId=%s)", (product_id,))
+            filter_s.append("(bildungsloginLicenseSchool={})".format(school))
+        if license_types:
+            license_types_filter_parts = []
+            for license_typ in license_types:
+                license_types_filter_parts.append("(bildungsloginLicenseType={})".format(license_typ))
+            if license_types_filter_parts:
+                if len(license_types_filter_parts) == 1:
+                    filter_s.append(license_types_filter_parts[0])
+                else:
+                    filter_s.append("(|{})".format("".join(license_types_filter_parts)))
+
+        filter_s = "(&{})".format("".join(filter_s))
         return [o for o in self._licenses_mod.search(filter_s)]
 
     def get_non_ignored_licenses_for_product_id(self, product_id, school=None):
@@ -496,8 +601,23 @@ class MetaDataHandler:
             return [o for o in self._meta_data_mod.search(filter_s)][0]
         except IndexError:
             raise BiloProductNotFoundError(
-                _("Meta data object with product id {p_id!r} does not exist!").format(p_id=product_id)
-            )
+                _("Meta data object with product id {p_id!r} does not exist!")
+                .format(p_id=product_id))
+
+
+class ObjectType(enum.Enum):
+    """ Type of the assigned object """
+    GROUP = "GROUP"
+    SCHOOL = "SCHOOL"
+    USER = "USER"
+
+
+# Define which objects can use which license types
+_ALLOWED_LICENSE_TYPES = {
+    ObjectType.GROUP: [LicenseType.WORKGROUP],
+    ObjectType.SCHOOL: [LicenseType.SCHOOL],
+    ObjectType.USER: [LicenseType.SINGLE, LicenseType.VOLUME]
+}
 
 
 class AssignmentHandler:
@@ -506,6 +626,8 @@ class AssignmentHandler:
         self._licenses_mod = udm.get("bildungslogin/license")
         self._assignments_mod = udm.get("bildungslogin/assignment")
         self._users_mod = udm.get("users/user")
+        self._groups_mod = udm.get("groups/group")
+        self._schools_mod = udm.get("container/ou")
         self._lo = lo
         self.logger = logging.getLogger(__name__)
 
@@ -542,38 +664,57 @@ class AssignmentHandler:
         udm_assignments = self._get_all(base=base, filter_s=filter_s)
         return [self.from_udm_obj(a) for a in udm_assignments]
 
-    def get_all_assignments_for_user(self, assignee, base=None):
+    def get_all_assignments_for_uuid(self, assignee_uuid, base=None):
         # type: (str, Optional[str]) -> List[Assignment]
         """
         if the base is equal to the dn of a license, this can be used to
         find all assignments for this license
 
-        :param assignee: entry-uuid of user
+        :param assignee_uuid: entry-uuid of the object (user / group / school)
         :param base: dn of license object
         :return:
         """
-        filter_s = filter_format("(assignee=%s)", [assignee])
+        filter_s = filter_format("(assignee=%s)", [assignee_uuid])
         return self.get_all(base=base, filter_s=filter_s)
 
-    def _get_entry_uuid_by_username(self, username):  # type: (str) -> str
-        udm_user = self.get_user_by_username(username)
-        return get_entry_uuid(self._lo, dn=udm_user.dn)
+    def _get_object_uuid_by_name(self, object_type, name):  # type: (ObjectType, str) -> str
+        obj = self._get_object_by_name(object_type, name)
+        return get_entry_uuid(self._lo, dn=obj.dn)
 
-    @staticmethod
-    def check_license_can_be_assigned_to_school_user(license_school, ucsschool_schools):
-        # type: (str, List[str]) -> None
-        ucsschool_schools = {s.lower() for s in ucsschool_schools}
-        if license_school.lower() not in ucsschool_schools:
-            raise BiloAssignmentError(
-                _("License can't be assigned to user in schools {ous}!").format(ous=ucsschool_schools)
-            )
+    def _get_object_by_name(self, object_type, name):  # type: (ObjectType, str) -> UdmObject
+        """ Get group/user/school based on its name """
+        if object_type is ObjectType.GROUP:
+            mod = self._groups_mod
+            filter_s = filter_format("(name=%s)", [name])
+        elif object_type is ObjectType.USER:
+            mod = self._users_mod
+            filter_s = filter_format("(username=%s)", [name])
+        elif object_type is ObjectType.SCHOOL:
+            mod = self._schools_mod
+            filter_s = filter_format(
+                "(&(name=%s)(objectClass=ucsschoolOrganizationalUnit))", [name])
+        else:
+            raise RuntimeError("Cannot handle object type: {}".format(object_type))
+
+        objects = [o for o in mod.search(filter_s)]
+        if not objects:
+            raise BiloAssignmentError(_("No {obj!r} with name {name!r} exists!")
+                                      .format(obj=object_type.value, name=name))
+        [obj] = objects  # ensure that only one object was found
+        return obj
+
+    def _get_school_users(self, school):  # type: (UdmObject) -> List[UdmObject]
+        """ Get a list of the users which belong to the school """
+        return list(self._users_mod.search(filter_format("(school=%s)", [school.props.name])))
 
     def get_user_by_username(self, username):  # type: (str) -> UdmObject
-        filter_s = filter_format("(uid=%s)", [username])
-        users = [u for u in self._users_mod.search(filter_s)]
-        if not users:
-            raise BiloAssignmentError(_("No user with username {un!r} exists!").format(un=username))
-        return users[0]
+        return self._get_object_by_name(ObjectType.USER, username)
+
+    def get_group_by_name(self, group_name):  # type: (str) -> UdmObject
+        return self._get_object_by_name(ObjectType.GROUP, group_name)
+
+    def get_school_by_name(self, school_name):  # type: (str) -> UdmObject
+        return self._get_object_by_name(ObjectType.SCHOOL, school_name)
 
     def get_license_by_license_code(self, license_code):  # type: (str) -> UdmObject
         filter_s = filter_format("(code=%s)", [license_code])
@@ -582,10 +723,10 @@ class AssignmentHandler:
             return license
         except IndexError:
             raise BiloLicenseNotFoundError(
-                _("No license with code {license_code!r} was found!").format(license_code=license_code)
-            )
+                _("No license with code {license_code!r} was found!")
+                .format(license_code=license_code))
 
-    def create_assignment_for_license(self, license_code):  # type: (str) -> bool
+    def create_assignment_for_license(self, license_code):  # type: (str) -> None
         udm_license = self.get_license_by_license_code(license_code)
         try:
             assignment = self._assignments_mod.new(superordinate=udm_license.dn)
@@ -599,40 +740,133 @@ class AssignmentHandler:
                 )
             )
 
-    def _get_available_assignments(self, license_dn):  # type: (str) -> List[UdmObject]
+    def _get_available_assignments(self, license):  # type: (UdmObject) -> List[UdmObject]
         filter_s = filter_format("(status=%s)", [Status.AVAILABLE])
-        return self._get_all(base=license_dn, filter_s=filter_s)
+        return self._get_all(base=license.dn, filter_s=filter_s)
 
     @staticmethod
-    def check_license_type_is_correct(username, user_roles, license_type):
-        # type: (str, List[str], str) -> None
-        # todo check if we need this in mvp, also make this more robust
-        if license_type == "Lehrer":
-            roles = [get_role_info(role)[0] for role in user_roles]
-            if "teacher" not in roles:
-                raise BiloAssignmentError(
-                    _(
-                        "License with special type 'Lehrer' can't be assigned to user {username!r} with "
-                        "roles {roles!r}!"
-                    ).format(username=username, roles=roles)
-                )
+    def _check_license_is_ignored(license):  # type: (UdmObject) -> None
+        if license.props.ignored:
+            raise BiloAssignmentError(
+                _("License is 'ignored for display' and thus can't be assigned!"))
 
     @staticmethod
-    def check_is_ignored(ignored):  # type: (bool) -> None
-        if ignored:
-            raise BiloAssignmentError(_("License is 'ignored for display' and thus can't be assigned!"))
-
-    @staticmethod
-    def check_is_expired(expired):  # type: (bool) -> None
-        if expired:
+    def _check_license_is_expired(license):  # type: (UdmObject) -> None
+        if license.props.expired:
             raise BiloAssignmentError(_("License is expired and thus can't be assigned!"))
 
-    def assign_to_license(self, license_code, username):  # type: (str, str) -> bool
-        """
-        Assigne license with code `license_code` to `username`.
+    @classmethod
+    def check_assigned_license(cls, license):  # type: (UdmObject) -> None
+        """ Conduct different checks for the license to verify that it can be assigned """
+        cls._check_license_is_ignored(license)
+        cls._check_license_is_expired(license)
 
-        :param str license_code: license code
-        :param str username: user name of user to assigne license to
+    @staticmethod
+    def _check_license_school_against_user(license, user):
+        # type: (UdmObject, UdmObject) -> None
+        user_schools = {s.lower() for s in user.props.school}
+        if license.props.school.lower() not in user_schools:
+            raise BiloAssignmentError(
+                _("License can't be assigned to user in schools {ous}!")
+                .format(ous=user_schools))
+
+    @staticmethod
+    def _check_license_special_type_against_user(license, user):
+        # type: (UdmObject, UdmObject) -> None
+        # todo check if we need this in mvp, also make this more robust
+        if license.props.special_type == "Lehrkraft":
+            roles = [get_role_info(role)[0] for role in user.props.ucsschoolRole]
+            if "teacher" not in roles:
+                raise BiloAssignmentError(
+                    _("License with special type 'Lehrkraft' can't be assigned to user {username!r} "
+                      "with roles {roles!r}!").format(username=user.props.username, roles=roles))
+
+    @classmethod
+    def _check_license_special_type_against_group(cls, license, group):
+        # type: (UdmObject, UdmObject) -> None
+        users = group.props.users.objs
+        for user in users:
+            try:
+                cls._check_license_special_type_against_user(license, user)
+            except BiloAssignmentError:
+                raise BiloAssignmentError(_("This license is allowed for assignments to groups including only teachers."
+                                            " Please modify your group selection accordingly."))
+
+    @staticmethod
+    def _check_license_school_against_group(license, group):
+        # type: (UdmObject, UdmObject) -> None
+        if "ou={},dc=".format(license.props.school) not in group.dn:
+            raise BiloAssignmentError(
+                _("license can't be assigned to group as it doesn't belong to the same school"))
+
+    @staticmethod
+    def _check_license_quantity_against_group(license, group):
+        # type: (UdmObject, UdmObject) -> None
+        group_size = len(group.props.users)
+        license_quantity = license.props.quantity
+        if license_quantity != 0 and group_size > license_quantity:
+            raise BiloAssignmentError(
+                _("This license is allowed for assignments to groups including a maximum of <{ous}> members. "
+                  "Please modify your group selection accordingly").format(ous=license_quantity))
+
+    @staticmethod
+    def _check_license_school_against_school(license, school):
+        # type: (UdmObject, UdmObject) -> None
+        if license.props.school != school.props.name:
+            raise BiloAssignmentError(_("License can't be assigned to a different school"))
+
+    def _check_license_quantity_against_school(self, license, school):
+        # type: (UdmObject, UdmObject) -> None
+        users_count = len(self._get_school_users(school))
+        license_quantity = license.props.quantity
+        if license_quantity != 0 and users_count > license_quantity:
+            raise BiloAssignmentError(
+                _("This license is allowed for assignments to schools including a maximum "
+                  "of <{ous}> members. Please modify your school selection accordingly")
+                .format(ous=license_quantity))
+
+    @staticmethod
+    def _check_license_type_against_object_type(license, object_type):
+        # type: (UdmObject, ObjectType) -> None
+        """
+        Check whether license with the given type
+        can be assigned to the given type of object
+        """
+        license_type = license.props.license_type
+        if license_type not in _ALLOWED_LICENSE_TYPES[object_type]:
+            raise BiloAssignmentError(
+                _("License with license type {license_type!r} "
+                  "can't be assigned to the object type {object_type!r}")
+                .format(license_type=license_type, object_type=object_type.value))
+
+    def check_assigned_object(self, object_type, obj, license):
+        # type: (ObjectType, UdmObject, UdmObject) -> None
+        """
+        Conduct different checks for the object to verify
+        that it can be assigned to the selected license
+        """
+        self._check_license_type_against_object_type(license, object_type)
+        if object_type is ObjectType.USER:
+            self._check_license_school_against_user(license, obj)
+            self._check_license_special_type_against_user(license, obj)
+        elif object_type is ObjectType.GROUP:
+            self._check_license_school_against_group(license, obj)
+            self._check_license_special_type_against_group(license, obj)
+            self._check_license_quantity_against_group(license, obj)
+        elif object_type is ObjectType.SCHOOL:
+            self._check_license_school_against_school(license, obj)
+            self._check_license_quantity_against_school(license, obj)
+        else:
+            raise RuntimeError("Cannot handle object type: {}".format(object_type))
+
+    def assign_license(self, license, object_type, object_name):
+        # type: (UdmObject, ObjectType, str) -> bool
+        """
+        Assign license with code `license_code` to the object with `object_name`.
+
+        :param UdmObject license: license object
+        :param ObjectType object_type: type of the assigned object
+        :param str object_name: name of the object to assign license to
         :return: true if the license could be assigned to the user, else raises an error.
         :rtype: bool
         :raises BiloAssignmentError: 1. If the `ignored` property is set. This should not happen,
@@ -640,66 +874,58 @@ class AssignmentHandler:
             was already assigned. 3. If no unassigned `bildungslogin/assignment` objects are available for the
             license.
         """
-        udm_license = self.get_license_by_license_code(license_code)
-        self.check_is_ignored(udm_license.props.ignored)
-        self.check_is_expired(udm_license.props.expired)
-        udm_user = self.get_user_by_username(username)
-        self.check_license_can_be_assigned_to_school_user(
-            udm_license.props.school, udm_user.props.school
-        )
-        self.check_license_type_is_correct(
-            username, udm_user.props.ucsschoolRole, udm_license.props.special_type
-        )
-        user_entry_uuid = get_entry_uuid(self._lo, dn=udm_user.dn)
-        assigned_to_user = self.get_all_assignments_for_user(
-            base=udm_license.dn, assignee=user_entry_uuid
-        )
-        if assigned_to_user:
+        self.check_assigned_license(license)
+        assigned_object = self._get_object_by_name(object_type, object_name)
+        self.check_assigned_object(object_type, assigned_object, license)
+        object_uuid = get_entry_uuid(self._lo, dn=assigned_object.dn)
+        # Check if the object was already assigned to the license
+        if self.get_all_assignments_for_uuid(base=license.dn, assignee_uuid=object_uuid):
             return True
-        available_assignments = self._get_available_assignments(udm_license.dn)
+
+        available_assignments = self._get_available_assignments(license)
         if not available_assignments:
             raise BiloAssignmentError(
-                _(
-                    "There are no more assignments available for the license with code {license_code!r}. "
-                    "No license has been assigned to the user {username!r}!"
-                ).format(license_code=license_code, username=username)
-            )
+                _("There are no more assignments available "
+                  "for the license with code {license_code!r}. "
+                  "No license has been assigned to the object {object_name!r}!")
+                .format(license_code=license.props.code, object_name=object_name))
         udm_assignment = available_assignments[0]
         udm_assignment.props.status = Status.ASSIGNED
-        udm_assignment.props.assignee = user_entry_uuid
+        udm_assignment.props.assignee = object_uuid
         udm_assignment.props.time_of_assignment = datetime.date.today()
         udm_assignment.save()
         self.logger.debug(
             "Assigned license %r (%d left) to %r.",
-            license_code,
+            license.props.code,
             len(available_assignments) - 1,
-            username,
-        )
+            object_name)
         return True
 
-    def assign_users_to_licenses(self, license_codes, usernames):
-        # type: (List[str], List[str]) -> Dict[str, Union[int, Dict[str, str]]]
+    def assign_objects_to_licenses(self, license_codes, object_type, object_names):
+        # type: (List[str], ObjectType, List[str]) -> Dict[str, Union[int, bool, List[str]]]
         """
-        Assign a license to each user, from a list of potential licenses.
+        Assign a license to each object, from a list of potential licenses.
 
-        1. If there are less available licenses than the number of users, no licenses will be assigned.
-        2. There can be more available licenses than the number of users. The licenses will be sorted by
-        validity end date. Licenses that end sooner will be used first.
+        1. If there are less available licenses than the number of objects,
+            no licenses will be assigned.
+        2. There can be more available licenses than the number of objects.
+            The licenses will be sorted by validity end date.
+            Licenses that end sooner will be used first.
 
         The result will be a dict with the number of users that licenses were assigned to, warning and
         error messages:
 
         {
-            "countSuccessfulAssignments": int,  # number of users that licenses were assigned to
+            "countSuccessfulAssignments": int,  # number of objects that licenses were assigned to
             "notEnoughLicenses": bool,
             "failedAssignments": List[str],  # list of error messages
             "validityInFuture": List[str],  # list of license code whose validity lies in the future
         }
 
         :param list(str) license_codes: license codes to assign to users
-        :param list(str) usernames: uids of users to assign licenses to
-        :return: dict with the number of users that licenses were assigned to, warnings and errors
-        :rtype: dict
+        :param ObjectType object_type: type of objects being assigned
+        :param list(str) object_names: names of objects to assign licenses to
+        :return: dict with the number of objects that licenses were assigned to, warnings and errors
         :raises BiloAssignmentError: If the assignment process failed somewhere down the code path.
             Insufficient available licenses will not raise an exception, only add an error message in
             the result dict.
@@ -714,18 +940,16 @@ class AssignmentHandler:
 
         for lc in license_codes:
             license = self.get_license_by_license_code(lc)
-            try:
-                self.check_is_expired(license.props.expired)
-                licenses.append(license)
-            except BiloAssignmentError:
+            if license.props.expired:
                 # this can only happen if the license expires after it was shown in the list
                 # of assignable licenses (where expired licenses are filtered out)
                 # The complexity to show this in addition to the 'notEnoughLicenses' error
                 # seems not worth it.
-                pass
+                continue
+            licenses.append(license)
 
         num_available_licenses = sum(lic.props.num_available for lic in licenses)
-        if num_available_licenses < len(usernames):
+        if num_available_licenses < len(object_names):
             result["notEnoughLicenses"] = True
             result["failedAssignments"] = list(result["failedAssignments"])
             result["validityInFuture"] = list(result["validityInFuture"])
@@ -738,47 +962,47 @@ class AssignmentHandler:
 
         # assign licenses
 
-        # build list of licenses to use: [code1, code1, code1, code2, code2, ...] as an iterator (list
-        # could be very long)!
-        license_codes_to_use = itertools.chain.from_iterable(
-            (
-                (license.props.code, license.props.validity_start_date)
-                for _ in range(license.props.num_available)
-            )
+        # build an iterator of licenses to use: [license1, license1, license2, license2, ...]
+        licenses_to_use = (
+            license
             for license in licenses
+            for _ in range(license.props.num_available)
         )
-        for username in usernames:
-            code, validity_start_date = license_codes_to_use.next()
+        for object_name in object_names:
+            license = licenses_to_use.next()
             try:
-                self.assign_to_license(code, username)
+                self.assign_license(license, object_type, object_name)
                 result["countSuccessfulAssignments"] += 1
-                if validity_start_date and validity_start_date > datetime.date.today():
-                    result["validityInFuture"].add(code)
+                if license.props.validity_start_date \
+                        and license.props.validity_start_date > datetime.date.today():
+                    result["validityInFuture"].add(license.props.code)
             except BiloAssignmentError as exc:
-                result["failedAssignments"].add("{} -- {}".format(username, str(exc)))
+                result["failedAssignments"].add("{} -- {}".format(object_name, str(exc)))
         self.logger.info(
-            "Assigned licenses to %r/%r users.", result["countSuccessfulAssignments"], len(usernames)
+            "Assigned licenses to %r/%r users.",
+            result["countSuccessfulAssignments"],
+            len(object_names)
         )
         result["failedAssignments"] = list(result["failedAssignments"])
         result["validityInFuture"] = list(result["validityInFuture"])
         return result
 
-    def get_assignment_for_user_under_license(self, license_dn, assignee):
+    def get_assignment_for_object_under_license(self, license_dn, assignee):
         # type: (str, str)  -> UdmObject
-        """Search for license with license id and user with entryUUID and change the status
-        If a user has more than one license with license code under license_dn,
-        we take the first license we can find."""
+        """
+        Search for an assignment with license id and object with entryUUID.
+        If multiple assignments found: return the first one.
+        """
         filter_s = filter_format("(assignee=%s)", [assignee])
         try:
             return [a for a in self._assignments_mod.search(base=license_dn, filter_s=filter_s)][0]
         except IndexError:
             raise BiloAssignmentError(
-                _("No assignment for license with {dn!r} was found for user {username!r}.").format(
-                    dn=license_dn, username=assignee
-                )
-            )
+                _("No assignment for license with {dn!r} was found for object {object_uuid!r}.")
+                .format(dn=license_dn, object_uuid=assignee))
 
-    def change_license_status(self, license_code, username, status):  # type: (str, str, str) -> bool
+    def change_license_status(self, license_code, object_type, object_name, status):
+        # type: (str, ObjectType, str, str) -> bool
         """
         Returns True if the license could be assigned to the user,
         returns False if the status remains and else raises an error.
@@ -786,30 +1010,30 @@ class AssignmentHandler:
         ASSIGNED -> AVAILABLE
         ASSIGNED -> PROVISIONED
         AVAILABLE -> EXPIRED -> is calculated
-        AVAILABLE -> ASSIGNED -> use assign_to_license instead
+        AVAILABLE -> ASSIGNED -> use assign_license instead
         AVAILABLE -> IGNORED -> handled at the license object
         """
+        license = self.get_license_by_license_code(license_code)
+
         if status == Status.ASSIGNED:
             # comment: fallback for AVAILABLE -> ASSIGNED
-            return self.assign_to_license(license_code=license_code, username=username)
+            return self.assign_license(license=license, object_type=object_type,
+                                       object_name=object_name)
         if status not in [Status.PROVISIONED, Status.AVAILABLE]:
-            raise BiloAssignmentError(_("Illegal status change to {status!r}!").format(status=status))
+            raise BiloAssignmentError(_("Illegal status change to {status!r}!")
+                                      .format(status=status))
 
-        udm_license = self.get_license_by_license_code(license_code)
-        self.check_is_ignored(udm_license.props.ignored)
-        user_entry_uuid = self._get_entry_uuid_by_username(username)
-
-        udm_assignment = self.get_assignment_for_user_under_license(
-            license_dn=udm_license.dn, assignee=user_entry_uuid
-        )
+        self._check_license_is_ignored(license)
+        object_uuid = self._get_object_uuid_by_name(object_type, object_name)
+        udm_assignment = self.get_assignment_for_object_under_license(
+            license_dn=license.dn, assignee=object_uuid)
         old_status = udm_assignment.props.status
         if status == old_status:
             self.logger.info(
                 "Not changing any status for %r (%r -> %r).",
-                username,
+                object_name,
                 udm_assignment.props.status,
-                status,
-            )
+                status)
             return False
         if status == Status.AVAILABLE:
             # assignments which are available do not have an assignee
@@ -821,34 +1045,33 @@ class AssignmentHandler:
             self.logger.debug(
                 "Changed status of assignment %r (-> %r) from %r to %r.",
                 license_code,
-                username,
+                object_name,
                 old_status,
-                status,
-            )
+                status)
         except ModifyError as exc:
             raise BiloAssignmentError(_("Invalid assignment status change!\n{exc}").format(exc=exc))
         return True
 
-    def remove_assignment_from_users(self, license_code, usernames):
-        # type: (str, List[str]) -> List[Tuple[str, str]]
-        # TODO: result wie oben, mit user-dn statt lic-code
+    def remove_assignment_from_objects(self, license_code, object_type, object_names):
+        # type: (str, ObjectType, List[str]) -> List[Tuple[str, str]]
         num_removed_correct = 0
         failed_assignments = []
-        for username in usernames:
+        for object_name in object_names:
             try:
-                success = self.change_license_status(
-                    license_code=license_code, username=username, status=Status.AVAILABLE
-                )
+                success = self.change_license_status(license_code=license_code,
+                                                     object_type=object_type,
+                                                     object_name=object_name,
+                                                     status=Status.AVAILABLE)
                 if success:
                     num_removed_correct += 1
             except BiloAssignmentError as err:
                 # Error handling should be done in the umc - layer
-                failed_assignments.append((username, str(err)))
+                failed_assignments.append((object_name, str(err)))
 
         self.logger.info(
             "Removed %r/%r user-assignment to license code %r.",
             num_removed_correct,
-            len(usernames),
+            len(object_names),
             license_code,
         )
         return failed_assignments

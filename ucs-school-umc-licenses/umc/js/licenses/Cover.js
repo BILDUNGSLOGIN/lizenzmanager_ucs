@@ -29,18 +29,21 @@
 /*global define*/
 
 define([
-	"dojo/_base/declare",
-	"umc/widgets/Image",
-	"put-selector/put",
-	"umc/i18n!umc/modules/licenses"
-], function(declare, Image, put, _) {
-	return declare("umc.modules.licenses.Cover", [Image], {
-		_setValueAttr: function(value) {
-			this.inherited(arguments);
-			if (!value) {
-				const info = put('div.licensesTable__coverFallback', _('No cover available'));
-				this.set('content', info);
-			}
-		},
-	});
+  "dojo/_base/declare",
+  "umc/widgets/Image",
+  "put-selector/put",
+  "umc/i18n!umc/modules/licenses",
+], function (declare, Image, put, _) {
+  return declare("umc.modules.licenses.Cover", [Image], {
+    _setValueAttr: function (value) {
+      this.inherited(arguments);
+      if (!value) {
+        const info = put(
+          "div.licensesTable__coverFallback",
+          _("No cover available")
+        );
+        this.set("content", info);
+      }
+    },
+  });
 });

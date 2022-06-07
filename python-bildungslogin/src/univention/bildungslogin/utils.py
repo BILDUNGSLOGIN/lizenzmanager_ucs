@@ -35,32 +35,6 @@ from univention.lib.i18n import Translation
 _ = Translation("python-bildungslogin").translate
 
 
-class Status(object):
-    ASSIGNED = "ASSIGNED"
-    PROVISIONED = "PROVISIONED"
-    AVAILABLE = "AVAILABLE"
-
-    @classmethod
-    def label(cls, status):
-        return {
-            cls.ASSIGNED: _("Assigned"),
-            cls.PROVISIONED: _("Provisioned"),
-            cls.AVAILABLE: _("Available"),
-        }[status]
-
-
-class LicenseType:
-    VOLUME = "VOLUME"
-    SINGLE = "SINGLE"
-
-    @classmethod
-    def label(cls, license_type):
-        return {
-            cls.VOLUME: _("Volume license"),
-            cls.SINGLE: _("Single license"),
-        }[license_type]
-
-
 def get_entry_uuid(lo, dn):
     """UDM doesn't expose the `entryUUID` attribute, so we have to use ldap here."""
     return lo.get(dn, attr=["entryUUID"])["entryUUID"][0]

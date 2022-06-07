@@ -54,7 +54,7 @@ Create test license data:
     "gueltigkeitsbeginn": "15-08-2021",
     "gueltigkeitsende": "14-08-2022",
     "gueltigkeitsdauer": "365",
-    "sonderlizenz": "Lehrer"
+    "sonderlizenz": "Lehrkraft"
   },
   ...
   ]
@@ -74,7 +74,7 @@ from univention.admin.uldap import getAdminConnection
 
 lo, po = getAdminConnection()
 ah = AssignmentHandler(lo)
-ah.assign_to_license(username="demo_student", license_code="VHT-7bd46a45-345c-4237-a451-4444736eb011")
+ah.assign_license(username="demo_student", license_code="VHT-7bd46a45-345c-4237-a451-4444736eb011")
 
 # INFO: Modified 'bildungslogin/assignment' object 'cn=2ab27fc7-28df-4960-bbf8-88cd8876be7c,cn=c23df3f1b32e0e78a8a98e7ea2eacd5ad90447be01643d87bb34ceba942e9a39,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=uni,dc=dtr'
 ```

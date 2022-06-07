@@ -175,6 +175,20 @@ def create_test_user(kelvin_session_kwargs, test_user_obj, schedule_delete_user_
 
 
 @pytest.fixture
+def create_workgroup(udm, schedule_delete_udm_obj):
+    """ Create workgroup """
+    async def _func(school_ou, name):
+        group = await udm.get("groups/group").new()
+        group.position = f"cn=schueler,cn=groups,ou={school_ou},{ldap_auth.settings.ldap_base}"
+        group.props.name = f"{school_ou}-{name}"
+        group.props.ucsschoolRole = [f"workgroup:school:{school_ou}"]
+        await group.save()
+        schedule_delete_udm_obj(group.dn, "groups/group")
+        return group
+    return _func
+
+
+@pytest.fixture
 def random_license_data():
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     next_year = datetime.date.today() + datetime.timedelta(days=365)
@@ -201,6 +215,7 @@ def random_license_data():
             "validity_duration": random.choice(("Schuljahreslizenz", "Dauerlizenz")),
             "validity_end_date": next_year.strftime("%Y-%m-%d"),
             "validity_start_date": yesterday.strftime("%Y-%m-%d"),
+            "license_type": "VOLUME",
         }
         res.update(kwargs)
         return res

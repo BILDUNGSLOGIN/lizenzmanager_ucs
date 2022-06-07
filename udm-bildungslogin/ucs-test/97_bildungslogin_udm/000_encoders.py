@@ -56,7 +56,7 @@ def test_assignment_dn_encoder(create_license, udm, lo, correct_assignee):
         ou, _ = schoolenv.create_ou()
         username, user_dn = schoolenv.create_student(ou)
         entry_uuid = lo.get(user_dn, attr=["entryUUID"])["entryUUID"][0]
-        license_obj = create_license(str(uuid.uuid4()), str(uuid.uuid4()), 1, ou)
+        license_obj = create_license(str(uuid.uuid4()), str(uuid.uuid4()), 1, ou, "SINGLE")
         assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
         assignment.props.status = "AVAILABLE"
         assignment.save()
@@ -81,7 +81,7 @@ def test_bildungslogin_assignment(create_license, udm):
 
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou()
-        license_obj = create_license(str(uuid.uuid4()), str(uuid.uuid4()), 1, ou)
+        license_obj = create_license(str(uuid.uuid4()), str(uuid.uuid4()), 1, ou, "SINGLE")
         assignment = udm.get("bildungslogin/assignment").new(license_obj.dn)
         assignment.props.status = "AVAILABLE"
         assignment.save()
@@ -122,7 +122,7 @@ def test_bildungslogin_license(create_license, udm):
         ou, _ = schoolenv.create_ou()
         assigned_num = random.randint(1, 4)
         total_num = random.randint(assigned_num + 1, assigned_num + 10)
-        license_obj = create_license(str(uuid.uuid4()), str(uuid.uuid4()), total_num, ou)
+        license_obj = create_license(str(uuid.uuid4()), str(uuid.uuid4()), total_num, ou, "VOLUME")
         assert license_obj.props.quantity == total_num
 
         # test UDM conversion for properties actually stored in LDAP

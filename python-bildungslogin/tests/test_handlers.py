@@ -10,13 +10,13 @@ import pytest
 
 import univention.bildungslogin.handlers
 from univention.bildungslogin.exceptions import BiloAssignmentError, BiloLicenseNotFoundError
-from univention.bildungslogin.models import Assignment, MetaData
-from univention.bildungslogin.utils import Status
+from univention.bildungslogin.handlers import ObjectType
+from univention.bildungslogin.models import Assignment, License, MetaData, Status
 
 if sys.version_info[0] >= 3:
-    from unittest.mock import MagicMock, call, patch
+    from unittest.mock import MagicMock, Mock, call, patch
 else:
-    from mock import MagicMock, call, patch
+    from mock import MagicMock, Mock, call, patch
 
 try:
     from univention.udm.base import BaseObject, BaseObjectProperties
@@ -90,6 +90,11 @@ def fake_udm_license_object(unsaved_udm_object):
         obj.props.quantity = 0
         obj.props.school = "DEMOSCHOOL"
         obj.props.special_type = None
+        obj.props.utilization_systems = ""
+        obj.props.validity_start_date = None
+        obj.props.validity_end_date = None
+        obj.props.validity_duration = None
+        obj.props.license_type = "VOLUME"
         return obj
 
     return _func
@@ -97,12 +102,15 @@ def fake_udm_license_object(unsaved_udm_object):
 
 @pytest.fixture
 def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object, random_username):
-    def _func(assignment_total, assignment_available):
+    def _func(assignment_total, assignment_available, license_props=None):
         # type: (int, int) -> Tuple[BaseObject, Dict[str, BaseObject]]
         license = fake_udm_license_object()  # type: BaseObject
         license.props.quantity = assignment_total
         license.props.num_available = assignment_available
         license.props.num_assigned = assignment_total - assignment_available
+        if license_props:
+            for attr, value in license_props.items():
+                setattr(license.props, attr, value)
         assignments = {}
         for _ in range(assignment_total - assignment_available):
             ass_obj = fake_udm_assignment_object(license.dn)
@@ -120,13 +128,15 @@ def license_with_assignments(fake_udm_assignment_object, fake_udm_license_object
     return _func
 
 
+@pytest.mark.parametrize("object_type", [ObjectType.USER, ObjectType.SCHOOL, ObjectType.GROUP])
 @patch("univention.bildungslogin.handlers.UDM")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
-@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
+@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_license")
 def test_assign_users_to_licenses_enough_licenses(
-    assign_to_license_mock,
+    assign_license_mock,
     get_license_by_license_code_mock,
     udm_mock,
+    object_type,
     license_with_assignments,
     random_username,
 ):
@@ -174,20 +184,23 @@ def test_assign_users_to_licenses_enough_licenses(
     usernames = [random_username() for _ in range(num_users)]
 
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
-    result = ah.assign_users_to_licenses(
-        [lic.props.code for lic in (license1, license2, license3, license4)], usernames
+    result = ah.assign_objects_to_licenses(
+        [lic.props.code for lic in (license1, license2, license3, license4)],
+        object_type,
+        usernames
     )
 
     # sorted by validity end:
-    used_licenses_codes = (
-        [license4.props.code for _ in range(assignment_available4)]
-        + [license1.props.code for _ in range(assignment_available1)]
-        + [license2.props.code for _ in range(assignment_available2)]
-        + [license3.props.code for _ in range(assignment_available3)]
+    used_licenses = (
+        [license4 for _ in range(assignment_available4)]
+        + [license1 for _ in range(assignment_available1)]
+        + [license2 for _ in range(assignment_available2)]
+        + [license3 for _ in range(assignment_available3)]
     )
     # zip() will drop unused list items from used_licenses_codes (from license3):
-    calls_to_assign_to_license = [call(l_c, u_n) for l_c, u_n in zip(used_licenses_codes, usernames)]
-    assert assign_to_license_mock.call_args_list == calls_to_assign_to_license
+    calls_to_assign_license = [call(l_c, object_type, u_n)
+                                  for l_c, u_n in zip(used_licenses, usernames)]
+    assert assign_license_mock.call_args_list == calls_to_assign_license
     assert result == {
         "countSuccessfulAssignments": len(usernames),
         "notEnoughLicenses": False,
@@ -198,9 +211,9 @@ def test_assign_users_to_licenses_enough_licenses(
 
 @patch("univention.bildungslogin.handlers.UDM")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
-@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
+@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_license")
 def test_assign_users_to_licenses_warning_expired_license(
-    assign_to_license_mock,
+    assign_license_mock,
     get_license_by_license_code_mock,
     udm_mock,
     license_with_assignments,
@@ -232,7 +245,8 @@ def test_assign_users_to_licenses_warning_expired_license(
     usernames = [random_username() for _ in range(num_users)]
 
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
-    result = ah.assign_users_to_licenses([license1.props.code, license2.props.code], usernames)
+    result = ah.assign_objects_to_licenses([license1.props.code, license2.props.code],
+                                           ObjectType.USER, usernames)
 
     assert result == {
         "countSuccessfulAssignments": num_users,
@@ -244,9 +258,9 @@ def test_assign_users_to_licenses_warning_expired_license(
 
 @patch("univention.bildungslogin.handlers.UDM")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
-@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
+@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_license")
 def test_assign_users_to_licenses_warning_validity_starts_in_the_future(
-    assign_to_license_mock,
+    assign_license_mock,
     get_license_by_license_code_mock,
     udm_mock,
     license_with_assignments,
@@ -274,7 +288,8 @@ def test_assign_users_to_licenses_warning_validity_starts_in_the_future(
     usernames = [random_username() for _ in range(num_users)]
 
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
-    result = ah.assign_users_to_licenses([license1.props.code, license2.props.code], usernames)
+    result = ah.assign_objects_to_licenses([license1.props.code, license2.props.code],
+                                           ObjectType.USER, usernames)
 
     assert result == {
         "countSuccessfulAssignments": num_users,
@@ -286,9 +301,9 @@ def test_assign_users_to_licenses_warning_validity_starts_in_the_future(
 
 @patch("univention.bildungslogin.handlers.UDM")
 @patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
-@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_to_license")
+@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "assign_license")
 def test_assign_users_to_licenses_not_enough_licenses(
-    assign_to_license_mock,
+    assign_license_mock,
     get_license_by_license_code_mock,
     udm_mock,
     license_with_assignments,
@@ -307,9 +322,9 @@ def test_assign_users_to_licenses_not_enough_licenses(
     usernames = [random_username() for _ in range(num_users)]
 
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
-    result = ah.assign_users_to_licenses([license1.props.code], usernames)
+    result = ah.assign_objects_to_licenses([license1.props.code], ObjectType.USER, usernames)
 
-    assert assign_to_license_mock.call_args_list == []
+    assert assign_license_mock.call_args_list == []
     assert result == {
         "countSuccessfulAssignments": 0,
         "notEnoughLicenses": True,
@@ -318,13 +333,17 @@ def test_assign_users_to_licenses_not_enough_licenses(
     }
 
 
-@patch("univention.bildungslogin.handlers.UDM")
-@patch.object(
-    univention.bildungslogin.handlers.LicenseHandler, "get_assignments_for_license_with_filter"
-)
-def test_get_assigned_users(get_assignments_mock, _udm_mock, license_with_assignments):
-    """Test that verifies the generation of the correct assigned users dictionary."""
-    license, assignments = license_with_assignments(1, 0)
+@patch("univention.bildungslogin.handlers.UDM", MagicMock())
+@patch.object(univention.bildungslogin.handlers.LicenseHandler,
+              "get_assignments_for_license_with_filter")
+def test_get_assigned_users_from_user_license(get_assignments_mock, license_with_assignments):
+    """
+    Test that verifies the generation of the correct assigned
+    users dictionary for user licenses.
+    """
+    udm_license, assignments = \
+        license_with_assignments(1, 0, license_props={"license_type": "SINGLE"})
+    license = univention.bildungslogin.handlers.LicenseHandler.from_udm_obj(udm_license)
     assignment_object = Assignment(
         assignee="TESTUSER",
         license="CODE",
@@ -332,9 +351,9 @@ def test_get_assigned_users(get_assignments_mock, _udm_mock, license_with_assign
         status=Status.ASSIGNED,
     )
     get_assignments_mock.return_value = [assignment_object]
-    lh = univention.bildungslogin.handlers.LicenseHandler(MagicMock())
+    lh = univention.bildungslogin.handlers.LicenseHandler(Mock())
     with patch.object(lh, "_users_mod") as users_mod_mock:
-        udm_user = MagicMock()
+        udm_user = Mock()
         udm_user.props.username = "TESTUSER"
         users_mod_mock.search.return_value = (value for value in (udm_user,))
         result = lh.get_assigned_users(license)
@@ -343,6 +362,79 @@ def test_get_assigned_users(get_assignments_mock, _udm_mock, license_with_assign
             "username": assignment_object.assignee,
             "status": assignment_object.status,
             "statusLabel": Status.label(assignment_object.status),
+            "dateOfAssignment": assignment_object.time_of_assignment,
+        }
+    ]
+
+
+@patch("univention.bildungslogin.handlers.UDM", MagicMock())
+@patch.object(univention.bildungslogin.handlers.LicenseHandler,
+              "get_assignments_for_license_with_filter")
+def test_get_assigned_users_from_group_license(get_assignments_mock, license_with_assignments):
+    """
+    Test that verifies the generation of the correct assigned
+    users dictionary for group licenses.
+    """
+    udm_license, assignments = \
+        license_with_assignments(1, 0, license_props={"license_type": "WORKGROUP"})
+    license = univention.bildungslogin.handlers.LicenseHandler.from_udm_obj(udm_license)
+    assignment_object = Assignment(
+        assignee="TEST GROUP",
+        license="CODE",
+        time_of_assignment=datetime.date.today(),
+        status=Status.ASSIGNED,
+    )
+    get_assignments_mock.return_value = [assignment_object]
+    lh = univention.bildungslogin.handlers.LicenseHandler(Mock())
+    udm_user = Mock(**{"props.username": "TEST USER"})
+    udm_group = Mock(**{"props.users.objs": (u for u in (udm_user,))})
+    with patch.object(lh, "_groups_mod") as groups_mod_mock:
+        groups_mod_mock.search.return_value = (g for g in (udm_group,))
+        result = lh.get_assigned_users(license)
+    assert result == [
+        {
+            "username": udm_user.props.username,
+            "status": assignment_object.status,
+            "statusLabel": "Assigned",
+            "dateOfAssignment": assignment_object.time_of_assignment,
+        }
+    ]
+
+@patch("univention.bildungslogin.handlers.UDM", MagicMock())
+@patch.object(univention.bildungslogin.handlers.LicenseHandler,
+              "get_assignments_for_license_with_filter")
+def test_get_assigned_users_from_school_license(get_assignments_mock, license_with_assignments):
+    """
+    Test that verifies the generation of the correct assigned
+    users dictionary for school licenses.
+    """
+    udm_license, assignments = \
+        license_with_assignments(1, 0, license_props={"license_type": "SCHOOL",
+                                                      "special_type": "Lehrkraft"})
+    license = univention.bildungslogin.handlers.LicenseHandler.from_udm_obj(udm_license)
+    assignment_object = Assignment(
+        assignee="TEST SCHOOL",
+        license="CODE",
+        time_of_assignment=datetime.date.today(),
+        status=Status.ASSIGNED,
+    )
+    get_assignments_mock.return_value = [assignment_object]
+    lh = univention.bildungslogin.handlers.LicenseHandler(Mock())
+    udm_student = Mock(**{"props.username": "TEST STUDENT",
+                          "props.ucsschoolRole": ["student:school:smth"]})
+    udm_teacher = Mock(**{"props.username": "TEST TEACHER",
+                          "props.ucsschoolRole": ["teacher:school:smth"]})
+    udm_school = Mock(**{"props.name": "SCHOOL NAME"})
+    with patch.object(lh, "_schools_mod") as schools_mod_mock, \
+            patch.object(lh, "_users_mod") as users_mod_mock:
+        schools_mod_mock.search.return_value = (s for s in (udm_school,))
+        users_mod_mock.search.return_value = (u for u in (udm_student, udm_teacher))
+        result = lh.get_assigned_users(license)
+    assert result == [
+        {
+            "username": udm_teacher.props.username,
+            "status": assignment_object.status,
+            "statusLabel": "Assigned",
             "dateOfAssignment": assignment_object.time_of_assignment,
         }
     ]
@@ -380,21 +472,26 @@ def test_get_meta_data_for_license_no_data_found(udm_mock, license_with_assignme
     assert result == MetaData(product_id="ID")
 
 
+@pytest.mark.parametrize("object_type", [ObjectType.USER, ObjectType.SCHOOL, ObjectType.GROUP])
 @patch("univention.bildungslogin.handlers.UDM")
-def test_remove_assignment_from_users_failed_assignments(_udm_mock):
+def test_remove_assignment_from_users_failed_assignments(_udm_mock, object_type):
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
     with patch.object(ah, "change_license_status") as change_mock:
         change_mock.side_effect = BiloAssignmentError("ERROR_MSG")
-        result = ah.remove_assignment_from_users("CODE", ["A"])
+        result = ah.remove_assignment_from_objects("CODE", object_type, ["A"])
     assert len(result) == 1
     assert result[0] == ("A", "ERROR_MSG")
 
 
+@pytest.mark.parametrize("object_type", [ObjectType.USER, ObjectType.SCHOOL, ObjectType.GROUP])
+@patch.object(univention.bildungslogin.handlers.AssignmentHandler, "get_license_by_license_code")
 @patch("univention.bildungslogin.handlers.UDM")
-def test_change_license_status_invalid_status(_udm_mock):
+def test_change_license_status_invalid_status(_udm_mock, get_license_by_license_code_mock,
+                                              license_with_assignments, object_type):
     ah = univention.bildungslogin.handlers.AssignmentHandler(MagicMock())
+    get_license_by_license_code_mock.return_value = license_with_assignments(1, 1)
     with pytest.raises(BiloAssignmentError):
-        ah.change_license_status("CODE", "USERNAME", "INVALID_STATUS")
+        ah.change_license_status("CODE", object_type, "USERNAME", "INVALID_STATUS")
 
 
 @patch("univention.bildungslogin.handlers.UDM")

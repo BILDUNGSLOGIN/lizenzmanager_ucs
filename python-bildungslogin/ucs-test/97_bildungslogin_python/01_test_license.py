@@ -40,8 +40,9 @@ from typing import TYPE_CHECKING
 import pytest
 
 import univention.testing.ucsschool.ucs_test_school as utu
-from univention.bildungslogin.handlers import BiloCreateError
-from univention.bildungslogin.utils import LicenseType, Status, get_entry_uuid
+from univention.bildungslogin.handlers import BiloCreateError, ObjectType
+from univention.bildungslogin.models import LicenseType, Status
+from univention.bildungslogin.utils import get_entry_uuid
 from univention.testing.utils import verify_ldap_object
 from univention.udm import UDM
 
@@ -49,6 +50,7 @@ if TYPE_CHECKING:
     from univention.bildungslogin.models import License
 
 
+@pytest.mark.skip(reason="License type is not defined dynamically anymore")
 def test_license_type(license_obj):
     """Test that a license can have the type VOLUME for many or SINGLE for quantity 1"""
     license = license_obj("foo")
@@ -58,11 +60,13 @@ def test_license_type(license_obj):
     assert license.license_type == LicenseType.SINGLE
 
 
-def test_create(lo, license_handler, license_obj, ldap_base, hostname):
+@pytest.mark.parametrize("license_type", [LicenseType.SINGLE, LicenseType.VOLUME,
+                                          LicenseType.SCHOOL, LicenseType.WORKGROUP])
+def test_create(lo, license_handler, get_license, ldap_base, hostname, license_type):
     """Test that a license assignment can be used once in atatus AVAILABLE and can not assigned multiple times."""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou(name_edudc=hostname)
-        license = license_obj(ou)
+        license = get_license(ou, license_type=license_type)
         license_handler.create(license)
         cn = sha256(license.license_code).hexdigest()
         license_dn = "cn={},cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,{}".format(cn, ldap_base)
@@ -90,7 +94,13 @@ def test_create(lo, license_handler, license_obj, ldap_base, hostname):
             primary=True,
         )
         # check assignments were created
-        for dn in lo.searchDn(base=license_dn, scope="one"):
+        assignments = list(lo.searchDn(base=license_dn, scope="one"))
+        if license_type in [LicenseType.SINGLE, LicenseType.VOLUME]:
+            assert len(assignments) == license.license_quantity
+        elif license_type in [LicenseType.SCHOOL, LicenseType.WORKGROUP]:
+            assert len(assignments) == 1
+
+        for dn in assignments:
             expected_attr = {"bildungsloginAssignmentStatus": [Status.AVAILABLE]}
             verify_ldap_object(dn, expected_attr=expected_attr, strict=False, primary=True)
         # licenses are unique, duplicates produce errors
@@ -108,9 +118,10 @@ def test_get_assignments_for_license_with_filter(
         license = license_obj(ou)
         license.license_quantity = 2
         license_handler.create(license)
-        assignment_handler.assign_users_to_licenses(
-            usernames=[user_name], license_codes=[license.license_code]
-        )
+        assignment_handler.assign_objects_to_licenses(
+            license_codes=[license.license_code],
+            object_type=ObjectType.USER,
+            object_names=[user_name])
         result = license_handler.get_assignments_for_license_with_filter(
             license, "(bildungsloginAssignmentStatus=ASSIGNED)"
         )
@@ -119,23 +130,54 @@ def test_get_assignments_for_license_with_filter(
         assert result[0].assignee == user_entryuuid
 
 
-def test_get_assigned_users(license_handler, assignment_handler, license_obj, lo, hostname):
+@pytest.mark.parametrize("license_type", ["SCHOOL", "WORKGROUP", "VOLUME"])
+def test_get_assigned_users(license_type, license_handler, assignment_handler,
+                            get_license, lo, hostname):
     with utu.UCSTestSchool() as schoolenv:
+        # create school, users, and group
         ou, _ = schoolenv.create_ou(name_edudc=hostname)
-        stu, stu_dn = schoolenv.create_student(ou)
-        tea, tea_dn = schoolenv.create_teacher(ou)
-        license = license_obj(ou)
+        student_name, student_dn = schoolenv.create_student(ou)
+        teacher_name, teacher_dn = schoolenv.create_teacher(ou)
+        wg_name, _ = schoolenv.create_workgroup(ou, users=[student_dn, teacher_dn])
+        # create license
+        license = get_license(ou, license_type=license_type)
         license.license_quantity = 2
         license_handler.create(license)
-        assignment_handler.assign_users_to_licenses(
-            usernames=[stu, tea], license_codes=[license.license_code]
-        )
-        user_assignments = license_handler.get_assigned_users(license)
-        for assignment in user_assignments:
-            if assignment["username"] in (stu, tea):
-                assert assignment["status"] == Status.ASSIGNED
-                assert assignment["statusLabel"] == Status.label(Status.ASSIGNED)
-                assert "dateOfAssignment" in assignment.keys()
+        # define object type
+        if license_type == LicenseType.SCHOOL:
+            object_type = ObjectType.SCHOOL
+            object_names = [ou]
+        elif license_type == LicenseType.WORKGROUP:
+            object_type = ObjectType.GROUP
+            object_names = [wg_name]
+        elif license_type == LicenseType.VOLUME:
+            object_type = ObjectType.USER
+            object_names = [teacher_name, student_name]
+        else:
+            raise RuntimeError
+        # assign license
+        assignment_handler.assign_objects_to_licenses(
+            license_codes=[license.license_code],
+            object_type=object_type,
+            object_names=object_names)
+
+        assigned_users = license_handler.get_assigned_users(license)
+        expected_assigned_users = [
+            {
+                "username": teacher_name,
+                "status": "ASSIGNED",
+                "statusLabel": "Assigned",
+                "dateOfAssignment": datetime.date.today(),
+            },
+            {
+                "username": student_name,
+                "status": "ASSIGNED",
+                "statusLabel": "Assigned",
+                "dateOfAssignment": datetime.date.today(),
+            },
+        ]
+        assert sorted(assigned_users, key=lambda x: x["username"]) \
+               == sorted(expected_assigned_users, key=lambda x: x["username"])
 
 
 def test_number_of_provisioned_and_assigned_licenses(
@@ -153,17 +195,16 @@ def test_number_of_provisioned_and_assigned_licenses(
         license = license_obj(ou)  # type: License
         license.license_quantity = len(users) + 1
         license_handler.create(license)
-        assignment_handler.assign_users_to_licenses(
-            usernames=users, license_codes=[license.license_code]
-        )
+        assignment_handler.assign_objects_to_licenses(
+            license_codes=[license.license_code],
+            object_type=ObjectType.USER,
+            object_names=users)
         license = license_handler.get_license_by_code(license.license_code)  # refresh object from LDAP
         assert license.num_assigned == num_students + num_teachers
         for user_name in users[:2]:
-            assignment_handler.change_license_status(
-                username=user_name,
-                license_code=license.license_code,
-                status=Status.PROVISIONED,
-            )
+            assignment_handler.change_license_status(license_code=license.license_code,
+                                                     object_type=ObjectType.USER, object_name=user_name,
+                                                     status=Status.PROVISIONED)
         # after provisioning the code to some users, the number should still be the same.
         license = license_handler.get_license_by_code(license.license_code)  # refresh object from LDAP
         assert license.num_assigned == num_students + num_teachers
@@ -173,23 +214,25 @@ def test_number_of_provisioned_and_assigned_licenses(
         assert license.num_available == total_num - len(users)
 
 
-def test_get_number_of_expired_assignments(lo, license_handler, expired_license_obj, hostname):
+def test_get_number_of_expired_unassigned_users(lo, license_handler, expired_license_obj, hostname):
     """Test that the number of expired license assignments is as expected"""
     with utu.UCSTestSchool() as schoolenv:
         ou, _ = schoolenv.create_ou(name_edudc=hostname)
+        username, user_dn = schoolenv.create_student(ou)
         expired_license = expired_license_obj(ou)
         license_handler.create(expired_license)
         license_obj = license_handler.get_udm_license_by_code(expired_license.license_code)
         udm = UDM(lo).version(1)
+        user_entry_uuid = get_entry_uuid(lo, user_dn)
         assignment_mod = udm.get("bildungslogin/assignment")
         for assignment_dn in license_obj.props.assignments[:2]:
             assignment_obj = assignment_mod.get(assignment_dn)
-            assignment_obj.props.assignee = "foo"
+            assignment_obj.props.assignee = user_entry_uuid
             assignment_obj.props.time_of_assignment = datetime.date.today()
             assignment_obj.props.status = Status.ASSIGNED
             assignment_obj.save()
         expected_num = expired_license.license_quantity - 2  # assigned 2 licenses in for loop above
-        assert license_handler.get_number_of_expired_assignments(expired_license) == expected_num
+        assert license_handler.get_number_of_expired_unassigned_users(expired_license) == expected_num
 
 
 @pytest.mark.parametrize("use_udm", [True, False])
@@ -246,7 +289,10 @@ def test_set_license_ignore(license_handler, assignment_handler, license_obj, ld
             primary=True,
         )
         license_handler.set_license_ignore(license_code=license.license_code, ignore=False)
-        assignment_handler.assign_to_license(username=username, license_code=license.license_code)
+        udm_license = license_handler.get_udm_license_by_code(license.license_code)
+        assignment_handler.assign_license(license=udm_license,
+                                          object_type=ObjectType.USER,
+                                          object_name=username)
         assert (
             license_handler.set_license_ignore(license_code=license.license_code, ignore=True) is False
         )
@@ -254,9 +300,9 @@ def test_set_license_ignore(license_handler, assignment_handler, license_obj, ld
 
 def test_get_license_types(license_handler):
     """Test that a license type is implemented for "Volume license" and "Single license" """
-    assert {"Volume license", "Single license"} == {
-        t["label"] for t in license_handler.get_license_types()
-    }
+    expected_license_types = {"VOLUME", "SINGLE", "WORKGROUP", "SCHOOL"}
+    actual_license_types = {t["id"] for t in license_handler.get_license_types()}
+    assert actual_license_types == expected_license_types
 
 
 @pytest.mark.xfail(reason="Not implemented yet.")

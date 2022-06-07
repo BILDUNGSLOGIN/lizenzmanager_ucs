@@ -31,7 +31,7 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
 
-from typing import Dict, List
+from typing import Callable, Dict, List, Optional, Union
 
 from ldap.dn import is_dn
 from ldap.filter import escape_filter_chars
@@ -41,9 +41,15 @@ from ucsschool.lib.models.user import User
 from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
 from univention.admin.syntax import iso8601Date
-from univention.bildungslogin.handlers import AssignmentHandler, LicenseHandler, MetaDataHandler
-from univention.bildungslogin.models import License
-from univention.bildungslogin.utils import LicenseType, ldap_escape
+from univention.bildungslogin.handlers import (
+    AssignmentHandler,
+    BiloCreateError,
+    LicenseHandler,
+    MetaDataHandler, ObjectType
+)
+from univention.bildungslogin.models import License, LicenseType, Role
+from univention.bildungslogin.utils import ldap_escape
+from univention.bildungslogin.license_import import import_license, load_license_file
 from univention.lib.i18n import Translation
 from univention.management.console.config import ucr
 from univention.management.console.error import UMC_Error
@@ -61,6 +67,16 @@ from univention.udm.exceptions import SearchLimitReached
 _ = Translation("ucs-school-umc-licenses").translate
 
 
+def undefined_if_none(value, zero_as_none=False):  # type: (Optional[int], bool) -> Union[unicode, int]
+    """
+    Return "undefined" if the input value is None
+    If zero_as_none is set to True, returns "undefined" if value == 0
+    """
+    if value is None or zero_as_none and value == 0:
+        return _("undefined")
+    return value
+
+
 def optional_date2str(date):
     if date:
         return iso8601Date.from_datetime(date)
@@ -75,7 +91,7 @@ class Instance(SchoolBaseModule):
         timeFrom=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
         timeTo=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
         publisher=LDAPSearchSanitizer(add_asterisks=False, default=""),
-        licenseType=LDAPSearchSanitizer(add_asterisks=False, default=""),
+        licenseType=ListSanitizer(sanitizer=LDAPSearchSanitizer(add_asterisks=False)),
         userPattern=LDAPSearchSanitizer(default=""),
         productId=LDAPSearchSanitizer(default=""),
         product=LDAPSearchSanitizer(default=""),
@@ -93,7 +109,7 @@ class Instance(SchoolBaseModule):
             timeTo -- str (ISO 8601 date string)
             onlyAllocatableLicenses -- boolean
             publisher -- str
-            licenseType -- str
+            licenseType -- list
             userPattern -- str
             productId -- str
             product -- str
@@ -116,7 +132,7 @@ class Instance(SchoolBaseModule):
                 time_to=time_to,
                 only_available_licenses=request.options.get("onlyAvailableLicenses"),
                 publisher=request.options.get("publisher"),
-                license_type=request.options.get("licenseType"),
+                license_types=request.options.get("licenseType"),
                 user_pattern=request.options.get("userPattern"),
                 product_id=request.options.get("productId"),
                 product=request.options.get("product"),
@@ -136,6 +152,12 @@ class Instance(SchoolBaseModule):
             )
         for res in result:
             res["importDate"] = iso8601Date.from_datetime(res["importDate"])
+            res["validityStart"] = iso8601Date.from_datetime(res["validityStart"]) if res.get("validityStart") else None
+            res["validityEnd"] = iso8601Date.from_datetime(res["validityEnd"]) if res.get("validityEnd") else None
+            res["countAquired"] = undefined_if_none(res["countAquired"], zero_as_none=True)
+            res["countAvailable"] = undefined_if_none(res["countAvailable"])
+            res["countExpired"] = undefined_if_none(res["countExpired"])
+
         MODULE.info("licenses.licenses_query: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -164,10 +186,10 @@ class Instance(SchoolBaseModule):
             )
         meta_data = lh.get_meta_data_for_license(license)
         result = {
-            "countAquired": license.license_quantity,
-            "countAssigned": lh.get_number_of_provisioned_and_assigned_assignments(license),
-            "countAvailable": license.num_available,
-            "countExpired": lh.get_number_of_expired_assignments(license),
+            "countAquired": undefined_if_none(license.license_quantity, zero_as_none=True),
+            "countAssigned": lh.get_number_of_assigned_users(license),
+            "countAvailable": undefined_if_none(lh.get_number_of_available_users(license)),
+            "countExpired": undefined_if_none(lh.get_number_of_expired_unassigned_users(license)),
             "ignore": license.ignored_for_display,
             "importDate": iso8601Date.from_datetime(license.delivery_date),
             "licenseCode": license.license_code,
@@ -230,33 +252,79 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.set_ignore: result: %s" % str(result))
         self.finished(request.id, result)
 
-    @sanitize(
-        licenseCode=StringSanitizer(required=True),
-        usernames=ListSanitizer(required=True),
-    )
+    @staticmethod
+    def _remove_from_objects(ldap_user_write, license_code, object_type, object_names):
+        """ Generic function for "remove_from_*" endpoints """
+        ah = AssignmentHandler(ldap_user_write)
+        failed_assignments = ah.remove_assignment_from_objects(license_code,
+                                                               object_type,
+                                                               object_names)
+        return {
+            "failedAssignments": [
+                {"username": fa[0], "error": fa[1]}
+                for fa in failed_assignments
+            ]
+        }
+
+    @sanitize(licenseCode=StringSanitizer(required=True),
+              usernames=ListSanitizer(required=True))
     @LDAP_Connection(USER_WRITE)
     def remove_from_users(self, request, ldap_user_write=None):
-        """Remove ASSIGNED users from the license
+        """
+        Remove ASSIGNED users from the license
         requests.options = {
             licenseCode -- str
             usernames -- List[str]
         }
         """
         MODULE.info("licenses.remove_from_users: options: %s" % str(request.options))
-        license_code = request.options.get("licenseCode")
-        usernames = request.options.get("usernames")
-        ah = AssignmentHandler(ldap_user_write)
-        failed_assignments = ah.remove_assignment_from_users(license_code, usernames)
-        result = {
-            "failedAssignments": [{"username": fa[0], "error": fa[1]} for fa in failed_assignments]
-        }
+        result = self._remove_from_objects(ldap_user_write,
+                                           request.options.get("licenseCode"),
+                                           ObjectType.USER,
+                                           request.options.get("usernames"))
         MODULE.info("licenses.remove_from_users: result: %s" % str(result))
         self.finished(request.id, result)
 
-    @sanitize(
-        licenseCodes=ListSanitizer(required=True),
-        usernames=ListSanitizer(required=True),
-    )
+    @sanitize(licenseCode=StringSanitizer(required=True),
+              group=StringSanitizer(required=True))
+    @LDAP_Connection(USER_WRITE)
+    def remove_from_group(self, request, ldap_user_write=None):
+        """
+        Remove ASSIGNED group from the license
+        requests.options = {
+            licenseCode -- str
+            group -- str
+        }
+        """
+        MODULE.info("licenses.remove_from_group: options: %s" % str(request.options))
+        result = self._remove_from_objects(ldap_user_write,
+                                           request.options.get("licenseCode"),
+                                           ObjectType.GROUP,
+                                           [request.options.get("group")])
+        MODULE.info("licenses.remove_from_group: result: %s" % str(result))
+        self.finished(request.id, result)
+
+    @sanitize(licenseCode=StringSanitizer(required=True),
+              school=StringSanitizer(required=True))
+    @LDAP_Connection(USER_WRITE)
+    def remove_from_school(self, request, ldap_user_write=None):
+        """
+        Remove ASSIGNED school from the license
+        requests.options = {
+            licenseCode -- str
+            school -- str
+        }
+        """
+        MODULE.info("licenses.remove_from_school: options: %s" % str(request.options))
+        result = self._remove_from_objects(ldap_user_write,
+                                           request.options.get("licenseCode"),
+                                           ObjectType.SCHOOL,
+                                           [request.options.get("school")])
+        MODULE.info("licenses.remove_from_school: result: %s" % str(result))
+        self.finished(request.id, result)
+
+    @sanitize(licenseCodes=ListSanitizer(required=True),
+              usernames=ListSanitizer(required=True))
     @LDAP_Connection(USER_WRITE)
     def assign_to_users(self, request, ldap_user_write=None):
         """Assign licenses to users
@@ -266,11 +334,65 @@ class Instance(SchoolBaseModule):
         }
         """
         MODULE.info("licenses.assign_to_users: options: %s" % str(request.options))
-        license_codes = request.options.get("licenseCodes")
-        usernames = request.options.get("usernames")
         ah = AssignmentHandler(ldap_user_write)
-        result = ah.assign_users_to_licenses(license_codes, usernames)
+        result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
+                                               ObjectType.USER,
+                                               request.options.get("usernames"))
         MODULE.info("licenses.assign_to_users: result: %s" % str(result))
+        self.finished(request.id, result)
+
+    @sanitize(licenseCodes=ListSanitizer(required=True),
+              school=StringSanitizer(required=True))
+    @LDAP_Connection(USER_WRITE)
+    def assign_to_school(self, request, ldap_user_write=None):
+        """Assign licenses to a school
+        requests.options = {
+            licenseCodes -- List[str]
+            school -- str
+        }
+        """
+        MODULE.info("licenses.assign_to_school: options: %s" % str(request.options))
+        ah = AssignmentHandler(ldap_user_write)
+        result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
+                                               ObjectType.SCHOOL,
+                                               [request.options.get("school")])
+        MODULE.info("licenses.assign_to_school: result: %s" % str(result))
+        self.finished(request.id, result)
+
+    @sanitize(licenseCodes=ListSanitizer(required=True),
+              schoolClass=StringSanitizer(required=True))
+    @LDAP_Connection(USER_WRITE)
+    def assign_to_class(self, request, ldap_user_write=None):
+        """Assign licenses to a class
+        requests.options = {
+            licenseCodes -- List[str]
+            schoolClass -- str
+        }
+        """
+        MODULE.info("licenses.assign_to_class: options: %s" % str(request.options))
+        ah = AssignmentHandler(ldap_user_write)
+        result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
+                                               ObjectType.GROUP,
+                                               [request.options.get("schoolClass")])
+        MODULE.info("licenses.assign_to_class: result: %s" % str(result))
+        self.finished(request.id, result)
+
+    @sanitize(licenseCodes=ListSanitizer(required=True),
+              workgroup=StringSanitizer(required=True))
+    @LDAP_Connection(USER_WRITE)
+    def assign_to_workgroup(self, request, ldap_user_write=None):
+        """Assign licenses to a workgroup
+        requests.options = {
+            licenseCodes -- List[str]
+            workgroup -- str
+        }
+        """
+        MODULE.info("licenses.assign_to_workgroup: options: %s" % str(request.options))
+        ah = AssignmentHandler(ldap_user_write)
+        result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
+                                               ObjectType.GROUP,
+                                               [request.options.get("workgroup")])
+        MODULE.info("licenses.assign_to_workgroup: result: %s" % str(result))
         self.finished(request.id, result)
 
     @sanitize(
@@ -333,16 +455,17 @@ class Instance(SchoolBaseModule):
                 "firstname": user.props.firstname,
                 "lastname": user.props.lastname,
                 "username": user.props.username,
+                "role": Role.label(user.props.ucsschoolRole),
                 "class": ", ".join(
                     [
-                        _cls[len(prefix) :] if _cls.startswith(prefix) else _cls
+                        _cls[len(prefix):] if _cls.startswith(prefix) else _cls
                         for _cls in User.from_udm_obj(
-                            user._orig_udm_object, school, ldap_user_write
-                        ).school_classes.get(school, [])
+                        user._orig_udm_object, school, ldap_user_write
+                    ).school_classes.get(school, [])
                     ]
                 ),
                 "workgroup": ", ".join(
-                    wg[len(prefix) :] if wg.startswith(prefix) else wg
+                    wg[len(prefix):] if wg.startswith(prefix) else wg
                     for wg in [workgroups[g] for g in user.props.groups if g in workgroups]
                 ),
             }
@@ -351,9 +474,25 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.query: result: %s" % str(result))
         self.finished(request.id, result)
 
+    @staticmethod
+    def _sum_values_for_licenses(licenses, getter):
+        # type: (List[License], Callable[[License], Optional[int]]) -> Optional[int]
+        """
+        Tries to sum all values returned by the getter
+        If one of the values is None -> returns None
+        """
+        output = 0
+        for license in licenses:
+            value = getter(license)
+            if value is None:
+                return None
+            output += value
+        return output
+
     @sanitize(
         school=SchoolSanitizer(required=True),
         pattern=LDAPSearchSanitizer(),
+        licenseType=ListSanitizer(sanitizer=LDAPSearchSanitizer(add_asterisks=False))
     )
     @LDAP_Connection(USER_WRITE)
     def products_query(self, request, ldap_user_write=None):
@@ -361,23 +500,42 @@ class Instance(SchoolBaseModule):
         requests.options = {
             school:  str
             pattern: str
+            licenseType: List
         }
         """
         MODULE.info("licenses.products.query: options: %s" % str(request.options))
         result = []
         mh = MetaDataHandler(ldap_user_write)
+        lh = LicenseHandler(ldap_user_write)
         school = request.options.get("school")
         pattern = request.options.get("pattern")
+        license_types = request.options.get("licenseType")
         filter_s = "(|(product_id={0})(title={0})(publisher={0}))".format(pattern)
         meta_data_objs = mh.get_all(filter_s)
         for meta_datum_obj in meta_data_objs:
-            licenses_udm = mh.get_udm_licenses_by_product_id(meta_datum_obj.product_id, school)
+            licenses_udm = mh.get_udm_licenses_by_product_id(meta_datum_obj.product_id, school, license_types)
             if licenses_udm:
                 non_ignored_lics_udm = [lic_udm for lic_udm in licenses_udm if not lic_udm.props.ignored]
-                sum_quantity = sum(lic_udm.props.quantity for lic_udm in non_ignored_lics_udm)
-                sum_num_assigned = sum(lic_udm.props.num_assigned for lic_udm in non_ignored_lics_udm)
-                sum_num_expired = sum(lic_udm.props.num_expired for lic_udm in non_ignored_lics_udm)
-                sum_num_available = sum(lic_udm.props.num_available for lic_udm in non_ignored_lics_udm)
+                non_ignored_licenses = [lh.from_udm_obj(l) for l in non_ignored_lics_udm]
+
+                # count info about users
+                sum_quantity = self._sum_values_for_licenses(
+                    non_ignored_licenses, lambda x: None if x.license_quantity == 0 else x.license_quantity)
+                sum_num_assigned = self._sum_values_for_licenses(
+                    non_ignored_licenses, lh.get_number_of_assigned_users)
+                sum_num_expired = self._sum_values_for_licenses(
+                    non_ignored_licenses, lh.get_number_of_expired_unassigned_users)
+                sum_num_available = self._sum_values_for_licenses(
+                    non_ignored_licenses, lh.get_number_of_available_users)
+
+                # count info about licenses
+                number_of_licenses = len(non_ignored_licenses)
+                number_of_assigned_licenses =  \
+                    sum(1 for l in non_ignored_licenses if l.num_assigned > 0)
+                number_of_expired_licenses = sum(1 for l in non_ignored_licenses if l.is_expired)
+                number_of_available_licenses = \
+                    sum(1 for l in non_ignored_licenses if l.num_assigned == 0 and not l.is_expired)
+
                 latest_delivery_date = max(lic_udm.props.delivery_date for lic_udm in licenses_udm)
                 result.append(
                     {
@@ -385,11 +543,15 @@ class Instance(SchoolBaseModule):
                         "title": meta_datum_obj.title,
                         "publisher": meta_datum_obj.publisher,
                         "cover": meta_datum_obj.cover_small or meta_datum_obj.cover,
-                        "countAquired": sum_quantity,
+                        "countAquired": undefined_if_none(sum_quantity),
                         "countAssigned": sum_num_assigned,
-                        "countExpired": sum_num_expired,
-                        "countAvailable": sum_num_available,
+                        "countExpired": undefined_if_none(sum_num_expired),
+                        "countAvailable": undefined_if_none(sum_num_available),
                         "latestDeliveryDate": iso8601Date.from_datetime(latest_delivery_date),
+                        "countLicenses": number_of_licenses,
+                        "countLicensesAssigned": number_of_assigned_licenses,
+                        "countLicensesExpired": number_of_expired_licenses,
+                        "countLicensesAvailable": number_of_available_licenses,
                     }
                 )
         MODULE.info("licenses.products.query: result: %s" % str(result))
@@ -414,24 +576,32 @@ class Instance(SchoolBaseModule):
         lh = LicenseHandler(ldap_user_write)
         licenses_udm = mh.get_udm_licenses_by_product_id(product_id, school)
         licenses = [lh.from_udm_obj(license) for license in licenses_udm]  # type: List[License]
+        meta_data_udm = mh.get_meta_data_by_product_id(product_id)
+        meta_data = mh.from_udm_obj(meta_data_udm)
         license_js_objs = [
             {
                 "licenseCode": license.license_code,
+                "productId": meta_data.product_id,
+                "productName": meta_data.title,
+                "publisher": meta_data.publisher,
                 "licenseTypeLabel": LicenseType.label(license.license_type),
                 "validityStart": optional_date2str(license.validity_start_date),
                 "validityEnd": optional_date2str(license.validity_end_date),
                 "validitySpan": str(license.validity_duration) if license.validity_duration else "",
                 "ignore": _("Yes") if license.ignored_for_display else _("No"),
-                "countAquired": str(license.license_quantity),
-                "countAssigned": str(license.num_assigned),
-                "countExpired": str(lh.get_number_of_expired_assignments(license)),
-                "countAvailable": str(license.num_available),
+                "countAquired":
+                    str(undefined_if_none(None if license.license_quantity == 0 else license.license_quantity)),
+                "countAssigned": str(lh.get_number_of_assigned_users(license)),
+                "countAvailable":
+                    str(undefined_if_none(lh.get_number_of_available_users(license))),
+                "countExpired":
+                    str(undefined_if_none(lh.get_number_of_expired_unassigned_users(license))),
                 "importDate": iso8601Date.from_datetime(license.delivery_date),
             }
             for license in licenses
         ]  # type: List[Dict[str, str]]
-        meta_data_udm = mh.get_meta_data_by_product_id(product_id)
-        meta_data = mh.from_udm_obj(meta_data_udm)
+       # meta_data_udm = mh.get_meta_data_by_product_id(product_id)
+       # meta_data = mh.from_udm_obj(meta_data_udm)
         result = {
             "title": meta_data.title,
             "productId": meta_data.product_id,
@@ -442,4 +612,52 @@ class Instance(SchoolBaseModule):
             "licenses": license_js_objs,
         }
         MODULE.info("licenses.products.get: result: %s" % str(result))
+        self.finished(request.id, result)
+
+    pickup_regex = r"^\s*[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}\s*$"
+
+    @staticmethod
+    def _import_licenses(license_handler, license_file, school):
+        # type: (LicenseHandler, str, str) -> None
+        """
+        Read retrieved licenses package and tries to import all of them into LDAP.
+        Raises a BiloCreateError if at least one of the licenses wasn't imported.
+        """
+        errors = []
+        for license in load_license_file(license_file, school):
+            try:
+                import_license(license_handler, license)
+            except BiloCreateError as error:
+                errors.append(error.message)
+        if errors:
+            error_message = "The following licenses were not imported: \n"
+            error_message += "\n".join("  - {}".format(error) for error in errors)
+            raise BiloCreateError(error_message)
+
+    @sanitize(pickUpNumber=StringSanitizer(regex_pattern=pickup_regex))
+    @LDAP_Connection(USER_WRITE)
+    def get_license(self, request, ldap_user_write=None):
+        """Import a license
+        requests.options = {
+            school
+            pickup_number
+        }
+        """
+        MODULE.info("licenses.import.get: options: %s" % str(request.options))
+        pickup_number = "".join(request.options.get("pickUpNumber").rstrip().lstrip())
+        school = request.options.get("school")
+        license_handler = LicenseHandler(ldap_user_write)
+
+        # Retrieve the requested license package
+        license_file, licenses = license_handler.retrieve_license_data(pickup_number)
+
+        # Import the retrieved license package and its metadata into LDAP
+        self._import_licenses(license_handler, license_file, school)
+
+        result = {
+            "pickup": pickup_number,
+            "school": school,
+            "licenses": licenses
+        }
+        MODULE.info("licenses.import.get: result: %s" % str(result))
         self.finished(request.id, result)

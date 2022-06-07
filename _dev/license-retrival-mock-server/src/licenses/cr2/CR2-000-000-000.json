@@ -1,0 +1,56 @@
+[
+  {
+    "lizenzcode": "cr2-code-01",
+    "product_id": "urn:dummy:product_id_1",
+    "lizenzanzahl": 0,
+    "lizenzgeber": "dummy lizenzgeber",
+    "kaufreferenz": "dummy kaufreferenz",
+    "nutzungssysteme": "dummy nutzungssysteme",
+    "gueltigkeitsbeginn": "01-01-2021",
+    "gueltigkeitsende": "01-01-2028",
+    "gueltigkeitsdauer": "dummy gueltigkeitsdauer",
+    "sonderlizenz": "Lehrkraft",
+    "lizenztyp": "Schullizenz",
+    "school_ID": "Demo School ID"
+  },
+  {
+    "lizenzcode": "cr2-code-02",
+    "product_id": "urn:dummy:product_id_2",
+    "lizenzanzahl": 1,
+    "lizenzgeber": "dummy lizenzgeber",
+    "kaufreferenz": "dummy kaufreferenz",
+    "nutzungssysteme": "dummy nutzungssysteme",
+    "gueltigkeitsbeginn": "01-01-2021",
+    "gueltigkeitsende": "01-01-2028",
+    "gueltigkeitsdauer": "dummy gueltigkeitsdauer",
+    "sonderlizenz": "Lehrkraft",
+    "lizenztyp": "Schullizenz",
+    "school_ID": "Demo School ID"
+  },
+  {
+    "lizenzcode": "cr2-code-03",
+    "product_id": "urn:dummy:product_id_1",
+    "lizenzanzahl": 0,
+    "lizenzgeber": "dummy lizenzgeber",
+    "kaufreferenz": "dummy kaufreferenz",
+    "nutzungssysteme": "dummy nutzungssysteme",
+    "gueltigkeitsbeginn": "01-01-2021",
+    "gueltigkeitsende": "01-01-2028",
+    "gueltigkeitsdauer": "dummy gueltigkeitsdauer",
+    "lizenztyp": "Lerngruppenlizenz",
+    "school_ID": "Demo School ID"
+  },
+  {
+    "lizenzcode": "cr2-code-04",
+    "product_id": "urn:dummy:product_id_2",
+    "lizenzanzahl": 2,
+    "lizenzgeber": "dummy lizenzgeber",
+    "kaufreferenz": "dummy kaufreferenz",
+    "nutzungssysteme": "dummy nutzungssysteme",
+    "gueltigkeitsbeginn": "01-01-2021",
+    "gueltigkeitsende": "01-01-2028",
+    "gueltigkeitsdauer": "dummy gueltigkeitsdauer",
+    "lizenztyp": "Lerngruppenlizenz",
+    "school_ID": "Demo School ID"
+  }
+]

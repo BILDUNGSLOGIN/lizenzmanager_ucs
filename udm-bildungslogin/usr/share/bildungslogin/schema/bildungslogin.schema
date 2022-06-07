@@ -97,6 +97,12 @@ attributetype ( bildungsloginOID:113
         EQUALITY caseIgnoreMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
+attributetype ( bildungsloginOID:114
+        NAME 'bildungsloginLicenseType'
+        DESC 'The type of the license as provided by the publisher'
+        EQUALITY caseExactMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
+
 # Metadata attributes, OIDs from 200
 
 attributetype ( bildungsloginOID:201
@@ -173,7 +179,7 @@ objectclass ( bildungsloginOID:1
         NAME 'bildungsloginLicense'
         DESC 'A volume license provided by Bildungslogin'
         SUP top STRUCTURAL
-        MUST ( cn $ bildungsloginLicenseCode $ bildungsloginProductId $ bildungsloginLicenseQuantity $ bildungsloginIgnoredForDisplay $ bildungsloginDeliveryDate $ bildungsloginLicenseSchool $ bildungsloginLicenseProvider )
+        MUST ( cn $ bildungsloginLicenseCode $ bildungsloginProductId $ bildungsloginLicenseQuantity $ bildungsloginIgnoredForDisplay $ bildungsloginDeliveryDate $ bildungsloginLicenseSchool $ bildungsloginLicenseProvider $ bildungsloginLicenseType)
         MAY ( bildungsloginPurchasingReference $ bildungsloginUtilizationSystems $ bildungsloginLicenseSpecialType $ bildungsloginValidityDuration $ bildungsloginValidityStartDate $ bildungsloginValidityEndDate ) )
 
 objectclass ( bildungsloginOID:2

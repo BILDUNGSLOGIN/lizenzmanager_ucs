@@ -1,58 +1,109 @@
 .licensesTable {
-	display: flex;
-	gap: 0 8px;
-	margin-bottom: 8px;
+  display: flex;
+  gap: 0 8px;
+  margin-bottom: 8px;
 }
 
 .licensesTable__coverWrapper {
-	flex: 0 0 auto;
-	width: 130px;
-	/* DIN A4 aspect ratio */
-	max-height: calc(130px * (297 / 210));
+  flex: 0 0 auto;
+  width: 130px;
+  /* DIN A4 aspect ratio */
+  max-height: calc(130px * (297 / 210));
 }
 
 .licensesTable__cover {
-	max-width: 100%;
-	max-height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .licensesTable__coverFallback {
-	height: 100%;
-	width: 100%;
-	background: white;
-	border: 1px solid black;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: rgba(0, 0, 0, 0.7);
+  height: 100%;
+  width: 100%;
+  background: white;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.7);
 }
 
 .licensesTable__data {
-	flex: 1 1 auto;
-	display: grid;
-	grid-template-columns: auto auto auto 1fr;
-	gap: 0px 16px;
-	height: min-content;
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+  gap: 0px 16px;
+  height: min-content;
+}
+
+.licensesTable__licenses .dgrid {
+  max-height: 40em !important;
+}
+
+.licensesTable__sum .field-selectorType-checkbox {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.licensesTable__sum .dgrid-sort-arrow {
+  display: none !important;
+}
+
+.licensesTable__sum .dgrid-column-0 {
+  padding-left: 74px;
 }
 
 .productsTable__data {
-	flex: 1 1 auto;
-	display: grid;
-	grid-template-columns: auto 1fr;
-	gap: 0px 16px;
-	height: min-content;
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0px 16px;
+  height: min-content;
 }
 
 .licensesTable__dataLabel {
-	font-weight: 500;
+  font-weight: 500;
 }
 
 .licensesCover {
-	max-width: 380px;
-	max-height: 380px;
+  max-width: 380px;
+  max-height: 380px;
 }
 
-.licensesShowSelectedUsers {
-	cursor: pointer;
-	color: #5a5a5a;
+.licensesShowSelection {
+  cursor: pointer;
+  color: #5a5a5a;
+}
+
+form[name="workgroupForm"] .dijitButton {
+  margin: 2px !important;
+}
+
+form[name="schoolForm"] .dijitButton {
+  margin: 2px !important;
+}
+
+form[name="schoolSelectionForm"] .dijitButton {
+  margin: 2px !important;
+}
+
+form[name="searchForm"] .dijitButton {
+  margin: 2px !important;
+}
+
+.umcFilters .dijitButtonContents {
+  display: flex;
+}
+
+.umcFilters .dijitButton {
+  margin: 2px;
+}
+
+.umcFilters .dijitButtonContents .umcDoubleRightIcon {
+  order: 2;
+}
+
+.umcFilters .dijitButtonContents .dijitButtonText {
+  order: 1;
+  margin: 2px;
+  text-transform: none;
 }

@@ -144,6 +144,7 @@ def create_license(license_handler):
 
     def _create_license(
         school,
+        license_type=None,
         code="",
         product_id="",
         quantity=None,
@@ -157,10 +158,14 @@ def create_license(license_handler):
         validity_duration="",
         special_type="",
     ):
+        if quantity is None:
+            quantity = random.randint(1, 10)
+        if license_type is None:
+            license_type = "SINGLE" if quantity == 1 else "VOLUME"
         license = License(
             license_code=code or uts.random_name(),
             product_id=product_id or uts.random_name(),
-            license_quantity=quantity or random.randint(1, 10),
+            license_quantity=quantity,
             license_provider=provider or uts.random_name(),
             purchasing_reference=purchasing_reference or uts.random_name(),
             utilization_systems=utilization_systems or uts.random_username(),
@@ -171,6 +176,7 @@ def create_license(license_handler):
             license_special_type=special_type or uts.random_name(),
             ignored_for_display=ignored,
             license_school=school,
+            license_type=license_type if license_type else "VOLUME",
         )
         license_handler.create(license)
         license_obj = license_handler.get_udm_license_by_code(license.license_code)

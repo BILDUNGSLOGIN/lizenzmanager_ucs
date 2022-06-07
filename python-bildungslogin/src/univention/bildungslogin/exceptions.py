@@ -45,3 +45,31 @@ class BiloProductNotFoundError(Exception):
 
 class BiloLicenseNotFoundError(Exception):
     pass
+
+
+class AuthError(Exception):
+    pass
+
+
+class LicenseNotFoundError(Exception):
+    pass
+
+
+class ScriptError(Exception):
+    pass
+
+
+class LicenseSaveError(Exception):
+    pass
+
+
+class LicenseRetrievalError(Exception):
+    pass
+
+
+class LicenseValidationError(Exception):
+    pass
+
+
+class BiloServerError(Exception):
+    pass
