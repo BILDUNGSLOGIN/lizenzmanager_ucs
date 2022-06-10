@@ -535,6 +535,8 @@ class Instance(SchoolBaseModule):
                 number_of_expired_licenses = sum(1 for l in non_ignored_licenses if l.is_expired)
                 number_of_available_licenses = \
                     sum(1 for l in non_ignored_licenses if l.num_assigned == 0 and not l.is_expired)
+                if number_of_available_licenses < 1:
+                    continue
 
                 latest_delivery_date = max(lic_udm.props.delivery_date for lic_udm in licenses_udm)
                 result.append(
