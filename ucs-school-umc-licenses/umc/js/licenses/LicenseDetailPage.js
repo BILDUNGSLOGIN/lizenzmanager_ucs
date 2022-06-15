@@ -179,7 +179,7 @@ define([
           [
             _("License type"),
             e("licenseTypeLabel"),
-            _("Acquired"),
+            _("Max. Users"),
             e("countAquired"),
           ],
           [

@@ -138,6 +138,8 @@ class License(object):
     license_school = attr.ib()  # type: str
     num_assigned = attr.ib(default=0)  # type: Optional[int]
     num_available = attr.ib(default=0)  # type: Optional[int]
+    # num_assigned_users is populated by LicenseHandler.get_number_of_assigned_users
+    num_assigned_users = attr.ib(default=None)  # type: Optional[int]
 
     @property
     def is_expired(self):

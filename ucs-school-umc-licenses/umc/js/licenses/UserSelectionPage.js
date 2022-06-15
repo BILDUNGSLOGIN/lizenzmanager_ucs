@@ -90,6 +90,8 @@ define([
 
     onSchoolSelected: function (schoolId) {},
 
+    onLicenseTypeSelected: function (licenseType) {},
+
     onWorkgroupSelected: function (
       classId,
       workgroupId,
@@ -171,6 +173,7 @@ define([
       this.toogleNotification("");
       this.removeChild(this._grid);
       this._searchForm.getButton("submit").set("visible", true);
+      this.onLicenseTypeSelected(licenseType);
       switch (licenseType) {
         case "SCHOOL":
           this.selectedLicenseType = "SCHOOL";

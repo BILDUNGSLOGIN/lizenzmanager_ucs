@@ -166,12 +166,29 @@ define([
       );
       on(
         this._userSelectionPage,
+        "licenseTypeSelected",
+        lang.hitch(this, function (licenseType) {
+          switch (licenseType) {
+            case "SCHOOL":
+              this.set("title", _("Assign school licenses"));
+              break;
+            case "WORKGROUP":
+              this.set("title", _("Assign group licenses"));
+              break;
+            default:
+              this.set("title", _("Assign media licenses"));
+          }
+        })
+      );
+      on(
+        this._userSelectionPage,
         "usersSelected",
         lang.hitch(this, function (usernames) {
           this._productSearchPage.set("allocation", {
             usernames: usernames,
           });
           this.selectChild(this._productSearchPage);
+          this._productSearchPage.refreshGrid({ pattern: "" });
         })
       );
       on(
@@ -182,6 +199,15 @@ define([
             school: school,
           });
           this.selectChild(this._licenseSearchPage);
+
+          this._licenseSearchPage.refreshGrid({
+            licenseCode: "",
+            licenseType: "",
+            pattern: "",
+            timeFrom: null,
+            timeTo: null,
+            userPattern: "",
+          });
         })
       );
       on(
@@ -197,6 +223,7 @@ define([
               workgroupName: workgroupName,
             });
             this.selectChild(this._productSearchPage);
+            this._productSearchPage.refreshGrid({ pattern: "" });
           }
         )
       );
@@ -251,6 +278,14 @@ define([
             if (this._lastSelectedProductId !== productId) {
               this._licenseSearchPage.query();
             }
+            this._licenseSearchPage.refreshGrid({
+              licenseCode: "",
+              licenseType: "",
+              pattern: "",
+              timeFrom: null,
+              timeTo: null,
+              userPattern: "",
+            });
             this._lastSelectedProductId = productId;
           }
         )

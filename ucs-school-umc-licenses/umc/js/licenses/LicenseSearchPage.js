@@ -317,6 +317,46 @@ define([
       }
     },
 
+    refreshGrid: function (values) {
+      values.isAdvancedSearch = this._isAdvancedSearch;
+      values.school = this.schoolId;
+      if (this.moduleFlavor === "licenses/allocation") {
+        values.isAdvancedSearch = true;
+        values.onlyAvailableLicenses = true;
+        if (this.allocation.usernames) {
+          values.allocationProductId = this.allocation.productId;
+          if (values.licenseType === "") {
+            values.licenseType = ["SINGLE", "VOLUME"];
+          } else if (values.licenseType == "SINGLE") {
+            values.licenseType = ["SINGLE"];
+          } else if (values.licenseType == "VOLUME") {
+            values.licenseType = ["VOLUME"];
+          }
+        } else if (this.allocation.school) {
+          values.licenseType = ["SCHOOL"];
+        } else if (this.allocation.schoolClass || this.allocation.workgroup) {
+          values.allocationProductId = this.allocation.productId;
+          values.licenseType = ["WORKGROUP"];
+        }
+      } else {
+        if (values.licenseType == "") {
+          values.licenseType = [];
+        } else if (values.licenseType == "SINGLE") {
+          values.licenseType = ["SINGLE"];
+        } else if (values.licenseType == "VOLUME") {
+          values.licenseType = ["VOLUME"];
+        } else if (values.licenseType == "SCHOOL") {
+          values.licenseType = ["SCHOOL"];
+        } else if (values.licenseType == "WORKGROUP") {
+          values.licenseType = ["WORKGROUP"];
+        }
+      }
+      this._grid.filter(values);
+      this._gridOverview.filter(values);
+      this._gridGroup.filter(values);
+      values.licenseType = "";
+    },
+
     //// lifecycle
     postMixInProperties: function () {
       this.inherited(arguments);
@@ -500,46 +540,7 @@ define([
         buttons: buttons,
         layout: layout,
         onSearch: lang.hitch(this, function (values) {
-          values.isAdvancedSearch = this._isAdvancedSearch;
-          values.school = this.schoolId;
-          if (this.moduleFlavor === "licenses/allocation") {
-            values.isAdvancedSearch = true;
-            values.onlyAvailableLicenses = true;
-            if (this.allocation.usernames) {
-              values.allocationProductId = this.allocation.productId;
-              if (values.licenseType === "") {
-                values.licenseType = ["SINGLE", "VOLUME"];
-              } else if (values.licenseType == "SINGLE") {
-                values.licenseType = ["SINGLE"];
-              } else if (values.licenseType == "VOLUME") {
-                values.licenseType = ["VOLUME"];
-              }
-            } else if (this.allocation.school) {
-              values.licenseType = ["SCHOOL"];
-            } else if (
-              this.allocation.schoolClass ||
-              this.allocation.workgroup
-            ) {
-              values.allocationProductId = this.allocation.productId;
-              values.licenseType = ["WORKGROUP"];
-            }
-          } else {
-            if (values.licenseType == "") {
-              values.licenseType = [];
-            } else if (values.licenseType == "SINGLE") {
-              values.licenseType = ["SINGLE"];
-            } else if (values.licenseType == "VOLUME") {
-              values.licenseType = ["VOLUME"];
-            } else if (values.licenseType == "SCHOOL") {
-              values.licenseType = ["SCHOOL"];
-            } else if (values.licenseType == "WORKGROUP") {
-              values.licenseType = ["WORKGROUP"];
-            }
-          }
-          this._grid.filter(values);
-          this._gridOverview.filter(values);
-          this._gridGroup.filter(values);
-          values.licenseType = "";
+          this.refreshGrid(values);
         }),
       });
       domClass.add(
@@ -875,10 +876,12 @@ define([
         {
           name: "productName",
           label: _("Medium"),
+          width: "200px",
         },
         {
           name: "publisher",
           label: _("Publisher"),
+          width: "50px",
         },
         {
           name: "licenseTypeLabel",
@@ -938,12 +941,12 @@ define([
         {
           name: "productName",
           label: _("Medium"),
-          width: "66px",
+          width: "200px",
         },
         {
           name: "publisher",
           label: _("Publisher"),
-          width: "66px",
+          width: "50px",
         },
         {
           name: "licenseTypeLabel",
@@ -1041,10 +1044,12 @@ define([
         {
           name: "productName",
           label: _("Medium"),
+          width: "200px",
         },
         {
           name: "publisher",
           label: _("Publisher"),
+          width: "50px",
         },
         {
           name: "licenseTypeLabel",
@@ -1123,6 +1128,10 @@ define([
         sortIndex: -10,
         addTitleOnCellHoverIfOverflow: true,
         class: "licensesTable__licenses",
+        gridOptions: {
+          selectionMode: "single",
+        },
+        selectorType: "radio",
       });
 
       this._gridGroup = new Grid({
@@ -1131,6 +1140,10 @@ define([
         moduleStore: store("licenseCode", "licenses"),
         sortIndex: -10,
         addTitleOnCellHoverIfOverflow: true,
+        gridOptions: {
+          selectionMode: "single",
+        },
+        selectorType: "radio",
       });
 
       this.addChild(this._assignmentText);
@@ -1140,7 +1153,7 @@ define([
         this.addChild(this._grid);
       } else {
         this.addChild(this._gridOverview);
-        this.addChild(this._gridFooter);
+        // this.addChild(this._gridFooter);
       }
     },
   });

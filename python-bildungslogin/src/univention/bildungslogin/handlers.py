@@ -255,7 +255,9 @@ class LicenseHandler:
 
     def get_number_of_assigned_users(self, license):  # type: (License) -> int
         """ Count the number of users that were assigned to the license """
-        return len(self.get_assigned_users(license))
+        if license.num_assigned_users is None:
+            license.num_assigned_users = len(self.get_assigned_users(license))
+        return license.num_assigned_users
 
     def _count_leftover_users(self, license):  # type: (License) -> Optional[int]
         """
@@ -291,7 +293,11 @@ class LicenseHandler:
         for user in users:
             entry_uuid = get_entry_uuid(self._users_mod.connection, user.dn)
             assignments = self.ah.get_all_assignments_for_uuid(entry_uuid)
-            for assignment in assignments:
+            group_entry_uuids = [get_entry_uuid(self._groups_mod.connection, group_dn)
+                                 for group_dn in user.props.groups]
+            group_assignments = [self.ah.get_all_assignments_for_uuid(entry_uuid) for entry_uuid in group_entry_uuids]
+            group_assignment_list = [x for l in group_assignments for x in l]
+            for assignment in assignments + group_assignment_list:
                 licenses.add(self.ah.get_license_by_license_code(str(assignment.license)))
         return licenses
 

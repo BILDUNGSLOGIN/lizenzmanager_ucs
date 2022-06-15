@@ -255,12 +255,12 @@ define([
         {
           name: "productName",
           label: _("Medium"),
-          width: "138px",
+          width: "200px",
         },
         {
           name: "publisher",
           label: _("Publisher"),
-          width: "138px",
+          width: "50px",
         },
         {
           name: "licenseTypeLabel",
@@ -367,7 +367,7 @@ define([
 
       this.addChild(this._table);
       this.addChild(this._grid);
-      this.addChild(this._gridFooter);
+      // this.addChild(this._gridFooter);
     },
 
     _onShow: function () {

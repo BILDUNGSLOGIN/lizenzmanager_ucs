@@ -227,6 +227,25 @@ define([
       // event stub
     },
 
+    refreshGrid: function (values) {
+      values.school = this.schoolId;
+      if (this.moduleFlavor === "licenses/allocation" && this.allocation) {
+        if (this.allocation.usernames) {
+          values.licenseType = ["SINGLE", "VOLUME"];
+          this._grid.filter(values);
+          this.removeChild(this._gridGroup);
+          this.addChild(this._grid);
+        } else if (this.allocation.workgroup) {
+          values.licenseType = ["WORKGROUP"];
+          this._gridGroup.filter(values);
+          this.removeChild(this._grid);
+          this.addChild(this._gridGroup);
+        }
+      } else {
+        this._grid.filter(values);
+      }
+    },
+
     //// lifecycle
     postMixInProperties: function () {
       this.inherited(arguments);
@@ -263,22 +282,7 @@ define([
         widgets: widgets,
         layout: [["pattern", "submit"]],
         onSearch: lang.hitch(this, function (values) {
-          values.school = this.schoolId;
-          if (this.moduleFlavor === "licenses/allocation" && this.allocation) {
-            if (this.allocation.usernames) {
-              values.licenseType = ["SINGLE", "VOLUME"];
-              this._grid.filter(values);
-              this.removeChild(this._gridGroup);
-              this.addChild(this._grid);
-            } else if (this.allocation.workgroup) {
-              values.licenseType = ["WORKGROUP"];
-              this._gridGroup.filter(values);
-              this.removeChild(this._grid);
-              this.addChild(this._gridGroup);
-            }
-          } else {
-            this._grid.filter(values);
-          }
+          this.refreshGrid(values);
         }),
       });
 
@@ -353,12 +357,12 @@ define([
         {
           name: "title",
           label: _("Medium"),
-          width: "183px",
+          width: "200px",
         },
         {
           name: "publisher",
           label: _("Publisher"),
-          width: "55px",
+          width: "50px",
         },
         {
           name: "countAquired",
@@ -383,7 +387,7 @@ define([
         {
           name: "latestDeliveryDate",
           label: _("Delivery"),
-          width: "183px",
+          width: "153px",
           formatter: function (value, object) {
             if (value) {
               value = dateLocale.format(new Date(value), {
@@ -409,6 +413,7 @@ define([
         {
           name: "title",
           label: _("Medium"),
+          width: "200px",
         },
         {
           name: "publisher",
@@ -486,10 +491,6 @@ define([
         moduleStore: store("productId", "licenses/products"),
         sortIndex: -8,
         addTitleOnCellHoverIfOverflow: true,
-        gridOptions: {
-          selectionMode: "single",
-        },
-        selectorType: "radio",
       });
       this._gridGroup = new Grid({
         actions: actions,
@@ -593,8 +594,9 @@ define([
       this.addChild(this._searchForm);
       if (this.moduleFlavor !== "licenses/allocation") {
         this.addChild(this._grid);
-        this.addChild(this._gridFooter);
+        // this.addChild(this._gridFooter);
       }
+      this.refreshGrid({ pattern: "" });
     },
   });
 });
