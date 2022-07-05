@@ -1,7 +1,7 @@
 
 # 64bildungslogin-metadat.acl
-access to dn.children="cn=metadata,cn=bildungslogin,cn=vbm,cn=univention,@%@ldap/base@%@"
-	by group/univentionGroup/uniqueMember.expand="cn=DC Backup Hosts,cn=groups,@%@ldap/base@%@" write
-	by set="user/objectClass & [ucsschoolAdministrator]" write
-	by * none stop
+access to dn.subtree="cn=metadata,cn=bildungslogin,cn=vbm,cn=univention,dc=ucs,dc=test,dc=schule,dc=bildungslogin,dc=de"
+        by group/univentionGroup/uniqueMember.expand="cn=DC Backup Hosts,cn=groups,dc=ucs,dc=test,dc=schule,dc=bildungslogin,dc=de" write
+        by set="user/objectClass & [ucsschoolAdministrator]" write
+        by * none stop
 

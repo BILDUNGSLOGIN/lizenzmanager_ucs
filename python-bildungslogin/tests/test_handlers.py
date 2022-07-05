@@ -13,6 +13,7 @@ from univention.bildungslogin.exceptions import BiloAssignmentError, BiloLicense
 from univention.bildungslogin.handlers import ObjectType
 from univention.bildungslogin.models import Assignment, License, MetaData, Status
 
+
 if sys.version_info[0] >= 3:
     from unittest.mock import MagicMock, Mock, call, patch
 else:
@@ -354,16 +355,18 @@ def test_get_assigned_users_from_user_license(get_assignments_mock, license_with
     with patch.object(lh, "_users_mod") as users_mod_mock:
         udm_user = Mock()
         udm_user.props.username = "TESTUSER"
+        udm_user.props.ucsschoolRole = ["teacher:school:DEMOSCHOOL"]
         users_mod_mock.search.return_value = (value for value in (udm_user,))
         result = lh.get_assigned_users(license)
-    # assert result == [
-    #     {
-    #         "username": assignment_object.assignee,
-    #         "status": assignment_object.status,
-    #         "statusLabel": Status.label(assignment_object.status),
-    #         "dateOfAssignment": assignment_object.time_of_assignment,
-    #     }
-    # ]
+    assert result == [
+        {
+            "username": assignment_object.assignee,
+            "status": assignment_object.status,
+            "statusLabel": Status.label(assignment_object.status),
+            "dateOfAssignment": assignment_object.time_of_assignment,
+            "roles": ["teacher"]
+        }
+    ]
 
 
 @patch("univention.bildungslogin.handlers.UDM", MagicMock())
@@ -385,19 +388,20 @@ def test_get_assigned_users_from_group_license(get_assignments_mock, license_wit
     )
     get_assignments_mock.return_value = [assignment_object]
     lh = univention.bildungslogin.handlers.LicenseHandler(Mock())
-    udm_user = Mock(**{"props.username": "TEST USER"})
+    udm_user = Mock(**{"props.username": "TEST USER", "props.ucsschoolRole": ["student:school:DEMOSCHOOL"]})
     udm_group = Mock(**{"props.users.objs": (u for u in (udm_user,))})
     with patch.object(lh, "_groups_mod") as groups_mod_mock:
         groups_mod_mock.search.return_value = (g for g in (udm_group,))
         result = lh.get_assigned_users(license)
-    # assert result == [
-    #     {
-    #         "username": udm_user.props.username,
-    #         "status": assignment_object.status,
-    #         "statusLabel": "Assigned",
-    #         "dateOfAssignment": assignment_object.time_of_assignment,
-    #     }
-    # ]
+    assert result == [
+         {
+             "username": udm_user.props.username,
+             "status": assignment_object.status,
+             "statusLabel": "Assigned",
+             "dateOfAssignment": assignment_object.time_of_assignment,
+             "roles": ["student"]
+         }
+     ]
 
 @patch("univention.bildungslogin.handlers.UDM", MagicMock())
 @patch.object(univention.bildungslogin.handlers.LicenseHandler,

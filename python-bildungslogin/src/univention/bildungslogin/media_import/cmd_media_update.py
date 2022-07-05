@@ -65,7 +65,7 @@ def update_ldap_meta_data(lo):  # type: (Any) -> bool
     access_token = get_access_token(
         config["client_id"], config["client_secret"], config["scope"], config["auth_server"]
     )
-    updated_product_ids = retrieve_media_feed(access_token, config["resource_server"], last_update_ts)
+    updated_product_ids = retrieve_media_feed(access_token, config["resource_server"], round(last_update_ts/1000))
     print("Meta data of {} products changed on the media server.".format(len(updated_product_ids)))
     if not updated_product_ids:
         return True

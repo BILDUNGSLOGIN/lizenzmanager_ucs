@@ -379,10 +379,13 @@ msgstr "Referenz"
 msgid "Remove assignment"
 msgstr "Zuweisung entfernen"
 
-#: umc/js/licenses/LicenseDetailPage.js:393
 #: umc/js/licenses/UserSelectionPage.js:399
 msgid "Role"
 msgstr "Rolle"
+
+#: umc/js/licenses/LicenseDetailPage.js:393
+msgid "Roles"
+msgstr "Rollen"
 
 #: umc/js/licenses/LicenseDetailPage.js:341
 msgid "Save"

@@ -253,6 +253,7 @@ define([
             this._licenseSearchPage.query();
           }
           this._lastSelectedProductId = productId;
+          this._licenseSearchPage.refreshGrid({ pattern: "" });
         })
       );
       on(

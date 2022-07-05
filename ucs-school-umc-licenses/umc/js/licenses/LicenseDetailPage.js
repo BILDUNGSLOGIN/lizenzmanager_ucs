@@ -390,8 +390,8 @@ define([
           label: _("User"),
         },
         {
-          name: "role",
-          label: _("Role"),
+          name: "roles",
+          label: _("Roles"),
         },
         {
           name: "statusLabel",
