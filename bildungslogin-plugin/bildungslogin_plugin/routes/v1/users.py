@@ -33,12 +33,12 @@ def get_backend() -> DbBackend:
     return _backend
 
 
-@router.get("/user/{id}", response_model=User)
+@router.get("/user/{id}", response_model=User, response_model_exclude_none=True)
 async def get(
-    user_id: NonEmptyStr = Path(..., alias="id", description="User ID", title="User ID"),
-    backend: DbBackend = Depends(get_backend),
-    policy_instance: OPAClient = Depends(opa_instance),
-    token: str = Depends(get_token),
+        user_id: NonEmptyStr = Path(..., alias="id", description="User ID", title="User ID"),
+        backend: DbBackend = Depends(get_backend),
+        policy_instance: OPAClient = Depends(opa_instance),
+        token: str = Depends(get_token),
 ) -> User:
     """Retrieve a users name, license, role, class and school information."""
     await policy_instance.check_policy_true_or_raise("bildungslogin_plugin/user", token)

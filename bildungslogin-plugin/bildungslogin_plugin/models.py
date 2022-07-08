@@ -51,12 +51,12 @@ class SchoolContext(BaseModel):
         Field(None, description="A school abbreviation that is officially assigned (state/federal)")
     school_name: Optional[NonEmptyMaxLenStr] = \
         Field(None, description="A school abbreviation that the publisher can assign freely")
-    classes: List[Class] = \
-        Field(..., description="Classes of the school, the user is related to")
+    classes: Optional[List[Class]] = \
+        Field(None, description="Classes of the school, the user is related to")
     roles: conlist(min_items=1, item_type=UserRole) = \
         Field(..., description="Roles in the school, the user is related to")
-    workgroups: List[Workgroup] = \
-        Field(..., description="Workgroups of the school, the user is related to")
+    workgroups: Optional[List[Workgroup]] = \
+        Field(None, description="Workgroups of the school, the user is related to")
     licenses: Optional[List[NonEmptyMaxLenStr]] = \
         Field(None, description="Licenses attached to the school")
 

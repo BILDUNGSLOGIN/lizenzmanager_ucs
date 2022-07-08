@@ -153,7 +153,7 @@ async def test_get_school_context(fake_udm_user, roles):
     remove_empty_values(expected_context)
     # check
     remove_empty_values(expected_context)
-    expected_result = {expected_context.school_identifier: expected_context}
+    expected_result = {school_identifier_key: expected_context}
     assert expected_result == result
 
 

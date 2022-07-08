@@ -608,7 +608,7 @@ msgstr "Lerngruppenlizenz"
 
 msgid "By assigning a learning group license, all members of a class or learning group (up to the specified maximum number, if applicable) are granted usage rights via a license code. If a new member joins the class or learning group during the license term, he or she will automatically also gain the usage authority for the relevant medium. If a member leaves the class or learning group, he or she automatically loses the usage authorization.\n"
 "A learning group license can only be assigned once and cannot be released again."
-msgstr "Durch Zuweisung einer Lerngruppenlizenz wird über einen Lizenzcode allen Mitgliedern einer Klasse oder Lerngruppe (ggf. bis zur angegebenen Maximalzahl) eine Nutzungsberechtigung erteilt. Wenn ein während der Lizenzlaufzeit ein neues Mitglied in die Klasse oder Lerngruppe kommt, erhält es automatisch auch eine Nutzungsberechtigung für das betreffende Medium. Verlässt ein Mitglied die Klasse oder Lerngruppe, verliert es automatisch die Nutzungsberechtigung.\n"
+msgstr "Durch Zuweisung einer Lerngruppenlizenz wird über einen Lizenzcode allen Mitgliedern einer Klasse oder Lerngruppe (ggf. bis zur angegebenen Maximalzahl) eine Nutzungsberechtigung erteilt. Wenn während der Lizenzlaufzeit ein neues Mitglied in die Klasse oder Lerngruppe kommt, erhält es automatisch auch eine Nutzungsberechtigung für das betreffende Medium. Verlässt ein Mitglied die Klasse oder Lerngruppe, verliert es automatisch die Nutzungsberechtigung.\n"
 "Eine Lerngruppenlizenz kann nur einmal zugewiesen und nicht wieder gelöst werden."
 
 msgid "School Licences"

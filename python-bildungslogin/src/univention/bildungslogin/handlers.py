@@ -508,8 +508,10 @@ class LicenseHandler:
             product_id: self.get_meta_data_by_product_id(product_id) for product_id in product_ids
         }
         for license in licenses:
+            available_users = self.get_number_of_available_users(license)
+            available = (available_users>0) if license.license_type == 'VOLUME' else (license.num_available > 0)
             if not only_available_licenses \
-                    or (not license.ignored_for_display and license.num_available > 0):
+                    or (not license.ignored_for_display and available):
                 rows.append(
                     {
                         "productId": license.product_id,
@@ -521,7 +523,7 @@ class LicenseHandler:
                         "countAquired": license.license_quantity,
                         "countAssigned": self.get_number_of_assigned_users(license),
                         "countExpired": self.get_number_of_expired_unassigned_users(license),
-                        "countAvailable": self.get_number_of_available_users(license),
+                        "countAvailable": available_users,
                         "importDate": license.delivery_date,
                         "licenseType": license.license_type,
                         "validityStart": license.validity_start_date,

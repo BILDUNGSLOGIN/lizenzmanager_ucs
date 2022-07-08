@@ -364,6 +364,16 @@ define([
       values.licenseType = "";
     },
 
+    // allow only either class or workgroup to be set
+    onChooseDifferentClass: function () {
+      const workgroupWidget = this._searchForm.getWidget("workgroup");
+      workgroupWidget.setValue("")
+    },
+    onChooseDifferentWorkgroup: function () {
+      const classWidget = this._searchForm.getWidget("class");
+      classWidget.setValue("")
+    },
+
     //// lifecycle
     postMixInProperties: function () {
       this.inherited(arguments);
@@ -508,7 +518,10 @@ define([
               school: this.schoolId,
             },
             size: "TwoThirds",
-            visible: false
+            visible: false,
+            onChange : lang.hitch(this, function (values) {
+              this.onChooseDifferentWorkgroup(values);
+            })
           },
           {
             type: SuggestionBox,
@@ -520,7 +533,10 @@ define([
               school: this.schoolId,
             },
             size: "TwoThirds",
-            visible: false
+            visible: false,
+            onChange : lang.hitch(this, function (values) {
+              this.onChooseDifferentClass(values);
+            })
           },
         );
       }
