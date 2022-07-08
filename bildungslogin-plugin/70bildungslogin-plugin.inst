@@ -53,7 +53,7 @@ CONFIG_FILE="/etc/bildungslogin/config.ini"
 
 
 create_config_file() {
-  if [[ ! -d "$CONFIG_DIR" ]]; then
+  if [ ! -d "$CONFIG_DIR" ]; then
     echo "Creating bildungslogin- configuration directory '$SETTINGS_FILE'..."
     mkdir $CONFIG_DIR
     chown root:root $CONFIG_DIR
