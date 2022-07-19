@@ -390,7 +390,7 @@ define([
           label: _("User"),
         },
         {
-          name: "roles",
+          name: "roleLabels",
           label: _("Roles"),
         },
         {

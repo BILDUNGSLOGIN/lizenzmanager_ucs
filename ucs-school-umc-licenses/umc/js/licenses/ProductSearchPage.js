@@ -80,14 +80,14 @@ define([
     showChangeSchoolButton: false,
 
     _grid: null,
+    _gridGroup: null,
     _searchForm: null,
-
-    alloction: null,
 
     maxUserSum: "-",
     assignedSum: "-",
     expiredSum: "-",
     availableSum: "-",
+    userCount: null,
 
     _setAllocationAttr: function (allocation) {
       this._set("allocation", allocation);
@@ -100,18 +100,18 @@ define([
         const msg = `
 				<p>
 					${entities.encode(
-            count === 1
-              ? _("Assign licenses to 1 selected user.")
-              : _("Assign licenses to %s selected users.", count)
-          )}
+          count === 1
+            ? _("Assign licenses to 1 selected user.")
+            : _("Assign licenses to %s selected users.", count)
+        )}
 					<span id="${id}" class="licensesShowSelection">
 						(${entities.encode(_("show selected users"))})
 					</span>
 				</p>
 				<p>
 					${entities.encode(
-            _("Choose the medium for which you want to assign licenses.")
-          )}
+          _("Choose the medium for which you want to assign licenses.")
+        )}
 				</p>
 			`.trim();
         this._assignmentText.set("content", msg);
@@ -147,8 +147,8 @@ define([
 				</p>
 				<p>
 					${entities.encode(
-            _("Choose the medium for which you want to assign licenses.")
-          )}
+          _("Choose the medium for which you want to assign licenses.")
+        )}
 				</p>
 			`.trim();
         this._assignmentText.set("content", msg);
@@ -185,6 +185,10 @@ define([
       }
     },
 
+    parseGroupName: function (inputValue) {
+      return inputValue.split(",")[0].slice(3)
+    },
+
     query: function () {
       this.standbyDuring(
         this._searchForm.ready().then(
@@ -192,6 +196,59 @@ define([
             this._searchForm.submit();
           })
         )
+      );
+    },
+
+    showUserCount: function () {
+      const count = this.userCount
+      const id = this.id + "-tooltipNode";
+      const msg = `
+				<p>
+					${entities.encode(
+        count === 1
+          ? _("Assign licenses to 1 selected user.")
+          : _("Assign licenses to %s selected users.", count)
+      )}
+					<span id="${id}" class="licensesShowSelection">
+						(${entities.encode(_("show selected workgroup/class"))})
+					</span>
+				</p>
+				<p>
+					${entities.encode(
+        _("Choose the medium for which you want to assign licenses.")
+      )}
+				</p>
+			`.trim();
+      this._assignmentText.set("content", msg);
+      const node = dom.byId(id);
+      on(
+        node,
+        "click",
+        lang.hitch(this, function (evt) {
+          let label = "";
+          if (
+            this.allocation.workgroup &&
+            this.allocation.workgroup !== "__all__"
+          ) {
+            label = `<div>${entities.encode(
+              this.allocation.workgroupName
+            )}</div>`;
+          } else {
+            label = `<div>${entities.encode(
+              this.allocation.className
+            )}</div>`;
+          }
+
+          Tooltip.show(label, node);
+          evt.stopImmediatePropagation();
+          on.once(
+            window,
+            "click",
+            lang.hitch(this, function (event) {
+              Tooltip.hide(node);
+            })
+          );
+        })
       );
     },
 
@@ -236,8 +293,23 @@ define([
           this.removeChild(this._gridGroup);
           this.addChild(this._grid);
         } else if (this.allocation.workgroup) {
+          if (this.allocation.workgroup && this.allocation.workgroup !== "__all__") {
+            values.groupName = this.parseGroupName(this.allocation.workgroup)
+          }
+          if (this.allocation.schoolClass && this.allocation.schoolClass !== "__all__") {
+            values.groupName = this.parseGroupName(this.allocation.schoolClass)
+          }
           values.licenseType = ["WORKGROUP"];
-          this._gridGroup.filter(values);
+          this._gridGroup.filter(values)
+            .then(() => {
+              if (
+                this._gridGroup.collection.data[0] &&
+                this._gridGroup.collection.data[0].user_count !== null
+              ) {
+                this._set("userCount", this._gridGroup.collection.data[0].user_count);
+                this.showUserCount()
+              }
+            })
           this.removeChild(this._grid);
           this.addChild(this._gridGroup);
         }
@@ -314,7 +386,8 @@ define([
                 "",
                 this.allocation.schoolClass,
                 "",
-                this.allocation.className
+                this.allocation.className,
+                this.userCount
               );
             } else if (
               this.allocation.workgroup &&
@@ -325,7 +398,8 @@ define([
                 this.allocation.workgroup,
                 "",
                 this.allocation.workgroupName,
-                ""
+                "",
+                this.userCount
               );
             }
           }),
@@ -505,12 +579,6 @@ define([
         selectorType: "radio",
       });
 
-      // this._gridFooter = new Grid({
-      //   columns: columnsFooter,
-      //   class: "licensesTable__sum",
-      //   moduleStore: store("licenseCode", "licenses"),
-      // });
-
       // FIXME(?) usage of private inherited variables
       aspect.around(
         this._grid._grid,
@@ -595,9 +663,7 @@ define([
       this.addChild(this._searchForm);
       if (this.moduleFlavor !== "licenses/allocation") {
         this.addChild(this._grid);
-        // this.addChild(this._gridFooter);
       }
-      this.refreshGrid({ pattern: "" });
     },
   });
 });

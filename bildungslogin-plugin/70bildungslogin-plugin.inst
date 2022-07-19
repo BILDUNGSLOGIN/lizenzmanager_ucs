@@ -89,7 +89,19 @@ set_ucrvs() {
     ucsschool/ldap/default/container/pupils="$(ucr get ucsschool/ldap/default/container/pupils)" || true
   echo "Ignore error message above: 'E: your request could not be fulfilled'."
 }
-
+check_ucsschoolsapis_version() {
+  echo "Checking for correct UCS@Schools- API version"
+  ucsschoolsapis_version=`ucr get appcenter/apps/ucsschool-apis/version`
+  if [ -n "$ucsschoolsapis_version" ]; then
+    if [ $ucsschoolsapis_version = "0.1.0" ]; then
+        echo "UCS@Schools- API is the correct version"
+   else
+      die
+   fi
+  else
+    die
+  fi
+}
 setup_provisioning_api_access() {
   echo "Creating user '$API_ACCESS_USER' to allow access to the Bildungslogin Provisioning API..."
   echo "The user will be created deactivated and with a random password."
@@ -121,7 +133,7 @@ restart_ucsschool_apis_app() {
   univention-app restart ucsschool-apis
 }
 
-
+check_ucsschoolsapis_version
 create_settings_file
 create_config_file
 set_ucrvs

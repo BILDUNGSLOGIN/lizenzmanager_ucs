@@ -230,7 +230,7 @@ msgstr "Nachname"
 #: umc/js/licenses/LicenseSearchPage.js:924
 #: umc/js/licenses/LicenseSearchPage.js:1029
 msgid "License code"
-msgstr "Lizenz Code"
+msgstr "Lizenzcode"
 
 #: umc/js/licenses/LicenseSearchPage.js:504
 msgid "Assigned to Workgroup"

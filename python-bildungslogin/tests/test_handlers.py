@@ -364,7 +364,8 @@ def test_get_assigned_users_from_user_license(get_assignments_mock, license_with
             "status": assignment_object.status,
             "statusLabel": Status.label(assignment_object.status),
             "dateOfAssignment": assignment_object.time_of_assignment,
-            "roles": ["teacher"]
+            "roles": ["teacher"],
+            "roleLabels": ["Teacher"]
         }
     ]
 
@@ -399,7 +400,8 @@ def test_get_assigned_users_from_group_license(get_assignments_mock, license_wit
              "status": assignment_object.status,
              "statusLabel": "Assigned",
              "dateOfAssignment": assignment_object.time_of_assignment,
-             "roles": ["student"]
+             "roles": ["student"],
+             "roleLabels": ["Student"]
          }
      ]
 
@@ -434,6 +436,7 @@ def test_get_assigned_users_from_school_license(get_assignments_mock, license_wi
         users_mod_mock.search.return_value = (u for u in (udm_student, udm_teacher))
         result = lh.get_assigned_users(license)
     result[0].pop("roles", None)
+    result[0].pop("roleLabels", None)
     assert result == [
         {
             "username": udm_teacher.props.username,

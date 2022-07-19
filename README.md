@@ -4,11 +4,42 @@
 
 [Installation and usage](getting_started.md)
 
-# Debugging
+# Architecture
+The bildungslogin- module is made up of the following main components:
+- a udm- module with currently three methods: bildungslogin/assignments, bildungslogin/licenses, bildungslogin/metadata
+- a GUI- part for the UCS@School- UMC
+- a server API for the BILDUNGSLOGIN to query assigned licenses
+- a schema- extension to store licenses, metadata and assignments in the LDAP
 
+## Schema- Extension
+The gross of the license- handling is done in the ldap under the module- storage `cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,$LDAP_BASE`
+
+Directly underneath this DN, the actual licenses are stored. Under the licenses, the actual assignments are then stored:
+- for single- and volume licenses with one assignment entry per available license
+- for group- licenses with only one single assignment entry
+
+The assignment entry is then amended with the EntryUUID of the assigned unit, which is either
+- for single- and volume licenses the **EntryUUID of the User** or
+- for group- licenses with the **EntryUUID of the Group**
+
+Hence the tree looks as follows:
+```
+LICENSE_MODULE_BASE
+|
+ -- licenses
+   |
+    -- assignments --> EntryUUID of Assignee (or Group)
+```
+
+## Logging
+
+- The UMC- Module logs to `/var/log/univention/management-console-module-licenses.log`, the HTTP-API Log for UCSScrools also logs to `/var/log/univention/ucsschool-apis/http.log`
+- there is a specific logfile for the mediaupdate- actions: `/var/log/univention/bildungslogin-media-update.log`
+
+# Development
+
+## Debugging
 TODO
-
-## Development
 
 ### Coverage
 
@@ -43,19 +74,115 @@ python -m coverage run /usr/bin/pytest -lvvx /usr/share/ucs-test/*_bildungslogin
   python -m coverage html --directory=./htmlcov
 ```
 
-#### in Docker container
+#### In Docker container
 
 TODO
 
-## Beispiel Lizenzzuweisung
+# Tests und Verifizierungen
 
-Eine testweise Lizenzzuweisung kann über UDM realisiert werden, solange das UMC Modul zur Lizenzzuweisung noch nicht
-verfügbar ist. Dazu holen wir uns die Informationen zu einer Lizenz mittels
-`udm bildungslogin/license list --filter code="VHT-7bd46a45-345c-4237-a451-4444736eb011"`
-Wenn wir mit den vorherigen Beispieldaten arbeiten sehen wir nun ein Lizenzobjekt mit 25 von 25 verfügbaren Zuweisungen.
-Um eine Zuweisung durchzuführen, müssen wir ein Assignment-Objekt der Lizenz editieren. Da hier noch alle verfügbar sind
-nehmen wir uns ein beliebiges Objekt, welches in `assignments` referenziert ist und weisen es einem Nutzer zu. Dazu
-benötigen wir noch die EntryUUID eines Nutzers, die wir mit dem folgenden Befehl ermitteln können:
+## Lizenzen importieren
+
+Mit dem Tool `bildungslogin-license-import` lassen sich Lizenzen importieren.
+
+### Beispiel Lizenz
+
+Die json-Datei mit Dummy-Codes enhält gültige Lizenzdatensätze, aber mit frei erfundene Lizenzcodes. Sie dient dazu, in schulischen Testsystemen die internen Funktionen des Lizenzmanagers (ohne Medienzugriff in den Verlagssystemen) zu testen, ohne dass dafür echte Lizenzcodes benötigt werden. Die Datei wird zusammen mit den Paketen des ucs-Lizenzmanagers und einer Anleitung ausgeliefert.
+
+```json
+[
+  {
+    "lizenzcode": "WES-DEMO-CODE-0000",
+    "product_id": "urn:bilo:medium:WEB-14-124227",
+    "lizenzanzahl": 60,
+    "lizenzgeber": "WES",
+    "kaufreferenz": "Lizenzmanager-Testcode",
+    "nutzungssysteme": "Testcode ohne Medienzugriff",
+    "gueltigkeitsbeginn": "",
+    "gueltigkeitsende": "",
+    "gueltigkeitsdauer": "Schuljahreslizenz",
+    "sonderlizenz": ""
+  },
+  {
+    "lizenzcode": "CCB-DEMO-CODE-0000",
+    "product_id": "urn:bilo:medium:610081",
+    "lizenzanzahl": 60,
+    "lizenzgeber": "CCB",
+    "kaufreferenz": "Lizenzmanager-Testcode",
+    "nutzungssysteme": "Testcode ohne Medienzugriff",
+    "gueltigkeitsbeginn": "",
+    "gueltigkeitsende": "",
+    "gueltigkeitsdauer": "397 Tage",
+    "sonderlizenz": ""
+  }
+]
+```
+
+### Beispiel Import
+
+Ein Import wird wie folgt durchgeführt:
+
+`bildungslogin-license-import --license-file $PFAD_ZUR_LIZENZ --school $SCHUL_KÜRZEL`
+
+## Metadaten importieren
+
+Der Metadatenimport erfolgt automatisch.
+Bei Bedarf kann er jedoch manuell über das CLI Tool `bildungslogin-media-import` ausgeführt werden.
+Für den automatischen Import müssen die Zugangsdaten konfiguriert werden.
+
+### Konfiguration
+
+In die Datei `/etc/bildungslogin/config.ini` müssen die Zugangsdaten für die Metadaten API eingetragen werden.
+Alternativ können diese dem CLI Tool auch direkt übergeben werden (`bildungslogin-media-import --help`).
+
+### Manueller import
+
+Ein Metadatenimport für eine Produkt ID kann nun wie folgt gestartet werden:
+
+`bildungslogin-media-import --config-file /etc/bildungslogin/config.ini urn:bilo:medium:COR-9783060658336`
+
+## Verwendung der Provisioning API
+
+Mit dem Usernamen `bildungslogin-api-user` und dem Passwort kann die API genutzt werden.
+
+Der Zugriff erfolgt in zwei Schritten:
+
+1) Authorization
+
+Der Token kann folgendermaßen geholt werden:
+
+```bash
+curl -X 'POST'   'https://FQDN/ucsschool/apis/auth/token' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'username=bildungslogin-api-user&password=v3r7s3cr3t'
+```
+
+Die Antwort ist:
+
+```json
+{
+  "access_token":"eyJ0eXAiOiJKV1...",
+  "token_type":"bearer"
+}
+```
+
+2) Provisionierung von Nutzerdaten
+
+Die Daten des Users `demo_student` können mit folgendem Befehl abgerufen werden:
+
+```bash
+curl -X 'GET' \
+  'https://FQDN/ucsschool/apis/bildungslogin/v1/user/demo_student' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer eyJ0eXAiOiJKV1...'
+```
+
+Zur interaktiven Erforschung der API findet sich eine Swagger UI sich unter https://FQDN/ucsschool/apis/docs.
+
+
+### Beispiel Lizenzzuweisung via CLI
+
+Um eine Zuweisung durchzuführen, müssen wir ein Assignment-Objekt der Lizenz editieren. Nach einem initialen Lizenzimport sind noch alle "assignments" verfügbar. Daher nehmen wir uns ein beliebiges Objekt, welches in `assignments` referenziert ist und weisen es einem Nutzer zu. Dies geschieht mittels der EntryUUID eines Nutzers, die wir mit dem folgenden Befehl ermitteln können:
 
 ```shell
 root@dc0:~# univention-ldapsearch -LLL uid=demo_student entryUUID
@@ -101,7 +228,7 @@ root@dc1:~# udm bildungslogin/license remove --dn cn=0fb9155c27655c172f2b2149108
 
 ## Beispiel alle Daten löschen
 
-Zum Aufräumen einer Testumgebung
+Zum Aufräumen einer Testumgebung (Achtung: dies löscht sämtliche Lizenzen aller Schulen des Systems!)
 
 Alle Lizenzen löschen:
 

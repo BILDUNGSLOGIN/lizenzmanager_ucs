@@ -51,25 +51,37 @@ LICENSE_SCHEMA = {
             "description": "Uniform Resource Name, https://de.wikipedia.org/wiki/Uniform_Resource_Name",
             "pattern": "^urn(:[a-z0-9]{1,32})+:[\\S]+$",
             "type": "string",
-            "maxLength": 100,
+            "minLength": 1,
+            "maxLength": 255,
         },
+        "restrictednonnullstring": {
+            "type": "string",
+            "minLength": 0,
+            "maxlength": 255
+        },
+        "restrictedstring": {
+            "type": ["string", "null"],
+            "minLength": 0,
+            "maxlength": 255
+        },
+
     },
     "items": {
         "type": "object",
         "properties": {
-            "lizenzcode": {"$ref": "#/definitions/nonemptystring"},
+            "lizenzcode": {"$ref": "#/definitions/restrictednonnullstring"},
             "product_id": {"$ref": "#/definitions/urn"},
-            "lizenzanzahl": {"type": "integer"},
-            "lizenzgeber": {"$ref": "#/definitions/nonemptystring"},
-            "kaufreferenz": {"type": "string"},
-            "nutzungssysteme": {"type": "string"},
-            "gueltigkeitsbeginn": {"type": "string"},
-            "gueltigkeitsende": {"type": "string"},
-            "gueltigkeitsdauer": {"type": "string"},
-            "sonderlizenz": {"type": "string"},
+            "lizenzanzahl": {"type": "integer", "minimum": 0},
+            "lizenzgeber": {"$ref": "#/definitions/restrictednonnullstring"},
+            "kaufreferenz": {"$ref": "#/definitions/restrictedstring"},
+            "nutzungssysteme": {"$ref": "#/definitions/restrictedstring"},
+            "gueltigkeitsbeginn": {"type": ["string", "null"]},
+            "gueltigkeitsende": {"type": ["string", "null"]},
+            "gueltigkeitsdauer": {"$ref": "#/definitions/restrictedstring"},
+            "sonderlizenz": {"type": "string", "enum": ["Demo", "Lehrkraft", ""]},
             "lizenztyp": {"type": "string", "enum": ["Einzellizenz", "Volumenlizenz",
                                                      "Lerngruppenlizenz", "Schullizenz", "Gruppenlizenz"]},
-            "school_ID": {"type": "string"},
+            "school_ID": {"$ref": "#/definitions/restrictedstring"},
         },
         "required": [
             "lizenzcode",

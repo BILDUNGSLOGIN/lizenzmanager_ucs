@@ -169,7 +169,7 @@ def retrieve_media_feed(access_token, resource_server, modified_after):
     # type: (str, str, int) -> List[str]
     return requests.post(
         resource_server + "/external/univention/media/feed",
-        json={"modifiedAfter": modified_after},
+        json={"modifiedAfter": int(modified_after)},
         headers={
             "Authorization": "Bearer " + access_token,
             "Content-Type": "application/vnd.de.bildungslogin.mediafeed-query+json",

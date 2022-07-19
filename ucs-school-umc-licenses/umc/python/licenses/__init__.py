@@ -525,7 +525,7 @@ class Instance(SchoolBaseModule):
                 udm = UDM(ldap_user_write).version(1)
                 group_mod = udm.get("groups/group")
                 group_filter = filter_format("(name=%s)", [workgroup_name])
-                groups = group_mod.search(group_filter)
+                groups = [ o for o in group_mod.search(group_filter)]
                 if len(groups) == 1:
                     user_count = len(groups[0].props.users.objs)
         filter_s = "(|(product_id={0})(title={0})(publisher={0}))".format(pattern)
@@ -635,7 +635,7 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.products.get: result: %s" % str(result))
         self.finished(request.id, result)
 
-    pickup_regex = r"^\s*[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}-[a-zA-Z0-9]{3}\s*$"
+    pickup_regex = r"^\s*[A-Z]{3}-[\S]{3,251}\s*$"
 
     @staticmethod
     def _import_licenses(license_handler, license_file, school):

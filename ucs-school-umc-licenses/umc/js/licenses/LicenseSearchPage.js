@@ -85,9 +85,11 @@ define([
     allocation: "",
 
     _licenseTypes: [],
+    // reference to the currently active grid
     _grid: null,
     _gridFooter: null,
     _gridOverview: null,
+    _gridAllocation: null,
     _gridGroup: null,
     _searchForm: null,
 
@@ -209,8 +211,9 @@ define([
         this._headerButtons.changeMedium?.set("visible", false);
         this._headerButtons.changeUsers?.set("visible", false);
         this._headerButtons.close?.set("visible", true);
-        this.removeChild(this._grid);
+        this.removeChild(this._gridAllocation);
         this.addChild(this._gridGroup);
+        this._grid = this._gridGroup;
         const id = this.id + "-tooltip";
         const msg = `
 				<p>
@@ -245,12 +248,21 @@ define([
       } else if (allocation.workgroup || allocation.schoolClass) {
         this._headerButtons.changeMedium?.set("visible", true);
         this._headerButtons.close?.set("visible", false);
-        this.removeChild(this._grid);
+        this.removeChild(this._gridAllocation);
         this.addChild(this._gridGroup);
+        this._grid = this._gridGroup;
         const id = this.id + "-tooltip";
+        let assignmentLabel = entities.encode(_("Assign licenses to selected workgroup/class."))
+        if(allocation.userCount){
+          assignmentLabel = entities.encode(
+            allocation.userCount === 1
+              ? _("Assign licenses to 1 selected user.")
+              : _("Assign licenses to %s selected users.", allocation.userCount)
+          )
+        }
         const msg = `
 				<p>
-					${entities.encode(_("Assign licenses to selected workgroup/class."))}
+					${assignmentLabel}
 					<span id="${id}" class="licensesShowSelection">
 						(${entities.encode(_("show selected workgroup/class"))})
 					</span>
@@ -359,8 +371,6 @@ define([
         }
       }
       this._grid.filter(values);
-      this._gridOverview.filter(values);
-      this._gridGroup.filter(values);
       values.licenseType = "";
     },
 
@@ -413,7 +423,6 @@ define([
     },
 
     buildRendering: function () {
-      console.log('school id: ', this.schoolId)
       this.inherited(arguments);
 
       this._assignmentText = new Text({
@@ -519,7 +528,7 @@ define([
             },
             size: "TwoThirds",
             visible: false,
-            onChange : lang.hitch(this, function (values) {
+            onChange: lang.hitch(this, function (values) {
               this.onChooseDifferentWorkgroup(values);
             })
           },
@@ -534,7 +543,7 @@ define([
             },
             size: "TwoThirds",
             visible: false,
-            onChange : lang.hitch(this, function (values) {
+            onChange: lang.hitch(this, function (values) {
               this.onChooseDifferentClass(values);
             })
           },
@@ -1044,12 +1053,12 @@ define([
         },
       ];
       // const columnsFooter = [
-        // {
-        //   name: "sum",
-        //   label: _("Sum"),
-        //   width: "370px",
-        //   sortable: false,
-        // },
+      // {
+      //   name: "sum",
+      //   label: _("Sum"),
+      //   width: "370px",
+      //   sortable: false,
+      // },
       //   {
       //     name: "maxUser",
       //     label: this.maxUserSum, // TODO: fill real value
@@ -1157,7 +1166,7 @@ define([
         },
       ];
 
-      this._grid = new Grid({
+      this._gridAllocation = new Grid({
         actions: actions,
         columns: columns,
         moduleStore: store("licenseCode", "licenses"),
@@ -1200,10 +1209,11 @@ define([
       this.addChild(this._searchForm);
 
       if (this.moduleFlavor == "licenses/allocation") {
-        this.addChild(this._grid);
+        this.addChild(this._gridAllocation);
+        this._grid = this._gridAllocation
       } else {
         this.addChild(this._gridOverview);
-        // this.addChild(this._gridFooter);
+        this._grid = this._gridOverview
       }
     },
   });

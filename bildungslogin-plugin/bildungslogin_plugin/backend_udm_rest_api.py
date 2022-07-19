@@ -97,10 +97,10 @@ class UdmRestApiBackend(DbBackend):
         # in the first iteration (MVP) given names and family names are not allowed to be exposed:
         first_name = None
         if user.props.firstname:
-            first_name = f"Vorname ({zlib.crc32(user.props.firstname.encode('UTF-8'))})"
+            first_name = user.props.firstname
         last_name = None
         if user.props.lastname:
-            last_name = f"Nachname ({zlib.crc32(user.props.lastname.encode('UTF-8'))})"
+            last_name = user.props.lastname
         licenses = await self.get_licenses_and_set_assignment_status(ObjectType.USER, user)
         return_obj = User(id=user_id,
                           first_name=first_name,

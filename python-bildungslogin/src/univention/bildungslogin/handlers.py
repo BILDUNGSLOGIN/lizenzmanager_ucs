@@ -137,6 +137,8 @@ class LicenseHandler:
                     append_value = _object_factory(udm_user, assignment)
                     school_roles = [x[0] for x in role_data if x[1] == 'school' and x[2] == school_ou]
                     append_value["roles"] = school_roles
+                    role_labels = Role.label(school_roles)
+                    append_value["roleLabels"] = role_labels
                     users.append(append_value)
                 except:
                     pass
@@ -153,6 +155,8 @@ class LicenseHandler:
                         append_value = _object_factory(udm_user, assignment)
                         school_roles = [x[0] for x in role_data if x[1] == 'school' and x[2] == school_ou]
                         append_value["roles"] = school_roles
+                        role_labels = Role.label(school_roles)
+                        append_value["roleLabels"] = role_labels
                         users.append(append_value)
                 except:
                     pass
@@ -171,6 +175,8 @@ class LicenseHandler:
                     append_value = _object_factory(udm_user, assignment)
                     school_roles = [x[0] for x in role_data if x[1] == 'school' and x[2] == school_ou]
                     append_value["roles"] = school_roles
+                    role_labels = Role.label(school_roles)
+                    append_value["roleLabels"] = role_labels
                     users.append(append_value)
         else:
             raise RuntimeError("Unknown license type: {}".format(license.license_type))
@@ -305,7 +311,7 @@ class LicenseHandler:
             return 0
         return self._count_leftover_users(license)
 
-    def get_licenses_for_user(self, filter_s):  # type: (str) -> Set[UdmObject]
+    def get_licenses_for_user(self, filter_s, school):  # type: (str) -> Set[UdmObject]
         users = self._users_mod.search(filter_s)
         licenses = set()
         for user in users:
@@ -315,7 +321,11 @@ class LicenseHandler:
                                  for group_dn in user.props.groups]
             group_assignments = [self.ah.get_all_assignments_for_uuid(entry_uuid) for entry_uuid in group_entry_uuids]
             group_assignment_list = [x for l in group_assignments for x in l]
-            for assignment in assignments + group_assignment_list:
+            school_filter = filter_format("(&(name=%s)(objectClass=ucsschoolOrganizationalUnit))", [school])
+            school_obj = [x for x in self._schools_mod.search(school_filter)][0]
+            school_uuid = get_entry_uuid(self._schools_mod.connection, school_obj.dn)
+            school_assignment_list = self.ah.get_all_assignments_for_uuid(school_uuid)
+            for assignment in assignments + group_assignment_list + school_assignment_list:
                 licenses.add(self.ah.get_license_by_license_code(str(assignment.license)))
         return licenses
 
@@ -464,7 +474,7 @@ class LicenseHandler:
                 if klass and klass != "__all__":
                     class_parts = "(memberOf={})".format(escape_filter_chars(klass))
                 user_parts = "(|{}{})".format(pattern_parts, class_parts)
-                possible_licenses = self.get_licenses_for_user(user_parts)
+                possible_licenses = self.get_licenses_for_user(user_parts, school)
                 if not possible_licenses:
                     return None
                 else:

@@ -266,7 +266,8 @@ define([
             workgroup,
             schoolClass,
             workgroupName,
-            className
+            className,
+            userCount
           ) {
             this._licenseSearchPage.set("allocation", {
               productId: productId,
@@ -274,6 +275,7 @@ define([
               schoolClass: schoolClass,
               className: className,
               workgroupName: workgroupName,
+              userCount: userCount
             });
             this.selectChild(this._licenseSearchPage);
             if (this._lastSelectedProductId !== productId) {
@@ -318,7 +320,8 @@ define([
 
       this.selectChild(this._userSelectionPage);
       this._userSelectionPage.query();
-      this._productSearchPage.query();
+      // don't query until user selected
+      //this._productSearchPage.query();
     },
 
     _showProduct: function (productId) {

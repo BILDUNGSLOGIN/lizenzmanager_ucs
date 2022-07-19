@@ -70,6 +70,19 @@ PULL_LICENSE_RESPONSE_MOCK = {
 LICENSE_RETRIEVAL_SCHEMA = {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
+    "definitions": {
+        "restrictednonnullstring": {
+            "type": "string",
+            "minLength": 0,
+            "maxlength": 255
+        },
+        "restrictedstring": {
+            "type": ["string", "null"],
+            "minLength": 0,
+            "maxlength": 255
+        },
+
+    },
     "properties": {
         "licenses": {
             "type": "array",
@@ -78,34 +91,34 @@ LICENSE_RETRIEVAL_SCHEMA = {
                     "type": "object",
                     "properties": {
                         "lizenzcode": {
-                            "type": "string"
+                            "$ref": "#/definitions/restrictednonnullstring"
                         },
                         "product_id": {
-                            "type": "string"
+                            "$ref": "#/definitions/restrictednonnullstring"
                         },
                         "lizenzanzahl": {
-                            "type": "integer"
+                            "type": "integer", "minimum": 0
                         },
                         "lizenzgeber": {
-                            "type": "string"
+                            "$ref": "#/definitions/restrictednonnullstring"
                         },
                         "kaufreferenz": {
-                            "type": "string"
+                            "$ref": "#/definitions/restrictedstring"
                         },
                         "nutzungssysteme": {
-                            "type": "string"
+                            "$ref": "#/definitions/restrictedstring"
                         },
                         "gueltigkeitsbeginn": {
-                            "type": "string"
+                            "type": ["string", "null"]
                         },
                         "gueltigkeitsende": {
-                            "type": "string"
+                            "type": ["string", "null"]
                         },
                         "gueltigkeitsdauer": {
-                            "type": "string"
+                            "$ref": "#/definitions/restrictedstring"
                         },
                         "sonderlizenz": {
-                            "type": "string"
+                            "type": ["string", "null"]
                         }
                     },
                     "required": [
