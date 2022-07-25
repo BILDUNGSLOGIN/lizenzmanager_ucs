@@ -188,7 +188,7 @@ define([
             usernames: usernames,
           });
           this.selectChild(this._productSearchPage);
-          this._productSearchPage.refreshGrid({ pattern: "" });
+          this._productSearchPage.refreshGrid({ pattern: "" }, true);
         })
       );
       on(
@@ -223,7 +223,7 @@ define([
               workgroupName: workgroupName,
             });
             this.selectChild(this._productSearchPage);
-            this._productSearchPage.refreshGrid({ pattern: "" });
+            this._productSearchPage.refreshGrid({ pattern: "" }, true);
           }
         )
       );

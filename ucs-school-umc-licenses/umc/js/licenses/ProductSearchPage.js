@@ -284,7 +284,7 @@ define([
       // event stub
     },
 
-    refreshGrid: function (values) {
+    refreshGrid: function (values,resize=false) {
       values.school = this.schoolId;
       if (this.moduleFlavor === "licenses/allocation" && this.allocation) {
         if (this.allocation.usernames) {
@@ -292,6 +292,9 @@ define([
           this._grid.filter(values);
           this.removeChild(this._gridGroup);
           this.addChild(this._grid);
+          if (resize) {
+            this._grid.resize();
+          }
         } else if (this.allocation.workgroup) {
           if (this.allocation.workgroup && this.allocation.workgroup !== "__all__") {
             values.groupName = this.parseGroupName(this.allocation.workgroup)
@@ -312,6 +315,9 @@ define([
             })
           this.removeChild(this._grid);
           this.addChild(this._gridGroup);
+          if (resize) {
+            this._gridGroup.resize();
+          }
         }
       } else {
         this._grid.filter(values);
