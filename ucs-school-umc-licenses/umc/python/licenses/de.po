@@ -26,14 +26,16 @@ msgstr ""
 
 #: umc/python/licenses/__init__.py:147
 msgid ""
-"The query you have entered yields too many matching entries. Please narrow "
-"down your search by specifying more query parameters. The current size limit "
-"of {} can be configured with the UCR variable directory/manager/web/"
-"sizelimit."
+"Hint"
+"The number of licenses to be displayed is over {} and thus exceeds the set maximum value."
+"You can use the filter/search parameters to limit the selection."
+"Alternatively, the maximum number for the display can be adjusted by an administrator with "
+"the UCR variable directory/manager/web/sizelimit."
 msgstr ""
-"Die angeforderte Suche lieferte zu viele Ergebnisse und wurde abgebrochen. "
-"Bitte schränken Sie die Suche durch weitere Suchparameter ein. Die momentane "
-"Begrenzung der Anzahl an Treffern beträgt {} und kann mit der UCR-Variable "
+"Hinweis"
+"Die Anzahl der anzuzeigenden Lizenzen liegt über {} und überschreitet damit den eingestellen "
+"Maximalwert. Über die Filter/Suchparameter haben Sie die Möglichkeit, die Auswahl einzuschränken."
+"Alternativ kann die Maximalzahl für die Anzeige von einem Administrator mit der UCR-Variable"
 "directory/manager/web/sizelimit angepasst werden."
 
 #: umc/python/licenses/__init__.py:591

@@ -247,6 +247,7 @@ define([
           .then(
             lang.hitch(this, function (response) {
               const license = response.result;
+              console.log('license', license);
               this.set("license", license);
               this._headerButtons.save.set("disabled", true);
               return license.licenseCode;

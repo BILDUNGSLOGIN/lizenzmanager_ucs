@@ -34,6 +34,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
 from ldap.filter import filter_format
+from ldap.filter import escape_filter_chars
 
 from ucsschool.lib.roles import get_role_info
 from univention.admin.syntax import iso8601Date
@@ -47,7 +48,7 @@ from .exceptions import (
     BiloLicenseNotFoundError,
     BiloProductNotFoundError,
 )
-from .models import Assignment, License, LicenseType, MetaData, Status
+from .models import Assignment, License, LicenseType, MetaData, Status, Role
 from .utils import get_entry_uuid, ldap_escape
 
 if TYPE_CHECKING:
@@ -55,7 +56,6 @@ if TYPE_CHECKING:
     from univention.udm.base import BaseObject as UdmObject
 
 _ = Translation("python-bildungslogin").translate
-
 
 
 class LicenseHandler:
@@ -107,7 +107,7 @@ class LicenseHandler:
         else:
             raise RuntimeError("Unknown license type: {}".format(license.license_type))
 
-    def get_assigned_users(self, license):  # type: (License) -> List[Dict[str, Any]]
+    def get_assigned_users(self, license):
         """
         Get users assigned to the license:
         - Directly assigned users for the SINGLE/VOLUME licenses
@@ -122,7 +122,7 @@ class LicenseHandler:
                 "statusLabel": Status.label(input_assignment.status),
                 "dateOfAssignment": input_assignment.time_of_assignment,
             }
-
+        school_ou = license.license_school
         assignments = self.get_assignments_for_license_with_filter(license, "(assignee=*)")
         users = []
         if license.license_type in [LicenseType.SINGLE, LicenseType.VOLUME]:
@@ -130,7 +130,14 @@ class LicenseHandler:
                 try:
                     [udm_user] = self._users_mod.search(
                         filter_format("(entryUUID=%s)", [assignment.assignee]))
-                    users.append(_object_factory(udm_user, assignment))
+                    role_data = {get_role_info(role) for role in udm_user.props.ucsschoolRole}
+                    roles = {x[0] for x in role_data}
+                    if license.license_special_type == "Lehrkraft" and "teacher" not in roles:
+                        continue
+                    append_value = _object_factory(udm_user, assignment)
+                    school_roles = [x[0] for x in role_data if x[1] == 'school' and x[2] == school_ou]
+                    append_value["roles"] = school_roles
+                    users.append(append_value)
                 except:
                     pass
         elif license.license_type == LicenseType.WORKGROUP:
@@ -139,7 +146,14 @@ class LicenseHandler:
                     [group] = self._groups_mod.search(
                         filter_format("(entryUUID=%s)", [assignment.assignee]))
                     for udm_user in group.props.users.objs:
-                        users.append(_object_factory(udm_user, assignment))
+                        role_data = {get_role_info(role) for role in udm_user.props.ucsschoolRole}
+                        roles = {x[0] for x in role_data}
+                        if license.license_special_type == "Lehrkraft" and "teacher" not in roles:
+                            continue
+                        append_value = _object_factory(udm_user, assignment)
+                        school_roles = [x[0] for x in role_data if x[1] == 'school' and x[2] == school_ou]
+                        append_value["roles"] = school_roles
+                        users.append(append_value)
                 except:
                     pass
         elif license.license_type == LicenseType.SCHOOL:
@@ -150,10 +164,14 @@ class LicenseHandler:
                     filter_format("(school=%s)", [school.props.name]))
                 for udm_user in udm_users:
                     # filter out users without "teacher" role for the "Lehrkraft"-type license
-                    roles = {get_role_info(role)[0] for role in udm_user.props.ucsschoolRole}
+                    role_data = {get_role_info(role) for role in udm_user.props.ucsschoolRole}
+                    roles = {x[0] for x in role_data}
                     if license.license_special_type == "Lehrkraft" and "teacher" not in roles:
                         continue
-                    users.append(_object_factory(udm_user, assignment))
+                    append_value = _object_factory(udm_user, assignment)
+                    school_roles = [x[0] for x in role_data if x[1] == 'school' and x[2] == school_ou]
+                    append_value["roles"] = school_roles
+                    users.append(append_value)
         else:
             raise RuntimeError("Unknown license type: {}".format(license.license_type))
         return users
@@ -338,6 +356,7 @@ class LicenseHandler:
             pattern="",  # type: Optional[str]
             restrict_to_this_product_id="",  # type: Optional[str]
             sizelimit=0,  # type: int
+            klass=None,   # type: str
     ):
         if license_types is None:
             license_types = []
@@ -436,12 +455,16 @@ class LicenseHandler:
                             )
                         )
                     )
-            if user_pattern and user_pattern != "*":
-                possible_licenses = self.get_licenses_for_user(
-                    "(|(givenName={user_pattern})(sn={user_pattern})(uid={user_pattern}))".format(
-                        user_pattern=ldap_escape(user_pattern)
-                    )
-                )
+            if (user_pattern and user_pattern != "*") or (klass and klass != "__all__"):
+                pattern_parts = ""
+                class_parts = ""
+                if user_pattern and user_pattern != '*':
+                    pattern_parts = "(givenName={user_pattern})(sn={user_pattern})(uid={user_pattern})".format(
+                        user_pattern=ldap_escape(user_pattern))
+                if klass and klass != "__all__":
+                    class_parts = "(memberOf={})".format(escape_filter_chars(klass))
+                user_parts = "(|{}{})".format(pattern_parts, class_parts)
+                possible_licenses = self.get_licenses_for_user(user_parts)
                 if not possible_licenses:
                     return None
                 else:
@@ -828,7 +851,7 @@ class AssignmentHandler:
         if license_quantity != 0 and users_count > license_quantity:
             raise BiloAssignmentError(
                 _("This license is allowed for assignments to schools including a maximum "
-                  "of <{ous}> members. Please modify your school selection accordingly")
+                  "of <{ous}> members. The selected school exceeds this number of users")
                 .format(ous=license_quantity))
 
     @staticmethod

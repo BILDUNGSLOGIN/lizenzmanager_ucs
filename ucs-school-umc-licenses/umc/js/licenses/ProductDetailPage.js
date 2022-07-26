@@ -351,19 +351,19 @@ define([
         },
         selectorType: "radio",
       });
-      this._gridFooter = new Grid({
-        columns: columnsFooter,
-        class: "licensesTable__sum",
-        gridOptions: {
-          selectionMode: "none",
-        },
-        moduleStore: new Observable(
-          new Memory({
-            data: [],
-            idProperty: "",
-          })
-        ),
-      });
+      // this._gridFooter = new Grid({
+      //   columns: columnsFooter,
+      //   class: "licensesTable__sum",
+      //   gridOptions: {
+      //     selectionMode: "none",
+      //   },
+      //   moduleStore: new Observable(
+      //     new Memory({
+      //       data: [],
+      //       idProperty: "",
+      //     })
+      //   ),
+      // });
 
       this.addChild(this._table);
       this.addChild(this._grid);

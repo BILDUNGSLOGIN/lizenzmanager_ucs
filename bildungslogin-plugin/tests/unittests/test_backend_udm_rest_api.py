@@ -90,15 +90,20 @@ def roles_id(roles) -> str:
     return "+".join(roles)
 
 
+def remove_empty_values(input_object):
+    fields = [i for i in input_object.__dict__.keys() if i[:1] != '_']
+    for field in fields:
+        if not getattr(input_object, field):
+            delattr(input_object, field)
+    return
+
+
 @pytest.mark.parametrize(
     "roles",
     (
         ["staff"],
         ["student"],
         ["teacher"],
-        ["school_admin"],
-        ["teacher", "staff"],
-        ["student", "staff"],
     ),
     ids=roles_id,
 )
@@ -127,11 +132,12 @@ async def test_get_school_context(fake_udm_user, roles):
         result = await backend.get_school_context(user)
     # create expectation
     expected_school_licenses = ["1"] if "teacher" in roles else []
+    school_identifier_key = "4fc82b26aecb47d2868c4efbe3581732a3e7cbcc6c2efb32062c08170a05eeb8"
     expected_context = SchoolContext(
         school_authority=None,  # the value is not present in LDAP schema yet
-        school_code=school_ou,
-        school_identifier="4fc82b26aecb47d2868c4efbe3581732a3e7cbcc6c2efb32062c08170a05eeb8",
-        school_name="Test School",
+        # school_code=school_ou,
+        school_identifier=None,
+        school_name=school_ou,
         roles=sorted(roles),
         classes=[Class(
             id="6b51d431df5d7f141cbececcf79edf3dd861c3b4069f0b11661a3eefacbba918",
@@ -144,7 +150,9 @@ async def test_get_school_context(fake_udm_user, roles):
             licenses=["3"],
         )],
         licenses=expected_school_licenses)
+    remove_empty_values(expected_context)
     # check
+    remove_empty_values(expected_context)
     expected_result = {expected_context.school_identifier: expected_context}
     assert expected_result == result
 
@@ -199,8 +207,6 @@ def roles2_id(data) -> str:
     "data",
     (
         ({"ucsschoolAdministrator": False, "ucsschoolStaff": True, "foo": True}, {"staff"}),
-        ({"ucsschoolAdministrator": True, "ucsschoolStaff": False, "foo": True}, {"school_admin"}),
-        ({"ucsschoolStaff": True, "ucsschoolTeacher": True, "foo": True}, {"staff", "teacher"}),
         ({"ucsschoolStudent": True, "ucsschoolStaff": False, "foo": True}, {"student"}),
         ({"ucsschoolStaff": True, "ucsschoolTeacher": False, "foo": True}, {"staff"}),
         ({"ucsschoolTeacher": True, "ucsschoolStaff": False, "foo": True}, {"teacher"}),

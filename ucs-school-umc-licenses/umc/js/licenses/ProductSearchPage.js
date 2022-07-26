@@ -453,38 +453,39 @@ define([
           },
         },
       ];
-      const columnsFooter = [
-        {
-          name: "sum",
-          label: _("Sum"),
-          width: "465px",
-          sortable: false,
-        },
-        {
-          name: "maxUser",
-          label: this.maxUserSum, // TODO: fill real value
-          width: "93px",
-          sortable: false,
-        },
-        {
-          name: "assigned",
-          label: this.assignedSum, // TODO: fill real value
-          width: "93px",
-          sortable: false,
-        },
-        {
-          name: "expired",
-          label: this.expiredSum, // TODO: fill real value
-          width: "93px",
-          sortable: false,
-        },
-        {
-          name: "available",
-          label: this.availableSum, // TODO: fill real value
-          width: "270px",
-          sortable: false,
-        },
-      ];
+      // const columnsFooter = [
+      //   {
+      //     name: "sum",
+      //     label: _("Sum"),
+      //     width: "465px",
+      //     sortable: false,
+      //   },
+      //   {
+      //     name: "maxUser",
+      //     label: this.maxUserSum, // TODO: fill real value
+      //     width: "93px",
+      //     sortable: false,
+      //   },
+      //   {
+      //     name: "assigned",
+      //     label: this.assignedSum, // TODO: fill real value
+      //     width: "93px",
+      //     sortable: false,
+      //   },
+      //   {
+      //     name: "expired",
+      //     label: this.expiredSum, // TODO: fill real value
+      //     width: "93px",
+      //     sortable: false,
+      //   },
+      //   {
+      //     name: "available",
+      //     label: this.availableSum, // TODO: fill real value
+      //     width: "270px",
+      //     sortable: false,
+      //   },
+      // ];
+
       this._grid = new Grid({
         actions: actions,
         columns: columns,
@@ -504,11 +505,11 @@ define([
         selectorType: "radio",
       });
 
-      this._gridFooter = new Grid({
-        columns: columnsFooter,
-        class: "licensesTable__sum",
-        moduleStore: store("licenseCode", "licenses"),
-      });
+      // this._gridFooter = new Grid({
+      //   columns: columnsFooter,
+      //   class: "licensesTable__sum",
+      //   moduleStore: store("licenseCode", "licenses"),
+      // });
 
       // FIXME(?) usage of private inherited variables
       aspect.around(

@@ -55,11 +55,7 @@ def test_license_schema():
         "lizenzcode",
         "product_id",
         "lizenzanzahl",
-        "lizenzgeber",
-        "kaufreferenz",
-        "nutzungssysteme",
-        "gueltigkeitsbeginn",
-        "gueltigkeitsdauer",
+        "lizenzgeber"
     ],
 )
 def test_license_schema_validation_required_fails(field_name):

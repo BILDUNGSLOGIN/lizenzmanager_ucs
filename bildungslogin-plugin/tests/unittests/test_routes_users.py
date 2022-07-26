@@ -29,7 +29,7 @@ async def test_routes_v1_users_get(client, fake_db_backend, set_the_backend):
             ou: SchoolContext(
                 school_authority=None,
                 school_code=fake.unique.word(),
-                school_identifier=fake.unique.word(),
+                school_identifier=None,
                 school_name=fake.unique.word(),
                 licenses=_get_licenses(),
                 classes=[Class(name=n,

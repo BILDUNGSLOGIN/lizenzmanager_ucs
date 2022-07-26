@@ -35,6 +35,7 @@ from typing import Callable, Dict, List, Optional, Union
 
 from ldap.dn import is_dn
 from ldap.filter import escape_filter_chars
+from ldap.filter import filter_format
 
 from ucsschool.lib.models.group import SchoolClass, WorkGroup
 from ucsschool.lib.models.user import User
@@ -115,6 +116,7 @@ class Instance(SchoolBaseModule):
             product -- str
             licenseCode -- str
             pattern -- str
+            class -- str
         }
         """
         MODULE.error("licenses.licenses_query: options: %s" % str(request.options))
@@ -124,6 +126,9 @@ class Instance(SchoolBaseModule):
         time_from = iso8601Date.to_datetime(time_from) if time_from else None
         time_to = request.options.get("timeTo")
         time_to = iso8601Date.to_datetime(time_to) if time_to else None
+        klass = request.options.get("class", None)
+        if not klass:
+            klass = request.options.get("workgroup", None)
         try:
             result = lh.search_for_licenses(
                 is_advanced_search=request.options.get("isAdvancedSearch"),
@@ -140,14 +145,15 @@ class Instance(SchoolBaseModule):
                 pattern=request.options.get("pattern"),
                 restrict_to_this_product_id=request.options.get("allocationProductId"),
                 sizelimit=sizelimit,
+                klass=klass,
             )
         except SearchLimitReached:
             raise UMC_Error(
-                _(
-                    "The query you have entered yields too many matching entries. "
-                    "Please narrow down your search by specifying more query parameters. "
-                    "The current size limit of {} can be configured with the UCR variable "
-                    "directory/manager/web/sizelimit."
+                _(  "Hint"
+                    "The number of licenses to be displayed is over {} and thus exceeds the set maximum value."
+                    "You can use the filter/search parameters to limit the selection."
+                    "Alternatively, the maximum number for the display can be adjusted by an administrator with "
+                    "the UCR variable directory/manager/web/sizelimit."
                 ).format(sizelimit)
             )
         for res in result:
@@ -474,6 +480,8 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.query: result: %s" % str(result))
         self.finished(request.id, result)
 
+    # def get_user_count_workgroup(self):
+
     @staticmethod
     def _sum_values_for_licenses(licenses, getter):
         # type: (List[License], Callable[[License], Optional[int]]) -> Optional[int]
@@ -509,7 +517,17 @@ class Instance(SchoolBaseModule):
         lh = LicenseHandler(ldap_user_write)
         school = request.options.get("school")
         pattern = request.options.get("pattern")
-        license_types = request.options.get("licenseType")
+        license_types = request.options.get("licenseType", None)
+        user_count = None
+        if license_types is not None and "WORKGROUP" in license_types:
+            workgroup_name = request.options.get("groupName", None)
+            if workgroup_name is not None:
+                udm = UDM(ldap_user_write).version(1)
+                group_mod = udm.get("groups/group")
+                group_filter = filter_format("(name=%s)", [workgroup_name])
+                groups = group_mod.search(group_filter)
+                if len(groups) == 1:
+                    user_count = len(groups[0].props.users.objs)
         filter_s = "(|(product_id={0})(title={0})(publisher={0}))".format(pattern)
         meta_data_objs = mh.get_all(filter_s)
         for meta_datum_obj in meta_data_objs:
@@ -554,6 +572,7 @@ class Instance(SchoolBaseModule):
                         "countLicensesAssigned": number_of_assigned_licenses,
                         "countLicensesExpired": number_of_expired_licenses,
                         "countLicensesAvailable": number_of_available_licenses,
+                        "user_count": user_count
                     }
                 )
         MODULE.info("licenses.products.query: result: %s" % str(result))

@@ -41,6 +41,8 @@ define([
   "umc/widgets/Form",
   "umc/widgets/SuggestionBox",
   "umc/widgets/Text",
+  "dijit/_WidgetBase",
+  "dijit/_TemplatedMixin",
   "umc/i18n!umc/modules/licenses",
 ], function (
   declare,
@@ -55,8 +57,37 @@ define([
   Form,
   SuggestionBox,
   Text,
+  _WidgetBase,
+  _TemplatedMixin,
   _
 ) {
+  const _Description = declare("umc.modules.licenses.Description", [_WidgetBase, _TemplatedMixin], {
+    //// overwrites
+    templateString: `
+<div class="description-columns">
+    <div class="description-col">
+    <h5>${_("Single and Volume Licences")}</h5>
+    ${_("In the case of single licenses, each license has its own license code. This can only be assigned once in order to give a person authorization to use a medium." +
+      "In the case of volume licenses, multiple licenses are associated with one license code. I.e. the license code can be assigned several times (up to the specified maximum number) in order to grant usage rights for a medium to a corresponding number of persons. The assignment itself can also be divided into several cases.")}
+    </div class="description-col">
+    <div class="description-col">
+    <h5>${_("Learning Group Licences")}</h5>
+    ${_("By assigning a learning group license, all members of a class or learning group (up to the specified maximum number, if applicable) are granted usage rights via a license code. If a new member joins the class or learning group during the license term, he or she will automatically also gain the usage authority for the relevant medium. If a member leaves the class or learning group, he or she automatically loses the usage authorization.\n" +
+      "A learning group license can only be assigned once and cannot be released again.")}
+    </div class="description-col">
+    <div class="description-col">
+    <h5>${_("School Licences")}</h5>
+    ${_("By assigning a school license, a license code is issued to all students and teaching staff of a school staff (up to the specified maximum number, if applicable). In the case of a special school license for teachers, the usage authorization applies only to the teaching staff. Anyone who joins the school during the term of the license is automatically also granted a right to use the relevant medium.\n" +
+      "A school license can only be assigned once and cannot be released again.")}
+    </div class="description-col">
+</div>
+		`,
+
+    //// self
+    standbyDuring: null, // required
+
+  })
+
   return declare("umc.modules.licenses.UserSelectionPage", [Page], {
     //// overwrites
     fullWidth: true,
@@ -86,24 +117,29 @@ define([
       // event stub
     },
 
-    onUsersSelected: function (userIds) {},
+    onUsersSelected: function (userIds) {
+    },
 
-    onSchoolSelected: function (schoolId) {},
+    onSchoolSelected: function (schoolId) {
+    },
 
-    onLicenseTypeSelected: function (licenseType) {},
+    onLicenseTypeSelected: function (licenseType) {
+    },
 
     onWorkgroupSelected: function (
       classId,
       workgroupId,
       className,
       workgroupName
-    ) {},
+    ) {
+    },
 
     onSearchSubmit: function (values) {
       this.toogleNotification("");
       if (this.selectedLicenseType === "SINGLE_AND_VOLUME") {
         this._searchForm.getButton("submit").set("visible", false);
         this.addChild(this._grid);
+        this.removeChild(this._description)
         if (values.class.trim() === "") {
           const classWidget = this._searchForm.getWidget("class");
           classWidget.reset();
@@ -172,6 +208,7 @@ define([
     onChooseLicenseType: function (licenseType) {
       this.toogleNotification("");
       this.removeChild(this._grid);
+      this.addChild(this._description)
       this._searchForm.getButton("submit").set("visible", true);
       this.onLicenseTypeSelected(licenseType);
       switch (licenseType) {
@@ -260,7 +297,7 @@ define([
       const workgroupWidget = {
         type: ComboBox,
         name: "workgroup",
-        staticValues: [{ id: "__all__", label: _("All workgroups") }],
+        staticValues: [{id: "__all__", label: _("All workgroups")}],
         dynamicValues: "licenses/workgroups",
         dynamicOptions: {
           school: this.schoolId,
@@ -278,7 +315,7 @@ define([
       const classWidget = {
         type: SuggestionBox,
         name: "class",
-        staticValues: [{ id: "__all__", label: _("All classes") }],
+        staticValues: [{id: "__all__", label: _("All classes")}],
         dynamicValues: "licenses/classes",
         dynamicOptions: {
           school: this.schoolId,
@@ -299,7 +336,7 @@ define([
           name: "licenseType",
           label: _("License type"),
           staticValues: [
-            { id: "SINGLE_AND_VOLUME", label: _("Single- / Volumelicense") },
+            {id: "SINGLE_AND_VOLUME", label: _("Single- / Volumelicense")},
             {
               id: "WORKGROUP",
               label: _("Workgroup license"),
@@ -414,6 +451,9 @@ define([
       });
 
       this.addChild(this._searchForm);
+
+      this._description = new _Description({});
+      this.addChild(this._description);
     },
   });
 });

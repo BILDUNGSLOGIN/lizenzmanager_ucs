@@ -78,10 +78,10 @@ msgstr "Lizenz kann nicht an User in Schulen {ous} zugewiesen werden!"
 #, python-brace-format
 msgid ""
 "This license is allowed for assignments to schools including a maximum "
-"of <{ous}> members. Please modify your school selection accordingly"
+"of <{ous}> members. The selected school exceeds this number of users"
 msgstr ""
 "Diese Lizenz ist für Zuweisungen an Schulen mit maximal <{ous}> "
-"Mitgliedern zulässig. Bitte ändern Sie Ihre Schulauswahl entsprechend"
+"Mitgliedern zulässig. Die ausgewählte Schule überschreitet diese Nutzerzahl."
 
 #: src/univention/bildungslogin/handlers.py:684
 msgid "License is 'ignored for display' and thus can't be assigned!"

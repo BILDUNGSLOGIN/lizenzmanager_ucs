@@ -35,22 +35,22 @@
   height: min-content;
 }
 
-.licensesTable__licenses .dgrid {
-  max-height: 40em !important;
-}
+/*.licensesTable__licenses .dgrid {*/
+/*  max-height: 40em !important;*/
+/*}*/
 
-.licensesTable__sum .field-selectorType-checkbox {
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
+/*.licensesTable__sum .field-selectorType-checkbox {*/
+/*  visibility: hidden !important;*/
+/*  opacity: 0 !important;*/
+/*}*/
 
-.licensesTable__sum .dgrid-sort-arrow {
-  display: none !important;
-}
+/*.licensesTable__sum .dgrid-sort-arrow {*/
+/*  display: none !important;*/
+/*}*/
 
-.licensesTable__sum .dgrid-column-0 {
-  padding-left: 74px;
-}
+/*.licensesTable__sum .dgrid-column-0 {*/
+/*  padding-left: 74px;*/
+/*}*/
 
 .productsTable__data {
   flex: 1 1 auto;
@@ -106,4 +106,12 @@ form[name="searchForm"] .dijitButton {
   order: 1;
   margin: 2px;
   text-transform: none;
+}
+
+.description-columns {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  grid-column-gap: 25px;
+  margin-top: 30px;
 }

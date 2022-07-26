@@ -31,6 +31,14 @@ def _return_none_if_empty(input_string: str) -> Optional[str]:
     return input_string
 
 
+def remove_empty_values(input_object):
+    fields = [i for i in input_object.__dict__.keys() if i[:1] != '_']
+    for field in fields:
+        if not getattr(input_object, field):
+            delattr(input_object, field)
+    return
+
+
 class ObjectType(enum.Enum):
     GROUP = "group"
     SCHOOL = "school"
@@ -94,11 +102,13 @@ class UdmRestApiBackend(DbBackend):
         if user.props.lastname:
             last_name = f"Nachname ({zlib.crc32(user.props.lastname.encode('UTF-8'))})"
         licenses = await self.get_licenses_and_set_assignment_status(ObjectType.USER, user)
-        return User(id=user_id,
-                    first_name=first_name,
-                    last_name=last_name,
-                    context=await self.get_school_context(user),
-                    licenses=self._get_licenses_codes(licenses))
+        return_obj = User(id=user_id,
+                          first_name=first_name,
+                          last_name=last_name,
+                          context=await self.get_school_context(user),
+                          licenses=self._get_licenses_codes(licenses))
+        remove_empty_values(return_obj)
+        return return_obj
 
     async def _get_object_by_name(self, object_type: ObjectType, name: str) -> UdmObject:
         """
@@ -213,15 +223,16 @@ class UdmRestApiBackend(DbBackend):
             # Create school context object
             school_context = SchoolContext(
                 school_authority=None,  # the value is not present in LDAP schema yet
-                school_code=school.props.name,
-                school_identifier=_return_none_if_empty(school_id),
-                school_name=_return_none_if_empty(school.props.displayName),
+                # school_code=school.props.name,
+                school_identifier=None,
+                school_name=school.props.name,
                 roles=user_roles,
                 classes=[await self.get_class_info(school, c)
                          for c in await self.get_classes(user, school)],
                 workgroups=[await self.get_workgroup_info(school, w)
                             for w in await self.get_workgroups(user, school)],
                 licenses=self._get_licenses_codes(applicable_licenses))
+            remove_empty_values(school_context)
             output[school_id] = school_context
         return output
 

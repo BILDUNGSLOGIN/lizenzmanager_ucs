@@ -45,12 +45,12 @@ class SchoolContext(BaseModel):
     """
     school_authority: Optional[NonEmptyMaxLenStr] = \
         Field(None, description="School authority")
-    school_code: NonEmptyMaxLenStr = \
-        Field(..., description="A school abbreviation that the publisher can assign freely")
+    school_code: Optional[NonEmptyMaxLenStr] = \
+        Field(None, description="Only for backward compatibility")
     school_identifier: Optional[NonEmptyMaxLenStr] = \
         Field(None, description="A school abbreviation that is officially assigned (state/federal)")
     school_name: Optional[NonEmptyMaxLenStr] = \
-        Field(None, description="A self-assigned name for the school")
+        Field(None, description="A school abbreviation that the publisher can assign freely")
     classes: List[Class] = \
         Field(..., description="Classes of the school, the user is related to")
     roles: conlist(min_items=1, item_type=UserRole) = \

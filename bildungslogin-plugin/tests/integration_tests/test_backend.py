@@ -161,9 +161,10 @@ async def test_get_user(backend: UdmRestApiBackend, create_test_user, create_wor
         context={
             udm_school.uuid:
                 SchoolContext(school_authority=None,
-                              school_code=udm_school.props.name,
-                              school_identifier=udm_school.uuid,
-                              school_name=udm_school.props.displayName,
+                              # school_code=udm_school.props.name,
+                              school_name = udm_school.props.name,
+                              school_identifier=None,
+                              # school_name=udm_school.props.displayName,
                               licenses=[school_license.props.code],
                               classes=[Class(name=class_name,
                                              id=udm_class.uuid,

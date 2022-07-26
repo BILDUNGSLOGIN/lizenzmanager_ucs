@@ -124,12 +124,12 @@ define([
     },
 
     importSuccessful: function (res) {
-      let pickUpNumberRes = "<div>Pickup-Number: " + res.pickup + "</div>";
-      let jsonRes =
+      const importRes =`<div>${res.licenses.length} ${_("licenses were imported successfully")}.</div>`;
+      const jsonRes =
         "<div>License package:</div><pre>" +
         JSON.stringify(res.licenses, undefined, 3) +
         "</pre>";
-      let confirmationMsg = pickUpNumberRes + jsonRes;
+      const confirmationMsg = importRes + jsonRes
       dialog.confirm(_(confirmationMsg), [
         {
           label: _("Ok"),
@@ -137,6 +137,7 @@ define([
           callback: lang.hitch(this, "onBack"),
         },
       ]);
+      this._form.clearFormValues()
     },
 
     getImport: function (pickUpNumber) {
@@ -204,7 +205,6 @@ define([
           this.getImport(pickUpNumber);
         })
       );
-
       this.addChild(this._form);
     },
   });

@@ -48,6 +48,7 @@ define([
   "umc/widgets/SearchForm",
   "umc/widgets/Text",
   "umc/widgets/TextBox",
+  "umc/widgets/SuggestionBox",
   "umc/i18n!umc/modules/licenses",
 ], function (
   declare,
@@ -69,6 +70,7 @@ define([
   SearchForm,
   Text,
   TextBox,
+  SuggestionBox,
   _
 ) {
   return declare("umc.modules.licenses.LicenseSearchPage", [Page], {
@@ -99,6 +101,7 @@ define([
     _toggleSearch: function () {
       this._isAdvancedSearch = !this._isAdvancedSearch;
       // toggle visibility
+      console.log("Search", this)
       if (
         this.moduleFlavor === "licenses/licenses" ||
         this.allocation.usernames
@@ -113,6 +116,8 @@ define([
           "productId",
           "product",
           "licenseCode",
+          "workgroup",
+          "class"
         ].forEach(
           lang.hitch(this, function (widgetName) {
             const widget = this._searchForm.getWidget(widgetName);
@@ -131,6 +136,8 @@ define([
           "productId",
           "product",
           "licenseCode",
+          "workgroup",
+          "class"
         ].forEach(
           lang.hitch(this, function (widgetName) {
             const widget = this._searchForm.getWidget(widgetName);
@@ -165,10 +172,10 @@ define([
         const msg = `
 				<p>
 					${entities.encode(
-            count === 1
-              ? _("Assign licenses to 1 selected user.")
-              : _("Assign licenses to %s selected users.", count)
-          )}
+          count === 1
+            ? _("Assign licenses to 1 selected user.")
+            : _("Assign licenses to %s selected users.", count)
+        )}
 					<span id="${id}" class="licensesShowSelection">
 						(${entities.encode(_("show selected users"))})
 					</span>
@@ -363,9 +370,9 @@ define([
       const headerButtons = [];
       if (this.moduleFlavor === "licenses/allocation") {
         this._licenseTypes = [
-          { id: "", label: "" },
-          { id: "SINGLE", label: _("Single license") },
-          { id: "VOLUME", label: _("Volume license") },
+          {id: "", label: ""},
+          {id: "SINGLE", label: _("Single license")},
+          {id: "VOLUME", label: _("Volume license")},
         ];
         headerButtons.push({
           name: "changeUsers",
@@ -379,9 +386,9 @@ define([
         });
       } else {
         this._licenseTypes = [
-          { id: "", label: "" },
-          { id: "SINGLE", label: _("Single license") },
-          { id: "VOLUME", label: _("Volume license") },
+          {id: "", label: ""},
+          {id: "SINGLE", label: _("Single license")},
+          {id: "VOLUME", label: _("Volume license")},
           {
             id: "WORKGROUP",
             label: _("Workgroup license"),
@@ -396,6 +403,7 @@ define([
     },
 
     buildRendering: function () {
+      console.log('school id: ', this.schoolId)
       this.inherited(arguments);
 
       this._assignmentText = new Text({
@@ -451,6 +459,7 @@ define([
         },
       ];
       if (this.moduleFlavor !== "licenses/allocation") {
+        console.log('allocation widgets')
         widgets.push(
           {
             type: TextBox,
@@ -484,11 +493,35 @@ define([
             type: ComboBox,
             name: "publisher",
             label: _("Publisher"),
-            staticValues: [{ id: "", label: "" }],
+            staticValues: [{id: "", label: ""}],
             dynamicValues: "licenses/publishers",
             size: "TwoThirds",
             visible: false,
-          }
+          },
+          {
+            type: ComboBox,
+            name: "workgroup",
+            label: _("Assigned to Workgroup"),
+            staticValues: [{id: "", label: ""}],
+            dynamicValues: "licenses/workgroups",
+            dynamicOptions: {
+              school: this.schoolId,
+            },
+            size: "TwoThirds",
+            visible: false
+          },
+          {
+            type: SuggestionBox,
+            name: "class",
+            label: _("Assigned to Class"),
+            staticValues: [{id: "", label: ""}],
+            dynamicValues: "licenses/classes",
+            dynamicOptions: {
+              school: this.schoolId,
+            },
+            size: "TwoThirds",
+            visible: false
+          },
         );
       }
       let layout = null;
@@ -508,6 +541,7 @@ define([
         layout = [
           ["timeFrom", "timeTo", "onlyAvailableLicenses"],
           ["publisher", "licenseType", "userPattern"],
+          ["workgroup", "class"],
           [
             "productId",
             "product",
@@ -611,15 +645,15 @@ define([
                       msg +=
                         result.countSuccessfulAssignments > 0
                           ? entities.encode(
-                              _(
-                                "Some selected users could not be assigned licenses:"
-                              )
+                            _(
+                              "Some selected users could not be assigned licenses:"
                             )
+                          )
                           : entities.encode(
-                              _(
-                                "Failed to assign licenses to the selected users:"
-                              )
-                            );
+                            _(
+                              "Failed to assign licenses to the selected users:"
+                            )
+                          );
                       msg += "<ul>";
                       for (const error of result.failedAssignments) {
                         msg += "<li>" + entities.encode(error) + "</li>";
@@ -993,38 +1027,38 @@ define([
           },
         },
       ];
-      const columnsFooter = [
-        {
-          name: "sum",
-          label: _("Sum"),
-          width: "370px",
-          sortable: false,
-        },
-        {
-          name: "maxUser",
-          label: this.maxUserSum, // TODO: fill real value
-          width: "66px",
-          sortable: false,
-        },
-        {
-          name: "assigned",
-          label: this.assignedSum, // TODO: fill real value
-          width: "66px",
-          sortable: false,
-        },
-        {
-          name: "expired",
-          label: this.expiredSum, // TODO: fill real value
-          width: "66px",
-          sortable: false,
-        },
-        {
-          name: "available",
-          label: this.availableSum, // TODO: fill real value
-          width: "122px",
-          sortable: false,
-        },
-      ];
+      // const columnsFooter = [
+        // {
+        //   name: "sum",
+        //   label: _("Sum"),
+        //   width: "370px",
+        //   sortable: false,
+        // },
+      //   {
+      //     name: "maxUser",
+      //     label: this.maxUserSum, // TODO: fill real value
+      //     width: "66px",
+      //     sortable: false,
+      //   },
+      //   {
+      //     name: "assigned",
+      //     label: this.assignedSum, // TODO: fill real value
+      //     width: "66px",
+      //     sortable: false,
+      //   },
+      //   {
+      //     name: "expired",
+      //     label: this.expiredSum, // TODO: fill real value
+      //     width: "66px",
+      //     sortable: false,
+      //   },
+      //   {
+      //     name: "available",
+      //     label: this.availableSum, // TODO: fill real value
+      //     width: "122px",
+      //     sortable: false,
+      //   },
+      // ];
 
       const columnsGroup = [
         {
@@ -1115,11 +1149,11 @@ define([
         addTitleOnCellHoverIfOverflow: true,
       });
 
-      this._gridFooter = new Grid({
-        columns: columnsFooter,
-        class: "licensesTable__sum",
-        moduleStore: store("licenseCode", "licenses"),
-      });
+      // this._gridFooter = new Grid({
+      //   columns: columnsFooter,
+      //   class: "licensesTable__sum",
+      //   moduleStore: store("licenseCode", "licenses"),
+      // });
 
       this._gridOverview = new Grid({
         actions: actions,
