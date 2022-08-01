@@ -48,24 +48,7 @@ eval "$(ucr shell ldap/base appcenter/apps/ucsschool-apis/hostdn appcenter/apps/
 
 API_ACCESS_USER="bildungslogin-api-user"
 SETTINGS_FILE="/etc/ucsschool/apis/bildungslogin/settings.json"
-CONFIG_DIR="/etc/bildungslogin"
-CONFIG_FILE="/etc/bildungslogin/config.ini"
 
-
-create_config_file() {
-  if [ ! -d "$CONFIG_DIR" ]; then
-    echo "Creating bildungslogin- configuration directory '$SETTINGS_FILE'..."
-    mkdir $CONFIG_DIR
-    chown root:root $CONFIG_DIR
-    chmod 750 $CONFIG_DIR
-  fi
-  if [ ! -f $CONFIG_FILE ]; then
-    echo "Creating empty configuration file '$CONFIG_FILE'..."
-    printf '[Auth]\nClientId = \nClientSecret = \nScope = \n\n[APIEndpoint]\nAuthServer = \nResourceServer = \n' > $CONFIG_FILE
-    chown root:root $CONFIG_FILE
-    chmod 640 $CONFIG_FILE
-  fi
-}
 
 create_settings_file() {
   if [ ! -f $SETTINGS_FILE ]; then
@@ -94,11 +77,13 @@ check_ucsschoolsapis_version() {
   ucsschoolsapis_version=`ucr get appcenter/apps/ucsschool-apis/version`
   if [ -n "$ucsschoolsapis_version" ]; then
     if [ $ucsschoolsapis_version = "0.1.0" ]; then
-        echo "UCS@Schools- API is the correct version"
-   else
+      echo "UCS@Schools- API is the correct version"
+    else
+      echo "Incorrect UCS@Schools- API installed: please install version 0.1.0 !"
       die
-   fi
+    fi
   else
+    echo "UCS@Schools- API seems not to be installed: please install version 0.1.0 !"
     die
   fi
 }
@@ -135,7 +120,6 @@ restart_ucsschool_apis_app() {
 
 check_ucsschoolsapis_version
 create_settings_file
-create_config_file
 set_ucrvs
 setup_provisioning_api_access "$@"
 enable_ucsschool_apis_plugin
