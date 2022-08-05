@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (0.1.26) unstable; urgency=medium
+
+  * Modules "Licensed media" and "Assign media licenses": show products even
+    if their licenses are exhausted
+
+ -- Frank Greif <greif@univention.de>  Fri, 05 Aug 2022 10:33:18 +0200
+
 ucs-school-umc-licenses (0.1.25) unstable; urgency=medium
 
   * Fix Grid geometry after page flip
