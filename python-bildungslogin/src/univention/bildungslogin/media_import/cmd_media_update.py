@@ -72,6 +72,8 @@ def update_ldap_meta_data(lo):  # type: (Any) -> bool
     mh = MetaDataHandler(lo)
     product_ids_in_ldap = {o.product_id for o in mh.get_all()}
     print("A total of {} product IDs was found in LDAP.".format(len(product_ids_in_ldap)))
+    if not product_ids_in_ldap:
+        return True
     product_ids_to_update = set(updated_product_ids).intersection(product_ids_in_ldap)
     print(
         "Going to retrieve {} meta data entries from the media server...".format(

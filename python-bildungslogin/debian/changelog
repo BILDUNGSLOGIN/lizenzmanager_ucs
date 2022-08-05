@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.17) unstable; urgency=medium
+
+  * Do not try to update if no product IDs found in LDAP.
+
+ -- Frank Greif <greif@univention.de>  Fri, 05 Aug 2022 11:34:05 +0200
+
 python-bildungslogin (0.2.16) unstable; urgency=medium
 
   * Revert permissions of config.ini: back to 0644
