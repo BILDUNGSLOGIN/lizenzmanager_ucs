@@ -289,6 +289,7 @@ define([
       if (this.moduleFlavor === "licenses/allocation" && this.allocation) {
         if (this.allocation.usernames) {
           values.licenseType = ["SINGLE", "VOLUME"];
+          values.showOnlyAvailable = true;
           this._grid.filter(values);
           this.removeChild(this._gridGroup);
           this.addChild(this._grid);

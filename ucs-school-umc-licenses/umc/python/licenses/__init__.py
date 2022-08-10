@@ -509,6 +509,7 @@ class Instance(SchoolBaseModule):
             school:  str
             pattern: str
             licenseType: List
+            showOnlyAvailable: bool [optional]
         }
         """
         MODULE.info("licenses.products.query: options: %s" % str(request.options))
@@ -551,12 +552,13 @@ class Instance(SchoolBaseModule):
                 number_of_assigned_licenses =  \
                     sum(1 for l in non_ignored_licenses if l.num_assigned > 0)
                 number_of_expired_licenses = sum(1 for l in non_ignored_licenses if l.is_expired)
+                # Counting of volume licenses must check assigned against quantity
                 number_of_available_licenses = \
-                    sum(1 for l in non_ignored_licenses if l.num_assigned == 0 and not l.is_expired)
-                # Currently: show products even if their licenses are already exhausted
-                # NOTE: for volume licenses, the counter above would have to be extended!
-                #if number_of_available_licenses < 1:
-                #    continue
+                    sum(1 for l in non_ignored_licenses if (l.num_assigned < l.license_quantity) and not l.is_expired)
+                # Caller (grid query) can now request products with 'all' or 'only available' licenses
+                if 'showOnlyAvailable' in request.options and request.options['showOnlyAvailable']:
+                    if number_of_available_licenses < 1:
+                        continue
 
                 latest_delivery_date = max(lic_udm.props.delivery_date for lic_udm in licenses_udm)
                 result.append(

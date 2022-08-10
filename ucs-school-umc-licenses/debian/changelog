@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (0.1.27) unstable; urgency=medium
+
+  * Do not show exhausted licenses in "Assign media licenses" view, but
+    leave them visible in any other views.
+
+ -- Frank Greif <greif@univention.de>  Wed, 10 Aug 2022 11:47:01 +0200
+
 ucs-school-umc-licenses (0.1.26) unstable; urgency=medium
 
   * Modules "Licensed media" and "Assign media licenses": show products even
