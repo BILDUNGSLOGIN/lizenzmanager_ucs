@@ -1,3 +1,10 @@
+bildungslogin-plugin (1.2.6) unstable; urgency=medium
+
+  * Temporarily deactivated lookup of group licenses, for performance
+    reasons, see BD-36
+
+ -- Frank Greif <greif@univention.de.de>  Fri, 19 Aug 2022 12:21:40 +0200
+
 bildungslogin-plugin (1.2.5) unstable; urgency=medium
 
   * Remove unneeded config file creation from join script.

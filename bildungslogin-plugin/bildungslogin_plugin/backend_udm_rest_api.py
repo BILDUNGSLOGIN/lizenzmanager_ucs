@@ -227,10 +227,13 @@ class UdmRestApiBackend(DbBackend):
                 school_identifier=None,
                 school_name=school.props.name,
                 roles=user_roles,
-                classes=[await self.get_class_info(school, c)
-                         for c in await self.get_classes(user, school)],
-                workgroups=[await self.get_workgroup_info(school, w)
-                            for w in await self.get_workgroups(user, school)],
+                # <greif@univention.de> Temporarily deactivated for performance reasons
+                classes=[],
+                workgroups=[],
+                #classes=[await self.get_class_info(school, c)
+                #         for c in await self.get_classes(user, school)],
+                #workgroups=[await self.get_workgroup_info(school, w)
+                #            for w in await self.get_workgroups(user, school)],
                 licenses=self._get_licenses_codes(applicable_licenses))
             remove_empty_values(school_context)
             output[school_id] = school_context
