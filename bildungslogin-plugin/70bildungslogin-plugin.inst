@@ -29,7 +29,7 @@
 
 ## joinscript api: bindpwdfile
 
-VERSION=2
+VERSION=3
 
 . /usr/share/univention-lib/all.sh
 . /usr/share/univention-join/joinscripthelper.lib
@@ -49,6 +49,9 @@ eval "$(ucr shell ldap/base appcenter/apps/ucsschool-apis/hostdn appcenter/apps/
 API_ACCESS_USER="bildungslogin-api-user"
 SETTINGS_FILE="/etc/ucsschool/apis/bildungslogin/settings.json"
 
+# Added for new API version 1.0.x which provides different auth mechanisms
+PLUGIN_NAME=bildungslogin
+API_CONFIG_FILE=/etc/ucsschool/apis/settings.json
 
 create_settings_file() {
   if [ ! -f $SETTINGS_FILE ]; then
@@ -72,18 +75,19 @@ set_ucrvs() {
     ucsschool/ldap/default/container/pupils="$(ucr get ucsschool/ldap/default/container/pupils)" || true
   echo "Ignore error message above: 'E: your request could not be fulfilled'."
 }
+
 check_ucsschoolsapis_version() {
   echo "Checking for correct UCS@Schools- API version"
   ucsschoolsapis_version=`ucr get appcenter/apps/ucsschool-apis/version`
   if [ -n "$ucsschoolsapis_version" ]; then
-    if [ $ucsschoolsapis_version = "0.1.0" ]; then
+    if dpkg --compare-versions $ucsschoolsapis_version ge '1.0.0' ; then
       echo "UCS@Schools- API is the correct version"
     else
-      echo "Incorrect UCS@Schools- API installed: please install version 0.1.0 !"
+      echo "Incorrect UCS@Schools- API installed: please install at least version 1.0.0 !"
       die
     fi
   else
-    echo "UCS@Schools- API seems not to be installed: please install version 0.1.0 !"
+    echo "UCS@Schools- API seems not to be installed: please install version 1.0.0 or later !"
     die
   fi
 }
@@ -113,6 +117,56 @@ json.dump(conf, open("/etc/ucsschool/apis/settings.json", "w"))
 ' || die
 }
 
+register_idp_in_ucsschool_api() {
+  # API_CONFIG_FILE = the config file, usually /etc/school/apis/settings.json
+  # BILO_IDP = a symbolic name for the config stanza
+  # PLUGIN_NAME = our own plugin name = 'bildungslogin' (used as verbatim string everywhere)
+  # AUTH_TAG = how do we identify ourselves against the api, also use 'bildungslogin'
+  local API_CONFIG_FILE=/etc/ucsschool/apis/settings.json
+  local BILO_IDP='bildungslogin'
+  local PLUGIN_NAME='bildungslogin'
+  local AUTH_TAG='bildungslogin'
+
+  echo "Adding Bildungslogin IDP to API config file"
+  add_idp_in_ucsschool_apis "${BILO_IDP}" '{"strategy": "local_secret", "settings": {}}' $API_CONFIG_FILE
+
+  echo "Add auth tag mapping to API config file"
+  add_auth_tag_mapping_in_ucsschool_apis "${AUTH_TAG}" "${BILO_IDP}" ${API_CONFIG_FILE}
+}
+
+add_idp_in_ucsschool_apis() {
+  local idp_name="${1:-}" idp_value="${2:-}" path="${3:-}"
+  python -c "
+import json
+idp_conf = json.loads('$idp_value')
+with open('$path', 'r') as fd:
+  conf = json.load(fd)
+auth_conf = conf.get('auth', {})
+auth_conf['idps'] = auth_conf.get('idps', {})
+auth_conf['idps']['$idp_name'] = idp_conf
+conf['auth'] = auth_conf
+with open('$path',  'w') as fd:
+  json.dump(conf, fd, indent=4)
+"
+}
+
+add_auth_tag_mapping_in_ucsschool_apis() {
+  local tag="${1:-}" idp_name="${2:-}" path="${3:-}"
+  python -c "
+import json
+with open('$path', 'r') as fd:
+  conf = json.load(fd)
+auth_conf = conf.get('auth', {})
+auth_conf['tag_idp_mapping'] = auth_conf.get('tag_idp_mapping', {})
+current_idps = set(auth_conf['tag_idp_mapping'].get('$tag', []))
+current_idps.add('$idp_name')
+auth_conf['tag_idp_mapping']['$tag'] = list(current_idps)
+conf['auth'] = auth_conf
+with open('$path', 'w') as fd:
+  json.dump(conf, fd, indent=4)
+"
+}
+
 restart_ucsschool_apis_app() {
   echo "Restarting the UCS@school APIs app..."
   univention-app restart ucsschool-apis
@@ -123,6 +177,7 @@ create_settings_file
 set_ucrvs
 setup_provisioning_api_access "$@"
 enable_ucsschool_apis_plugin
+register_idp_in_ucsschool_api
 restart_ucsschool_apis_app
 
 joinscript_save_current_version

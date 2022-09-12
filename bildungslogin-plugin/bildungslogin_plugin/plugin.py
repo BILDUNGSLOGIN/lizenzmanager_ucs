@@ -7,7 +7,7 @@ from typing import List
 from fastapi import APIRouter
 
 from ucsschool.apis.models import Plugin
-from ucsschool.apis.plugins.auth import ldap_auth
+from ucsschool.apis.utils import auth_manager, LDAPCredentials, LDAPSettings
 
 from . import __version__
 from .backend import DbBackend
@@ -31,15 +31,17 @@ def setup():
     logger.info("Setup of %r with version %r...", PLUGIN_NAME, PLUGIN_VERSION)
     backend = create_db_backend()
     setup_db_backend(backend)
-
+    auth_manager.tags[PLUGIN_NAME] = "Tag for the Bildungslogin API endpoints"
 
 def create_db_backend() -> DbBackend:
     from .backend_udm_rest_api import UdmRestApiBackend
 
+    ldap_settings = LDAPSettings()
+    ldap_credentials = LDAPCredentials(ldap_settings)
     return UdmRestApiBackend(
-        username=ldap_auth.credentials.cn_admin,
-        password=ldap_auth.credentials.cn_admin_password,
-        url=f"https://{ldap_auth.settings.master_fqdn}/univention/udm",
+        username=ldap_credentials.cn_admin,
+        password=ldap_credentials.cn_admin_password,
+        url=f"https://{ldap_settings.master_fqdn}/univention/udm",
     )
 
 

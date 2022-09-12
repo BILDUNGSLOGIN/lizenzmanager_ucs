@@ -14,7 +14,7 @@ import pytest
 
 from bildungslogin_plugin.backend_udm_rest_api import UdmRestApiBackend
 from bildungslogin_plugin.models import AssignmentStatus
-from ucsschool.apis.plugins.auth import ldap_auth
+from ucsschool.apis.utils import auth_manager, LDAPCredentials, LDAPSettings
 from ucsschool.kelvin.client import Session, User
 from udm_rest_client import UDM, NoObject as UdmNoObject, UdmObject
 
@@ -35,10 +35,12 @@ def event_loop():
 
 @pytest.fixture(scope="session")
 def backend() -> UdmRestApiBackend:
+    ldap_settings = LDAPSettings()
+    ldap_credentials = LDAPCredentials(ldap_settings)
     return UdmRestApiBackend(
-        username=ldap_auth.credentials.cn_admin,
-        password=ldap_auth.credentials.cn_admin_password,
-        url=f"https://{ldap_auth.settings.master_fqdn}/univention/udm",
+        username=ldap_credentials.cn_admin,
+        password=ldap_credentials.cn_admin_password,
+        url=f"https://{ldap_settings.master_fqdn}/univention/udm",
     )
 
 
@@ -111,9 +113,11 @@ def test_user_obj():  # noqa: C901
 
 @pytest.fixture(scope="session")
 def udm_kwargs() -> Dict[str, Any]:
+    ldap_settings = LDAPSettings()
+    ldap_credentials = LDAPCredentials(ldap_settings)
     return {
-        "username": ldap_auth.credentials.cn_admin,
-        "password": ldap_auth.credentials.cn_admin_password,
+        "username": ldap_credentials.cn_admin,
+        "password": ldap_credentials.cn_admin_password,
         "url": f"https://{os.environ['LDAP_MASTER']}/univention/udm/",
     }
 

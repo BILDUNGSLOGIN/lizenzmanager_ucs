@@ -1,3 +1,11 @@
+bildungslogin-plugin (1.2.7) unstable; urgency=medium
+
+  * Increased required ucsschool api version to >=1.0.0, see UT-1
+  * Changed plugin code to work with auth_manager
+  * API user will now only deactivated on uninstall.
+
+ -- Frank Greif <greif@univention.de>  Mon, 29 Aug 2022 14:27:07 +0200
+
 bildungslogin-plugin (1.2.6) unstable; urgency=medium
 
   * Temporarily deactivated lookup of group licenses, for performance

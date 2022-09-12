@@ -13,7 +13,7 @@ from ldap3.core.exceptions import LDAPBindError, LDAPExceptionError
 from bildungslogin_plugin.backend_udm_rest_api import ObjectType, UdmRestApiBackend
 from bildungslogin_plugin.models import AssignmentStatus, Class, SchoolContext, User as ProvUser, \
     User, Workgroup
-from ucsschool.apis.plugins.auth import ldap_auth
+from ucsschool.apis.utils import auth_manager, get_logger, LDAPCredentials, LDAPSettings
 from ucsschool.kelvin.client import User as KelvinUser
 from udm_rest_client import UdmObject
 
@@ -200,13 +200,17 @@ async def ldap_auth_modify(
     :return: True if modification was successful, else False
     """
     change_arg = dict((k, [(MODIFY_REPLACE, v)]) for k, v in changes.items())
-    print(ldap_auth)
+    # FIXME Was this kind of debug output? Or is it needed for the code to work?
+    #print(ldap_auth)
+
+    ldap_settings = LDAPSettings()
+    ldap_credentials = LDAPCredentials(ldap_settings)
 
     try:
         with Connection(
-            ldap_auth.server_master,
-            user=f"{ldap_auth.credentials.cn_admin},{ldap_auth.settings.ldap_base}",
-            password=ldap_auth.credentials.cn_admin_password,
+            ldap_settings.master_fqdn,
+            user=f"{ldap_credentials.cn_admin},{ldap_settings.ldap_base}",
+            password=ldap_credentials.cn_admin_password,
             auto_bind=AUTO_BIND_TLS_BEFORE_BIND,
             authentication=SIMPLE,
             read_only=False,
@@ -215,10 +219,11 @@ async def ldap_auth_modify(
     except LDAPExceptionError as exc:
         if isinstance(exc, LDAPBindError) and not raise_on_bind_error:
             return False
-        ldap_auth.logger.exception(
+        logger = get_logger()
+        logger.error(
             "When connecting to %r with bind_dn %r: %s",
-            ldap_auth.settings.master_fqdn,
-            ldap_auth.credentials.cn_admin,
+            ldap_settings.master_fqdn,
+            ldap_credentials.cn_admin,
             exc,
         )
         raise

@@ -13,7 +13,7 @@ from bildungslogin_plugin.models import Class, SchoolContext, User, Workgroup
 from bildungslogin_plugin.plugin import router
 from bildungslogin_plugin.routes.v1.users import DbBackend, get_backend, set_backend
 from ucsschool.apis.opa import opa_instance
-from ucsschool.apis.plugins.auth import get_token
+from ucsschool.apis.utils import auth_manager
 from udm_rest_client.base import BaseObject, BaseObjectProperties
 
 _ori_backend = None
@@ -83,7 +83,7 @@ def client(app, dependency_overrides, fake_opa):
     # FastAPI Depends() overrides for complete session
     overrides = {
         opa_instance: fake_opa,
-        get_token: _async_dict,
+        auth_manager: _async_dict,
     }
     dependency_overrides(overrides)
     app.include_router(router)
