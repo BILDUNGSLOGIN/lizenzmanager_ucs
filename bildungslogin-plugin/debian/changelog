@@ -1,3 +1,9 @@
+bildungslogin-plugin (1.2.8) unstable; urgency=medium
+
+  * ET-11 Ignore any user roles which are not relevant for our model.
+
+ -- Frank Greif <greif@univention.de>  Fri, 16 Sep 2022 16:34:24 +0200
+
 bildungslogin-plugin (1.2.7) unstable; urgency=medium
 
   * Increased required ucsschool api version to >=1.0.0, see UT-1

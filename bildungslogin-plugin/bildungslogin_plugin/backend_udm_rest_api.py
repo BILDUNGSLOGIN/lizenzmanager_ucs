@@ -16,7 +16,7 @@ from aiohttp.client_exceptions import ClientConnectorError
 from udm_rest_client.udm import UDM, UdmObject
 
 from .backend import ConfigurationError, DbBackend, DbConnectionError, UserNotFound
-from .models import AssignmentStatus, Class, SchoolContext, User, Workgroup
+from .models import AssignmentStatus, Class, SchoolContext, User, UserRole, Workgroup
 
 UCR_CONTAINER_CLASS = ("ucsschool_ldap_default_container_class", "klassen")
 UCR_CONTAINER_PUPILS = ("ucsschool_ldap_default_container_pupils", "schueler")
@@ -300,22 +300,25 @@ class UdmRestApiBackend(DbBackend):
         :return: The list of user roles for the given school
         :raises ValueError: If any of the role strings is malformed
         """
+        # Ignore all roles which aren't defined in our model.
+        valid_roles = [x.value for x in UserRole]
         # copied from id-broker-plugin/provisioning_plugin/utils.py
         filtered_roles = set()
         for role in roles:
             role_parts = role.split(":")
-            if len(role_parts) != 3 or not all(role_parts):
-                raise ValueError(f"The role {role} is malformed!")
-            if (
-                role_parts[1] == "school"
-                and role_parts[2] == school
-                and role_parts[0] in ("staff", "student", "school_admin", "teacher")
-            ):
-                filtered_roles.add(role_parts[0])
+            # Validation errors at this point should cause the role to be IGNORED, and nothing more!
+            if len(role_parts) == 3 and all(role_parts):
+                if (
+                    role_parts[1] == "school"
+                    and role_parts[2] == school
+                    and role_parts[0] in valid_roles
+                ):
+                    filtered_roles.add(role_parts[0])
         return filtered_roles
 
     @staticmethod
     def _get_roles_oc_fallback(options: Dict[str, bool]) -> Set[str]:
+        # FIXME find why this fallback is needed at all
         ocs = set(key for key, val in options.items() if val is True)
         if ocs >= {"ucsschoolTeacher", "ucsschoolStaff"}:
             return {"staff", "teacher"}
@@ -325,6 +328,7 @@ class UdmRestApiBackend(DbBackend):
             return {"staff"}
         if "ucsschoolStudent" in ocs:
             return {"student"}
-        if "ucsschoolAdministrator" in ocs:
-            return {"school_admin"}
+        # 'school_admin' is not valid in models.UserRole: ignore it!
+        #if "ucsschoolAdministrator" in ocs:
+        #    return {"school_admin"}
         raise RuntimeError(f"Cannot determine role of user from options: {options!r}")
