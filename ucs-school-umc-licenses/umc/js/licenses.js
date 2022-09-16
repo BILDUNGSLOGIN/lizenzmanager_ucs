@@ -188,7 +188,7 @@ define([
             usernames: usernames,
           });
           this.selectChild(this._productSearchPage);
-          this._productSearchPage.refreshGrid({ pattern: "" }, true);
+          //this._productSearchPage.refreshGrid({ pattern: "" }, true);
         })
       );
       on(

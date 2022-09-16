@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.29) unstable; urgency=medium
+
+  * ET-9 Deactivated autosearch in Product view.
+
+ -- Frank Greif <greif@univention.de>  Fri, 16 Sep 2022 11:46:59 +0200
+
 ucs-school-umc-licenses (0.1.28) unstable; urgency=medium
 
   * Count of 'assignable' licenses now correctly depends on
