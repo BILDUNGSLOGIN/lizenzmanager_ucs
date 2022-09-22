@@ -1,3 +1,10 @@
+ ucs-school-umc-licenses (0.1.30) unstable; urgency=medium
+
+  * ET-14 Fixed Traceback in UMC module: using a different function to
+    count available licenses.
+
+ -- Frank Greif <greif@univention.de>  Thu, 22 Sep 2022 11:55:11 +0200
+
 ucs-school-umc-licenses (0.1.29) unstable; urgency=medium
 
   * ET-9 Deactivated autosearch in Product view.

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2022-06-09 05:36+0200\n"
+"POT-Creation-Date: 2022-09-21 18:57+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -12,11 +12,24 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: umc/python/licenses/__init__.py:591
+#: umc/python/licenses/__init__.py:152
+msgid ""
+"HintThe number of licenses to be displayed is over {} and thus exceeds the "
+"set maximum value.You can use the filter/search parameters to limit the "
+"selection.Alternatively, the maximum number for the display can be adjusted "
+"by an administrator with the UCR variable directory/manager/web/sizelimit."
+msgstr ""
+"HinweisDie Anzahl der anzuzeigenden Lizenzen liegt über {} und überschreitet "
+"damit den eingestellen Maximalwert. Über die Filter/Suchparameter haben Sie "
+"die Möglichkeit, die Auswahl einzuschränken.Alternativ kann die Maximalzahl "
+"für die Anzeige von einem Administrator mit der UCR-Variabledirectory/"
+"manager/web/sizelimit angepasst werden."
+
+#: umc/python/licenses/__init__.py:617
 msgid "No"
 msgstr "Nein"
 
-#: umc/python/licenses/__init__.py:249
+#: umc/python/licenses/__init__.py:255
 msgid ""
 "The 'Ignore' state cannot be changed because users are already assigned to "
 "the license."
@@ -24,24 +37,10 @@ msgstr ""
 "Der Status 'Ignorieren' kann nicht geändert werden, da der Lizenz bereits "
 "Benutzer zugewiesen sind."
 
-#: umc/python/licenses/__init__.py:147
-msgid ""
-"Hint"
-"The number of licenses to be displayed is over {} and thus exceeds the set maximum value."
-"You can use the filter/search parameters to limit the selection."
-"Alternatively, the maximum number for the display can be adjusted by an administrator with "
-"the UCR variable directory/manager/web/sizelimit."
-msgstr ""
-"Hinweis"
-"Die Anzahl der anzuzeigenden Lizenzen liegt über {} und überschreitet damit den eingestellen "
-"Maximalwert. Über die Filter/Suchparameter haben Sie die Möglichkeit, die Auswahl einzuschränken."
-"Alternativ kann die Maximalzahl für die Anzeige von einem Administrator mit der UCR-Variable"
-"directory/manager/web/sizelimit angepasst werden."
-
-#: umc/python/licenses/__init__.py:591
+#: umc/python/licenses/__init__.py:617
 msgid "Yes"
 msgstr "Ja"
 
-#: umc/python/licenses/__init__.py:76
+#: umc/python/licenses/__init__.py:77
 msgid "undefined"
 msgstr "unbestimmt"
