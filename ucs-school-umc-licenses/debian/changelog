@@ -1,4 +1,4 @@
- ucs-school-umc-licenses (0.1.30) unstable; urgency=medium
+ucs-school-umc-licenses (0.1.30) unstable; urgency=medium
 
   * ET-14 Fixed Traceback in UMC module: using a different function to
     count available licenses.
