@@ -1,3 +1,9 @@
+udm-bildungslogin (0.2.9) unstable; urgency=medium
+
+  * ET-18 add missing 'bildungsloginLicenseType' attribute to LDAP index
+
+ -- Frank Greif <greif@univention.de>  Thu, 22 Sep 2022 17:43:04 +0200
+
 udm-bildungslogin (0.2.8) unstable; urgency=medium
 
   * Fix: use UCR 'ldap/base' in construction of ACLs

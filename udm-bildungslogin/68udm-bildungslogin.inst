@@ -34,7 +34,7 @@
 ## joinscript api: bindpwdfile
 
 # shellcheck disable=SC2034
-VERSION=6
+VERSION=7
 
 . /usr/share/univention-join/joinscripthelper.lib
 . /usr/share/univention-lib/ldap.sh
@@ -79,13 +79,14 @@ ucs_registerLDAPExtension "$@" \
   --ucsversionstart "4.4-0" --ucsversionend "5.99-0" \
   --udm_module "/usr/share/bildungslogin/handlers/assignment.py" || die
 
-if [ $JS_LAST_EXECUTED_VERSION -lt 6 ] ; then
+if [ $JS_LAST_EXECUTED_VERSION -lt 7 ] ; then
   service slapd stop
   /usr/share/univention-ldap/ldap_setup_index \
       --verbose \
       --add-eq bildungsloginAssignmentAssignee \
       --add-eq bildungsloginAssignmentStatus \
       --add-eq bildungsloginLicenseCode \
+      --add-eq bildungsloginLicenseType \
       --add-eq bildungsloginLicenseQuantity \
       --add-eq bildungsloginLicenseSchool \
       --add-eq bildungsloginMetaDataPublisher \
