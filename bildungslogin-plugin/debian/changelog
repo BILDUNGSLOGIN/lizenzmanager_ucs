@@ -1,3 +1,10 @@
+bildungslogin-plugin (1.2.10) unstable; urgency=medium
+
+  * ET-19 - re-enable transmission of classes&workgroups / switch to direct ldap query,
+  * ET-20 - prevent default debug logging.
+
+ -- Thomas Bach <thomas.bach.extern@univention.de>  Wed, 12 Oct 2022 16:10:37 +0200
+
 bildungslogin-plugin (1.2.9) unstable; urgency=medium
 
   * Updated explicit dependencies on udm-rest-client and kelvin-rest-api-client,
