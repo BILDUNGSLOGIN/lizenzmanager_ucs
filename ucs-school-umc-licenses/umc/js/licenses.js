@@ -138,7 +138,8 @@ define([
       this.addChild(this._licenseDetailPage);
 
       this.selectChild(this._licenseSearchPage);
-      this._licenseSearchPage.query();
+      // Disable autosearch due to ET-9
+      //this._licenseSearchPage.query();
     },
 
     _buildAssignmentModule: function (schoolId, hasMultipleSchools) {
@@ -385,7 +386,8 @@ define([
       this.addChild(this._productDetailPage);
 
       this.selectChild(this._productSearchPage);
-      this._productSearchPage.query();
+      // Disable autosearch due to ET-9
+      //this._productSearchPage.query();
     },
     _buildImportModule: function (schoolId, hasMultipleSchools) {
       if (this._importMediaLicensePage) {
