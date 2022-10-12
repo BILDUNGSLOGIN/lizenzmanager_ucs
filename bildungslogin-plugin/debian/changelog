@@ -1,3 +1,10 @@
+bildungslogin-plugin (1.2.9) unstable; urgency=medium
+
+  * Updated explicit dependencies on udm-rest-client and kelvin-rest-api-client,
+  * updated dependencies in Poetry lock file.
+
+ -- Thomas Bach <thomas.bach.extern@univention.de>  Wed, 12 Oct 2022 13:58:43 +0200
+
 bildungslogin-plugin (1.2.8) unstable; urgency=medium
 
   * ET-11 Ignore any user roles which are not relevant for our model.
