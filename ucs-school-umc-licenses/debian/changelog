@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (0.1.31) unstable; urgency=medium
+
+  * ET-9 Further steps to disable autosearch.
+
+ -- Thomas Bach <thomas.bach.extern@univention.de>  Wed, 12 Oct 2022 14:05:48 +0200
+
 ucs-school-umc-licenses (0.1.30) unstable; urgency=medium
 
   * ET-14 Fixed Traceback in UMC module: using a different function to
