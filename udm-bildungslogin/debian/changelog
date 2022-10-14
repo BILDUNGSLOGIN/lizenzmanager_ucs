@@ -1,6 +1,6 @@
 udm-bildungslogin (0.2.10) unstable; urgency=medium
 
-  * ET-24 add LDAP ACL for direct LDAP access by API container
+  * ET-35 add LDAP ACL for direct LDAP access by API container
 
  -- Frank Greif <greif@univention.de>  Fri, 14 Oct 2022 16:29:55 +0200
 
