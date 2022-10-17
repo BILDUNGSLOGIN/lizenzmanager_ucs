@@ -16,7 +16,7 @@ from udm_rest_client.udm import UDM, UdmObject
 
 from ucsschool.apis.utils import LDAPAccess
 from .backend import DbBackend, DbConnectionError
-from .models import AssignmentStatus, Class, SchoolContext, User, Workgroup
+from .models import AssignmentStatus, Class, SchoolContext, User, UserRole, Workgroup
 
 UCR_CONTAINER_CLASS = ("ucsschool_ldap_default_container_class", "klassen")
 UCR_CONTAINER_PUPILS = ("ucsschool_ldap_default_container_pupils", "schueler")
@@ -340,6 +340,7 @@ class UdmRestApiBackend(DbBackend):
     def _get_roles_for_school(roles: List[str], school: str) -> Set[str]:
         """
         Takes a list of ucsschool_roles and returns a list of user roles for the given school.
+        Note that this function IGNORES any roles which aren't relevant for the purpose of this module.
 
         >>> UdmRestApiBackend._get_roles_for_school(
         ... ["teacher:school:School1", "student:school:School2"],
@@ -350,20 +351,19 @@ class UdmRestApiBackend(DbBackend):
         :param roles: The list of ucsschool_roles to filter
         :param school: The school to filter the roles for
         :return: The list of user roles for the given school
-        :raises ValueError: If any of the role strings is malformed
         """
+        valid_roles = set([x.value for x in UserRole])
         # copied from id-broker-plugin/provisioning_plugin/utils.py
         filtered_roles = set()
         for role in roles:
             role_parts = role.split(":")
-            if len(role_parts) != 3 or not all(role_parts):
-                raise ValueError(f"The role {role} is malformed!")
-            if (
+            if len(role_parts) == 3 and all(role_parts):
+                if (
                     role_parts[1] == "school"
                     and role_parts[2] == school
-                    and role_parts[0] in ("staff", "student", "school_admin", "teacher")
-            ):
-                filtered_roles.add(role_parts[0])
+                    and role_parts[0] in valid_roles
+                ):
+                    filtered_roles.add(role_parts[0])
         return filtered_roles
 
     @staticmethod
@@ -376,6 +376,7 @@ class UdmRestApiBackend(DbBackend):
             return {"staff"}
         if "ucsschoolStudent" in options:
             return {"student"}
-        if "ucsschoolAdministrator" in options:
-            return {"school_admin"}
+        # 'school_admin' is not valid in models.UserRole: ignore it!
+        #if "ucsschoolAdministrator" in options:
+        #    return {"school_admin"}
         raise RuntimeError(f"Cannot determine role of user from options: {options!r}")
