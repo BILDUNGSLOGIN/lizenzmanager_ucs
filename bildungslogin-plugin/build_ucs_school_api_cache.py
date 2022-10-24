@@ -1,6 +1,10 @@
 #!/usr/bin/python
+import argparse
 import json
+import logging
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 SEARCH_FILTER = ''.join([
     '(|',
@@ -12,6 +16,14 @@ SEARCH_FILTER = ''.join([
 ])
 
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
+
+PARSER = argparse.ArgumentParser('Create a cache file for the UCS@School API')
+PARSER.add_argument(
+    '--log-level',
+    metavar='LEVEL',
+    default='WARNING',
+    help='Set the logging level. (Default: %(default)s)',
+)
 
 
 def transform_to_dictionary(entries):
@@ -360,4 +372,7 @@ def main(json_path=JSON_PATH):
 
 
 if __name__ == '__main__':
+    args = PARSER.parse_args()
+    logging.basicConfig(level=args.log_level, format='%(asctime)s - %(message)s')
+    logger.debug(f'Parsed arguments: {args}')
     main()
