@@ -34,7 +34,8 @@ PARSER.add_argument(
 
 
 def transform_to_dictionary(entries):
-    """
+    """Transform the given LDAP objects to the format needed by UCS@School API.
+
     >>> transform_to_dictionary([])
     {'users': [], 'licenses': [], 'assignments': [], 'schools': [], 'workgroups': [], 'classes': []}
 
@@ -352,7 +353,11 @@ def transform_to_dictionary(entries):
 
 
 def main(cache_file):
+    """Start the main routine of the script.
 
+    Fetch the LDAP objects, transform and filter them as needed and write the JSON objects to the
+    given cache_file.
+    """
     import univention.admin.uldap as uldap
     ldap_access, ldap_position = uldap.getAdminConnection()
 
