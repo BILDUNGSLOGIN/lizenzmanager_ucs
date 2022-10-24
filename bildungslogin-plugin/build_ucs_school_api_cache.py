@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import argparse
 import json
 import logging
@@ -21,8 +21,9 @@ PARSER = argparse.ArgumentParser('Create a cache file for the UCS@School API')
 PARSER.add_argument(
     '--log-level',
     metavar='LEVEL',
-    default='WARNING',
-    help='Set the logging level. (Default: %(default)s)',
+    default='INFO',
+    choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
+    help='Set the logging level. Must be one of %(choices)s. (Default: %(default)s)',
 )
 
 
