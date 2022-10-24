@@ -1,14 +1,15 @@
 #!/usr/bin/python
 #import asyncio
 import json
+import pprint
 from datetime import datetime
-
 from typing import List
-#from ldap3 import Entry, Server, Connection, SUBTREE
 
 #from ucsschool.apis.utils import LDAPSettings, LDAPCredentials, LDAPAccess
 import univention.admin.uldap as uldap
-import pprint
+
+#from ldap3 import Entry, Server, Connection, SUBTREE
+
 
 SEARCH_FILTER = '(|(&(uid=*)(ucsschoolSchool=*))(&(objectClass=bildungsloginAssignment)(' \
                 'bildungsloginAssignmentAssignee=*))' \
@@ -16,11 +17,13 @@ SEARCH_FILTER = '(|(&(uid=*)(ucsschoolSchool=*))(&(objectClass=bildungsloginAssi
                 '(objectClass=ucsschoolOrganizationalUnit)(objectClass=ucsschoolGroup))'
 
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
+
 #LDAP_BINDDN = 'cn=admin,dc=ucs,dc=test,dc=myschool,dc=bildungslogin,dc=de'
 #LDAP_SECRETFILE = '/etc/ldap.secret'
 
 #f = open(LDAP_SECRETFILE,"r")
 #LDAP_SECRET = f.read().encode('utf8')
+
 
 #def transform_to_dictionary(entries: List[Entry]):
 def transform_to_dictionary(entries):
@@ -39,7 +42,7 @@ def transform_to_dictionary(entries):
         dict_entry = entry[1]
         obj = {
             'entryUUID': str(dict_entry['entryUUID'][0]),
-            'entry_dn': str(entry_dn),               # str(entry['dn'][0]),
+            'entry_dn': str(entry_dn),  # str(entry['dn'][0]),
             'objectClass': []
         }
 
@@ -71,23 +74,24 @@ def transform_to_dictionary(entries):
 
             #if hasattr(entry, 'bildungsloginLicenseSpecialType'):
             if 'bildungsloginLicenseSpecialType' in dict_entry:
-                obj['bildungsloginLicenseSpecialType'] = str(dict_entry['bildungsloginLicenseSpecialType'][0])
+                obj['bildungsloginLicenseSpecialType'] = str(
+                    dict_entry['bildungsloginLicenseSpecialType'][0])
 
             processed_list['licenses'].append(obj)
         elif 'bildungsloginAssignment' in dict_entry['objectClass']:
             if 'bildungsloginAssignmentAssignee' in dict_entry:
                 obj.update({
-                    'bildungsloginAssignmentAssignee': str(dict_entry['bildungsloginAssignmentAssignee'][0]),
-                    'bildungsloginAssignmentStatus': str(dict_entry['bildungsloginAssignmentStatus'][0]),
+                    'bildungsloginAssignmentAssignee':
+                    str(dict_entry['bildungsloginAssignmentAssignee'][0]),
+                    'bildungsloginAssignmentStatus':
+                    str(dict_entry['bildungsloginAssignmentStatus'][0]),
                     #'entry_dn': str(entry_dn)               # str(entry['dn'][0])
                 })
 
                 processed_list['assignments'].append(obj)
         elif 'ucsschoolOrganizationalUnit' in dict_entry['objectClass']:
 
-            obj.update({
-                'ou': str(dict_entry['ou'][0])
-            })
+            obj.update({'ou': str(dict_entry['ou'][0])})
 
             processed_list['schools'].append(obj)
         elif 'ucsschoolGroup' in dict_entry['objectClass']:
@@ -126,28 +130,29 @@ def main(json_path=JSON_PATH):
     #                            raise_exceptions=False)
     #ldap_access.bind()
     ldap_access, ldap_position = uldap.getAdminConnection()
-    print(str(datetime.now())+" - start search")
+    print(str(datetime.now()) + " - start search")
     response = ldap_access.search(
         #search_base = 'dc=ucs,dc=test,dc=myschool,dc=bildungslogin,dc=de',
         filter=SEARCH_FILTER,
         scope='sub',
-        attr=['entryUUID', 'objectClass', 'uid', 'givenName', 'ou', 'cn', 'ucsschoolRole', 'sn',
-                    'ucsschoolSchool', 'bildungsloginLicenseCode', 'bildungsloginLicenseSpecialType', 'memberUid',
-                    'bildungsloginAssignmentAssignee', 'bildungsloginAssignmentStatus']
-    )
-    print(str(datetime.now())+" - start filtering")
+        attr=[
+            'entryUUID', 'objectClass', 'uid', 'givenName', 'ou', 'cn', 'ucsschoolRole', 'sn',
+            'ucsschoolSchool', 'bildungsloginLicenseCode', 'bildungsloginLicenseSpecialType',
+            'memberUid', 'bildungsloginAssignmentAssignee', 'bildungsloginAssignmentStatus'
+        ])
+    print(str(datetime.now()) + " - start filtering")
 
     #print pprint.pformat(response,indent=3,width=160)
 
     filtered_dict = transform_to_dictionary(response)
-    print(str(datetime.now())+" - start converting to json")
+    print(str(datetime.now()) + " - start converting to json")
     json_string = json.dumps(filtered_dict)
-    print(str(datetime.now())+" - writing cache file")
+    print(str(datetime.now()) + " - writing cache file")
     f = open(JSON_PATH, 'w')
     f.write(json_string)
     f.close()
     #ldap_access.unbind()
-    print(str(datetime.now())+" - finished")
+    print(str(datetime.now()) + " - finished")
 
 
 if __name__ == '__main__':
