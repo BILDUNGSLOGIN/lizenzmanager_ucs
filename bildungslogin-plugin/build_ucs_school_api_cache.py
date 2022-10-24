@@ -351,14 +351,15 @@ def main(json_path=JSON_PATH):
     ldap_access, ldap_position = uldap.getAdminConnection()
 
     print(str(datetime.now()) + " - start search")
-    response = ldap_access.search(
-        filter=SEARCH_FILTER,
-        scope='sub',
-        attr=[
-            'entryUUID', 'objectClass', 'uid', 'givenName', 'ou', 'cn', 'ucsschoolRole', 'sn',
-            'ucsschoolSchool', 'bildungsloginLicenseCode', 'bildungsloginLicenseSpecialType',
-            'memberUid', 'bildungsloginAssignmentAssignee', 'bildungsloginAssignmentStatus'
-        ])
+    response = ldap_access.search(filter=SEARCH_FILTER,
+                                  scope='sub',
+                                  attr=[
+                                      'entryUUID', 'objectClass', 'uid', 'givenName', 'ou', 'cn',
+                                      'ucsschoolRole', 'sn', 'ucsschoolSchool',
+                                      'bildungsloginLicenseCode', 'bildungsloginLicenseSpecialType',
+                                      'memberUid', 'bildungsloginAssignmentAssignee',
+                                      'bildungsloginAssignmentStatus'
+                                  ])
     print(str(datetime.now()) + " - start filtering")
 
     filtered_dict = transform_to_dictionary(response)
