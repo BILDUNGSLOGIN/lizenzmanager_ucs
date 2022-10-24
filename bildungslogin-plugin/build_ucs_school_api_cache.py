@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+"""Create a cache file for UCS@School API.
+
+The script fetches objects from LDAP as found using the 'SEARCH_FILTER', transforms the returned
+entries via 'transform_to_dictionary' and writes the result as a JSON string to JSON_PATH (or the
+cache file given on the command-line).
+
+Note that you can use '-' as an argument to '--cache-file' to get the result to stdout.
+
+We extensively use doctests in this script as a replacement to unittests. You can run the tests via
+'python -m doctest SCRIPTNAME'.
+"""
 import argparse
 import json
 import logging
