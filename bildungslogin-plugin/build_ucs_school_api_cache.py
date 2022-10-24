@@ -1,14 +1,10 @@
 #!/usr/bin/python
-#import asyncio
 import json
 import pprint
 from datetime import datetime
 from typing import List
 
-#from ucsschool.apis.utils import LDAPSettings, LDAPCredentials, LDAPAccess
 import univention.admin.uldap as uldap
-
-#from ldap3 import Entry, Server, Connection, SUBTREE
 
 SEARCH_FILTER = ''.join([
     '(|',
@@ -21,14 +17,7 @@ SEARCH_FILTER = ''.join([
 
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
 
-#LDAP_BINDDN = 'cn=admin,dc=ucs,dc=test,dc=myschool,dc=bildungslogin,dc=de'
-#LDAP_SECRETFILE = '/etc/ldap.secret'
 
-#f = open(LDAP_SECRETFILE,"r")
-#LDAP_SECRET = f.read().encode('utf8')
-
-
-#def transform_to_dictionary(entries: List[Entry]):
 def transform_to_dictionary(entries):
     processed_list = {
         'users': [],
@@ -40,12 +29,11 @@ def transform_to_dictionary(entries):
     }
 
     for entry in entries:
-        #dict_entry = dict(entry['attributes'])
         entry_dn = entry[0]
         dict_entry = entry[1]
         obj = {
             'entryUUID': str(dict_entry['entryUUID'][0]),
-            'entry_dn': str(entry_dn),  # str(entry['dn'][0]),
+            'entry_dn': str(entry_dn),
             'objectClass': []
         }
 
@@ -75,7 +63,6 @@ def transform_to_dictionary(entries):
                 'bildungsloginLicenseSpecialType': ''
             })
 
-            #if hasattr(entry, 'bildungsloginLicenseSpecialType'):
             if 'bildungsloginLicenseSpecialType' in dict_entry:
                 obj['bildungsloginLicenseSpecialType'] = str(
                     dict_entry['bildungsloginLicenseSpecialType'][0])
@@ -88,7 +75,6 @@ def transform_to_dictionary(entries):
                     str(dict_entry['bildungsloginAssignmentAssignee'][0]),
                     'bildungsloginAssignmentStatus':
                     str(dict_entry['bildungsloginAssignmentStatus'][0]),
-                    #'entry_dn': str(entry_dn)               # str(entry['dn'][0])
                 })
 
                 processed_list['assignments'].append(obj)
@@ -105,37 +91,22 @@ def transform_to_dictionary(entries):
                 'memberUid': [],
             })
 
-            #if hasattr(entry, 'memberUid'):
             if 'memberUid' in dict_entry:
                 for member in dict_entry['memberUid']:
                     obj['memberUid'].append(str(member))
 
-            #if 'workgroup' in str(dict_entry['ucsschoolRole']):
             if 'workgroup' in dict_entry['ucsschoolRole'][0]:
                 processed_list['workgroups'].append(obj)
-            #elif 'school_class' in str(dict_entry['ucsschoolRole']):
             elif 'school_class' in dict_entry['ucsschoolRole'][0]:
                 processed_list['classes'].append(obj)
 
     return processed_list
 
 
-#async def main(json_path=JSON_PATH):
 def main(json_path=JSON_PATH):
-    #ldap_settings = LDAPSettings()
-    #ldap_credentials = LDAPCredentials(ldap_settings)
-    #ldap_access = LDAPAccess(ldap_settings, ldap_credentials)
-
-    #server = Server('localhost')
-    #ldap_access = Connection(server,
-    #                            user=LDAP_BINDDN,
-    #                            password=LDAP_SECRET,
-    #                            raise_exceptions=False)
-    #ldap_access.bind()
     ldap_access, ldap_position = uldap.getAdminConnection()
     print(str(datetime.now()) + " - start search")
     response = ldap_access.search(
-        #search_base = 'dc=ucs,dc=test,dc=myschool,dc=bildungslogin,dc=de',
         filter=SEARCH_FILTER,
         scope='sub',
         attr=[
@@ -145,8 +116,6 @@ def main(json_path=JSON_PATH):
         ])
     print(str(datetime.now()) + " - start filtering")
 
-    #print pprint.pformat(response,indent=3,width=160)
-
     filtered_dict = transform_to_dictionary(response)
     print(str(datetime.now()) + " - start converting to json")
     json_string = json.dumps(filtered_dict)
@@ -154,12 +123,8 @@ def main(json_path=JSON_PATH):
     f = open(JSON_PATH, 'w')
     f.write(json_string)
     f.close()
-    #ldap_access.unbind()
     print(str(datetime.now()) + " - finished")
 
 
 if __name__ == '__main__':
-    #asyncio.run(main())
-    #loop = asyncio.get_event_loop()
-    #loop.run_until_complete(main())
     main()
