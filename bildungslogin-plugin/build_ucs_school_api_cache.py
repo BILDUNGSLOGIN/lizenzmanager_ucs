@@ -10,11 +10,14 @@ import univention.admin.uldap as uldap
 
 #from ldap3 import Entry, Server, Connection, SUBTREE
 
-
-SEARCH_FILTER = '(|(&(uid=*)(ucsschoolSchool=*))(&(objectClass=bildungsloginAssignment)(' \
-                'bildungsloginAssignmentAssignee=*))' \
-                '(objectClass=bildungsloginLicense)' \
-                '(objectClass=ucsschoolOrganizationalUnit)(objectClass=ucsschoolGroup))'
+SEARCH_FILTER = ''.join([
+    '(|',
+    '(&(uid=*)(ucsschoolSchool=*))',
+    '(&(objectClass=bildungsloginAssignment)(bildungsloginAssignmentAssignee=*))',
+    '(objectClass=bildungsloginLicense)',
+    '(objectClass=ucsschoolOrganizationalUnit)(objectClass=ucsschoolGroup)',
+    ')',
+])
 
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
 
