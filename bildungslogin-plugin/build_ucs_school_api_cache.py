@@ -301,16 +301,16 @@ def transform_to_dictionary(entries):
                     dict_entry['bildungsloginLicenseSpecialType'][0])
 
             processed_list['licenses'].append(obj)
-        elif 'bildungsloginAssignment' in dict_entry['objectClass']:
-            if 'bildungsloginAssignmentAssignee' in dict_entry:
-                obj.update({
-                    'bildungsloginAssignmentAssignee':
-                    str(dict_entry['bildungsloginAssignmentAssignee'][0]),
-                    'bildungsloginAssignmentStatus':
-                    str(dict_entry['bildungsloginAssignmentStatus'][0]),
-                })
+        elif ('bildungsloginAssignment' in dict_entry['objectClass']
+              and 'bildungsloginAssignmentAssignee' in dict_entry):
+            obj.update({
+                'bildungsloginAssignmentAssignee':
+                str(dict_entry['bildungsloginAssignmentAssignee'][0]),
+                'bildungsloginAssignmentStatus':
+                str(dict_entry['bildungsloginAssignmentStatus'][0]),
+            })
 
-                processed_list['assignments'].append(obj)
+            processed_list['assignments'].append(obj)
         elif 'ucsschoolOrganizationalUnit' in dict_entry['objectClass']:
 
             obj.update({'ou': str(dict_entry['ou'][0])})
