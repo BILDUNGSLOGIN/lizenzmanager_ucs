@@ -1,8 +1,6 @@
 #!/usr/bin/python
 import json
-import pprint
 from datetime import datetime
-from typing import List
 
 import univention.admin.uldap as uldap
 
