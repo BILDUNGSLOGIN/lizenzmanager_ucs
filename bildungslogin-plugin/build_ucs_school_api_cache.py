@@ -29,6 +29,7 @@ PARSER.add_argument(
     '--cache-file',
     metavar='FILE',
     default=JSON_PATH,
+    type=argparse.FileType('w', encoding='UTF-8'),
     help='The path to the cache file. (Default: %(default)s)',
 )
 
@@ -371,11 +372,8 @@ def main(cache_file):
     filtered_dict = transform_to_dictionary(response)
     logger.debug(f'Filtered and transformed objects: {filtered_dict}')
 
-    json_string = json.dumps(filtered_dict)
-
-    logger.debug("Writing cache file")
-    with open(cache_file, 'w') as fp:
-        fp.write(json_string)
+    logger.debug("Convert to JSON and write to cache file")
+    json.dump(filtered_dict, cache_file)
 
     logger.info("Finished")
 
