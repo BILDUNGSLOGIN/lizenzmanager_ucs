@@ -350,7 +350,7 @@ def main(json_path=JSON_PATH):
     import univention.admin.uldap as uldap
     ldap_access, ldap_position = uldap.getAdminConnection()
 
-    print(str(datetime.now()) + " - start search")
+    logger.info('Start searching objects in LDAP')
     response = ldap_access.search(filter=SEARCH_FILTER,
                                   scope='sub',
                                   attr=[
@@ -360,16 +360,18 @@ def main(json_path=JSON_PATH):
                                       'memberUid', 'bildungsloginAssignmentAssignee',
                                       'bildungsloginAssignmentStatus'
                                   ])
-    print(str(datetime.now()) + " - start filtering")
+    logger.debug(f'Found the following objects: {response}')
 
     filtered_dict = transform_to_dictionary(response)
-    print(str(datetime.now()) + " - start converting to json")
+    logger.debug(f'Filtered and transformed objects: {filtered_dict}')
+
     json_string = json.dumps(filtered_dict)
-    print(str(datetime.now()) + " - writing cache file")
-    f = open(JSON_PATH, 'w')
-    f.write(json_string)
-    f.close()
-    print(str(datetime.now()) + " - finished")
+
+    logger.debug("Writing cache file")
+    with open(JSON_PATH, 'w') as fp:
+        fp.write(json_string)
+
+    logger.info("Finished")
 
 
 if __name__ == '__main__':
