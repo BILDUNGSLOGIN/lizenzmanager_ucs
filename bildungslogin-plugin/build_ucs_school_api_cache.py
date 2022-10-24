@@ -373,15 +373,26 @@ def main(cache_file):
     ldap_access, ldap_position = uldap.getAdminConnection()
 
     logger.info('Start searching objects in LDAP')
-    response = ldap_access.search(filter=SEARCH_FILTER,
-                                  scope='sub',
-                                  attr=[
-                                      'entryUUID', 'objectClass', 'uid', 'givenName', 'ou', 'cn',
-                                      'ucsschoolRole', 'sn', 'ucsschoolSchool',
-                                      'bildungsloginLicenseCode', 'bildungsloginLicenseSpecialType',
-                                      'memberUid', 'bildungsloginAssignmentAssignee',
-                                      'bildungsloginAssignmentStatus'
-                                  ])
+    response = ldap_access.search(
+        filter=SEARCH_FILTER,
+        scope='sub',
+        attr=[
+            'entryUUID',
+            'objectClass',
+            'uid',
+            'givenName',
+            'ou',
+            'cn',
+            'ucsschoolRole',
+            'sn',
+            'ucsschoolSchool',
+            'bildungsloginLicenseCode',
+            'bildungsloginLicenseSpecialType',
+            'memberUid',
+            'bildungsloginAssignmentAssignee',
+            'bildungsloginAssignmentStatus',
+        ],
+    )
     logger.debug(f'Found the following objects: {response}')
 
     filtered_dict = transform_to_dictionary(response)
