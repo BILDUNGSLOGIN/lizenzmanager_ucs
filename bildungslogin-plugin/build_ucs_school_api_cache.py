@@ -2,8 +2,6 @@
 import json
 from datetime import datetime
 
-import univention.admin.uldap as uldap
-
 SEARCH_FILTER = ''.join([
     '(|',
     '(&(uid=*)(ucsschoolSchool=*))',
@@ -102,7 +100,10 @@ def transform_to_dictionary(entries):
 
 
 def main(json_path=JSON_PATH):
+
+    import univention.admin.uldap as uldap
     ldap_access, ldap_position = uldap.getAdminConnection()
+
     print(str(datetime.now()) + " - start search")
     response = ldap_access.search(
         filter=SEARCH_FILTER,
