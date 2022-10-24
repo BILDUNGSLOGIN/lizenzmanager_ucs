@@ -25,6 +25,12 @@ PARSER.add_argument(
     choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
     help='Set the logging level. Must be one of %(choices)s. (Default: %(default)s)',
 )
+PARSER.add_argument(
+    '--cache-file',
+    metavar='FILE',
+    default=JSON_PATH,
+    help='The path to the cache file. (Default: %(default)s)',
+)
 
 
 def transform_to_dictionary(entries):
@@ -345,7 +351,7 @@ def transform_to_dictionary(entries):
     return processed_list
 
 
-def main(json_path=JSON_PATH):
+def main(cache_file):
 
     import univention.admin.uldap as uldap
     ldap_access, ldap_position = uldap.getAdminConnection()
@@ -368,7 +374,7 @@ def main(json_path=JSON_PATH):
     json_string = json.dumps(filtered_dict)
 
     logger.debug("Writing cache file")
-    with open(JSON_PATH, 'w') as fp:
+    with open(cache_file, 'w') as fp:
         fp.write(json_string)
 
     logger.info("Finished")
@@ -378,4 +384,4 @@ if __name__ == '__main__':
     args = PARSER.parse_args()
     logging.basicConfig(level=args.log_level, format='%(asctime)s - %(message)s')
     logger.debug(f'Parsed arguments: {args}')
-    main()
+    main(args.cache_file)
