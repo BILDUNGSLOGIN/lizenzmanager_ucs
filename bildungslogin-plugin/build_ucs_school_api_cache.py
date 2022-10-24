@@ -276,11 +276,8 @@ def transform_to_dictionary(entries):
         obj = {
             'entryUUID': str(dict_entry['entryUUID'][0]),
             'entry_dn': str(entry_dn),
-            'objectClass': []
+            'objectClass': [str(_class) for _class in dict_entry['objectClass']],
         }
-
-        for object_class in dict_entry['objectClass']:
-            obj['objectClass'].append(str(object_class))
 
         if 'person' in dict_entry['objectClass']:
 
@@ -288,17 +285,11 @@ def transform_to_dictionary(entries):
                 'uid': str(dict_entry['uid'][0]),
                 'givenName': str(dict_entry['givenName'][0]),
                 'sn': str(dict_entry['sn'][0]),
-                'ucsschoolSchool': [],
-                'ucsschoolRole': []
+                'ucsschoolSchool': [str(school) for school in dict_entry['ucsschoolSchool']],
+                'ucsschoolRole': [str(role) for role in dict_entry['ucsschoolRole']]
             })
-
-            for school in dict_entry['ucsschoolSchool']:
-                obj['ucsschoolSchool'].append(str(school))
-
-            for role in dict_entry['ucsschoolRole']:
-                obj['ucsschoolRole'].append(str(role))
-
             processed_list['users'].append(obj)
+
         elif 'bildungsloginLicense' in dict_entry['objectClass']:
             obj.update({
                 'bildungsloginLicenseCode': str(dict_entry['bildungsloginLicenseCode'][0]),
@@ -330,12 +321,8 @@ def transform_to_dictionary(entries):
             obj.update({
                 'cn': str(dict_entry['cn'][0]),
                 'ucsschoolRole': str(dict_entry['ucsschoolRole'][0]),
-                'memberUid': [],
+                'memberUid': [str(member) for member in dict_entry.get('memberUid', [])],
             })
-
-            if 'memberUid' in dict_entry:
-                for member in dict_entry['memberUid']:
-                    obj['memberUid'].append(str(member))
 
             if 'workgroup' in dict_entry['ucsschoolRole'][0]:
                 processed_list['workgroups'].append(obj)
