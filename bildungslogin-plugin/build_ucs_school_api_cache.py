@@ -15,6 +15,252 @@ JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogi
 
 
 def transform_to_dictionary(entries):
+    """
+    >>> transform_to_dictionary([])
+    {'users': [], 'licenses': [], 'assignments': [], 'schools': [], 'workgroups': [], 'classes': []}
+
+    >>> result = transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['person'],
+    ...     'entryUUID': ['bar'],
+    ...     'uid': ['a_uid'],
+    ...     'givenName': ['a_givenName'],
+    ...     'sn': ['a_sn'],
+    ...     'ucsschoolSchool': [],
+    ...     'ucsschoolRole': [],
+    ...    }),
+    ... ])
+    >>> expected = {
+    ...   'users': [{
+    ...     'entryUUID': 'bar',
+    ...     'entry_dn': 'foo',
+    ...     'objectClass': ['person'],
+    ...     'uid': 'a_uid',
+    ...     'givenName': 'a_givenName',
+    ...     'sn': 'a_sn',
+    ...     'ucsschoolSchool': [],
+    ...     'ucsschoolRole': [],
+    ...   }],
+    ...   'licenses': [],
+    ...   'assignments': [],
+    ...   'schools': [],
+    ...   'workgroups': [],
+    ...   'classes': []}
+    >>> result == expected
+    True
+
+    >>> result = transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['bildungsloginLicense'],
+    ...     'entryUUID': ['bar'],
+    ...     'bildungsloginLicenseCode': ['a_bildungsloginLicenseCode'],
+    ...    }),
+    ... ])
+    >>> expected = {
+    ...   'users': [],
+    ...   'licenses': [{
+    ...     'entryUUID': 'bar',
+    ...     'entry_dn': 'foo',
+    ...     'objectClass': ['bildungsloginLicense'],
+    ...     'bildungsloginLicenseCode': 'a_bildungsloginLicenseCode',
+    ...     'bildungsloginLicenseSpecialType': '',
+    ...     },
+    ...   ],
+    ...   'assignments': [],
+    ...   'schools': [],
+    ...   'workgroups': [],
+    ...   'classes': [],
+    ... }
+    >>> result == expected
+    True
+
+    >>> result = transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['bildungsloginLicense'],
+    ...     'entryUUID': ['bar'],
+    ...     'bildungsloginLicenseCode': ['a_bildungsloginLicenseCode'],
+    ...     'bildungsloginLicenseSpecialType': ['a_bildungsloginLicenseSpecialType'],
+    ...    }),
+    ... ])
+    >>> expected = {
+    ...   'users': [],
+    ...   'licenses': [
+    ...     {'entryUUID': 'bar',
+    ...      'entry_dn': 'foo',
+    ...      'objectClass': ['bildungsloginLicense'],
+    ...      'bildungsloginLicenseCode': 'a_bildungsloginLicenseCode',
+    ...      'bildungsloginLicenseSpecialType': 'a_bildungsloginLicenseSpecialType',
+    ...     },
+    ...   ],
+    ...   'assignments': [],
+    ...   'schools': [],
+    ...   'workgroups': [],
+    ...   'classes': [],
+    ... }
+    >>> result == expected
+    True
+
+    >>> transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['bildungsloginAssignment'],
+    ...     'entryUUID': ['bar'],
+    ...     'bildungsloginLicenseCode': ['a_bildungsloginLicenseCode'],
+    ...     'bildungsloginLicenseSpecialType': ['a_bildungsloginLicenseSpecialType'],
+    ...    }),
+    ... ])
+    {'users': [], 'licenses': [], 'assignments': [], 'schools': [], 'workgroups': [], 'classes': []}
+
+    >>> result = transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['bildungsloginAssignment'],
+    ...     'entryUUID': ['bar'],
+    ...     'bildungsloginAssignmentAssignee': ['an_assignee'],
+    ...     'bildungsloginAssignmentStatus': ['a_status'],
+    ...    }),
+    ... ])
+    >>> expected = {
+    ...   'users': [],
+    ...   'licenses': [],
+    ...   'assignments': [
+    ...     {'entryUUID': 'bar',
+    ...      'entry_dn': 'foo',
+    ...      'objectClass': ['bildungsloginAssignment'],
+    ...      'bildungsloginAssignmentAssignee': 'an_assignee',
+    ...      'bildungsloginAssignmentStatus': 'a_status',
+    ...     },
+    ...   ],
+    ...   'schools': [],
+    ...   'workgroups': [],
+    ...   'classes': [],
+    ... }
+    >>> result == expected
+    True
+
+    >>> result = transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['ucsschoolOrganizationalUnit'],
+    ...     'entryUUID': ['bar'],
+    ...     'ou': ['a_ou'],
+    ...    }),
+    ... ])
+    >>> expected = {
+    ...   'users': [],
+    ...   'licenses': [],
+    ...   'assignments': [],
+    ...   'schools': [
+    ...     {'entryUUID': 'bar',
+    ...      'entry_dn': 'foo',
+    ...      'objectClass': ['ucsschoolOrganizationalUnit'],
+    ...      'ou': 'a_ou',
+    ...     },
+    ...   ],
+    ...   'workgroups': [],
+    ...   'classes': [],
+    ... }
+    >>> result == expected
+    True
+
+    >>> result = transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['ucsschoolGroup'],
+    ...     'entryUUID': ['bar'],
+    ...     'cn': ['a_cn'],
+    ...     'ucsschoolRole': ['a_role'],
+    ...    }),
+    ... ])
+    >>> expected = {
+    ...   'users': [],
+    ...   'licenses': [],
+    ...   'assignments': [],
+    ...   'schools': [],
+    ...   'workgroups': [],
+    ...   'classes': [],
+    ... }
+    >>> result == expected
+    True
+
+    >>> result = transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['ucsschoolGroup'],
+    ...     'entryUUID': ['bar'],
+    ...     'cn': ['a_cn'],
+    ...     'ucsschoolRole': ['workgroup'],
+    ...    }),
+    ... ])
+    >>> expected = {
+    ...   'users': [],
+    ...   'licenses': [],
+    ...   'assignments': [],
+    ...   'schools': [],
+    ...   'workgroups': [
+    ...     {'entryUUID': 'bar',
+    ...      'entry_dn': 'foo',
+    ...      'objectClass': ['ucsschoolGroup'],
+    ...      'cn': 'a_cn',
+    ...      'ucsschoolRole': 'workgroup',
+    ...      'memberUid': [],
+    ...     },
+    ...   ],
+    ...   'classes': [],
+    ... }
+    >>> result == expected
+    True
+
+    >>> result = transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['ucsschoolGroup'],
+    ...     'entryUUID': ['bar'],
+    ...     'cn': ['a_cn'],
+    ...     'ucsschoolRole': ['school_class'],
+    ...    }),
+    ... ])
+    >>> expected = {
+    ...   'users': [],
+    ...   'licenses': [],
+    ...   'assignments': [],
+    ...   'schools': [],
+    ...   'workgroups': [],
+    ...   'classes': [
+    ...     {'entryUUID': 'bar',
+    ...      'entry_dn': 'foo',
+    ...      'objectClass': ['ucsschoolGroup'],
+    ...      'cn': 'a_cn',
+    ...      'ucsschoolRole': 'school_class',
+    ...      'memberUid': [],
+    ...     },
+    ...   ],
+    ... }
+    >>> result == expected
+    True
+
+    >>> result = transform_to_dictionary([
+    ...   ('foo',
+    ...    {'objectClass': ['ucsschoolGroup'],
+    ...     'entryUUID': ['bar'],
+    ...     'cn': ['a_cn'],
+    ...     'ucsschoolRole': ['school_class'],
+    ...     'memberUid': ['member01', 'member02']
+    ...    }),
+    ... ])
+    >>> expected = {
+    ...   'users': [],
+    ...   'licenses': [],
+    ...   'assignments': [],
+    ...   'schools': [],
+    ...   'workgroups': [],
+    ...   'classes': [
+    ...     {'entryUUID': 'bar',
+    ...      'entry_dn': 'foo',
+    ...      'objectClass': ['ucsschoolGroup'],
+    ...      'cn': 'a_cn',
+    ...      'ucsschoolRole': 'school_class',
+    ...      'memberUid': ['member01', 'member02'],
+    ...     },
+    ...   ],
+    ... }
+    >>> result == expected
+    True
+    """
     processed_list = {
         'users': [],
         'licenses': [],
