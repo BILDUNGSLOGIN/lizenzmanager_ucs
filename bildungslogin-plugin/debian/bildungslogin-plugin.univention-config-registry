@@ -1,0 +1,8 @@
+Type: file
+File: etc/cron.d/bildungslogin-rebuild-cache
+Variables: bildungslogin/rebuild-cache
+Variables: bildungslogin/refresh-cache
+
+Type: file
+File: etc/cron.d/bildungslogin-refresh-cache
+Variables: bildungslogin/refresh-cache
