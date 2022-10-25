@@ -407,6 +407,6 @@ def main(cache_file):
 
 if __name__ == '__main__':
     args = PARSER.parse_args()
-    logging.basicConfig(level=args.log_level, format='%(asctime)s - %(message)s')
+    logging.basicConfig(level=args.log_level, format='%(message)s')
     logger.debug('Parsed arguments: {}'.format(args))
     main(args.cache_file)
