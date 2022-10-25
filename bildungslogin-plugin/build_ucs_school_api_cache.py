@@ -301,9 +301,7 @@ def transform_to_dictionary(entries):
         'classes': [],
     }
 
-    for entry in entries:
-        entry_dn = entry[0]
-        dict_entry = entry[1]
+    for (entry_dn, dict_entry) in entries:
         obj = {
             'entryUUID': str(dict_entry['entryUUID'][0]),
             'entry_dn': str(entry_dn),
