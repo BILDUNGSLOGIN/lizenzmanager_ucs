@@ -393,10 +393,11 @@ def main(cache_file):
             'bildungsloginAssignmentStatus',
         ],
     )
-    logger.debug('Found the following objects: {}'.format(response))
+    logger.debug('Found {} objects'.format(len(response)))
 
     filtered_dict = transform_to_dictionary(response)
-    logger.debug('Filtered and transformed objects: {}'.format(filtered_dict))
+    logger.debug('After filtering and transformation {} objects remaining'.format(
+        sum(len(objs) for objs in filtered_dict.values())))
 
     logger.debug("Convert to JSON and write to cache file")
     json.dump(filtered_dict, cache_file)
