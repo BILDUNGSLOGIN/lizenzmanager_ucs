@@ -1,3 +1,12 @@
+bildungslogin-plugin (1.2.12) unstable; urgency=medium
+
+  * ET-37 - Add new script build_ucs_school_api_cache.py,
+  * ET-37 - added cron-jobs to run said script and restart the UCS@School
+    APIs,
+  * ET-37 - added UCR variables to configure said cron-jobs.
+
+ -- Thomas Bach <thomas.bach.extern@univention.de>  Tue, 25 Oct 2022 15:44:39 +0200
+
 bildungslogin-plugin (1.2.11) unstable; urgency=medium
 
   * ET-35 regression: reapply fix for invalid user roles (1.2.8)

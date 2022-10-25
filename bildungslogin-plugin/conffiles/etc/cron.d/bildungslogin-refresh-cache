@@ -1,0 +1,8 @@
+@%@UCRWARNING=# @%@
+
+@!@
+script = 'univention-app restart ucsschool-apis'
+interval = configRegistry.get('bildungslogin/refresh-cache')
+if interval and interval != 'after-rebuild':
+    print('%s	root	(%s) 2>&1 | logger -t bildungslogin-refresh-cache' % (interval, script))
+@!@
