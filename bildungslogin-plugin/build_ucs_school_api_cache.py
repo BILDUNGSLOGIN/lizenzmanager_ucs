@@ -39,7 +39,7 @@ PARSER.add_argument(
     '--cache-file',
     metavar='FILE',
     default=JSON_PATH,
-    type=argparse.FileType('w', encoding='UTF-8'),
+    type=argparse.FileType('w'),
     help='The path to the cache file. (Default: %(default)s)',
 )
 
@@ -393,10 +393,10 @@ def main(cache_file):
             'bildungsloginAssignmentStatus',
         ],
     )
-    logger.debug(f'Found the following objects: {response}')
+    logger.debug('Found the following objects: {}'.format(response))
 
     filtered_dict = transform_to_dictionary(response)
-    logger.debug(f'Filtered and transformed objects: {filtered_dict}')
+    logger.debug('Filtered and transformed objects: {}'.format(filtered_dict))
 
     logger.debug("Convert to JSON and write to cache file")
     json.dump(filtered_dict, cache_file)
@@ -407,5 +407,5 @@ def main(cache_file):
 if __name__ == '__main__':
     args = PARSER.parse_args()
     logging.basicConfig(level=args.log_level, format='%(asctime)s - %(message)s')
-    logger.debug(f'Parsed arguments: {args}')
+    logger.debug('Parsed arguments: {}'.format(args))
     main(args.cache_file)
