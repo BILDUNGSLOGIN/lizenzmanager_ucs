@@ -28,7 +28,8 @@ Das Modul muss intstalliert sein und SSO seitens extern funktionieren. Auch muss
 
 1. Als erstes muss UCS@school installiert sein: Melden Sie sich an der UCS Management Konsole an, öffnen Sie den App Center und Installieren Sie die [UCS@school app](https://www.univention.de/produkte/univention-app-center/app-katalog/ucsschool/).
 2. Anschließend muss die UCS@school APIs app installiert werden. Dies können Sie auf der Kommandozeile mit root- Berechtigungen wie folgt erledigen:
- `univention-app install ucsschool-apis=0.1.0` oder `univention-app install ucsschool-apis=0.1.0 --username <GUI-Admin-Benutzername>`**Achtung:** Aufgrund interner Abhängigkeiten ist es aktuell notwendig, dass die Version 0.1.0, und nicht die aktuellste Version installiert wird!
+ `univention-app install ucsschool-apis` oder `univention-app install ucsschool-apis --username <GUI-Admin-Benutzername>`
+
 
 Überprüfen Sie dass alle Skripte erfolgreich durchlaufen wurden: GUI-> Domain -> Domain join: alle erfolgreich?
 ## Lizenzmanagermodul- Installation
@@ -49,7 +50,9 @@ Beschreibung der Pakete:
 - `ucs-school-umc-licenses` (UMC Modul)
 - `bildungslogin-plugin` (Provisionierungs REST API Plugin für die `ucsschool-apis` App.)
 
-Ebenso ist ein API- Benutzer mit der ID **bildungslogin-api-user** eingerichtet.
+Ebenso ist ein API- Benutzer mit der ID **bildungslogin-api-user** eingerichtet. Diesem muss noch ein Passwort vergeben werden (siehe [Konfiguration](#1-setup-der-provisioning-api)).
+
+Bei einer Deinstallation wird dieser Nutzer deaktiviert.
 
 ## Verifizierung der Installation
 
@@ -65,6 +68,15 @@ Einige der neuen UMC Module nutzen ein Limit um zu bestimmen, wie viele Ergebnis
 Einschränkung durch Suchparameter verlangen. Dieses Limit kann durch die UCR Variable `directory/manager/web/sizelimit`
 gesetzt werden und ist standardmäßig auf 2000 eingestellt. Aktuell enmpfiehlt es sich dieses Limit für das Lizenzmanagement
 auf 500 zu setzen. Dies kann mit dem Befehl `ucr set directory/manager/web/sizelimit=500` erreicht werden.
+
+### 3. Vorhandensein aller UDM- Module
+
+Zur Sicherstellung, dass alle relevanten [UDM-Module](#univention-directory-manager) installiert wurden, kann der folgende Befehl verwendet werden: `udm modules | grep bildungslogin`.
+
+Hierbei sollten die folgenden Module ausgegeben werden:
+- bildungslogin/assignment
+- bildungslogin/license
+- bildungslogin/metadata
 
 ## Installationsprobleme
 
@@ -115,6 +127,33 @@ Auf der Portalseite wird eine Kachel mit den folgenden Werten eingerichtet, um d
 - Link (Produktion): https://www.bildungslogin.de/app/#/sso/bilob?idp_hint=<idp_name>
 
 Den **idp_name** erhalten Sie vom Bildungslogin beim Onboarding.
+
+### 4. API- Caching Konfiguration überprüfen/anpassen
+
+Um auch bei größeren Systemen eine optimale Performance zu erreichen, werden die Lizenzzuweisungen für die API grundsätzlich gecached.
+Dies geschieht standardmäßig einmal täglich um 5 Uhr morgens.
+
+Um dies anzupassen, bzw. die Zeiten für einen Cache-Rebuild/-Refresh anzupassen, gibt es die folgenden UCR-Variablen:
+- bildungslogin/rebuild-cache
+- bildungslogin/refresh-cache
+
+#### bildungslogin/rebuild-cache
+
+Diese Variable ist für den eigentlichen Rebuild des Caches verantwortlich. Die aktuellen Zuweisungen werden zu den hier hinterlegten Zeitpunkt(en) ausgelesen und in einer Cache-Datei hinterlegt.
+
+Die Variable muss einen validen Cron-Zeitplanausdruck enthalten.
+
+#### bildungslogin/refresh-cache
+
+Diese Variable ist für den Neustart der UCS@School-API zuständig. Wenn die UCS@School-API neu gestartet wird, wird auch das Cache-File neu eingelesen, und somit sind sämtliche Daten aktuell.
+
+Ein Neustart ist allerdings nicht zwingend notwendig: wenn das Cache-File aktualisiert wird, wird beim ersten Aufruf (pro Worker) das Cache-File eingelesen und verwendet.
+Da bei größeren Systemen das Einlesen einige Zeit benötigt, wird empfohlen, die API anstattdessen neu zu starten, um Timeouts oder längere Wartezeiten für die Nutzer zu verhindern.
+
+Die Variable kann zwei unterschiedliche Werte enthalten:
+- den Wert `after-rebuild` - dieser startet die UCS@School-API neu sobald das Cachefile neu erstellt wurde,
+- einen validen Cron-Zeitplanausdruck.
+
 
 # Benutzung 
 
@@ -180,7 +219,6 @@ Für den Abruf der Lizenzzuweisungen muss die API des Moduls für den BiLo- Brok
 - GET: `bildungslogin/v1/user/`
 
 # Deinstallation
-Die Implementierung erfolgt als MVP und lässt sich ohne Rückstände nach erfolgreichem Test entfernen.
 
 ## Schulserver
 
@@ -201,6 +239,11 @@ dpkg -l | grep -E 'bildungslogin|umc-licenses'
 
 Auf dem Primary (DC Master) bzw. Backup Servern sind die UDM Modulpakete, LDAP Schema und die Provisionierungs API installiert.
 Außerdem liegen auf ihnen die LDAP Daten.
+
+
+### Deaktivierung bzw. Entfernung des API- Nutzers
+
+Bei einer Deinstallation der Provisionierungs API- Pakete wird der API- Nutzer deaktiviert. Dies ist bei einer Neuinstallation oder kompletten Entfernung zu beachten.
 
 ### Pakete und Metadaten-Cache
 
