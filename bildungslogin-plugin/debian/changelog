@@ -1,3 +1,9 @@
+bildungslogin-plugin (1.2.13) unstable; urgency=medium
+
+  * ET-37 - Use cache in backend
+
+ -- Thomas Bach <thomas.bach.extern@univention.de>  Thu, 03 Nov 2022 13:49:03 +0100
+
 bildungslogin-plugin (1.2.12) unstable; urgency=medium
 
   * ET-37 - Add new script build_ucs_school_api_cache.py,
