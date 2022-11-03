@@ -3,19 +3,17 @@ from __future__ import annotations
 
 import asyncio
 import enum
+import json
 import logging
 import os
 from hashlib import sha256
+from os.path import exists
 from typing import Dict, List, Optional, Set
 
-# TODO: UDM REST client should raise application specific exception:
-from aiohttp.client_exceptions import ClientConnectorError
-from ldap3 import Entry, ALL_ATTRIBUTES, \
-    ALL_OPERATIONAL_ATTRIBUTES
+from ldap3 import Entry
 from udm_rest_client.udm import UDM, UdmObject
-
 from ucsschool.apis.utils import LDAPAccess
-from .backend import DbBackend, DbConnectionError
+from .backend import DbBackend
 from .models import AssignmentStatus, Class, SchoolContext, User, UserRole, Workgroup
 
 UCR_CONTAINER_CLASS = ("ucsschool_ldap_default_container_class", "klassen")
@@ -23,6 +21,7 @@ UCR_CONTAINER_PUPILS = ("ucsschool_ldap_default_container_pupils", "schueler")
 
 logger = logging.getLogger()
 
+JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
 
 def _return_none_if_empty(input_string: str) -> Optional[str]:
     """ Returns None is string is empty """
@@ -45,50 +44,134 @@ class ObjectType(enum.Enum):
     USER = "user"
 
 
+class LdapUser:
+    def __init__(self,
+                 entry_uuid: str,
+                 entry_dn,
+                 object_class: List[str],
+                 user_id: str,
+                 given_name: str,
+                 sn: str,
+                 ucsschool_school: List[str],
+                 ucsschool_role: List[str]):
+        self.objectClass = object_class
+        self.entry_dn = entry_dn
+        self.ucsschoolRole = ucsschool_role
+        self.entryUUID = entry_uuid
+        self.uid = user_id
+        self.userId = user_id
+        self.givenName = given_name
+        self.sn = sn
+        self.ucsschoolSchool = ucsschool_school
+
+
+class LdapLicense:
+    def __init__(self, entry_uuid, entry_dn, object_class: List[str], bildungslogin_license_code,
+                 bildungslogin_license_special_type):
+        self.bildungsloginLicenseSpecialType = bildungslogin_license_special_type
+        self.objectClass = object_class
+        self.entry_dn = entry_dn
+        self.entryUUID = entry_uuid
+        self.bildungsloginLicenseCode = bildungslogin_license_code
+
+
+class LdapAssignment:
+    def __init__(self, entry_uuid, entry_dn, object_class: List[str], bildungslogin_assignment_status,
+                 bildungslogin_assignment_assignee):
+        self.objectClass = object_class
+        self.bildungsloginAssignmentStatus = bildungslogin_assignment_status
+        self.entry_dn = entry_dn
+        self.entryUUID = entry_uuid
+        self.bildungsloginAssignmentAssignee = bildungslogin_assignment_assignee
+
+
+class LdapSchool:
+    def __init__(self, entry_uuid, entry_dn, object_class: List[str], ou):
+        self.objectClass = object_class
+        self.entry_dn = entry_dn
+        self.entryUUID = entry_uuid
+        self.ou = ou
+
+
+class LdapGroup:
+    def __init__(self, entry_uuid, entry_dn, cn, ucsschool_role, member_uid: List[str]):
+        self.memberUid = member_uid
+        self.entry_dn = entry_dn
+        self.entryUUID = entry_uuid
+        self.cn = cn
+        self.ucsschoolRole = ucsschool_role
+
+
 class LdapRepository:
 
     def __init__(self, ldap_auth: LDAPAccess):
         self._ldap_auth = ldap_auth
-        self._user: Entry | None = None
-        self._licenses: List[Entry] = []
-        self._assignments: List[Entry] = []
-        self._schools: List[Entry] = []
-        self._workgroups: List[Entry] = []
-        self._classes: List[Entry] = []
+        self._timestamp: float | None = None
+        self._clear()
 
-    async def load(self, userid: str):
-        search_filter = f"(|(userid={userid})(&(objectClass=bildungsloginAssignment)(bildungsloginAssignmentAssignee=*))" \
-                        f"(objectClass=bildungsloginLicense)" \
-                        f"(objectClass=ucsschoolOrganizationalUnit)(objectClass=ucsschoolGroup))"
+    def update(self, start_up=False):
+        if not exists(JSON_PATH):
+            logger.error('JSON file not found at %r. Please check if it is updating.', JSON_PATH)
+            if not start_up:
+                raise FileNotFoundError(f"JSON file not found at {JSON_PATH}. Please check if it is updating.")
+            return
 
-        entries = await self._ldap_auth.search(
-            search_filter=search_filter,
-            attributes=[ALL_ATTRIBUTES, ALL_OPERATIONAL_ATTRIBUTES]
-        )
+        stat = os.stat(JSON_PATH)
+        file_time = stat.st_mtime
 
-        self._process_entries(entries)
+        if self._timestamp is not None and file_time <= self._timestamp:
+            return
 
-    def _process_entries(self, entries: List[Entry]):
-        for entry in entries:
-            if 'person' in entry.entry_attributes_as_dict['objectClass']:
-                self._user = entry
-            elif 'bildungsloginLicense' in entry.entry_attributes_as_dict['objectClass']:
-                self._licenses.append(entry)
-            elif 'bildungsloginAssignment' in entry.entry_attributes_as_dict['objectClass']:
-                if 'bildungsloginAssignmentAssignee' in entry.entry_attributes_as_dict:
-                    self._assignments.append(entry)
-            elif 'ucsschoolOrganizationalUnit' in entry.entry_attributes_as_dict['objectClass']:
-                self._schools.append(entry)
-            elif 'ucsschoolGroup' in entry.entry_attributes_as_dict['objectClass']:
-                if 'workgroup' in str(entry.ucsschoolRole):
-                    self._workgroups.append(entry)
-                elif 'school_class' in str(entry.ucsschoolRole):
-                    self._classes.append(entry)
+        self._clear()
+        f = open(JSON_PATH, 'r')
+        json_string = f.read()
+        f.close()
+        json_dictionary = json.loads(json_string)
+        self._process_entries(json_dictionary)
+        self._timestamp = file_time
 
-    def get_user(self) -> Entry:
-        return self._user
+    def count_objects(self):
+        return len(self._users) + len(self._workgroups) + len(self._licenses) + len(self._assignments) + len(
+            self._schools) + len(self._classes)
 
-    def get_assignments_by_assignee(self, assignee: Entry) -> List[Entry]:
+    def _clear(self):
+        self._users: List[LdapUser] = []
+        self._licenses: List[LdapLicense] = []
+        self._assignments: List[LdapAssignment] = []
+        self._schools: List[LdapSchool] = []
+        self._workgroups: List[LdapGroup] = []
+        self._classes: List[LdapGroup] = []
+
+    def _process_entries(self, entries: Dict):
+        for entry in entries['users']:
+            self._users.append(
+                LdapUser(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['uid'], entry['givenName'],
+                         entry['sn'], entry['ucsschoolSchool'], entry['ucsschoolRole']))
+        for entry in entries['licenses']:
+            self._licenses.append(LdapLicense(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
+                                              entry['bildungsloginLicenseCode'],
+                                              entry['bildungsloginLicenseSpecialType']))
+        for entry in entries['assignments']:
+            self._assignments.append(
+                LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
+                               entry['bildungsloginAssignmentStatus'], entry['bildungsloginAssignmentAssignee']))
+        for entry in entries['schools']:
+            self._schools.append(LdapSchool(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['ou']))
+        for entry in entries['workgroups']:
+            self._workgroups.append(
+                LdapGroup(entry['entryUUID'], entry['entry_dn'], entry['cn'], entry['ucsschoolRole'],
+                          entry['memberUid']))
+        for entry in entries['classes']:
+            self._classes.append(LdapGroup(entry['entryUUID'], entry['entry_dn'], entry['cn'], entry['ucsschoolRole'],
+                                           entry['memberUid']))
+
+    def get_user(self, userid: str) -> LdapUser | None:
+        for user in self._users:
+            if hasattr(user, 'uid') and user.uid == userid:
+                return user
+        return None
+
+    def get_assignments_by_assignee(self, assignee: Entry) -> List[LdapAssignment]:
         assignments = []
         for assignment in self._assignments:
             if assignment.bildungsloginAssignmentAssignee \
@@ -97,31 +180,29 @@ class LdapRepository:
 
         return assignments
 
-    def get_license_by_assignment(self, assignment: Entry) -> Entry | None:
-        for license in self._licenses:
-            if license.entry_dn in assignment.entry_dn:
-                return license
+    def get_license_by_assignment(self, assignment: LdapAssignment) -> LdapLicense | None:
+        for _license in self._licenses:
+            if _license.entry_dn in assignment.entry_dn:
+                return _license
         return None
 
-    def get_school(self, name: str) -> Entry | None:
+    def get_school(self, name: str) -> LdapSchool | None:
         for school in self._schools:
             if name == school.ou:
                 return school
         return None
 
-    def get_classes(self, school: Entry, user: Entry) -> List[Entry]:
+    def get_classes(self, school: LdapSchool, user: LdapUser) -> List[LdapGroup]:
         classes = []
         for _class in self._classes:
-            if _class.ucsschoolRole == f"school_class:school:{school.ou}" and hasattr(_class,
-                                                                                      'memberUid') and user.uid in _class.memberUid:
+            if _class.ucsschoolRole == f"school_class:school:{school.ou}" and user.uid in _class.memberUid:
                 classes.append(_class)
         return classes
 
-    def get_workgroups(self, school: Entry, user: Entry) -> List[Entry]:
+    def get_workgroups(self, school: LdapSchool, user: LdapUser) -> List[LdapGroup]:
         workgroups = []
         for workgroup in self._workgroups:
-            if workgroup.ucsschoolRole == f"workgroup:school:{school.ou}" and hasattr(workgroup,
-                                                                                      'memberUid') and user.uid in workgroup.memberUid:
+            if workgroup.ucsschoolRole == f"workgroup:school:{school.ou}" and user.uid in workgroup.memberUid:
                 workgroups.append(workgroup)
         return workgroups
 
@@ -146,12 +227,13 @@ class UdmRestApiBackend(DbBackend):
 
     def __init__(self, ldap_auth: LDAPAccess, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.ldap_auth = ldap_auth
         self.ldap_base = os.environ["LDAP_BASE"]
         self.repository: LdapRepository | None = None
         self.udm = UDM(**kwargs)
         self.udm.session.open()
         self.assignment_mod = self.udm.get("bildungslogin/assignment")
+        self.repository = LdapRepository(ldap_auth)
+        self.repository.update(start_up=True)
 
     async def connection_test(self) -> None:
         """
@@ -171,10 +253,8 @@ class UdmRestApiBackend(DbBackend):
         :raises ConnectionError: when a problem with the connection happens
         :raises UserNotFound: when a user could not be found in the DB
         """
-        self.repository = LdapRepository(self.ldap_auth)
-        await self.repository.load(userid=username)
-
-        user = self.repository.get_user()
+        self.repository.update()
+        user = self.repository.get_user(username)
         licenses = self.get_licenses_and_set_assignment_status(ObjectType.USER, user)
         return_obj = User(
             id=str(user.userId),
@@ -186,38 +266,6 @@ class UdmRestApiBackend(DbBackend):
 
         return return_obj
 
-    async def _get_object_by_name(self, object_type: ObjectType, name: str) -> UdmObject:
-        """
-        Get group/user/school based on its name
-        1. Search the object
-        2. Obtain the object by its DN, as UDM REST API provides certain information
-            (e.g. entryUUID) only in this case
-        """
-        if object_type is ObjectType.GROUP:
-            mod = self.group_mod
-            filter_string = f"(name={name})"
-        elif object_type is ObjectType.USER:
-            mod = self.user_mod
-            filter_string = f"(username={name})"
-        elif object_type is ObjectType.SCHOOL:
-            mod = self.school_mod
-            filter_string = f"(&(name={name})(objectClass=ucsschoolOrganizationalUnit))"
-        else:
-            raise RuntimeError("Cannot handle object type: {}".format(object_type))
-
-        try:
-            objects = [o async for o in mod.search(filter_string)]
-        except ClientConnectorError as exc:
-            raise DbConnectionError(str(exc)) from exc
-
-        if len(objects) == 0:
-            raise ValueError(f"No {object_type.value}-object found with the name '{name}'")
-        try:
-            [obj] = objects
-        except ValueError:
-            raise ValueError(f"More than one {object_type.value} found with the name '{name}'")
-        return await mod.get(obj.dn)
-
     @staticmethod
     def _get_object_id(school_uuid: str, object_uuid: str) -> str:
         """ Create an ID for the object """
@@ -225,12 +273,12 @@ class UdmRestApiBackend(DbBackend):
         return sha256(string.encode("utf-8")).hexdigest()
 
     @staticmethod
-    def _get_licenses_codes(licenses: List[Entry]) -> List[str]:
+    def _get_licenses_codes(licenses: List[LdapLicense]) -> List[str]:
         """ Extract a list of unique licenses codes """
         return sorted(set(str(_license.bildungsloginLicenseCode) for _license in licenses))
 
     @staticmethod
-    def extract_group_name(school: Entry, group: Entry) -> str:
+    def extract_group_name(school: LdapSchool, group: LdapGroup) -> str:
         """
         In LDAP classes/workgroups are prepended with the school name:
         Example: DEMOSCHOOL-Group
@@ -240,21 +288,21 @@ class UdmRestApiBackend(DbBackend):
         _, group_name = str(group.cn).split(f"{school.ou}-", 1)
         return group_name
 
-    def get_class_info(self, school: Entry, class_obj: Entry) -> Class:
+    def get_class_info(self, school: LdapSchool, class_obj: LdapGroup) -> Class:
         """ Obtain relevant information about the class and initialize Class instance """
         licenses = self.get_licenses_and_set_assignment_status(ObjectType.GROUP, class_obj)
         return Class(id=self._get_object_id(school.entryUUID, class_obj.entryUUID),
                      name=self.extract_group_name(school, class_obj),
                      licenses=self._get_licenses_codes(licenses))
 
-    def get_workgroup_info(self, school: Entry, workgroup: Entry) -> Workgroup:
+    def get_workgroup_info(self, school: LdapSchool, workgroup: LdapGroup) -> Workgroup:
         """ Obtain relevant information about the workgroup and initialize Workgroup instance """
         licenses = self.get_licenses_and_set_assignment_status(ObjectType.GROUP, workgroup)
         return Workgroup(id=self._get_object_id(school.entryUUID, workgroup.entryUUID),
                          name=self.extract_group_name(school, workgroup),
                          licenses=self._get_licenses_codes(licenses))
 
-    def get_school_context(self, user: Entry) -> Dict[str, SchoolContext]:
+    def get_school_context(self, user: LdapUser) -> Dict[str, SchoolContext]:
         output = {}
         for school_ou in user.ucsschoolSchool:
             school = self.repository.get_school(school_ou)
@@ -266,8 +314,7 @@ class UdmRestApiBackend(DbBackend):
             all_licenses = self.get_licenses_and_set_assignment_status(ObjectType.SCHOOL, school)
             applicable_licenses = []
             for lic in all_licenses:
-                if hasattr(lic,
-                           'bildungsloginLicenseSpecialType') and lic.bildungsloginLicenseSpecialType == "Lehrkraft" and "teacher" not in user_roles:
+                if lic.bildungsloginLicenseSpecialType == "Lehrkraft" and "teacher" not in user_roles:
                     continue
                 applicable_licenses.append(lic)
 
@@ -287,7 +334,7 @@ class UdmRestApiBackend(DbBackend):
         return output
 
     def get_licenses_and_set_assignment_status(self, object_type: ObjectType,
-                                               obj: Entry) -> List[Entry]:
+                                               obj) -> List[LdapLicense]:
         licenses = []
         assignments = self.repository.get_assignments_by_assignee(obj)
         for assignment in assignments:
@@ -306,19 +353,19 @@ class UdmRestApiBackend(DbBackend):
 
         return licenses
 
-    async def correct_assignment_status(self, assignment: Entry):
+    async def correct_assignment_status(self, assignment: LdapAssignment):
         udm_assignment = await self.assignment_mod.get(assignment.entry_dn)
         udm_assignment.props.status = AssignmentStatus.ASSIGNED.name
         await udm_assignment.save()
         await self.set_assignment_status_provisioned(udm_assignment)
 
-    async def set_assignment_status_provisioned(self, assignment: Entry | UdmObject):
-        if isinstance(assignment, Entry):
+    async def set_assignment_status_provisioned(self, assignment: LdapAssignment | UdmObject):
+        if isinstance(assignment, LdapAssignment):
             assignment = await self.assignment_mod.get(assignment.entry_dn)
         assignment.props.status = AssignmentStatus.PROVISIONED.name
         await assignment.save()
 
-    def get_roles(self, user: Entry, school_ou: str) -> List[str]:
+    def get_roles(self, user: LdapUser, school_ou: str) -> List[str]:
         """
         Returns a list of unique roles the user is assigned to in the given school
         First, tries to obtain the roles via user's ucsschoolRole property
