@@ -1,5 +1,18 @@
 # Changelog
 
+
+## 2022-11-09
+
+## Hinzugefügt
+- Einführung eines API- Caches
+- Einführung UCR- Variablen zur Steuerung des Caches (Standardwerte zur Erneuerung des Caches: jeden Tag um 5 Uhr Morgens):
+  - bildungslogin/rebuild-cache
+  - bildungslogin/refresh-cache
+
+## Geändert
+- Verhinderung der automatisierten Auflistung von Lizenzen und Zuweisungen
+- Reduzierung des Loggings
+
 ## 2021-10-01
 
 ## Geändert
