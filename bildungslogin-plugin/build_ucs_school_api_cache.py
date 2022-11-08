@@ -394,6 +394,7 @@ def main(cache_file):
 
     Fetch the LDAP objects, transform and filter them as needed and write the JSON objects to the
     given cache_file.
+    given cache_file.
     """
     import univention.admin.uldap as uldap
     ldap_access, ldap_position = uldap.getAdminConnection()
@@ -433,6 +434,6 @@ def main(cache_file):
 
 if __name__ == '__main__':
     args = PARSER.parse_args()
-    logging.basicConfig(level=args.log_level, format='%(message)s')
+    logging.basicConfig(level=args.log_level, format='%(levelname)s - %(message)s')
     logger.debug('Parsed arguments: {}'.format(args))
     main(args.cache_file)
