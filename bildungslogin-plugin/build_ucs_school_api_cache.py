@@ -337,10 +337,13 @@ def transform_to_dictionary(entries):
         }
 
         if 'person' in dict_entry['objectClass']:
+            if 'ucsschoolRole' not in dict_entry:
+                logger.warning('Ignored user %s.', dict_entry['uid'][0])
+                continue
 
             obj.update({
                 'uid': str(dict_entry['uid'][0]),
-                'givenName': str(dict_entry['givenName'][0]),
+                'givenName': "" if 'givenName' not in dict_entry else str(dict_entry['givenName'][0]),
                 'sn': str(dict_entry['sn'][0]),
                 'ucsschoolSchool': [str(school) for school in dict_entry['ucsschoolSchool']],
                 'ucsschoolRole': [str(role) for role in dict_entry['ucsschoolRole']]
