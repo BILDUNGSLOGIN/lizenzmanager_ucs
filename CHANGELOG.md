@@ -4,7 +4,7 @@
 ## 2022-11-09
 
 ## Hinzugefügt
-- Einführung eines API- Caches
+- Einführung eines API- Caches und des Skripts `build_ucs_school_api_cache.py`
 - Einführung UCR- Variablen zur Steuerung des Caches (Standardwerte zur Erneuerung des Caches: jeden Tag um 5 Uhr Morgens):
   - bildungslogin/rebuild-cache
   - bildungslogin/refresh-cache
