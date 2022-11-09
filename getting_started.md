@@ -154,6 +154,8 @@ Die Variable kann zwei unterschiedliche Werte enthalten:
 - den Wert `after-rebuild` - dieser startet die UCS@School-API neu sobald das Cachefile neu erstellt wurde,
 - einen validen Cron-Zeitplanausdruck.
 
+#### Überwachung der Cache- Generation
+Die Logs der Cache- Generierung werden in das syslog/journald geschrieben (bildungslogin-rebuild-cache), und sollten entsprechend überwacht werden - speziell auf "WARNING" oder "ERROR"- Nachrichten.
 
 # Benutzung 
 
