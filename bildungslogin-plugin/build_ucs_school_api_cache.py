@@ -41,8 +41,10 @@ We extensively use doctests in this script as a replacement to unittests. You ca
 import argparse
 import json
 import logging
+import re
 
 logger = logging.getLogger(__name__)
+entry_dn_pattern = re.compile(".*dc=.*")
 
 SEARCH_FILTER = ''.join([
     '(|',
@@ -336,6 +338,9 @@ def transform_to_dictionary(entries):
             'objectClass': [str(_class) for _class in dict_entry['objectClass']],
         }
 
+        if not entry_dn_pattern.match(obj['entry_dn']):
+            logger.warning("Corrupted DN by object %r with entry dn: %r", dict_entry['entryUUID'], entry_dn)
+
         if 'person' in dict_entry['objectClass']:
             if 'ucsschoolRole' not in dict_entry:
                 logger.warning('Ignored user %s.', dict_entry['uid'][0])
@@ -365,9 +370,9 @@ def transform_to_dictionary(entries):
               and 'bildungsloginAssignmentAssignee' in dict_entry):
             obj.update({
                 'bildungsloginAssignmentAssignee':
-                str(dict_entry['bildungsloginAssignmentAssignee'][0]),
+                    str(dict_entry['bildungsloginAssignmentAssignee'][0]),
                 'bildungsloginAssignmentStatus':
-                str(dict_entry['bildungsloginAssignmentStatus'][0]),
+                    str(dict_entry['bildungsloginAssignmentStatus'][0]),
             })
 
             processed_list['assignments'].append(obj)
