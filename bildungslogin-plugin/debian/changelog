@@ -1,3 +1,10 @@
+bildungslogin-plugin (1.2.14) unstable; urgency=medium
+
+  * Fix build_ucs_school_api_cache.py to handle missing attributes
+    correctly.
+
+ -- Thomas Bach <thomas.bach.extern@univention.de>  Tue, 08 Nov 2022 13:54:44 +0100
+
 bildungslogin-plugin (1.2.13) unstable; urgency=medium
 
   * ET-37 - Use cache in backend
