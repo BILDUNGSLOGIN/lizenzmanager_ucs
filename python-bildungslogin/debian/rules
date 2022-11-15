@@ -55,10 +55,6 @@ override_dh_install:
 	rm debian/python-bildungslogin/usr/lib/python2.*/dist-packages/univention/__init__.py
 	dh_install
 
-override_dh_fixperms:
-	dh_fixperms
-	chmod 644 debian/python-bildungslogin/etc/bildungslogin/config.ini
-
 override_dh_auto_test:
 	ucslint
 	dh_auto_test
