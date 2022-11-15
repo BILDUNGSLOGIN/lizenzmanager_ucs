@@ -7,20 +7,8 @@ Build-Depends:
  debhelper,
  dh-python,
  python-all,
- python-attr,
- python-setuptools,
- python-debian,
- python-mock,
- python-pytest,
- python-pytest-mock,
- python-typing,
- python-ldap,
- python-univention-directory-manager,
- python-ucs-school,
- python-ucsschool-lib,
  ucslint,
  univention-ucs-translation-template,
- python-jsonschema,
 
 Package: python-bildungslogin
 Architecture: all
