@@ -1,3 +1,9 @@
+python-bildungslogin (0.2.20) unstable; urgency=medium
+
+  * ET-38 Fix permissions on /etc/bildungslogin/config.ini
+
+ -- Thomas Bach <thomas.bach.extern@univention.de>  Tue, 15 Nov 2022 12:20:21 +0100
+
 python-bildungslogin (0.2.19) unstable; urgency=medium
 
   * Regression again: Distinction between Error and No-Error condition
