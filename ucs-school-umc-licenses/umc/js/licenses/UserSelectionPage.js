@@ -409,7 +409,7 @@ define([
       const actions = [
         {
           name: "allocate",
-          label: _("Assign licenses"),
+          label: _("To media selection"),
           isStandardAction: true,
           isContextAction: true,
           isMultiAction: true,
