@@ -369,7 +369,7 @@ define([
       if (this.moduleFlavor === "licenses/allocation") {
         actions.push({
           name: "edit",
-          label: _("Assign licenses"),
+          label: _("To license selection"),
           isStandardAction: true,
           isContextAction: true,
           isMultiAction: false,
