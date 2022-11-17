@@ -56,8 +56,12 @@ branching model:
   ```
 
 * code, test, commit (see [below](#commit-messages) on how to format your commit messages);
-* if your feature is complete ensure to bump changelogs (to avoid conflicts conflicts it is best to
-  do this in the very end, just before creating the merge request);
+* if your feature is complete ensure to bump changelogs
+
+  * to avoid conflicts conflicts it is best to do this in the very end, just before creating the
+    merge request);
+  * see [below](#versioning) on versioning;
+
 * rebase on `master` and (eventually force) push your changes:
 
   ```bash
@@ -137,6 +141,11 @@ A much longer description why the change was introduced.
 
 issue: ET-24
 ```
+
+## Versioning
+
+We use a [semantic versioning](https://semver.org/) scheme `MAJOR.MINOR.PATCH`. The packages steming
+from this repository must always have the same major and minor version.
 
 ## Debugging
 TODO
