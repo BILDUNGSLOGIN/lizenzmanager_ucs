@@ -392,6 +392,7 @@ class UdmRestApiBackend(DbBackend):
     def _get_roles_for_school(roles: List[str], school: str) -> Set[str]:
         """
         Takes a list of ucsschool_roles and returns a list of user roles for the given school.
+        Note that this function IGNORES any roles which aren't relevant for the purpose of this module.
 
         >>> UdmRestApiBackend._get_roles_for_school(
         ... ["teacher:school:School1", "student:school:School2"],
@@ -403,6 +404,7 @@ class UdmRestApiBackend(DbBackend):
         :param school: The school to filter the roles for
         :return: The list of user roles for the given school
         """
+        valid_roles = set([x.value for x in UserRole])
         # copied from id-broker-plugin/provisioning_plugin/utils.py
         filtered_roles = set()
         for role in roles:
