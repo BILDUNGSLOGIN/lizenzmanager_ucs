@@ -29,7 +29,13 @@ msgid "Assign group licenses"
 msgstr "Gruppenlizenz zuweisen"
 
 #: umc/js/licenses/ProductSearchPage.js:372
+msgid "To license selection"
+msgstr "Zur Lizenzauswahl"
+
 #: umc/js/licenses/UserSelectionPage.js:412
+msgid "To media selection"
+msgstr "Zur Medienauswahl"
+
 #: umc/js/licenses/LicenseSearchPage.js:614
 msgid "Assign licenses"
 msgstr "Lizenzen zuweisen"
