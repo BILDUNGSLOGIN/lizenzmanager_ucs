@@ -10,6 +10,7 @@ from hashlib import sha256
 from os.path import exists
 from typing import Dict, List, Optional, Set
 
+from fastapi import HTTPException
 from ldap3 import Entry
 from udm_rest_client.udm import UDM, UdmObject
 from ucsschool.apis.utils import LDAPAccess
@@ -255,6 +256,10 @@ class UdmRestApiBackend(DbBackend):
         """
         self.repository.update()
         user = self.repository.get_user(username)
+
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found.")
+
         licenses = self.get_licenses_and_set_assignment_status(ObjectType.USER, user)
         return_obj = User(
             id=str(user.userId),
@@ -387,7 +392,6 @@ class UdmRestApiBackend(DbBackend):
     def _get_roles_for_school(roles: List[str], school: str) -> Set[str]:
         """
         Takes a list of ucsschool_roles and returns a list of user roles for the given school.
-        Note that this function IGNORES any roles which aren't relevant for the purpose of this module.
 
         >>> UdmRestApiBackend._get_roles_for_school(
         ... ["teacher:school:School1", "student:school:School2"],
@@ -399,7 +403,6 @@ class UdmRestApiBackend(DbBackend):
         :param school: The school to filter the roles for
         :return: The list of user roles for the given school
         """
-        valid_roles = set([x.value for x in UserRole])
         # copied from id-broker-plugin/provisioning_plugin/utils.py
         filtered_roles = set()
         for role in roles:
