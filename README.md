@@ -38,6 +38,40 @@ LICENSE_MODULE_BASE
 
 # Development
 
+## Git Workflow
+
+As of this writing this repository exists in two places. The first one is Univention's
+[internal GitLab](https://git.knut.univention.de/univention/customers/vbm/bildungslogin). The other
+one is a [private GitHub](https://github.com/univention/bildungslogin) repo. Packages are built in
+pipelines running on the `master` branch on the GitLab repository.
+
+We use [OneFlow](https://www.endoflineblog.com/oneflow-a-git-branching-model-and-workflow) as a
+branching model:
+
+* development happens on feature branches;
+* the name of the branch start with `feature/` followed by a brief description of the feature:
+
+  ```bash
+  git checkout -b feature/brief-feature-description master`
+  ```
+
+* if your feature is complete ensure to bump changelogs (to avoid conflicts conflicts it is best to
+  do this in the very end, just before creating the merge request);
+* rebase on `master` and (eventually force) push your changes:
+
+  ```bash
+  git fetch origin
+  git rebase origin/master
+  git push
+  # If the remote branch diverged due to the rebase:
+  git push --force
+  ```
+
+* if you do not have access to GitLab, mention Thomas Bach in Jira (or ping him otherwise) to
+  transfer the branch to GitLab;
+* open a merge request on GitLab and set Christian Kasprowicz (handle `@ckasprow`) as reviewer;
+* Christian will review and eventually merge the branch.
+
 ## Debugging
 TODO
 
