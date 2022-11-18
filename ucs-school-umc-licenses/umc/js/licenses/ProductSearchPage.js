@@ -284,7 +284,7 @@ define([
       // event stub
     },
 
-    refreshGrid: function (values,resize=false) {
+    refreshGrid: function (values,resize=true) {
       values.school = this.schoolId;
       if (this.moduleFlavor === "licenses/allocation" && this.allocation) {
         if (this.allocation.usernames) {
