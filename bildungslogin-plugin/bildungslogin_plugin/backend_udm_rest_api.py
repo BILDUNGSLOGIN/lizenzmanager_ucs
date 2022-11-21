@@ -10,6 +10,7 @@ from hashlib import sha256
 from os.path import exists
 from typing import Dict, List, Optional, Set
 
+from fastapi import HTTPException
 from ldap3 import Entry
 from udm_rest_client.udm import UDM, UdmObject
 from ucsschool.apis.utils import LDAPAccess
@@ -255,6 +256,10 @@ class UdmRestApiBackend(DbBackend):
         """
         self.repository.update()
         user = self.repository.get_user(username)
+
+        if user is None:
+            raise HTTPException(status_code=404, detail=f"No user with id '{username}' found.")
+
         licenses = self.get_licenses_and_set_assignment_status(ObjectType.USER, user)
         return_obj = User(
             id=str(user.userId),
