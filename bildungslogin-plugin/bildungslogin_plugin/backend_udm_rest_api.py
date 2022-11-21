@@ -258,7 +258,7 @@ class UdmRestApiBackend(DbBackend):
         user = self.repository.get_user(username)
 
         if user is None:
-            raise HTTPException(status_code=404, detail="User not found.")
+            raise HTTPException(status_code=404, detail=f"No user with id '{username}' found.")
 
         licenses = self.get_licenses_and_set_assignment_status(ObjectType.USER, user)
         return_obj = User(
