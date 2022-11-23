@@ -32,8 +32,8 @@
 echo "Creating cron job for regular meta data updates."
 LOGFILE="/var/log/univention/bildungslogin-media-update.log"
 ucr set \
-  cron/bildungslogin-meta-data/command="/usr/sbin/jitter 1200 date >> $LOGFILE; /usr/bin/bildungslogin-media-update >> $LOGFILE" \
-  cron/bildungslogin-meta-data/time="0 * * * *" \
+  cron/bildungslogin-meta-data/command="/usr/sbin/jitter 36000 date >> $LOGFILE; /usr/bin/bildungslogin-media-update >> $LOGFILE" \
+  cron/bildungslogin-meta-data/time="0 20 * * *" \
   cron/bildungslogin-meta-data/user="root" \
   cron/bildungslogin-meta-data/description="Bildungslogin meta data update job."
 

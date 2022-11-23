@@ -117,6 +117,14 @@ Die Datei /etc/bildungslogin/config.ini enthält notwendige Daten, um sich mit d
 - **AuthServer**: Der Authentifizierungsserver des BILDUNGSLOGINs, welcher Token ausstellt
 - **ResourceServer**:  Der API- Endpunkt des BILDUNGSLOGIN, um einen Lizenz- bzw. Medienabruf durchzuführen
 
+#### Anpassen der Zeit der Metadatenaktualisierung
+
+Die Metadaten werden jeden Tag zwischen 20 und 6 Uhr aktualisiert.
+
+Das kann durch zwei Variablen angepasst werden:
+- cron/bildungslogin-meta-data/time kann die Startzeit angegeben werden
+- cron/bildungslogin-meta-data/command kann über den Parameter von /usr/sbin/jitter die Zeitspanne angegeben werden, in der zufällig der Befehl ausgeführt wird. Der Default-Wert ist 36000, was 10 Stunden entspricht.
+
 ### 3. Portal-Eintrag hinzufügen
 
 Auf der Portalseite wird eine Kachel mit den folgenden Werten eingerichtet, um direkt vom UCS@School- System auf das Medienregal zugreifen zu können. Den Wert von <idp_name> erhalten Sie zusammen mit den Anbindungsdetails (2.) beim Onboarding. Details siehe auch [UCS Handbuch](https://docs.software-univention.de/handbuch-4.4.html#central:portal).
