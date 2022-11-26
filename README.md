@@ -38,6 +38,115 @@ LICENSE_MODULE_BASE
 
 # Development
 
+## Git Workflow
+
+As of this writing this repository exists in two places. The first one is Univention's
+[internal GitLab](https://git.knut.univention.de/univention/customers/vbm/bildungslogin). The other
+one is a [private GitHub](https://github.com/univention/bildungslogin) repo. Packages are built in
+pipelines running on the `master` branch on the GitLab repository.
+
+We use [OneFlow](https://www.endoflineblog.com/oneflow-a-git-branching-model-and-workflow) as a
+branching model:
+
+* development happens on feature branches;
+* the name of the branch start with `feature/` followed by a brief description of the feature:
+
+  ```bash
+  git checkout -b feature/brief-feature-description master`
+  ```
+
+* code, test, commit (see [below](#commit-messages) on how to format your commit messages);
+* if your feature is complete ensure to bump changelogs
+
+  * to avoid conflicts conflicts it is best to do this in the very end, just before creating the
+    merge request);
+  * see [below](#versioning) on versioning;
+
+* rebase on `master` and (eventually force) push your changes:
+
+  ```bash
+  git fetch origin
+  git rebase origin/master
+  git push
+  # If the remote branch diverged due to the rebase:
+  git push --force
+  ```
+
+* if you do not have access to GitLab, mention Thomas Bach in Jira (or ping him otherwise) to
+  transfer the branch to GitLab;
+* open a merge request on GitLab and set Christian Kasprowicz (handle `@ckasprow`) as reviewer;
+* Christian will review and eventually merge the branch.
+
+## Commit Messages
+
+Writing good commit messages is not easy. As a rule of thumb, try to express *why* you made a change
+and not what you changed. The what is give in the commit anyways and can be easily inspected. The
+commit message should rather express the intent and motivation of the change.
+
+Format commit messages following
+[Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+For `<type>` use one from
+[Angular convention](https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#type):
+
+* **build**: Changes that affect the build system or external dependencies
+* **ci**: Changes to our CI configuration files and scripts
+* **docs**: Documentation only changes
+* **feat**: A new feature
+* **fix**: A bug fix
+* **perf**: A code change that improves performance
+* **refactor**: A code change that neither fixes a bug nor adds a feature
+* **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+* **test**: Adding missing tests or correcting existing tests
+
+Additionally we have
+
+* **chore**: Routine tasks like bumping changelogs
+* **revert**: Reverting a previous commit
+
+As scope use the package you are working on wtih the following mapping:
+
+* `bildungslogin-plugin` -> `plugin`,
+* `python-bildungslogin` -> `bildungslogin`,
+* `ucs-school-umc-licenses` -> `umc`,
+* `udm-bildungslogin` -> `udm`.
+
+We do not have any rules on how to name the scope which are outside of packages, yet.
+
+You must reference a related ticket number either at the end of the `<description>` followed by a
+dash (`-`) or in the footers section using `issue: `.
+
+### Examples
+
+Bumping the changelog in packages steming from `ucs-school-umc-licenses` due to work on ticket ET-24
+could look like this:
+
+```
+chore(umc): bump changelog - ET-24
+```
+
+alternatively
+
+```
+chore(umc): bump changelog to version 2.0
+
+A much longer description why the change was introduced.
+
+issue: ET-24
+```
+
+## Versioning
+
+We use a [semantic versioning](https://semver.org/) scheme `MAJOR.MINOR.PATCH`. The packages steming
+from this repository must always have the same major and minor version.
+
 ## Debugging
 TODO
 

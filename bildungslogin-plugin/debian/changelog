@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.0.0) unstable; urgency=medium
+
+  * Unified version scheme between all bildungslogin related packages.
+
+ -- Thomas Bach <thomas.bach.extern@univention.de>  Wed, 23 Nov 2022 11:04:44 +0100
+
 bildungslogin-plugin (1.2.15) unstable; urgency=medium
 
   * ET-49 Catch exception if user is not found.
