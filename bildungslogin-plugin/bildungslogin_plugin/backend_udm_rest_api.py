@@ -10,10 +10,10 @@ from hashlib import sha256
 from os.path import exists
 from typing import Dict, List, Optional, Set
 
-from fastapi import HTTPException
 from ldap3 import Entry
 from udm_rest_client.udm import UDM, UdmObject
 from ucsschool.apis.utils import LDAPAccess
+from bildungslogin_plugin.backend import UserNotFound
 from .backend import DbBackend
 from .models import AssignmentStatus, Class, SchoolContext, User, UserRole, Workgroup
 
@@ -23,6 +23,7 @@ UCR_CONTAINER_PUPILS = ("ucsschool_ldap_default_container_pupils", "schueler")
 logger = logging.getLogger()
 
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
+
 
 def _return_none_if_empty(input_string: str) -> Optional[str]:
     """ Returns None is string is empty """
@@ -258,7 +259,7 @@ class UdmRestApiBackend(DbBackend):
         user = self.repository.get_user(username)
 
         if user is None:
-            raise HTTPException(status_code=404, detail=f"No user with id '{username}' found.")
+            raise UserNotFound()
 
         licenses = self.get_licenses_and_set_assignment_status(ObjectType.USER, user)
         return_obj = User(
@@ -411,9 +412,9 @@ class UdmRestApiBackend(DbBackend):
             role_parts = role.split(":")
             if len(role_parts) == 3 and all(role_parts):
                 if (
-                    role_parts[1] == "school"
-                    and role_parts[2] == school
-                    and role_parts[0] in valid_roles
+                        role_parts[1] == "school"
+                        and role_parts[2] == school
+                        and role_parts[0] in valid_roles
                 ):
                     filtered_roles.add(role_parts[0])
         return filtered_roles
@@ -429,6 +430,6 @@ class UdmRestApiBackend(DbBackend):
         if "ucsschoolStudent" in options:
             return {"student"}
         # 'school_admin' is not valid in models.UserRole: ignore it!
-        #if "ucsschoolAdministrator" in options:
+        # if "ucsschoolAdministrator" in options:
         #    return {"school_admin"}
         raise RuntimeError(f"Cannot determine role of user from options: {options!r}")
