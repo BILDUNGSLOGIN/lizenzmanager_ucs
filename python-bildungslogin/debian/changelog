@@ -4,7 +4,7 @@ python-bildungslogin (2.0.1) unstable; urgency=medium
 
  -- Felix Martin <felix.martin@bergwerk-it.de>  Wed, 23 Nov 2022 12:54:00 +0100
 
-bildungslogin-plugin (2.0.0) unstable; urgency=medium
+python-bildungslogin (2.0.0) unstable; urgency=medium
 
   * Unified version scheme between all bildungslogin related packages.
 
