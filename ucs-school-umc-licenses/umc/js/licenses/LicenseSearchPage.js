@@ -35,6 +35,7 @@ define([
   "dojo/dom-class",
   "dojo/on",
   "dojo/date/locale",
+  "dojo/Deferred",
   "dojox/html/entities",
   "dijit/Tooltip",
   "umc/dialog",
@@ -49,6 +50,7 @@ define([
   "umc/widgets/Text",
   "umc/widgets/TextBox",
   "umc/widgets/SuggestionBox",
+  "umc/widgets/ProgressInfo",
   "umc/i18n!umc/modules/licenses",
 ], function (
   declare,
@@ -57,6 +59,7 @@ define([
   domClass,
   on,
   dateLocale,
+  Deferred,
   entities,
   Tooltip,
   dialog,
@@ -71,6 +74,7 @@ define([
   Text,
   TextBox,
   SuggestionBox,
+  ProgressInfo,
   _
 ) {
   return declare("umc.modules.licenses.LicenseSearchPage", [Page], {
@@ -83,6 +87,7 @@ define([
     moduleFlavor: null, // required parameter
     showChangeSchoolButton: false,
     allocation: "",
+    allocation_chunksize: 60,	// default if UCR variable is not set
 
     _licenseTypes: [],
     // reference to the currently active grid
@@ -99,6 +104,153 @@ define([
     assignedSum: "-",
     expiredSum: "-",
     availableSum: "-",
+
+    // temp variables for progress display
+    _wrap_assign_function: null,
+    _wrap_assign_arg: null,
+    _wrap_assign_max: null,
+    _wrap_assign_items: null,
+    _wrap_assign_args: null,
+    _wrap_assign_chunksize: null,
+    _wrap_assign_deferred: null,
+    _wrap_assign_result: null,
+    _wrap_assign_progress: null,
+
+    // Wraps the backend calls to assign_<something> such that it features:
+    //
+    //  *   a busy state (user-visible state: i'm working right now)
+    //  *   the capability to split the call into several calls and to collect
+    //      their results
+    //  *   a percentual sign of progress
+    //
+    // Function returns a Deferred with the result, so it is a full replacement
+    // to the original UMCP command call.
+    _wrap_assign: function(umcp_function, args, chunksize=1) {
+        var arg_to_split = 'usernames';     // currently only for users
+        // From here onwards, the status variables have to be object-global to our
+        // 'this' object instance, so the wrap_assign_handler() function can pick them
+        // up and change them. We prepend '_wrap_assign_' to all these variable names.
+        this._wrap_assign_function = umcp_function;
+        this._wrap_assign_arg = arg_to_split;
+        // This must be a copy, or else the original selection is being emptied!
+        this._wrap_assign_items = Object.create(args[arg_to_split]);
+        this._wrap_assign_max = args[arg_to_split].length;
+        this._wrap_assign_args = args;
+        this._wrap_assign_chunksize = chunksize;
+        this._wrap_assign_deferred = new Deferred();
+        this._wrap_assign_result = {
+            'countSuccessfulAssignments':   0,
+            'notEnoughLicenses':            false,
+            'failedAssignments':            [],
+            'validityInFuture':             [],
+        };
+
+        // Make a progress bar
+        this._wrap_assign_progress = new ProgressInfo({maximum: args[arg_to_split].length});
+        // umc.web's Progressinfo discards all constructor arguments, even 'maximum' :-(
+        this._wrap_assign_progress._progressBar.set('maximum',args[arg_to_split].length);
+
+        this._wrap_assign_handler();
+
+        this.standbyDuring(this._wrap_assign_deferred, this._wrap_assign_progress);
+
+        return this._wrap_assign_deferred;
+    },
+
+    // Helper function for wrap_assign: it maintains the status variables
+    // while a request is underway. This function will call umcpCommand with
+    // one chunk of items, and reschedule itself until there are no items left.
+    _wrap_assign_handler: function() {
+        var temp_request = this._wrap_assign_args;
+        var temp_items = [];
+        while ((temp_items.length < this._wrap_assign_chunksize) && (this._wrap_assign_items.length > 0)) {
+            temp_items.push(this._wrap_assign_items.pop());
+        }
+        temp_request[this._wrap_assign_arg] = temp_items;
+        tools.umcpCommand(this._wrap_assign_function,temp_request).then(lang.hitch(this,function(result) {
+
+            // merge result into global result
+            this._wrap_assign_result['countSuccessfulAssignments'] += result['result']['countSuccessfulAssignments'];
+            // If the limit kicks in: stop immediately.
+            if (result['result']['notEnoughLicenses']) {
+                this._wrap_assign_result['notEnoughLicenses'] = true;
+                this._wrap_assign_items = [];
+            }
+
+            // update progress bar
+            this._wrap_assign_progress.update(
+            	this._wrap_assign_result['countSuccessfulAssignments'],
+            	this._wrap_assign_result['countSuccessfulAssignments'] + ' of ' + this._wrap_assign_max + ' licenses assigned'
+            );
+
+            // If there are items left: start next loop iteration.
+            // If not: finish this loop, and return result.
+            if (this._wrap_assign_items.length > 0) {
+                this._wrap_assign_handler();
+            } else {
+                // clean up progress display?
+                this._wrap_assign_progress.destroyRecursive();
+                var result = {
+                    'error':	null,
+                    'message':	null,
+                    'reason':	null,
+                    'result':	this._wrap_assign_result
+                };
+                this._wrap_assign_deferred.resolve(result);
+            }
+        }), lang.hitch(this,function(result) {
+        	alert('something went wrong');
+        }));
+    },
+
+    // check if the requested count of licenses is really available, and disable/enable the
+    // action button accordingly. Note that umc.web's grid does not pass all selected items to
+    // one callback: therefore we have to retrieve all selected items and sum their 'countAvailable'
+    // properties, and return the global permission on each and every item.
+    _can_assign_licenses: function(obj) {
+    	// do this check only for users
+    	if (this.allocation.usernames) {
+    		// the user list has already been shortened to contain only those who don't have the license.
+    		var needed = this.unallocated_users.length;
+    		// If all selected users already have this license: also disable pushing the button for nothing.
+    		if (needed === 0) {
+    			return false;
+    		}
+    		var available = 0;
+    		var selected_items = this._grid.getSelectedItems();
+    		selected_items.forEach(function(item) {
+    			available += item['countAvailable'];
+    		});
+    		if (needed <= available)
+    		{
+    			return true;
+    		}
+    		return false;
+    	}
+    	return true;
+    },
+
+    // formats the status text for the allocation grid
+    _allocation_footer: function(nItems) {
+    	if (! nItems) { return ''; }
+    	var counted = 0;
+    	this._grid.getSelectedItems().forEach(function(item) {
+    		counted += item['countAvailable'];
+    	});
+    	msg = '';
+    	if (counted === 1) {
+    		msg += _('One license selected');
+    	} else {
+	    	msg += _('%d licenses selected', counted);
+	    }
+	    var needed = this.unallocated_users.length;
+	    if (needed === 0) {
+	    	msg += ' ' + _('(none needed)');
+	    } else {
+		    msg += ' ' + _('(%d needed)', needed);
+		}
+	    return msg;
+    },
 
     _toggleSearch: function () {
       this._isAdvancedSearch = !this._isAdvancedSearch;
@@ -187,6 +339,32 @@ define([
 				</p>
 			`.trim();
         this._assignmentText.set("content", msg);
+        // Copy allocation.usernames into unallocated_users, ignoring all users that already
+        // have this license allocated.
+        this.unallocated_users = allocation.usernames;
+		tools.umcpCommand('licenses/products/get',{
+			'school': this.schoolId,
+			'productId': this.allocation.productId,
+		}).then(lang.hitch(this,function(result) {
+			result.result.licenses.forEach(lang.hitch(this,function(license){
+				tools.umcpCommand('licenses/get',{
+					'school': this.schoolId,
+					'licenseCode': license.licenseCode,
+				}).then(lang.hitch(this,function(result){
+					var temp_alloc = [];
+					for (const user of result.result.users) {
+						temp_alloc.push(user.username);
+					}
+					var temp_unalloc = [];
+					for (const username of this.unallocated_users) {
+						if (! temp_alloc.includes(username)) {
+							temp_unalloc.push(username);
+						}
+					}
+					this.unallocated_users = temp_unalloc;
+				}));
+			}));
+		}));
         const node = dom.byId(id);
         on(
           node,
@@ -194,7 +372,12 @@ define([
           lang.hitch(this, function (evt) {
             let label = "";
             for (const username of this.allocation.usernames) {
-              label += `<div>${entities.encode(username)}</div>`;
+              // strike through users that already have this license assigned
+              if (this.unallocated_users.includes(username)) {
+                label += `<div>${entities.encode(username)}</div>`;
+              } else {
+                label += `<div><s>${entities.encode(username)}</s></div>`;
+              }
             }
             Tooltip.show(label, node);
             evt.stopImmediatePropagation();
@@ -425,6 +608,11 @@ define([
     buildRendering: function () {
       this.inherited(arguments);
 
+      // retrieve chunksize from UCR if present.
+      tools.ucr('bildungslogin/assignment/chunksize').then(lang.hitch(this,function(data) {
+	      this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
+	  }));
+
       this._assignmentText = new Text({
         region: "nav",
         class: "dijitDisplayNone",
@@ -615,13 +803,15 @@ define([
           isStandardAction: true,
           isContextAction: true,
           isMultiAction: true,
+          canExecute: lang.hitch(this, '_can_assign_licenses'),
           callback: lang.hitch(this, function (_idxs, licenses) {
             if (this.allocation.usernames) {
-              tools
-                .umcpCommand("licenses/assign_to_users", {
+              // Call a wrapper function, for chunked action and a progress bar.
+              this._wrap_assign("licenses/assign_to_users", {
                   licenseCodes: licenses.map((license) => license.licenseCode),
-                  usernames: this.allocation.usernames,
-                })
+                  // Use the already-reduced list of users who really need the license.
+                  usernames: this.unallocated_users,
+                },this.allocation_chunksize)
                 .then(
                   lang.hitch(this, function (response) {
                     const result = response.result;
@@ -702,6 +892,8 @@ define([
                     }
                     const title = _("Assigning licenses");
                     dialog.alert(msg, title);
+                    // Should we refresh the grid to reflect the new counters?
+                    this.refreshGrid(this._searchForm.value);
                   })
                 );
             } else if (this.allocation.school) {
@@ -1172,6 +1364,7 @@ define([
         moduleStore: store("licenseCode", "licenses"),
         sortIndex: -10,
         addTitleOnCellHoverIfOverflow: true,
+        footerFormatter: lang.hitch(this,'_allocation_footer'),
       });
 
       // this._gridFooter = new Grid({
