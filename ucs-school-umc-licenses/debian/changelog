@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.0.2) unstable; urgency=medium
+
+  * ET-2 Show only available group licenses for assignment
+
+ -- Frank Greif <greif@univention.de>  Fri, 02 Dec 2022 14:31:41 +0100
+
 ucs-school-umc-licenses (2.0.1) unstable; urgency=medium
 
   * ET-4 Assign volume/single licenses in chunks.
