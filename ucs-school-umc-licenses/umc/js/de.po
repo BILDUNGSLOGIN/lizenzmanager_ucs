@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2022-12-01 14:37+0100\n"
+"POT-Creation-Date: 2022-12-02 14:07+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -27,7 +27,7 @@ msgstr "(%d benötigt)\t\t"
 msgid "(none needed)"
 msgstr "(keine benötigt)"
 
-#: umc/js/licenses/ProductSearchPage.js:505
+#: umc/js/licenses/ProductSearchPage.js:506
 msgid "Acquired"
 msgstr "Erworben"
 
@@ -73,8 +73,8 @@ msgid "Assign school licenses"
 msgstr "Schullizenz zuweisen"
 
 #: umc/js/licenses/ProductDetailPage.js:277
-#: umc/js/licenses/ProductSearchPage.js:455
-#: umc/js/licenses/ProductSearchPage.js:510
+#: umc/js/licenses/ProductSearchPage.js:456
+#: umc/js/licenses/ProductSearchPage.js:511
 #: umc/js/licenses/LicenseSearchPage.js:1148
 #: umc/js/licenses/LicenseSearchPage.js:1219
 #: umc/js/licenses/LicenseDetailPage.js:191
@@ -109,8 +109,8 @@ msgid "Author"
 msgstr "Autor"
 
 #: umc/js/licenses/ProductDetailPage.js:287
-#: umc/js/licenses/ProductSearchPage.js:465
-#: umc/js/licenses/ProductSearchPage.js:520
+#: umc/js/licenses/ProductSearchPage.js:466
+#: umc/js/licenses/ProductSearchPage.js:521
 #: umc/js/licenses/LicenseSearchPage.js:1158
 #: umc/js/licenses/LicenseSearchPage.js:1229
 #: umc/js/licenses/LicenseDetailPage.js:188
@@ -135,7 +135,7 @@ msgstr "Produkt ändern"
 msgid "Change school"
 msgstr "Schule wechseln"
 
-#: umc/js/licenses/ProductSearchPage.js:335
+#: umc/js/licenses/ProductSearchPage.js:336
 #: umc/js/licenses/LicenseSearchPage.js:582
 msgid "Change user selection"
 msgstr "Nutzerauswahl ändern"
@@ -160,14 +160,14 @@ msgstr "Klasse"
 msgid "Continue editing"
 msgstr "Weiter bearbeiten"
 
-#: umc/js/licenses/ProductSearchPage.js:615
-#: umc/js/licenses/ProductSearchPage.js:655
+#: umc/js/licenses/ProductSearchPage.js:616
+#: umc/js/licenses/ProductSearchPage.js:656
 msgid "Cover not found"
 msgstr "Buchdeckel nicht gefunden"
 
 #: umc/js/licenses/ProductDetailPage.js:292
-#: umc/js/licenses/ProductSearchPage.js:470
-#: umc/js/licenses/ProductSearchPage.js:525
+#: umc/js/licenses/ProductSearchPage.js:471
+#: umc/js/licenses/ProductSearchPage.js:526
 #: umc/js/licenses/LicenseSearchPage.js:1163
 #: umc/js/licenses/LicenseSearchPage.js:1234
 #: umc/js/licenses/LicenseSearchPage.js:1348
@@ -192,8 +192,8 @@ msgid "End import period"
 msgstr "Ende Zeitraum Import"
 
 #: umc/js/licenses/ProductDetailPage.js:282
-#: umc/js/licenses/ProductSearchPage.js:460
-#: umc/js/licenses/ProductSearchPage.js:515
+#: umc/js/licenses/ProductSearchPage.js:461
+#: umc/js/licenses/ProductSearchPage.js:516
 #: umc/js/licenses/LicenseSearchPage.js:1153
 #: umc/js/licenses/LicenseSearchPage.js:1224
 #: umc/js/licenses/LicenseDetailPage.js:192
@@ -291,14 +291,14 @@ msgstr ""
 "Die Lizenzen wurden erfolgreich der ausgewählten Lerngruppe zugewiesen."
 
 #: umc/js/licenses/ProductDetailPage.js:99
-#: umc/js/licenses/ProductSearchPage.js:601
-#: umc/js/licenses/ProductSearchPage.js:641
+#: umc/js/licenses/ProductSearchPage.js:602
+#: umc/js/licenses/ProductSearchPage.js:642
 #: umc/js/licenses/LicenseDetailPage.js:102
 msgid "Loading cover..."
 msgstr "Lade Buchdeckel..."
 
 #: umc/js/licenses/ProductDetailPage.js:272
-#: umc/js/licenses/ProductSearchPage.js:450
+#: umc/js/licenses/ProductSearchPage.js:451
 #: umc/js/licenses/LicenseSearchPage.js:1143
 #: umc/js/licenses/LicenseSearchPage.js:1214
 #: umc/js/licenses/LicenseSearchPage.js:1315
@@ -311,8 +311,8 @@ msgid "Media Title"
 msgstr "Medientitel"
 
 #: umc/js/licenses/ProductDetailPage.js:257
-#: umc/js/licenses/ProductSearchPage.js:440
-#: umc/js/licenses/ProductSearchPage.js:496
+#: umc/js/licenses/ProductSearchPage.js:441
+#: umc/js/licenses/ProductSearchPage.js:497
 #: umc/js/licenses/LicenseSearchPage.js:1129
 #: umc/js/licenses/LicenseSearchPage.js:1194
 #: umc/js/licenses/LicenseSearchPage.js:1297
@@ -321,8 +321,8 @@ msgstr "Medium"
 
 #: umc/js/licenses/ProductDetailPage.js:141
 #: umc/js/licenses/ProductDetailPage.js:246
-#: umc/js/licenses/ProductSearchPage.js:429
-#: umc/js/licenses/ProductSearchPage.js:486
+#: umc/js/licenses/ProductSearchPage.js:430
+#: umc/js/licenses/ProductSearchPage.js:487
 #: umc/js/licenses/LicenseSearchPage.js:681
 #: umc/js/licenses/LicenseSearchPage.js:1118
 #: umc/js/licenses/LicenseSearchPage.js:1183
@@ -379,8 +379,8 @@ msgstr "Bitte eine Schule auswählen"
 
 #: umc/js/licenses/ProductDetailPage.js:140
 #: umc/js/licenses/ProductDetailPage.js:262
-#: umc/js/licenses/ProductSearchPage.js:445
-#: umc/js/licenses/ProductSearchPage.js:501
+#: umc/js/licenses/ProductSearchPage.js:446
+#: umc/js/licenses/ProductSearchPage.js:502
 #: umc/js/licenses/LicenseSearchPage.js:702
 #: umc/js/licenses/LicenseSearchPage.js:1134
 #: umc/js/licenses/LicenseSearchPage.js:1199
@@ -430,7 +430,7 @@ msgstr ""
 "Suche nach Lizenzen, denen dieser Benutzer zugewiesen ist. (Sucht nach "
 "'Vorname', 'Nachname' und 'Benutzername')"
 
-#: umc/js/licenses/ProductSearchPage.js:355
+#: umc/js/licenses/ProductSearchPage.js:356
 msgid "Search licensed media"
 msgstr "Lizenzierte Medien durchsuchen"
 
@@ -455,7 +455,7 @@ msgstr ""
 "Wählen Sie eine Lerngruppe oder geben Sie einen freien Text ein (z. B. einen "
 "Teil des Namens der Lerngruppen)"
 
-#: umc/js/licenses/ProductSearchPage.js:417
+#: umc/js/licenses/ProductSearchPage.js:418
 msgid "Show details"
 msgstr "Details anzeigen"
 
@@ -541,7 +541,7 @@ msgstr "Einige Änderungen sind noch nicht gespeichert. Möchten Sie abbrechen?"
 msgid "Title"
 msgstr "Titel"
 
-#: umc/js/licenses/ProductSearchPage.js:372
+#: umc/js/licenses/ProductSearchPage.js:373
 msgid "To license selection"
 msgstr "Zur Lizenzauswahl"
 
