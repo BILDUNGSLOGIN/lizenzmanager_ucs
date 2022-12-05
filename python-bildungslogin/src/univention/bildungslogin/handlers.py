@@ -113,6 +113,7 @@ class LicenseHandler:
         - Directly assigned users for the SINGLE/VOLUME licenses
         - Members of school/group licenses for the SCHOOL/WORKGROUP licenses
         """
+
         def _object_factory(input_user, input_assignment):
             # type: (UdmObject, Assignment) -> Dict[str, Any]
             """ Create an object required for the output """
@@ -122,6 +123,7 @@ class LicenseHandler:
                 "statusLabel": Status.label(input_assignment.status),
                 "dateOfAssignment": input_assignment.time_of_assignment,
             }
+
         school_ou = license.license_school
         assignments = self.get_assignments_for_license_with_filter(license, "(assignee=*)")
         users = []
@@ -366,7 +368,7 @@ class LicenseHandler:
             pattern="",  # type: Optional[str]
             restrict_to_this_product_id="",  # type: Optional[str]
             sizelimit=0,  # type: int
-            klass=None,   # type: str
+            klass=None,  # type: str
     ):
         if license_types is None:
             license_types = []
@@ -519,7 +521,7 @@ class LicenseHandler:
         }
         for license in licenses:
             available_users = self.get_number_of_available_users(license)
-            available = (available_users>0) if license.license_type == 'VOLUME' else (license.num_available > 0)
+            available = (available_users > 0) if license.license_type == 'VOLUME' else (license.num_available > 0)
             if not only_available_licenses \
                     or (not license.ignored_for_display and available):
                 rows.append(
@@ -744,6 +746,11 @@ class AssignmentHandler:
         [obj] = objects  # ensure that only one object was found
         return obj
 
+    def _get_school_teachers(self, school):  # type: (UdmObject) -> List[UdmObject]
+        """ Get a list of the teachers which belong to the school """
+        return list(self._users_mod.search(
+            filter_format("(&(school=%s)(ucsschoolRole=teacher:school:%s))", [school.props.name, school.props.name])))
+
     def _get_school_users(self, school):  # type: (UdmObject) -> List[UdmObject]
         """ Get a list of the users which belong to the school """
         return list(self._users_mod.search(filter_format("(school=%s)", [school.props.name])))
@@ -858,7 +865,11 @@ class AssignmentHandler:
 
     def _check_license_quantity_against_school(self, license, school):
         # type: (UdmObject, UdmObject) -> None
-        users_count = len(self._get_school_users(school))
+        if license.props.special_type == "Lehrkraft":
+            users_count = len(self._get_school_teachers(school))
+        else:
+            users_count = len(self._get_school_users(school))
+
         license_quantity = license.props.quantity
         if license_quantity != 0 and users_count > license_quantity:
             raise BiloAssignmentError(
