@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (2.1.0) unstable; urgency=medium
+
+  * ET-13 Extend the caching system for univention management console.
+  * ET-33 Bugfix only count teachers for special licenses.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 05 Dez 2022 09:10:40 +0100
+
 ucs-school-umc-licenses (2.0.1) unstable; urgency=medium
 
   * ET-4 Assign volume/single licenses in chunks.

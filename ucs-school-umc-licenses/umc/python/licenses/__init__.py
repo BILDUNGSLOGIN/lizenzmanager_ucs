@@ -30,15 +30,13 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
+import json
+import os
+from datetime import date, datetime
+from os.path import exists
+from typing import Dict, List, Optional, Union
+import re
 
-from typing import Callable, Dict, List, Optional, Union
-
-from ldap.dn import is_dn
-from ldap.filter import escape_filter_chars
-from ldap.filter import filter_format
-
-from ucsschool.lib.models.group import SchoolClass, WorkGroup
-from ucsschool.lib.models.user import User
 from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
 from univention.admin.syntax import iso8601Date
@@ -48,8 +46,7 @@ from univention.bildungslogin.handlers import (
     LicenseHandler,
     MetaDataHandler, ObjectType
 )
-from univention.bildungslogin.models import License, LicenseType, Role
-from univention.bildungslogin.utils import ldap_escape
+from univention.bildungslogin.models import License, LicenseType, Role, Status
 from univention.bildungslogin.license_import import import_license, load_license_file
 from univention.lib.i18n import Translation
 from univention.management.console.config import ucr
@@ -62,10 +59,10 @@ from univention.management.console.modules.sanitizers import (
     ListSanitizer,
     StringSanitizer,
 )
-from univention.udm import UDM
 from univention.udm.exceptions import SearchLimitReached
 
 _ = Translation("ucs-school-umc-licenses").translate
+JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
 
 
 def undefined_if_none(value, zero_as_none=False):  # type: (Optional[int], bool) -> Union[unicode, int]
@@ -84,7 +81,679 @@ def optional_date2str(date):
     return ""
 
 
+class LdapUser:
+    ucsschoolRole = None  # type: list
+
+    def __init__(self,
+                 entry_uuid,
+                 entry_dn,
+                 object_class,
+                 user_id,
+                 given_name,
+                 sn,
+                 ucsschool_school,
+                 ucsschool_role):
+        self.objectClass = object_class
+        self.entry_dn = entry_dn
+        self.ucsschoolRole = ucsschool_role
+        self.entryUUID = entry_uuid
+        self.uid = user_id
+        self.userId = user_id
+        self.givenName = given_name
+        self.sn = sn
+        self.ucsschoolSchool = ucsschool_school
+
+    def get_roles(self):
+        roles = []
+        for role in self.ucsschoolRole:
+            roles.append(role.split(':', 1)[0])
+        return roles
+
+
+class LdapLicense:
+    def __init__(self, entry_uuid, entry_dn, object_class, bildungslogin_license_code,
+                 bildungslogin_license_special_type, bildungslogin_product_id, bildungslogin_license_school,
+                 bildungslogin_license_type, bildungslogin_ignored_for_display, bildungslogin_delivery_date,
+                 bildungslogin_license_quantity=0,
+                 bildungslogin_validity_start_date=None,
+                 bildungslogin_validity_end_date=None, bildungslogin_purchasing_reference=None,
+                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None):
+        self.classes = []
+        self.bildungsloginValidityDuration = bildungslogin_validity_duration
+        self.bildungsloginUtilizationSystems = bildungslogin_utilization_systems
+        self.bildungsloginPurchasingReference = bildungslogin_purchasing_reference
+        self.bildungsloginDeliveryDate = datetime.strptime(bildungslogin_delivery_date,
+                                                           '%Y-%m-%d').date()
+        self.bildungsloginLicenseQuantity = bildungslogin_license_quantity
+
+        if bildungslogin_validity_start_date is not None:
+            try:
+                self.bildungsloginValidityStartDate = datetime.strptime(bildungslogin_validity_start_date,
+                                                                        '%Y-%m-%d').date()
+            except ValueError:
+                self.bildungsloginValidityStartDate = None
+        else:
+            self.bildungsloginValidityStartDate = None
+
+        if bildungslogin_validity_end_date is not None:
+            self.bildungsloginValidityEndDate = datetime.strptime(bildungslogin_validity_end_date, '%Y-%m-%d').date()
+        else:
+            self.bildungsloginValidityEndDate = None
+
+        self.bildungsloginIgnoredForDisplay = int(bildungslogin_ignored_for_display)
+        self.bildungsloginLicenseType = bildungslogin_license_type
+        self.bildungsloginLicenseSchool = bildungslogin_license_school
+        self.bildungsloginProductId = bildungslogin_product_id
+        self.bildungsloginLicenseSpecialType = bildungslogin_license_special_type
+        self.objectClass = object_class
+        self.entry_dn = entry_dn
+        self.entryUUID = entry_uuid
+        self.bildungsloginLicenseCode = bildungslogin_license_code
+        self.quantity = 0
+        self.quantity_assigned = 0
+        self.publisher = None
+        self._user_strings = []
+
+    def add_user_string(self, user_string):
+        self._user_strings.append(user_string)
+
+    def remove_duplicates(self):
+        self._user_strings = list(dict.fromkeys(self._user_strings))
+
+    def match_user_regex(self, user_pattern):
+        for user_string in self._user_strings:
+            if user_pattern.match(user_string):
+                return True
+        return False
+
+    @property
+    def quantity_available(self):
+        if self.is_expired:
+            return 0
+        else:
+            return self.quantity - self.quantity_assigned
+
+    @property
+    def quantity_expired(self):
+        if self.is_expired:
+            return self.quantity - self.quantity_assigned
+        else:
+            return 0
+
+    @property
+    def is_expired(self):
+        """ Check if license is expired """
+        if self.bildungsloginValidityEndDate is None:
+            return False
+        return self.bildungsloginValidityEndDate < date.today()
+
+    @property
+    def is_available(self):
+        return self.quantity_available > 0 and not self.is_expired
+
+    def add_class(self, school_class):
+        self.classes.append(school_class)
+
+
+class LdapAssignment:
+    def __init__(self, entry_uuid, entry_dn, object_class, bildungslogin_assignment_status,
+                 bildungslogin_assignment_assignee, bildungslogin_assignment_time_of_assignment):
+
+        if bildungslogin_assignment_time_of_assignment:
+            self.bildungsloginAssignmentTimeOfAssignment = datetime.strptime(
+                bildungslogin_assignment_time_of_assignment,
+                '%Y-%m-%d').date()
+        else:
+            self.bildungsloginAssignmentTimeOfAssignment = None
+        self.objectClass = object_class
+        self.bildungsloginAssignmentStatus = bildungslogin_assignment_status
+        self.entry_dn = entry_dn
+        self.entryUUID = entry_uuid
+        self.bildungsloginAssignmentAssignee = bildungslogin_assignment_assignee
+
+    def reset(self):
+        self.bildungsloginAssignmentAssignee = ''
+        self.bildungsloginAssignmentStatus = Status.AVAILABLE
+        self.bildungsloginAssignmentTimeOfAssignment = None
+
+    def assign(self, entry_uuid):
+        self.bildungsloginAssignmentAssignee = entry_uuid
+        self.bildungsloginAssignmentStatus = Status.ASSIGNED
+        self.bildungsloginAssignmentTimeOfAssignment = datetime.now().date()
+
+
+class LdapSchool:
+    def __init__(self, entry_uuid, entry_dn, object_class, ou):
+        self.objectClass = object_class
+        self.entry_dn = entry_dn
+        self.entryUUID = entry_uuid
+        self.ou = ou
+
+
+class LdapGroup:
+    def __init__(self, entry_uuid, entry_dn, cn, ucsschool_role, member_uid):
+        self.memberUid = member_uid
+        self.entry_dn = entry_dn
+        self.entryUUID = entry_uuid
+        self.cn = cn
+        self.ucsschoolRole = ucsschool_role
+
+
+class LdapMetaData:
+    def __init__(self, entry_uuid, entry_dn, bildungslogin_product_id, bildungslogin_metadata_title,
+                 bildungslogin_metadata_publisher, bildungslogin_meta_data_cover, bildungslogin_meta_data_cover_small,
+                 bildungslogin_meta_data_author, bildungslogin_meta_data_description):
+        self.bildungsloginMetaDataDescription = bildungslogin_meta_data_description
+        self.bildungsloginMetaDataAuthor = bildungslogin_meta_data_author
+        self.entry_uuid = entry_uuid
+        self.entry_dn = entry_dn
+        self.bildungsloginProductId = bildungslogin_product_id
+        self.bildungsloginMetaDataTitle = bildungslogin_metadata_title
+        self.bildungsloginMetaDataPublisher = bildungslogin_metadata_publisher
+        self.bildungsloginMetaDataCover = bildungslogin_meta_data_cover
+        self.bildungsloginMetaDataCoverSmall = bildungslogin_meta_data_cover_small
+
+
+class LdapRepository:
+    _publishers = None  # type: List[str]
+    _workgroups = None  # type: List[LdapGroup]
+    _classes = None  # type: List[LdapGroup]
+    _users = None  # type: List[LdapUser]
+    _metadata = None  # type: List[LdapMetaData]
+    _licenses = None  # type: List[LdapLicense]
+    _schools = None  # type: List[LdapSchool]
+
+    def __init__(self):
+        self._timestamp = None
+        self._clear()
+
+    def update(self, start_up=False):
+        if not exists(JSON_PATH):
+            MODULE.error('JSON file not found at ' + JSON_PATH + '. Please check if it is updating.')
+            if not start_up:
+                raise Exception("JSON file not found at " + JSON_PATH + ". Please check if it is updating.")
+            return
+
+        stat = os.stat(JSON_PATH)
+        file_time = stat.st_mtime
+
+        if self._timestamp is not None and file_time <= self._timestamp:
+            return
+
+        self._clear()
+        f = open(JSON_PATH, 'r')
+        json_string = f.read()
+        f.close()
+        json_dictionary = json.loads(json_string)
+        self._process_entries(json_dictionary)
+        self._process_licenses()
+        self._timestamp = file_time
+
+    def _process_licenses(self):
+        license_id = 0
+        license_map = {}
+
+        for license in self._licenses:
+            license.publisher = self.get_metadata_by_product_id(
+                license.bildungsloginProductId).bildungsloginMetaDataPublisher
+            license_map.update({license.entry_dn: license_id})
+            license_id += 1
+
+        for assignment in self._assignments:
+            license_dn = assignment.entry_dn.split(',', 1)[1]
+            self._licenses[license_map[license_dn]].quantity += 1
+            if assignment.bildungsloginAssignmentStatus != 'AVAILABLE':
+                self._licenses[license_map[license_dn]].quantity_assigned += 1
+                user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                if user:
+                    self._licenses[license_map[license_dn]].add_user_string(user.sn)
+                    self._licenses[license_map[license_dn]].add_user_string(user.givenName)
+                    self._licenses[license_map[license_dn]].add_user_string(user.userId)
+                school_class = self.get_class_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                if school_class:
+                    self._licenses[license_map[license_dn]].add_class(school_class)
+
+        for license in self._licenses:
+            license.remove_duplicates()
+
+    def count_objects(self):
+        return len(self._users) + len(self._workgroups) + len(self._licenses) + len(self._assignments) + len(
+            self._schools) + len(self._classes)
+
+    def _clear(self):
+        self._users = []
+        self._licenses = []
+        self._assignments = []
+        self._schools = []
+        self._workgroups = []
+        self._classes = []
+        self._metadata = []
+        self._publishers = []
+
+    def _process_entries(self, entries):
+        for entry in entries['users']:
+            self._users.append(
+                LdapUser(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['uid'], entry['givenName'],
+                         entry['sn'], entry['ucsschoolSchool'], entry['ucsschoolRole']))
+        for entry in entries['licenses']:
+            self._licenses.append(LdapLicense(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
+                                              entry['bildungsloginLicenseCode'],
+                                              entry['bildungsloginLicenseSpecialType'], entry['bildungsloginProductId'],
+                                              entry['bildungsloginLicenseSchool'], entry['bildungsloginLicenseType'],
+                                              entry['bildungsloginIgnoredForDisplay'],
+                                              entry['bildungsloginDeliveryDate'], entry[
+                                                  'bildungsloginValidityStartDate'] if 'bildungsloginValidityStartDate'
+                                                                                       in entry else None,
+                                              entry['bildungsloginLicenseQuantity'], entry[
+                                                  'bildungsloginValidityEndDate'] if 'bildungsloginValidityEndDate'
+                                                                                     in entry else None, entry[
+                                                  'bildungsloginPurchasingReference'] if 'bildungsloginPurchasingReference'
+                                                                                         in entry else None,
+                                              entry['bildungsloginUtilizationSystems'],
+                                              entry['bildungsloginValidityDuration']))
+        for entry in entries['assignments']:
+            self._assignments.append(
+                LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
+                               entry['bildungsloginAssignmentStatus'], entry[
+                                   'bildungsloginAssignmentAssignee'] if 'bildungsloginAssignmentAssignee' in entry else '',
+                               entry[
+                                   'bildungsloginAssignmentTimeOfAssignment'] if 'bildungsloginAssignmentTimeOfAssignment' in entry else ''))
+        for entry in entries['schools']:
+            self._schools.append(LdapSchool(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['ou']))
+        for entry in entries['workgroups']:
+            self._workgroups.append(
+                LdapGroup(entry['entryUUID'], entry['entry_dn'], entry['cn'], entry['ucsschoolRole'],
+                          entry['memberUid']))
+        for entry in entries['classes']:
+            self._classes.append(LdapGroup(entry['entryUUID'], entry['entry_dn'], entry['cn'], entry['ucsschoolRole'],
+                                           entry['memberUid']))
+        for entry in entries['metadata']:
+            self._metadata.append(LdapMetaData(entry['entryUUID'], entry['entry_dn'], entry['bildungsloginProductId'],
+                                               entry['bildungsloginMetaDataTitle'],
+                                               entry['bildungsloginMetaDataPublisher'],
+                                               entry['bildungsloginMetaDataCover'],
+                                               entry['bildungsloginMetaDataCoverSmall'],
+                                               entry['bildungsloginMetaDataAuthor'],
+                                               entry['bildungsloginMetaDataDescription']))
+            if 'bildungsloginMetaDataPublisher' in entry:
+                self._publishers.append(entry['bildungsloginMetaDataPublisher'])
+        self._publishers = list(dict.fromkeys(self._publishers))
+
+    def get_publishers(self):
+        return self._publishers
+
+    def get_user(self, userid):
+        for user in self._users:
+            if hasattr(user, 'uid') and user.uid == userid:
+                return user
+        return None
+
+    def _get_users_by_school(self, school):
+        users = []
+        for user in self._users:
+            if school in user.ucsschoolSchool:
+                users.append(user)
+        return users
+
+    def _filter_user_by_group(self, users, workgroup):
+        filtered_users = []
+        for user in users:
+            if user.userId in workgroup.memberUid:
+                filtered_users.append(user)
+
+        return filtered_users
+
+    def filter_users(self, pattern, school, workgroup, school_class):
+        users = []
+        pattern = re.compile(pattern.replace('*', '.*'))
+
+        for user in self._get_users_by_school(school):
+            if pattern.match(user.userId) or pattern.match(user.givenName) or pattern.match(user.sn):
+                users.append(user)
+
+        if workgroup != '__all__':
+            users = self._filter_user_by_group(users, workgroup)
+
+        if school_class != '__all__':
+            users = self._filter_user_by_group(users, school_class)
+
+        return users
+
+    def filter_metadata(self, pattern):
+        filtered_metadata = []
+        pattern = re.compile(pattern.replace('*', '.*'))
+        for metadata in self._metadata:
+            if pattern.match(metadata.bildungsloginProductId) or pattern.match(
+                    metadata.bildungsloginMetaDataPublisher) or pattern.match(metadata.bildungsloginMetaDataTitle):
+                filtered_metadata.append(metadata)
+        return filtered_metadata
+
+    def _match_license_by_publisher(self, license, regex):
+        metadata = self.get_metadata_by_product_id(license.bildungsloginProductId)
+        return regex.match(metadata.bildungsloginMetaDataPublisher)
+
+    def _match_license_by_product(self, license, regex):
+        metadata = self.get_metadata_by_product_id(license.bildungsloginProductId)
+        return regex.match(metadata.bildungsloginMetaDataTitle)
+
+    def filter_licenses(self, product_id=None, school=None, license_types=None,
+                        is_advanced_search=None,
+                        time_from=None,
+                        time_to=None,
+                        only_available_licenses=None,
+                        publisher=None,
+                        user_pattern=None,
+                        product=None,
+                        license_code=None,
+                        pattern=None,
+                        restrict_to_this_product_id=None,
+                        sizelimit=None,
+                        school_class=None):
+
+        licenses = self._licenses
+
+        if restrict_to_this_product_id:
+            licenses = filter(lambda _license: _license.bildungsloginProductId == restrict_to_this_product_id, licenses)
+
+        if school:
+            licenses = filter(lambda _license: _license.bildungsloginLicenseSchool == school, licenses)
+
+        if product_id:
+            licenses = filter(lambda _license: _license.bildungsloginProductId == product_id, licenses)
+
+        if license_types:
+            licenses = filter(lambda _license: _license.bildungsloginLicenseType in license_types, licenses)
+
+        if is_advanced_search:
+            if time_from:
+                licenses = filter(lambda _license: _license.bildungsloginDeliveryDate >= time_from, licenses)
+
+            if time_to:
+                licenses = filter(lambda _license: _license.bildungsloginDeliveryDate <= time_to, licenses)
+
+        if publisher:
+            publisher = re.compile(publisher.replace('*', '.*'))
+            licenses = filter(lambda _license: publisher.match(_license.publisher) if _license.publisher else False,
+                              licenses)
+
+        if only_available_licenses:
+            licenses = filter(lambda _license: _license.is_available, licenses)
+
+        if user_pattern:
+            user_pattern = re.compile(user_pattern.replace('*', '.*'))
+            licenses = filter(lambda _license: _license.match_user_regex(user_pattern), licenses)
+
+        if license_code:
+            license_code = re.compile(license_code.replace('*', '.*'))
+            licenses = filter(lambda _license: license_code.match(
+                _license.bildungsloginLicenseCode) if _license.bildungsloginLicenseCode else False,
+                              licenses)
+
+        if pattern:
+            pattern = re.compile(pattern.replace('*', '.*'))
+            licenses = filter(
+                lambda _license: pattern.match(_license.bildungsloginLicenseCode) if _license.publisher else False,
+                licenses)
+
+        if product:
+            product = re.compile(product.product('*', '.*'))
+            licenses = filter(lambda _license: self._match_license_by_product(_license, product), licenses)
+
+        if school_class:
+            school_class = self.get_class_by_name(school_class)
+            licenses = filter(lambda _license: school_class in _license.classes, licenses)
+
+        return licenses
+
+    def get_metadata_by_product_id(self, product_id):
+        for metadata in self._metadata:
+            if metadata.bildungsloginProductId == product_id:
+                return metadata
+        return None
+
+    def get_workgroup_by_name(self, name):
+        for group in self._workgroups:
+            if group.cn == name:
+                return group
+        return None
+
+    def get_class_by_name(self, name):
+        for group in self._classes:
+            if group.cn == name:
+                return group
+        return None
+
+    def get_workgroup_by_uuid(self, entry_uuid):
+        for group in self._workgroups:
+            if group.entryUUID == entry_uuid:
+                return group
+        return None
+
+    def get_assignments_by_assignee(self, assignee):
+        assignments = []
+        for assignment in self._assignments:
+            if assignment.bildungsloginAssignmentAssignee \
+                    == assignee.entryUUID:
+                assignments.append(assignment)
+
+        return assignments
+
+    def get_license_by_assignment(self, assignment):
+        for _license in self._licenses:
+            if _license.entry_dn in assignment.entry_dn:
+                return _license
+        return None
+
+    def get_license_by_code(self, code):
+        for _license in self._licenses:
+            if _license.bildungsloginLicenseCode == code:
+                return _license
+        return None
+
+    def get_licenses_by_codes(self, codes):
+        licenses = []
+        for code in codes:
+            licenses.append(self.get_license_by_code(code))
+        return licenses
+
+    def get_school(self, name):
+        for school in self._schools:
+            if name == school.ou:
+                return school
+        return None
+
+    def get_classes(self, school, user):
+        classes = []
+        for _class in self._classes:
+            if _class.ucsschoolRole == "school_class:school:" + school.ou and user.uid in _class.memberUid:
+                classes.append(_class)
+        return classes
+
+    def get_workgroups(self, school, user):
+        workgroups = []
+        for workgroup in self._workgroups:
+            if workgroup.ucsschoolRole == "workgroup:school:" + school.ou and user.uid in workgroup.memberUid:
+                workgroups.append(workgroup)
+        return workgroups
+
+    def get_all_workgroups(self):
+        return self._workgroups
+
+    def get_user_by_uuid(self, uuid):
+        for user in self._users:
+            if user.entryUUID == uuid:
+                return user
+        return None
+
+    def get_school_by_uuid(self, entry_uuid):
+        for school in self._schools:
+            if school.entryUUID == entry_uuid:
+                return school
+        return None
+
+    def get_assigned_users_by_license(self, license):
+        assignments = []
+        users = []
+
+        for assignment in self._assignments:
+            if assignment.bildungsloginAssignmentStatus != 'AVAILABLE':
+                if license.entry_dn in assignment.entry_dn:
+                    assignments.append(assignment)
+
+        if license.bildungsloginLicenseType in ['SINGLE', 'VOLUME']:
+            for assignment in assignments:
+                user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                users.append({
+                    'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
+                    'username': user.userId,
+                    'status': assignment.bildungsloginAssignmentStatus,
+                    'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
+                    'roles': user.get_roles(),
+                    'roleLabels': Role.label(user.get_roles()),
+                })
+        elif license.bildungsloginLicenseType == 'WORKGROUP':
+            for assignment in assignments:
+                workgroup = self.get_workgroup_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                for member_uid in workgroup.memberUid:
+                    user = self.get_user(member_uid)
+                    users.append({
+                        'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
+                        'username': user.userId,
+                        'status': assignment.bildungsloginAssignmentStatus,
+                        'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
+                        'roles': user.get_roles(),
+                        'roleLabels': Role.label(user.get_roles()),
+                    })
+
+        elif license.bildungsloginLicenseType == 'SCHOOL':
+            for assignment in assignments:
+                _users = self._get_users_by_school(
+                    self.get_school_by_uuid(assignment.bildungsloginAssignmentAssignee).ou)
+                for user in _users:
+                    users.append({
+                        'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
+                        'username': user.userId,
+                        'status': assignment.bildungsloginAssignmentStatus,
+                        'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
+                        'roles': user.get_roles(),
+                        'roleLabels': Role.label(user.get_roles()),
+                    })
+        else:
+            raise RuntimeError("Unknown license type: {}".format(license.license_type))
+
+        return users
+
+    def set_license_ignored(self, license_code, ignored):
+        license = self.get_license_by_code(license_code)
+        license.bildungsloginIgnoredForDisplay = ignored
+
+    def get_assignments_by_license(self, license):
+        assignments = []
+        for assignment in self._assignments:
+            if license.entry_dn in assignment.entry_dn:
+                assignments.append(assignment)
+
+        return assignments
+
+    def add_assignments(self, license_codes, object_type, object_names):
+        licenses = self.get_licenses_by_codes(license_codes)
+        assignments = []
+        for license in licenses:
+            assignments += self.get_assignments_by_license(license)
+
+        assignments = filter(lambda _assignment: _assignment.bildungsloginAssignmentStatus == Status.ASSIGNED,
+                             assignments)
+
+        if object_type == ObjectType.USER:
+            for object_name in object_names:
+                user = self.get_user(object_name)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentAssignee == user.entryUUID:
+                        assignment.assign(user.entryUUID)
+        elif object_type == ObjectType.GROUP:
+            for object_name in object_names:
+                group = self.get_workgroup_by_name(object_name)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentAssignee == group.entryUUID:
+                        assignment.assign(group.entryUUID)
+                school_class = self.get_class_by_name(object_name)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentAssignee == school_class.entryUUID:
+                        assignment.assign(school_class.entryUUID)
+        elif object_type == ObjectType.SCHOOL:
+            for object_name in object_names:
+                school = self.get_school(object_name)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
+                        assignment.assign(school.entryUUID)
+
+    def remove_assignments(self, license_code, object_type, object_names):
+        license = self.get_license_by_code(license_code)
+        assignments = self.get_assignments_by_license(license)
+
+        assignments = filter(lambda _assignment: _assignment.bildungsloginAssignmentStatus == Status.ASSIGNED,
+                             assignments)
+
+        if object_type == ObjectType.USER:
+            for object_name in object_names:
+                user = self.get_user(object_name)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentAssignee == user.entryUUID:
+                        assignment.remove()
+        elif object_type == ObjectType.GROUP:
+            for object_name in object_names:
+                group = self.get_workgroup_by_name(object_name)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentAssignee == group.entryUUID:
+                        assignment.remove()
+                school_classes = self.get_class_by_name(object_name)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentAssignee == school_classes.entryUUID:
+                        assignment.remove()
+        elif object_type == ObjectType.SCHOOL:
+            for object_name in object_names:
+                school = self.get_school(object_name)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
+                        assignment.remove()
+
+    @staticmethod
+    def get_school_roles(user):
+        school_roles = []
+        for school_role in user.ucsschoolRole:
+            school_roles.append(str(school_role))
+        return school_roles
+
+    @staticmethod
+    def get_object_classes(obj):
+        _list = set()
+        for object_class in obj.objectClass:
+            _list.add(object_class)
+
+        return _list
+
+    def get_licenses_by_product_id(self, product_id, school):
+        licenses = []
+
+        for license in self._licenses:
+            if license.bildungsloginProductId == product_id and license.bildungsloginLicenseSchool == school:
+                licenses.append(license)
+        return licenses
+
+    def get_class_by_uuid(self, uuid):
+        for school_class in self._classes:
+            if school_class.entryUUID == uuid:
+                return school_class
+        return None
+
+
 class Instance(SchoolBaseModule):
+
+    def __init__(self, *args, **kwargs):
+        super(Instance, self).__init__(*args, **kwargs)
+        self.repository = LdapRepository()
+        self.repository.update(True)
+
     @sanitize(
         isAdvancedSearch=BooleanSanitizer(required=True),
         school=SchoolSanitizer(required=True),
@@ -119,6 +788,7 @@ class Instance(SchoolBaseModule):
             class -- str
         }
         """
+        self.repository.update()
         MODULE.error("licenses.licenses_query: options: %s" % str(request.options))
         sizelimit = int(ucr.get("directory/manager/web/sizelimit", 2000))
         lh = LicenseHandler(ldap_user_write)
@@ -149,12 +819,12 @@ class Instance(SchoolBaseModule):
             )
         except SearchLimitReached:
             raise UMC_Error(
-                _(  "Hint"
-                    "The number of licenses to be displayed is over {} and thus exceeds the set maximum value."
-                    "You can use the filter/search parameters to limit the selection."
-                    "Alternatively, the maximum number for the display can be adjusted by an administrator with "
-                    "the UCR variable directory/manager/web/sizelimit."
-                ).format(sizelimit)
+                _("Hint"
+                  "The number of licenses to be displayed is over {} and thus exceeds the set maximum value."
+                  "You can use the filter/search parameters to limit the selection."
+                  "Alternatively, the maximum number for the display can be adjusted by an administrator with "
+                  "the UCR variable directory/manager/web/sizelimit."
+                  ).format(sizelimit)
             )
         for res in result:
             res["importDate"] = iso8601Date.from_datetime(res["importDate"])
@@ -183,34 +853,33 @@ class Instance(SchoolBaseModule):
         # TODO should the school be incorperated in getting the license?
         # school = request.options.get("school")
         license_code = request.options.get("licenseCode")
-        lh = LicenseHandler(ldap_user_write)
-        license = lh.get_license_by_code(license_code)
-        assigned_users = lh.get_assigned_users(license)
+        license = self.repository.get_license_by_code(license_code)
+        assigned_users = self.repository.get_assigned_users_by_license(license)
         for assigned_user in assigned_users:
             assigned_user["dateOfAssignment"] = iso8601Date.from_datetime(
                 assigned_user["dateOfAssignment"]
             )
-        meta_data = lh.get_meta_data_for_license(license)
+        meta_data = self.repository.get_metadata_by_product_id(license.bildungsloginProductId)
         result = {
-            "countAquired": undefined_if_none(license.license_quantity, zero_as_none=True),
-            "countAssigned": lh.get_number_of_assigned_users(license),
-            "countAvailable": undefined_if_none(lh.get_number_of_available_users(license)),
-            "countExpired": undefined_if_none(lh.get_number_of_expired_unassigned_users(license)),
-            "ignore": license.ignored_for_display,
-            "importDate": iso8601Date.from_datetime(license.delivery_date),
-            "licenseCode": license.license_code,
-            "licenseTypeLabel": LicenseType.label(license.license_type),
-            "productId": license.product_id,
-            "reference": license.purchasing_reference,
-            "specialLicense": license.license_special_type,
-            "usage": license.utilization_systems,
-            "validityStart": optional_date2str(license.validity_start_date),
-            "validityEnd": optional_date2str(license.validity_end_date),
-            "validitySpan": license.validity_duration,
-            "author": meta_data.author,
-            "cover": meta_data.cover or meta_data.cover_small,
-            "productName": meta_data.title,
-            "publisher": meta_data.publisher,
+            "countAquired": undefined_if_none(license.quantity, zero_as_none=True),
+            "countAssigned": license.quantity_assigned,
+            "countAvailable": undefined_if_none(license.quantity_available),
+            "countExpired": undefined_if_none(license.quantity_expired),
+            "ignore": license.bildungsloginIgnoredForDisplay,
+            "importDate": iso8601Date.from_datetime(license.bildungsloginDeliveryDate),
+            "licenseCode": license.bildungsloginLicenseCode,
+            "licenseTypeLabel": LicenseType.label(license.bildungsloginLicenseType),
+            "productId": meta_data.bildungsloginProductId,
+            "reference": license.bildungsloginPurchasingReference,
+            "specialLicense": license.bildungsloginLicenseType,
+            "usage": license.bildungsloginUtilizationSystems,
+            "validityStart": optional_date2str(license.bildungsloginValidityStartDate),
+            "validityEnd": optional_date2str(license.bildungsloginValidityEndDate),
+            "validitySpan": license.bildungsloginPurchasingReference,
+            "author": meta_data.bildungsloginMetaDataAuthor,
+            "cover": meta_data.bildungsloginMetaDataCover or meta_data.bildungsloginMetaDataCoverSmall,
+            "productName": meta_data.bildungsloginMetaDataTitle,
+            "publisher": meta_data.bildungsloginMetaDataPublisher,
             "users": assigned_users,
         }
         MODULE.info("licenses.get: result: %s" % str(result))
@@ -219,8 +888,7 @@ class Instance(SchoolBaseModule):
     @LDAP_Connection(USER_WRITE)
     def publishers(self, request, ldap_user_write=None):
         MODULE.info("licenses.publishers: options: %s" % str(request.options))
-        mh = MetaDataHandler(ldap_user_write)
-        result = [{"id": md.publisher, "label": md.publisher} for md in mh.get_all()]
+        result = [{"id": publisher, "label": publisher} for publisher in self.repository.get_publishers()]
         MODULE.info("licenses.publishers: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -248,6 +916,8 @@ class Instance(SchoolBaseModule):
         ignore = request.options.get("ignore")
         lh = LicenseHandler(ldap_user_write)
         success = lh.set_license_ignore(license_code, ignore)
+        if success:
+            self.repository.set_license_ignored(license_code, ignore)
         result = {
             "errorMessage": ""
             if success
@@ -258,13 +928,14 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.set_ignore: result: %s" % str(result))
         self.finished(request.id, result)
 
-    @staticmethod
-    def _remove_from_objects(ldap_user_write, license_code, object_type, object_names):
+    def _remove_from_objects(self, ldap_user_write, license_code, object_type, object_names):
         """ Generic function for "remove_from_*" endpoints """
         ah = AssignmentHandler(ldap_user_write)
         failed_assignments = ah.remove_assignment_from_objects(license_code,
                                                                object_type,
                                                                object_names)
+
+        self.repository.remove_assignments(license_code, object_type, object_names)
         return {
             "failedAssignments": [
                 {"username": fa[0], "error": fa[1]}
@@ -344,6 +1015,9 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.USER,
                                                request.options.get("usernames"))
+        self.repository.add_assignments(request.options.get("licenseCodes"),
+                                        ObjectType.USER,
+                                        request.options.get("usernames"))
         MODULE.info("licenses.assign_to_users: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -362,6 +1036,9 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.SCHOOL,
                                                [request.options.get("school")])
+        self.repository.add_assignments(request.options.get("licenseCodes"),
+                                        ObjectType.SCHOOL,
+                                        request.options.get("usernames"))
         MODULE.info("licenses.assign_to_school: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -380,6 +1057,9 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.GROUP,
                                                [request.options.get("schoolClass")])
+        self.repository.add_assignments(request.options.get("licenseCodes"),
+                                        ObjectType.GROUP,
+                                        request.options.get("usernames"))
         MODULE.info("licenses.assign_to_class: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -421,81 +1101,39 @@ class Instance(SchoolBaseModule):
             pattern
         }
         """
+        self.repository.update()
         MODULE.info("licenses.query: options: %s" % str(request.options))
-        udm = UDM(ldap_user_write).version(1)
-        users_mod = udm.get("users/user")
         school = request.options.get("school")
         pattern = request.options.get("pattern")
         workgroup = request.options.get("workgroup")
-        parts = [
-            "(school={})".format(escape_filter_chars(school)),
-            "(|(firstname={0})(lastname={0})(username={0}))".format(pattern),
-        ]
-        if workgroup != "__all__":
-            parts.append("(memberOf={})".format(escape_filter_chars(workgroup)))
-        klass = request.options.get("class")
-        if klass != "__all__":
-            if is_dn(klass):
-                parts.append("(memberOf={})".format(escape_filter_chars(klass)))
-            else:
-                klass = LDAPSearchSanitizer().sanitize("p", {"p": klass})
-                filter_s = "(name={school}-{klass})".format(
-                    school=escape_filter_chars(school), klass=ldap_escape(klass)
-                )
-                class_dns = [cls.dn for cls in SchoolClass.get_all(ldap_user_write, school, filter_s)]
-                if class_dns:
-                    parts.append(
-                        "(|{})".format(
-                            "".join(["(memberOf={})".format(class_dn) for class_dn in class_dns])
-                        )
-                    )
-                else:
-                    MODULE.info("licenses.query: result: %s" % str([]))
-                    self.finished(request.id, [])
-        users_filter = "(&{})".format("".join(parts))
-        users = users_mod.search(users_filter)
-        workgroups = {wg.dn: wg.name for wg in WorkGroup.get_all(ldap_user_write, school)}
+        school_class = request.options.get("class")
+
+        users = self.repository.filter_users(pattern, school, workgroup, school_class)
+        school_obj = self.repository.get_school(school)
+
+        workgroups = {wg.entry_dn: wg.cn for wg in self.repository.get_all_workgroups()}
         prefix = school + "-"
-        result = [
-            {
-                "firstname": user.props.firstname,
-                "lastname": user.props.lastname,
-                "username": user.props.username,
-                "role": Role.label(user.props.ucsschoolRole),
+        result = []
+        for user in users:
+            result.append({
+                "firstname": user.givenName,
+                "lastname": user.sn,
+                "username": user.userId,
+                "role": Role.label(user.ucsschoolRole),
                 "class": ", ".join(
                     [
-                        _cls[len(prefix):] if _cls.startswith(prefix) else _cls
-                        for _cls in User.from_udm_obj(
-                        user._orig_udm_object, school, ldap_user_write
-                    ).school_classes.get(school, [])
+                        _cls.cn[len(prefix):] if _cls.cn.startswith(prefix) else _cls.cn
+                        for _cls in self.repository.get_classes(school_obj, user)
                     ]
                 ),
                 "workgroup": ", ".join(
-                    wg[len(prefix):] if wg.startswith(prefix) else wg
-                    for wg in [workgroups[g] for g in user.props.groups if g in workgroups]
+                    wg.cn[len(prefix):] if wg.cn.startswith(prefix) else wg.cn
+                    for wg in self.repository.get_workgroups(school_obj, user)
                 ),
-            }
-            for user in users
-        ]
+            })
+
         MODULE.info("licenses.query: result: %s" % str(result))
         self.finished(request.id, result)
-
-    # def get_user_count_workgroup(self):
-
-    @staticmethod
-    def _sum_values_for_licenses(licenses, getter):
-        # type: (List[License], Callable[[License], Optional[int]]) -> Optional[int]
-        """
-        Tries to sum all values returned by the getter
-        If one of the values is None -> returns None
-        """
-        output = 0
-        for license in licenses:
-            value = getter(license)
-            if value is None:
-                return None
-            output += value
-        return output
 
     @sanitize(
         school=SchoolSanitizer(required=True),
@@ -512,62 +1150,68 @@ class Instance(SchoolBaseModule):
             showOnlyAvailable: bool [optional]
         }
         """
+        self.repository.update()
         MODULE.info("licenses.products.query: options: %s" % str(request.options))
         result = []
-        mh = MetaDataHandler(ldap_user_write)
-        lh = LicenseHandler(ldap_user_write)
+
         school = request.options.get("school")
         pattern = request.options.get("pattern")
         license_types = request.options.get("licenseType", None)
+
         user_count = None
+
         if license_types is not None and "WORKGROUP" in license_types:
             workgroup_name = request.options.get("groupName", None)
-            if workgroup_name is not None:
-                udm = UDM(ldap_user_write).version(1)
-                group_mod = udm.get("groups/group")
-                group_filter = filter_format("(name=%s)", [workgroup_name])
-                groups = [ o for o in group_mod.search(group_filter)]
-                if len(groups) == 1:
-                    user_count = len(groups[0].props.users.objs)
-        filter_s = "(|(product_id={0})(title={0})(publisher={0}))".format(pattern)
-        meta_data_objs = mh.get_all(filter_s)
-        for meta_datum_obj in meta_data_objs:
-            licenses_udm = mh.get_udm_licenses_by_product_id(meta_datum_obj.product_id, school, license_types)
-            if licenses_udm:
-                non_ignored_lics_udm = [lic_udm for lic_udm in licenses_udm if not lic_udm.props.ignored]
-                non_ignored_licenses = [lh.from_udm_obj(l) for l in non_ignored_lics_udm]
 
-                # count info about users
-                sum_quantity = self._sum_values_for_licenses(
-                    non_ignored_licenses, lambda x: None if x.license_quantity == 0 else x.license_quantity)
-                sum_num_assigned = self._sum_values_for_licenses(
-                    non_ignored_licenses, lh.get_number_of_assigned_users)
-                sum_num_expired = self._sum_values_for_licenses(
-                    non_ignored_licenses, lh.get_number_of_expired_unassigned_users)
-                sum_num_available = self._sum_values_for_licenses(
-                    non_ignored_licenses, lh.get_number_of_available_users)
+            if workgroup_name is not None:
+                group = self.repository.get_workgroup_by_name(workgroup_name)
+
+                if group:
+                    user_count = len(group.memberUid)
+        meta_data_objs = self.repository.filter_metadata(pattern)
+        for meta_datum_obj in meta_data_objs:
+            licenses = self.repository.filter_licenses(meta_datum_obj.bildungsloginProductId, school, license_types)
+
+            if licenses:
+                non_ignored_licenses = [license for license in licenses if not license.bildungsloginIgnoredForDisplay]
+
+                sum_quantity = 0
+                for license in non_ignored_licenses:
+                    sum_quantity += license.quantity
+
+                sum_num_assigned = 0
+                for license in non_ignored_licenses:
+                    sum_num_assigned += license.quantity_assigned
+
+                sum_num_expired = 0
+                sum_num_available = 0
+                for license in non_ignored_licenses:
+                    if license.is_expired:
+                        sum_num_expired += license.quantity_expired
+                    else:
+                        sum_num_available += license.quantity_available
 
                 # count info about licenses
                 number_of_licenses = len(non_ignored_licenses)
-                number_of_assigned_licenses =  \
-                    sum(1 for l in non_ignored_licenses if l.num_assigned > 0)
-                number_of_expired_licenses = sum(1 for l in non_ignored_licenses if l.is_expired)
-                # The expression "(total_number_of_assignments - num_assigned) if not expired else 0"
-                # is exactly reflected by the 'num_available' property of the license object
+                number_of_assigned_licenses = \
+                    sum(1 for l in non_ignored_licenses if l.quantity_assigned > 0)
+                number_of_expired_licenses = sum(1 for license in non_ignored_licenses if license.is_expired)
+                # Counting of assignments depends on the license type: _get_total_number_of_assignments() encapsulates the logic.
                 number_of_available_licenses = \
-                    sum(1 for l in non_ignored_licenses if (l.num_available > 0))
+                    sum(1 for license in non_ignored_licenses if
+                        (license.quantity_available > 0) and not license.is_expired)
                 # Caller (grid query) can now request products with 'all' or 'only available' licenses
                 if 'showOnlyAvailable' in request.options and request.options['showOnlyAvailable']:
                     if number_of_available_licenses < 1:
                         continue
 
-                latest_delivery_date = max(lic_udm.props.delivery_date for lic_udm in licenses_udm)
+                latest_delivery_date = max(lic_udm.bildungsloginDeliveryDate for lic_udm in licenses)
                 result.append(
                     {
-                        "productId": meta_datum_obj.product_id,
-                        "title": meta_datum_obj.title,
-                        "publisher": meta_datum_obj.publisher,
-                        "cover": meta_datum_obj.cover_small or meta_datum_obj.cover,
+                        "productId": meta_datum_obj.bildungsloginProductId,
+                        "title": meta_datum_obj.bildungsloginMetaDataTitle,
+                        "publisher": meta_datum_obj.bildungsloginMetaDataPublisher,
+                        "cover": meta_datum_obj.bildungsloginMetaDataCoverSmall or meta_datum_obj.bildungsloginMetaDataCover,
                         "countAquired": undefined_if_none(sum_quantity),
                         "countAssigned": sum_num_assigned,
                         "countExpired": undefined_if_none(sum_num_expired),
@@ -598,43 +1242,40 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.products.get: options: %s" % str(request.options))
         school = request.options.get("school")
         product_id = request.options.get("productId")
-        mh = MetaDataHandler(ldap_user_write)
-        lh = LicenseHandler(ldap_user_write)
-        licenses_udm = mh.get_udm_licenses_by_product_id(product_id, school)
-        licenses = [lh.from_udm_obj(license) for license in licenses_udm]  # type: List[License]
-        meta_data_udm = mh.get_meta_data_by_product_id(product_id)
-        meta_data = mh.from_udm_obj(meta_data_udm)
+        licenses = self.repository.get_licenses_by_product_id(product_id, school)
+        meta_data = self.repository.get_metadata_by_product_id(product_id)
         license_js_objs = [
             {
-                "licenseCode": license.license_code,
-                "productId": meta_data.product_id,
-                "productName": meta_data.title,
-                "publisher": meta_data.publisher,
-                "licenseTypeLabel": LicenseType.label(license.license_type),
-                "validityStart": optional_date2str(license.validity_start_date),
-                "validityEnd": optional_date2str(license.validity_end_date),
-                "validitySpan": str(license.validity_duration) if license.validity_duration else "",
-                "ignore": _("Yes") if license.ignored_for_display else _("No"),
+                "licenseCode": license.bildungsloginLicenseCode,
+                "productId": meta_data.bildungsloginProductId,
+                "productName": meta_data.bildungsloginMetaDataTitle,
+                "publisher": meta_data.bildungsloginMetaDataAuthor,
+                "licenseTypeLabel": LicenseType.label(license.bildungsloginLicenseType),
+                "validityStart": optional_date2str(license.bildungsloginValidityStartDate),
+                "validityEnd": optional_date2str(license.bildungsloginValidityEndDate),
+                "validitySpan": str(
+                    license.bildungsloginValidityDuration) if license.bildungsloginValidityDuration else "",
+                "ignore": _("Yes") if license.bildungsloginIgnoredForDisplay else _("No"),
                 "countAquired":
-                    str(undefined_if_none(None if license.license_quantity == 0 else license.license_quantity)),
-                "countAssigned": str(lh.get_number_of_assigned_users(license)),
+                    str(undefined_if_none(None if license.quantity == 0 else license.quantity)),
+                "countAssigned": str(license.quantity_assigned),
                 "countAvailable":
-                    str(undefined_if_none(lh.get_number_of_available_users(license))),
+                    str(undefined_if_none(license.quantity_available)),
                 "countExpired":
-                    str(undefined_if_none(lh.get_number_of_expired_unassigned_users(license))),
-                "importDate": iso8601Date.from_datetime(license.delivery_date),
+                    str(undefined_if_none(license.quantity_expired)),
+                "importDate": iso8601Date.from_datetime(license.bildungsloginDeliveryDate),
             }
             for license in licenses
         ]  # type: List[Dict[str, str]]
-       # meta_data_udm = mh.get_meta_data_by_product_id(product_id)
-       # meta_data = mh.from_udm_obj(meta_data_udm)
+        # meta_data_udm = mh.get_meta_data_by_product_id(product_id)
+        # meta_data = mh.from_udm_obj(meta_data_udm)
         result = {
-            "title": meta_data.title,
-            "productId": meta_data.product_id,
-            "publisher": meta_data.publisher,
-            "author": meta_data.author,
-            "description": meta_data.description,
-            "cover": meta_data.cover or meta_data.cover_small,
+            "title": meta_data.bildungsloginMetaDataTitle,
+            "productId": meta_data.bildungsloginProductId,
+            "publisher": meta_data.bildungsloginMetaDataPublisher,
+            "author": meta_data.bildungsloginMetaDataAuthor,
+            "description": meta_data.bildungsloginMetaDataDescription,
+            "cover": meta_data.bildungsloginMetaDataCover or meta_data.bildungsloginMetaDataCoverSmall,
             "licenses": license_js_objs,
         }
         MODULE.info("licenses.products.get: result: %s" % str(result))

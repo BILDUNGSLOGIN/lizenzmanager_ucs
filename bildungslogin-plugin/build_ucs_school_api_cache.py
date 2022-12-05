@@ -49,8 +49,9 @@ entry_dn_pattern = re.compile(".*dc=.*")
 SEARCH_FILTER = ''.join([
     '(|',
     '(&(uid=*)(ucsschoolSchool=*))',
-    '(&(objectClass=bildungsloginAssignment)(bildungsloginAssignmentAssignee=*))',
+    '(objectClass=bildungsloginAssignment)',
     '(objectClass=bildungsloginLicense)',
+    '(objectClass=bildungsloginMetaData)',
     '(objectClass=ucsschoolOrganizationalUnit)(objectClass=ucsschoolGroup)',
     ')',
 ])
@@ -329,6 +330,7 @@ def transform_to_dictionary(entries):
         'schools': [],
         'workgroups': [],
         'classes': [],
+        'metadata': [],
     }
 
     for (entry_dn, dict_entry) in entries:
@@ -358,22 +360,54 @@ def transform_to_dictionary(entries):
         elif 'bildungsloginLicense' in dict_entry['objectClass']:
             obj.update({
                 'bildungsloginLicenseCode': str(dict_entry['bildungsloginLicenseCode'][0]),
-                'bildungsloginLicenseSpecialType': ''
+                'bildungsloginProductId': str(dict_entry['bildungsloginProductId'][0]),
+                'bildungsloginLicenseType': str(dict_entry['bildungsloginLicenseType'][0]),
+                'bildungsloginLicenseSchool': str(dict_entry['bildungsloginLicenseSchool'][0]),
+                'bildungsloginIgnoredForDisplay': str(dict_entry['bildungsloginIgnoredForDisplay'][0]),
+                'bildungsloginLicenseQuantity': str(dict_entry['bildungsloginLicenseQuantity'][0]),
+                'bildungsloginDeliveryDate': str(dict_entry['bildungsloginDeliveryDate'][0]),
+                'bildungsloginValidityDuration': '',
+                'bildungsloginUtilizationSystems': '',
+                'bildungsloginLicenseSpecialType': '',
             })
+
+            if 'bildungsloginValidityDuration' in dict_entry:
+                obj['bildungsloginValidityDuration'] = str(
+                    dict_entry['bildungsloginValidityDuration'][0])
+
+            if 'bildungsloginUtilizationSystems' in dict_entry:
+                obj['bildungsloginUtilizationSystems'] = str(
+                    dict_entry['bildungsloginUtilizationSystems'][0])
+
+            if 'bildungsloginValidityStartDate' in dict_entry:
+                obj['bildungsloginValidityStartDate'] = str(
+                    dict_entry['bildungsloginValidityStartDate'][0])
+
+            if 'bildungsloginValidityEndDate' in dict_entry:
+                obj['bildungsloginValidityEndDate'] = str(
+                    dict_entry['bildungsloginValidityEndDate'][0])
 
             if 'bildungsloginLicenseSpecialType' in dict_entry:
                 obj['bildungsloginLicenseSpecialType'] = str(
                     dict_entry['bildungsloginLicenseSpecialType'][0])
 
             processed_list['licenses'].append(obj)
-        elif ('bildungsloginAssignment' in dict_entry['objectClass']
-              and 'bildungsloginAssignmentAssignee' in dict_entry):
+        elif 'bildungsloginAssignment' in dict_entry['objectClass']:
             obj.update({
-                'bildungsloginAssignmentAssignee':
-                    str(dict_entry['bildungsloginAssignmentAssignee'][0]),
                 'bildungsloginAssignmentStatus':
                     str(dict_entry['bildungsloginAssignmentStatus'][0]),
+                'bildungsloginAssignmentTimeOfAssignment': ''
             })
+
+            if 'bildungsloginAssignmentTimeOfAssignment' in dict_entry:
+                obj['bildungsloginAssignmentTimeOfAssignment'] = str(
+                    dict_entry['bildungsloginAssignmentTimeOfAssignment'][0])
+
+            if 'bildungsloginAssignmentAssignee' in dict_entry:
+                obj.update({
+                    'bildungsloginAssignmentAssignee':
+                        str(dict_entry['bildungsloginAssignmentAssignee'][0]),
+                })
 
             processed_list['assignments'].append(obj)
         elif 'ucsschoolOrganizationalUnit' in dict_entry['objectClass']:
@@ -393,6 +427,39 @@ def transform_to_dictionary(entries):
                 processed_list['workgroups'].append(obj)
             elif 'school_class' in dict_entry['ucsschoolRole'][0]:
                 processed_list['classes'].append(obj)
+        elif 'bildungsloginMetaData' in dict_entry['objectClass']:
+            obj.update({
+                'bildungsloginProductId': str(dict_entry['bildungsloginProductId'][0]),
+                'bildungsloginMetaDataTitle': str(dict_entry['bildungsloginMetaDataTitle'][0]),
+                'bildungsloginMetaDataPublisher': str(dict_entry['bildungsloginMetaDataPublisher'][0]),
+                'bildungsloginMetaDataCoverSmall': '',
+                'bildungsloginMetaDataCover': '',
+                'bildungsloginMetaDataDescription': '',
+                'bildungsloginMetaDataAuthor': '',
+                'bildungsloginPurchasingReference': ''
+            })
+
+            if 'bildungsloginMetaDataDescription' in dict_entry:
+                obj['bildungsloginMetaDataDescription'] = str(
+                    dict_entry['bildungsloginMetaDataDescription'][0])
+
+            if 'bildungsloginMetaDataAuthor' in dict_entry:
+                obj['bildungsloginMetaDataAuthor'] = str(
+                    dict_entry['bildungsloginMetaDataAuthor'][0])
+
+            if 'bildungsloginMetaDataCoverSmall' in dict_entry:
+                obj['bildungsloginMetaDataCoverSmall'] = str(
+                    dict_entry['bildungsloginMetaDataCoverSmall'][0])
+
+            if 'bildungsloginMetaDataCover' in dict_entry:
+                obj['bildungsloginMetaDataCover'] = str(
+                    dict_entry['bildungsloginMetaDataCover'][0])
+
+            if 'bildungsloginPurchasingReference' in dict_entry:
+                obj['bildungsloginPurchasingReference'] = str(
+                    dict_entry['bildungsloginPurchasingReference'][0])
+
+            processed_list['metadata'].append(obj)
 
     return processed_list
 
@@ -425,6 +492,24 @@ def main(cache_file):
             'memberUid',
             'bildungsloginAssignmentAssignee',
             'bildungsloginAssignmentStatus',
+            'bildungsloginProductId',
+            'bildungsloginMetaDataTitle',
+            'bildungsloginMetaDataPublisher',
+            'bildungsloginMetaDataCover',
+            'bildungsloginMetaDataCoverSmall',
+            'bildungsloginMetaDataDescription',
+            'bildungsloginMetaDataAuthor',
+            'bildungsloginLicenseType',
+            'bildungsloginLicenseSchool',
+            'bildungsloginIgnoredForDisplay',
+            'bildungsloginDeliveryDate',
+            'bildungsloginLicenseQuantity',
+            'bildungsloginValidityStartDate',
+            'bildungsloginValidityEndDate',
+            'bildungsloginValidityDuration',
+            'bildungsloginUtilizationSystems',
+            'bildungsloginPurchasingReference',
+            'bildungsloginAssignmentTimeOfAssignment',
         ],
     )
     logger.debug('Found {} objects'.format(len(response)))
@@ -434,7 +519,7 @@ def main(cache_file):
         sum(len(objs) for objs in filtered_dict.values())))
 
     logger.debug("Convert to JSON and write to cache file")
-    json.dump(filtered_dict, cache_file)
+    json.dump(filtered_dict, cache_file, indent=2)
 
     logger.info("Finished")
 
