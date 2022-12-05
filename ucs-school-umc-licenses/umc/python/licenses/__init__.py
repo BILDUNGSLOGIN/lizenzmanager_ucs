@@ -546,16 +546,14 @@ class LdapRepository:
 
     def get_license_by_code(self, code):
         for _license in self._licenses:
-            if unicode(_license.bildungsloginLicenseCode) == unicode(code).encode('ascii', 'ignore'):
+            if _license.bildungsloginLicenseCode == code:
                 return _license
         return None
 
     def get_licenses_by_codes(self, codes):
         licenses = []
         for code in codes:
-            for _license in self._licenses:
-                if _license.bildungsloginLicenseCode == code:
-                    licenses.append(_license)
+            licenses.append(self.get_license_by_code(code))
         return licenses
 
     def get_school(self, name):
