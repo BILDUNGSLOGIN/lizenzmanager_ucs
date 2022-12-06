@@ -154,9 +154,10 @@ class LdapRepository:
                                               entry['bildungsloginLicenseCode'],
                                               entry['bildungsloginLicenseSpecialType']))
         for entry in entries['assignments']:
-            self._assignments.append(
-                LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
-                               entry['bildungsloginAssignmentStatus'], entry['bildungsloginAssignmentAssignee']))
+            if 'bildungsloginAssignmentAssignee' in entry:
+                self._assignments.append(
+                    LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
+                                   entry['bildungsloginAssignmentStatus'], entry['bildungsloginAssignmentAssignee']))
         for entry in entries['schools']:
             self._schools.append(LdapSchool(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['ou']))
         for entry in entries['workgroups']:
