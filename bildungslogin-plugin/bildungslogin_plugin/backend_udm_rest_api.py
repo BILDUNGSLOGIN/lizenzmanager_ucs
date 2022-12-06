@@ -170,7 +170,7 @@ class LdapRepository:
 
     def get_user(self, userid: str) -> LdapUser | None:
         for user in self._users:
-            if hasattr(user, 'uid') and user.uid == userid:
+            if hasattr(user, 'uid') and user.uid.lower() == userid.lower():
                 return user
         return None
 
