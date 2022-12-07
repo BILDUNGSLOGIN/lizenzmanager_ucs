@@ -29,7 +29,9 @@
 
 #DEBHELPER#
 
-rm -fv /var/lib/bildungslogin/last_update
+if [ "$1" = "purge" ]; then
+		rm -fv /var/lib/bildungslogin/last_update
+fi
 
 echo "Removing cron job for regular meta data updates."
 ucr unset \
