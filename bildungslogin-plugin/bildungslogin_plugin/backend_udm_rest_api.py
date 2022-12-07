@@ -154,9 +154,10 @@ class LdapRepository:
                                               entry['bildungsloginLicenseCode'],
                                               entry['bildungsloginLicenseSpecialType']))
         for entry in entries['assignments']:
-            self._assignments.append(
-                LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
-                               entry['bildungsloginAssignmentStatus'], entry['bildungsloginAssignmentAssignee']))
+            if 'bildungsloginAssignmentAssignee' in entry:
+                self._assignments.append(
+                    LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
+                                   entry['bildungsloginAssignmentStatus'], entry['bildungsloginAssignmentAssignee']))
         for entry in entries['schools']:
             self._schools.append(LdapSchool(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['ou']))
         for entry in entries['workgroups']:
@@ -169,7 +170,7 @@ class LdapRepository:
 
     def get_user(self, userid: str) -> LdapUser | None:
         for user in self._users:
-            if hasattr(user, 'uid') and user.uid == userid:
+            if hasattr(user, 'uid') and user.uid.lower() == userid.lower():
                 return user
         return None
 
