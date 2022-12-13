@@ -461,7 +461,28 @@ def transform_to_dictionary(entries):
 
             processed_list['metadata'].append(obj)
 
+    quantity_map = get_assignment_quantity_map(processed_list['assignments'])
+    for index, license in enumerate(processed_list['licenses']):
+        if license['entry_dn'] in quantity_map:
+            processed_list['licenses'][index].update({'quantity_assigned': quantity_map[license['entry_dn']]})
+        else:
+            processed_list['licenses'][index].update({'quantity_assigned': 0})
+
     return processed_list
+
+
+def get_assignment_quantity_map(assignments):
+    dn_map = {}
+    for assignment in assignments:
+        if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
+            license_dn = assignment['entry_dn'].split(',', 1)[1]
+            if license_dn in dn_map:
+                dn_map[license_dn] += 1
+            else:
+                dn_map.update({
+                    license_dn: 1
+                })
+    return dn_map
 
 
 def main(cache_file):

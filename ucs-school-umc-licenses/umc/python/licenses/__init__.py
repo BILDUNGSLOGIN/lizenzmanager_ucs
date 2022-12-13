@@ -117,14 +117,13 @@ class LdapLicense:
                  bildungslogin_license_quantity=0,
                  bildungslogin_validity_start_date=None,
                  bildungslogin_validity_end_date=None, bildungslogin_purchasing_reference=None,
-                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None):
+                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None, quantity_assigned=None):
         self.classes = []
         self.bildungsloginValidityDuration = bildungslogin_validity_duration
         self.bildungsloginUtilizationSystems = bildungslogin_utilization_systems
         self.bildungsloginPurchasingReference = bildungslogin_purchasing_reference
         self.bildungsloginDeliveryDate = datetime.strptime(bildungslogin_delivery_date,
                                                            '%Y-%m-%d').date()
-        self.bildungsloginLicenseQuantity = bildungslogin_license_quantity
 
         if bildungslogin_validity_start_date is not None:
             try:
@@ -149,8 +148,9 @@ class LdapLicense:
         self.entry_dn = entry_dn
         self.entryUUID = entry_uuid
         self.bildungsloginLicenseCode = bildungslogin_license_code
-        self.quantity = 0
-        self.quantity_assigned = 0
+        self.bildungsloginLicenseQuantity = bildungslogin_license_quantity
+        self.quantity = int(bildungslogin_license_quantity)
+        self.quantity_assigned = int(quantity_assigned)
         self.publisher = None
         self._user_strings = []
 
@@ -280,41 +280,58 @@ class LdapRepository:
         if self._timestamp is not None and file_time <= self._timestamp:
             return
 
+        MODULE.error('load cache')
+
         self._clear()
         f = open(JSON_PATH, 'r')
         json_string = f.read()
         f.close()
         json_dictionary = json.loads(json_string)
         self._process_entries(json_dictionary)
-        self._process_licenses()
+        # MODULE.error('load cache - processed entries')
+        # self._process_licenses()
+        # MODULE.error('load cache - processed licenses')
         self._timestamp = file_time
+        MODULE.error('cache loaded')
 
     def _process_licenses(self):
-        license_id = 0
         license_map = {}
 
         for license in self._licenses:
             license.publisher = self.get_metadata_by_product_id(
                 license.bildungsloginProductId).bildungsloginMetaDataPublisher
-            license_map.update({license.entry_dn: license_id})
-            license_id += 1
+            license.quantity = license.bildungsloginLicenseQuantity
+            license_map.update({license.entry_dn: license})
+
+        MODULE.error('created hashmap')
 
         for assignment in self._assignments:
             license_dn = assignment.entry_dn.split(',', 1)[1]
-            self._licenses[license_map[license_dn]].quantity += 1
             if assignment.bildungsloginAssignmentStatus != 'AVAILABLE':
-                self._licenses[license_map[license_dn]].quantity_assigned += 1
-                user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                if user:
-                    self._licenses[license_map[license_dn]].add_user_string(user.sn)
-                    self._licenses[license_map[license_dn]].add_user_string(user.givenName)
-                    self._licenses[license_map[license_dn]].add_user_string(user.userId)
+                license = license_map[license_dn]
+                license.quantity_assigned += 1
                 school_class = self.get_class_by_uuid(assignment.bildungsloginAssignmentAssignee)
                 if school_class:
-                    self._licenses[license_map[license_dn]].add_class(school_class)
+                    license.add_class(school_class)
+                else:
+                    user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                    if user:
+                        license.add_user_string(user.sn)
+                        license.add_user_string(user.givenName)
+                        license.add_user_string(user.userId)
+                        # self._licenses[license_map[license_dn]].add_user_string(user.sn)
+                        # self._licenses[license_map[license_dn]].add_user_string(user.givenName)
+                        # self._licenses[license_map[license_dn]].add_user_string(user.userId)
 
         for license in self._licenses:
             license.remove_duplicates()
+
+    def get_license_by_dn(self, dn):
+        # type: (str) -> LdapLicense
+        for license in self._licenses:
+            if license.entry_dn == dn:
+                return license
+        return None
 
     def count_objects(self):
         return len(self._users) + len(self._workgroups) + len(self._licenses) + len(self._assignments) + len(
@@ -336,21 +353,31 @@ class LdapRepository:
                 LdapUser(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['uid'], entry['givenName'],
                          entry['sn'], entry['ucsschoolSchool'], entry['ucsschoolRole']))
         for entry in entries['licenses']:
-            self._licenses.append(LdapLicense(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
-                                              entry['bildungsloginLicenseCode'],
-                                              entry['bildungsloginLicenseSpecialType'], entry['bildungsloginProductId'],
-                                              entry['bildungsloginLicenseSchool'], entry['bildungsloginLicenseType'],
-                                              entry['bildungsloginIgnoredForDisplay'],
-                                              entry['bildungsloginDeliveryDate'], entry[
+            self._licenses.append(LdapLicense(entry_uuid=entry['entryUUID'],
+                                              entry_dn=entry['entry_dn'],
+                                              object_class=entry['objectClass'],
+                                              bildungslogin_license_code=entry['bildungsloginLicenseCode'],
+                                              bildungslogin_license_special_type=entry[
+                                                  'bildungsloginLicenseSpecialType'],
+                                              bildungslogin_product_id=entry['bildungsloginProductId'],
+                                              bildungslogin_license_school=entry['bildungsloginLicenseSchool'],
+                                              bildungslogin_license_type=entry['bildungsloginLicenseType'],
+                                              bildungslogin_ignored_for_display=entry['bildungsloginIgnoredForDisplay'],
+                                              bildungslogin_delivery_date=entry['bildungsloginDeliveryDate'],
+                                              bildungslogin_license_quantity=entry['bildungsloginLicenseQuantity'],
+                                              bildungslogin_validity_start_date=entry[
                                                   'bildungsloginValidityStartDate'] if 'bildungsloginValidityStartDate'
                                                                                        in entry else None,
-                                              entry['bildungsloginLicenseQuantity'], entry[
+                                              bildungslogin_validity_end_date=entry[
                                                   'bildungsloginValidityEndDate'] if 'bildungsloginValidityEndDate'
-                                                                                     in entry else None, entry[
+                                                                                     in entry else None,
+                                              bildungslogin_purchasing_reference=entry[
                                                   'bildungsloginPurchasingReference'] if 'bildungsloginPurchasingReference'
                                                                                          in entry else None,
-                                              entry['bildungsloginUtilizationSystems'],
-                                              entry['bildungsloginValidityDuration']))
+                                              bildungslogin_utilization_systems=entry[
+                                                  'bildungsloginUtilizationSystems'],
+                                              bildungslogin_validity_duration=entry['bildungsloginValidityDuration'],
+                                              quantity_assigned=entry['quantity_assigned']))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
@@ -752,7 +779,6 @@ class Instance(SchoolBaseModule):
     def __init__(self, *args, **kwargs):
         super(Instance, self).__init__(*args, **kwargs)
         self.repository = LdapRepository()
-        self.repository.update(True)
 
     @sanitize(
         isAdvancedSearch=BooleanSanitizer(required=True),
@@ -789,7 +815,6 @@ class Instance(SchoolBaseModule):
         }
         """
         self.repository.update()
-        MODULE.error("licenses.licenses_query: options: %s" % str(request.options))
         sizelimit = int(ucr.get("directory/manager/web/sizelimit", 2000))
         lh = LicenseHandler(ldap_user_write)
         time_from = request.options.get("timeFrom")
@@ -834,7 +859,6 @@ class Instance(SchoolBaseModule):
             res["countAvailable"] = undefined_if_none(res["countAvailable"])
             res["countExpired"] = undefined_if_none(res["countExpired"])
 
-        MODULE.info("licenses.licenses_query: result: %s" % str(result))
         self.finished(request.id, result)
 
     @sanitize(
