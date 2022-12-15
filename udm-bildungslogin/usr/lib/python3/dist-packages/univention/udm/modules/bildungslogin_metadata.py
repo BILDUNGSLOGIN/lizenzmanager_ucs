@@ -1,7 +1,4 @@
-#!/usr/bin/make -f
-#
-# python-bildungslogin
-#  rules file for the debian package
+# -*- coding: utf-8 -*-
 #
 # Copyright 2021 Univention GmbH
 #
@@ -17,10 +14,9 @@
 # well as other copyrighted, protected or trademarked materials like
 # Logos, graphics, fonts, specific documentations and configurations,
 # cryptographic keys etc. are subject to a license agreement between
-# you and Univention and not subject to the GNU AGPL V3.
+# you and Univention.
 #
-# In the case you use this program under the terms of the GNU AGPL V3,
-# the program is provided in the hope that it will be useful,
+# This program is provided in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
@@ -29,35 +25,34 @@
 # License with the Debian GNU/Linux or Univention distribution in file
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <https://www.gnu.org/licenses/>.
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
+
+"""
+Module and object specific for "bildungslogin/metadata" UDM module.
+"""
+
+from __future__ import absolute_import, unicode_literals
+
+from ..encoders import DatePropertyEncoder
+from .generic import GenericModule, GenericObject, GenericObjectProperties
 
 
-export LC_ALL=C.UTF-8
-export PYBUILD_NAME=bildungslogin
+class BildungsloginMetadataObjectProperties(GenericObjectProperties):
+    """bildungslogin/metadata UDM properties."""
+
+    _encoders = {"modified": DatePropertyEncoder}
 
 
-override_dh_auto_clean:
-	dh_auto_clean
-	find -name 'de.mo' -delete
+class BildungsloginMetadataObject(GenericObject):
+    """Better representation of bildungslogin/metadata properties."""
 
-override_dh_auto_build:
-	univention-l10n-build de
-	dh_auto_build
+    udm_prop_class = BildungsloginMetadataObjectProperties
 
 
-override_dh_auto_install:
-	univention-l10n-install de
-	dh_auto_install
+class BildungsloginMetadataModule(GenericModule):
+    """BildungsloginMetadataObject factory"""
 
-override_dh_install:
-	# Namespace __init__.py is already installed
-	rm debian/python-bildungslogin/usr/lib/python2.*/dist-packages/univention/__init__.py
-	dh_install
+    _udm_object_class = BildungsloginMetadataObject
 
-override_dh_auto_test:
-	ucslint
-	dh_auto_test
-
-%:
-	dh $@ --with python2,python3 --buildsystem=pybuild
+    class Meta:
+        supported_api_versions = [1, 2]
+        suitable_for = ["bildungslogin/metadata"]

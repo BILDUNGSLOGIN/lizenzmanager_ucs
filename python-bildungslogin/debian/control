@@ -7,8 +7,8 @@ Build-Depends:
  debhelper,
  dh-python,
  python-all,
+ python3-all,
  ucslint,
- univention-ucs-translation-template,
 
 Package: python-bildungslogin
 Architecture: all
@@ -23,6 +23,33 @@ Depends:
  python-ldap,
  python-configparser,
  python-ucsschool-lib,
+ python-ucs-school,
+ udm-bildungslogin-encoders (>=0.0.6),
+ univention-config,
+ univention-directory-listener,
+ python-jsonschema,
+Description: python libs for bildungslogin
+ .
+ This package is part of Univention Corporate Server (UCS),
+ an integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/
+
+Package: python3-bildungslogin
+Architecture: all
+Provides:
+ ${python3:Provides},
+Enhances:
+ python-bildungslogin,
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python-attr,
+ python-typing,
+ python-univention-directory-manager (>=14.0.20-20),
+ python3-ldap,
+ python-configparser,
+ python3-ucsschool-lib,
  python-ucs-school,
  udm-bildungslogin-encoders (>=0.0.6),
  univention-config,

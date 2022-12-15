@@ -162,7 +162,7 @@ def create_license(license_handler):
             quantity = random.randint(1, 10)
         if license_type is None:
             license_type = "SINGLE" if quantity == 1 else "VOLUME"
-        license = License(
+        _license = License(
             license_code=code or uts.random_name(),
             product_id=product_id or uts.random_name(),
             license_quantity=quantity,
@@ -178,8 +178,8 @@ def create_license(license_handler):
             license_school=school,
             license_type=license_type if license_type else "VOLUME",
         )
-        license_handler.create(license)
-        license_obj = license_handler.get_udm_license_by_code(license.license_code)
+        license_handler.create(_license)
+        license_obj = license_handler.get_udm_license_by_code(_license.license_code)
         created_licenses.append(license_obj)
         return license_obj
 

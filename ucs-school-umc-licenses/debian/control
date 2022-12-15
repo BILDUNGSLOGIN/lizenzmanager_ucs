@@ -5,27 +5,29 @@ Maintainer: Univention GmbH <packages@univention.de>
 Build-Depends:
  debhelper (>= 10),
  dh-python,
+ python-all,
+ python3-all,
  ucslint,
  univention-config-dev,
  univention-management-console-dev (>= 11.0.4-37),
 Standards-Version: 3.8.2
 
-Package: ucs-school-umc-licenses
+Package: ucs-school-umc-licensese
 Architecture: all
 Depends:
- python-bildungslogin (>=0.0.5),
+ python3-bildungslogin (>=0.0.5),
  python-ucs-school (>= 12.1.9),
- python-univention-directory-manager,
+ python3-univention-directory-manager,
  shell-ucs-school,
  ucs-school-umc-common,
  univention-config-registry,
  univention-management-console,
  ${misc:Depends},
- ${python3:Depends},
  ${python:Depends},
+ ${python3:Depends},
 Provides:
- ${python:Provides},
- ${python3:Provides},
+  ${python:Provides},
+  ${python3:Provides},
 Description: UMC module to administrate licenses
  This package contains a module for managing product licenses
  .
@@ -40,8 +42,8 @@ Depends:
  ${misc:Depends},
  ucs-test-framework (>= 9.0.7-57),
  ucs-test-ucsschool (>= 6.0.242),
- python-pytest,
- python-pytest-cov,
+ python3-pytest,
+ python3-pytest-cov,
 Description: test the UMC modules for bildungslogin
  .
  This package is part of Univention Corporate Server (UCS),
