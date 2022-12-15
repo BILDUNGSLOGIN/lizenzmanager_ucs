@@ -1,3 +1,9 @@
+bildungslogin-plugin (3.0.0) unstable; urgency=medium
+
+  * ET-16 Update the version number to signify compatibility to ucs 5.0.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 15 Dec 2022 18:24:40 +0100
+
 bildungslogin-plugin (2.1.1) unstable; urgency=medium
 
   * Stop an error caused by the new caching script.

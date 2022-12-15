@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (3.0.0) unstable; urgency=medium
+
+  * ET-16 Update the version number to signify compatibility to ucs 5.0.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 15 Dec 2022 18:24:40 +0100
+
 ucs-school-umc-licenses (2.1.1) unstable; urgency=medium
 
   * ET-55 Fixed a bug there licenses could not be assigned to schools.
