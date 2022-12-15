@@ -1038,7 +1038,7 @@ class Instance(SchoolBaseModule):
                                                [request.options.get("school")])
         self.repository.add_assignments(request.options.get("licenseCodes"),
                                         ObjectType.SCHOOL,
-                                        request.options.get("usernames"))
+                                        request.options.get("school"))
         MODULE.info("licenses.assign_to_school: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -1059,7 +1059,7 @@ class Instance(SchoolBaseModule):
                                                [request.options.get("schoolClass")])
         self.repository.add_assignments(request.options.get("licenseCodes"),
                                         ObjectType.GROUP,
-                                        request.options.get("usernames"))
+                                        request.options.get("schoolClass"))
         MODULE.info("licenses.assign_to_class: result: %s" % str(result))
         self.finished(request.id, result)
 
