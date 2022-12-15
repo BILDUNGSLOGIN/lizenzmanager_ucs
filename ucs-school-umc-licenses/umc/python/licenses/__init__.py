@@ -231,8 +231,8 @@ class LdapSchool:
 
 
 class LdapGroup:
-    def __init__(self, entry_uuid, entry_dn, cn, ucsschool_role, member_uid):
-        self.memberUid = member_uid
+    def __init__(self, entry_uuid, entry_dn, cn, ucsschool_role, member_uids):
+        self.memberUid = member_uids
         self.entry_dn = entry_dn
         self.entryUUID = entry_uuid
         self.cn = cn
@@ -280,51 +280,13 @@ class LdapRepository:
         if self._timestamp is not None and file_time <= self._timestamp:
             return
 
-        MODULE.error('load cache')
-
         self._clear()
         f = open(JSON_PATH, 'r')
         json_string = f.read()
         f.close()
         json_dictionary = json.loads(json_string)
         self._process_entries(json_dictionary)
-        # MODULE.error('load cache - processed entries')
-        # self._process_licenses()
-        # MODULE.error('load cache - processed licenses')
         self._timestamp = file_time
-        MODULE.error('cache loaded')
-
-    def _process_licenses(self):
-        license_map = {}
-
-        for license in self._licenses:
-            license.publisher = self.get_metadata_by_product_id(
-                license.bildungsloginProductId).bildungsloginMetaDataPublisher
-            license.quantity = license.bildungsloginLicenseQuantity
-            license_map.update({license.entry_dn: license})
-
-        MODULE.error('created hashmap')
-
-        for assignment in self._assignments:
-            license_dn = assignment.entry_dn.split(',', 1)[1]
-            if assignment.bildungsloginAssignmentStatus != 'AVAILABLE':
-                license = license_map[license_dn]
-                license.quantity_assigned += 1
-                school_class = self.get_class_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                if school_class:
-                    license.add_class(school_class)
-                else:
-                    user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                    if user:
-                        license.add_user_string(user.sn)
-                        license.add_user_string(user.givenName)
-                        license.add_user_string(user.userId)
-                        # self._licenses[license_map[license_dn]].add_user_string(user.sn)
-                        # self._licenses[license_map[license_dn]].add_user_string(user.givenName)
-                        # self._licenses[license_map[license_dn]].add_user_string(user.userId)
-
-        for license in self._licenses:
-            license.remove_duplicates()
 
     def get_license_by_dn(self, dn):
         # type: (str) -> LdapLicense
@@ -439,9 +401,11 @@ class LdapRepository:
                 users.append(user)
 
         if workgroup != '__all__':
+            workgroup = self.get_workgroup_by_dn(workgroup)
             users = self._filter_user_by_group(users, workgroup)
 
         if school_class != '__all__':
+            school_class = self.get_class_by_dn(school_class)
             users = self._filter_user_by_group(users, school_class)
 
         return users
@@ -547,6 +511,18 @@ class LdapRepository:
     def get_class_by_name(self, name):
         for group in self._classes:
             if group.cn == name:
+                return group
+        return None
+
+    def get_workgroup_by_dn(self, dn):
+        for group in self._workgroups:
+            if group.entry_dn == dn:
+                return group
+        return None
+
+    def get_class_by_dn(self, dn):
+        for group in self._classes:
+            if group.entry_dn == dn:
                 return group
         return None
 
