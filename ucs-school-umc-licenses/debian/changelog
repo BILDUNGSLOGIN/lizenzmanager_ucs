@@ -1,8 +1,9 @@
-ucs-school-umc-licenses (2.2.0) unstable; urgency=medium
+ucs-school-umc-licenses (2.1.1) unstable; urgency=medium
 
-  * Upgrade to python3
+  * ET-55 Fixed a bug there licenses could not be assigned to schools.
+  * ET-56 Fixed a bug that would not allow to filter users by group.
 
- -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 14 Dec 2022 08:10:40 +0100
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 15 Dec 2022 18:04:40 +0100
 
 ucs-school-umc-licenses (2.1.0) unstable; urgency=medium
 
