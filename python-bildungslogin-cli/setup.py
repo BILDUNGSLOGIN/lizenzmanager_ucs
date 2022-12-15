@@ -43,14 +43,17 @@ realname, email_address = parseaddr(dsc["Maintainer"])
 
 setup(
     packages=[
-        "univention",
-        "univention.bildungslogin",
-        "univention.bildungslogin.license_import",
-        "univention.bildungslogin.media_import",
-        "univention.bildungslogin.license_retrieval"
+        "univention.bildungslogin.commands",
     ],
     package_dir={"": "src"},
-    entry_points={},
+    entry_points={
+        "console_scripts": [
+            "bildungslogin-license-import=univention.bildungslogin.commands:license_import",
+            "bildungslogin-media-import=univention.bildungslogin.commands:media_import",
+            "bildungslogin-media-update=univention.bildungslogin.commands:media_update",
+            "bildungslogin-license-retrieval=univention.bildungslogin.commands:license_retrieval",
+        ]
+    },
     url="https://www.univention.de/",
     license="GNU Affero General Public License v3",
     name=dch.package,

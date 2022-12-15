@@ -1,3 +1,9 @@
+python-bildungslogin (3.0.0) unstable; urgency=medium
+
+  * ET-16 Create new package python3-bildungslogin to support python 3 in ucs 5.0.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 15 Dec 2022 18:24:40 +0100
+
 python-bildungslogin (2.0.1) unstable; urgency=medium
 
   * Update the univention cron

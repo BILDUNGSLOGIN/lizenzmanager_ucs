@@ -1,0 +1,5 @@
+python-bildungslogin-cli (3.0.0) unstable; urgency=medium
+
+  * ET-16 Create new package to avoid problems between python-bildungslogin and python3-bildungslogin.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 15 Dec 2022 18:24:40 +0100

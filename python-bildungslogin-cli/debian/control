@@ -1,0 +1,45 @@
+Source: python-bildungslogin-cli
+Section: univention
+Priority: optional
+Maintainer: Univention GmbH <packages@univention.de>
+Standards-Version: 3.9.8
+Build-Depends:
+ debhelper,
+ dh-python,
+ python-all,
+ python3-all,
+ ucslint,
+
+Package: python3-bildungslogin-cli
+Architecture: all
+Provides:
+ ${python3:Provides},
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-bildungslogin,
+Description: python commands for bildungslogin
+ .
+ This package is part of Univention Corporate Server (UCS),
+ an integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/
+
+
+
+Package: ucs-test-bildungslogin-cli-python
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ucs-test-framework (>= 9.0.7-57),
+ ucs-test-ucsschool (>= 6.0.242),
+ python-pytest,
+ python-pytest-cov,
+ python-bildungslogin,
+ udm-bildungslogin-encoders,
+Description: test the python libs for bildungslogin-cli
+ .
+ This package is part of Univention Corporate Server (UCS),
+ an integrated, directory driven solution for managing
+ corporate environments. For more information about UCS,
+ refer to: https://www.univention.de/

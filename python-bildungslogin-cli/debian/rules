@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+#
+# python-bildungslogin-cli
+#  rules file for the debian package
+
+export LC_ALL=C.UTF-8
+export PYBUILD_NAME=bildungslogin-cli
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
