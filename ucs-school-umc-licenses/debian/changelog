@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (2.1.1) unstable; urgency=medium
+
+  * ET-55 Fixed a bug there licenses could not be assigned to schools.
+  * ET-56 Fixed a bug that would not allow to filter users by group.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 15 Dec 2022 18:04:40 +0100
+
 ucs-school-umc-licenses (2.1.0) unstable; urgency=medium
 
   * ET-13 Extend the caching system for univention management console.
