@@ -38,4 +38,6 @@ fi
 . /usr/share/univention-lib/base.sh
 call_joinscript 70bildungslogin-plugin.inst
 
+python /usr/sbin/build_ucs_school_api_cache.py
+
 exit 0
