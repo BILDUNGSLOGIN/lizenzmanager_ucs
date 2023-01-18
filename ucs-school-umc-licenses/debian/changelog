@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.1.2) unstable; urgency=medium
+
+  * ET-48 Activate grid resize on every search in products.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 18 Jan 2022 09:10:40 +0100
+
 ucs-school-umc-licenses (2.1.1) unstable; urgency=medium
 
   * ET-55 Fixed a bug there licenses could not be assigned to schools.
