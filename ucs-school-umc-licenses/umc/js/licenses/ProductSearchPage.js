@@ -361,7 +361,7 @@ define([
         widgets: widgets,
         layout: [["pattern", "submit"]],
         onSearch: lang.hitch(this, function (values) {
-          this.refreshGrid(values);
+          this.refreshGrid(values, true);
         }),
       });
 
