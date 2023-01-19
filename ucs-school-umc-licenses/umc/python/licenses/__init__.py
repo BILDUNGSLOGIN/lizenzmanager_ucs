@@ -792,21 +792,21 @@ class Instance(SchoolBaseModule):
         """
         self.repository.update()
         sizelimit = int(ucr.get("directory/manager/web/sizelimit", 2000))
-        lh = LicenseHandler(ldap_user_write)
         time_from = request.options.get("timeFrom")
         time_from = iso8601Date.to_datetime(time_from) if time_from else None
         time_to = request.options.get("timeTo")
         time_to = iso8601Date.to_datetime(time_to) if time_to else None
-        klass = request.options.get("class", None)
-        if not klass:
-            klass = request.options.get("workgroup", None)
+        school_class = request.options.get("class", None)
+        if not school_class:
+            school_class = request.options.get("workgroup", None)
         try:
-            result = lh.search_for_licenses(
+            licenses = self.repository.filter_licenses(
                 is_advanced_search=request.options.get("isAdvancedSearch"),
                 school=request.options.get("school"),
                 time_from=time_from,
                 time_to=time_to,
-                only_available_licenses=request.options.get("onlyAvailableLicenses"),
+                only_available_licenses=request.options.get(
+                    "onlyAvailableLicenses"),
                 publisher=request.options.get("publisher"),
                 license_types=request.options.get("licenseType"),
                 user_pattern=request.options.get("userPattern"),
@@ -814,10 +814,10 @@ class Instance(SchoolBaseModule):
                 product=request.options.get("product"),
                 license_code=request.options.get("licenseCode"),
                 pattern=request.options.get("pattern"),
-                restrict_to_this_product_id=request.options.get("allocationProductId"),
+                restrict_to_this_product_id=request.options.get(
+                    "allocationProductId"),
                 sizelimit=sizelimit,
-                klass=klass,
-            )
+                school_class=school_class)
         except SearchLimitReached:
             raise UMC_Error(
                 _("Hint"
@@ -827,13 +827,16 @@ class Instance(SchoolBaseModule):
                   "the UCR variable directory/manager/web/sizelimit."
                   ).format(sizelimit)
             )
-        for res in result:
-            res["importDate"] = iso8601Date.from_datetime(res["importDate"])
-            res["validityStart"] = iso8601Date.from_datetime(res["validityStart"]) if res.get("validityStart") else None
-            res["validityEnd"] = iso8601Date.from_datetime(res["validityEnd"]) if res.get("validityEnd") else None
-            res["countAquired"] = undefined_if_none(res["countAquired"], zero_as_none=True)
-            res["countAvailable"] = undefined_if_none(res["countAvailable"])
-            res["countExpired"] = undefined_if_none(res["countExpired"])
+        result = []
+        for _license in licenses:
+            result.append({
+                "importDate":  iso8601Date.from_datetime(_license.bildungsloginDeliveryDate),
+                "validityStart": iso8601Date.from_datetime(_license.bildungsloginValidityStartDate) if _license.bildungsloginValidityStartDate else None,
+                "validityEnd": iso8601Date.from_datetime(_license.bildungsloginValidityEndDate) if _license.bildungsloginValidityEndDate else None,
+                "countAquired": undefined_if_none(_license.quantity, zero_as_none=True),
+                "countAvailable": undefined_if_none(_license.quantity_available),
+                "countExpired": undefined_if_none(_license.quantity_expired),
+            })
 
         self.finished(request.id, result)
 
