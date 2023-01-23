@@ -140,7 +140,10 @@ class LdapLicense:
             self.bildungsloginValidityEndDate = None
 
         self.bildungsloginIgnoredForDisplay = int(bildungslogin_ignored_for_display)
-        self.bildungsloginLicenseType = bildungslogin_license_type
+        if bildungslogin_license_type:
+            self.bildungsloginLicenseType = bildungslogin_license_type
+        else:
+            self.bildungsloginLicenseType = ''
         self.bildungsloginLicenseSchool = bildungslogin_license_school
         self.bildungsloginProductId = bildungslogin_product_id
         self.bildungsloginLicenseSpecialType = bildungslogin_license_special_type
@@ -315,31 +318,32 @@ class LdapRepository:
                 LdapUser(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['uid'], entry['givenName'],
                          entry['sn'], entry['ucsschoolSchool'], entry['ucsschoolRole']))
         for entry in entries['licenses']:
-            self._licenses.append(LdapLicense(entry_uuid=entry['entryUUID'],
-                                              entry_dn=entry['entry_dn'],
-                                              object_class=entry['objectClass'],
-                                              bildungslogin_license_code=entry['bildungsloginLicenseCode'],
-                                              bildungslogin_license_special_type=entry[
-                                                  'bildungsloginLicenseSpecialType'],
-                                              bildungslogin_product_id=entry['bildungsloginProductId'],
-                                              bildungslogin_license_school=entry['bildungsloginLicenseSchool'],
-                                              bildungslogin_license_type=entry['bildungsloginLicenseType'],
-                                              bildungslogin_ignored_for_display=entry['bildungsloginIgnoredForDisplay'],
-                                              bildungslogin_delivery_date=entry['bildungsloginDeliveryDate'],
-                                              bildungslogin_license_quantity=entry['bildungsloginLicenseQuantity'],
-                                              bildungslogin_validity_start_date=entry[
-                                                  'bildungsloginValidityStartDate'] if 'bildungsloginValidityStartDate'
-                                                                                       in entry else None,
-                                              bildungslogin_validity_end_date=entry[
-                                                  'bildungsloginValidityEndDate'] if 'bildungsloginValidityEndDate'
-                                                                                     in entry else None,
-                                              bildungslogin_purchasing_reference=entry[
-                                                  'bildungsloginPurchasingReference'] if 'bildungsloginPurchasingReference'
-                                                                                         in entry else None,
-                                              bildungslogin_utilization_systems=entry[
-                                                  'bildungsloginUtilizationSystems'],
-                                              bildungslogin_validity_duration=entry['bildungsloginValidityDuration'],
-                                              quantity_assigned=entry['quantity_assigned']))
+            self._licenses.append(LdapLicense(
+                entry_uuid=entry['entryUUID'],
+                entry_dn=entry['entry_dn'],
+                object_class=entry['objectClass'],
+                bildungslogin_license_code=entry['bildungsloginLicenseCode'],
+                bildungslogin_license_special_type=entry[
+                    'bildungsloginLicenseSpecialType'],
+                bildungslogin_product_id=entry['bildungsloginProductId'],
+                bildungslogin_license_school=entry['bildungsloginLicenseSchool'],
+                bildungslogin_license_type=entry['bildungsloginLicenseType'],
+                bildungslogin_ignored_for_display=entry['bildungsloginIgnoredForDisplay'],
+                bildungslogin_delivery_date=entry['bildungsloginDeliveryDate'],
+                bildungslogin_license_quantity=entry['bildungsloginLicenseQuantity'],
+                bildungslogin_validity_start_date=entry[
+                    'bildungsloginValidityStartDate'] if 'bildungsloginValidityStartDate'
+                                                         in entry else None,
+                bildungslogin_validity_end_date=entry[
+                    'bildungsloginValidityEndDate'] if 'bildungsloginValidityEndDate'
+                                                       in entry else None,
+                bildungslogin_purchasing_reference=entry[
+                    'bildungsloginPurchasingReference'] if 'bildungsloginPurchasingReference'
+                                                           in entry else None,
+                bildungslogin_utilization_systems=entry[
+                    'bildungsloginUtilizationSystems'],
+                bildungslogin_validity_duration=entry['bildungsloginValidityDuration'],
+                quantity_assigned=entry['quantity_assigned']))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
@@ -367,6 +371,19 @@ class LdapRepository:
             if 'bildungsloginMetaDataPublisher' in entry:
                 self._publishers.append(entry['bildungsloginMetaDataPublisher'])
         self._publishers = list(dict.fromkeys(self._publishers))
+
+        for assignment in self._assignments:
+            license_dn = assignment.entry_dn.split(',', 1)[1]
+            _license = self.get_license_by_dn(license_dn)
+            if assignment.bildungsloginAssignmentStatus != 'AVAILABLE':
+                user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                if user:
+                    _license.add_user_string(user.sn)
+                    _license.add_user_string(user.givenName)
+                    _license.add_user_string(user.userId)
+                school_class = self.get_class_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                if school_class:
+                    _license.add_class(school_class)
 
     def get_publishers(self):
         return self._publishers
@@ -442,14 +459,13 @@ class LdapRepository:
                         school_class=None):
 
         licenses = self._licenses
-
         if restrict_to_this_product_id:
             licenses = filter(lambda _license: _license.bildungsloginProductId == restrict_to_this_product_id, licenses)
 
         if school:
             licenses = filter(lambda _license: _license.bildungsloginLicenseSchool == school, licenses)
 
-        if product_id:
+        if product_id and product_id != '*':
             licenses = filter(lambda _license: _license.bildungsloginProductId == product_id, licenses)
 
         if license_types:
@@ -470,7 +486,7 @@ class LdapRepository:
         if only_available_licenses:
             licenses = filter(lambda _license: _license.is_available, licenses)
 
-        if user_pattern:
+        if user_pattern and user_pattern != '*':
             user_pattern = re.compile(user_pattern.replace('*', '.*'))
             licenses = filter(lambda _license: _license.match_user_regex(user_pattern), licenses)
 
@@ -480,17 +496,16 @@ class LdapRepository:
                 _license.bildungsloginLicenseCode) if _license.bildungsloginLicenseCode else False,
                               licenses)
 
-        if pattern:
+        if pattern and pattern != '*':
             pattern = re.compile(pattern.replace('*', '.*'))
             licenses = filter(
-                lambda _license: pattern.match(_license.bildungsloginLicenseCode) if _license.publisher else False,
-                licenses)
+                lambda _license: pattern.match(_license.bildungsloginLicenseCode), licenses)
 
-        if product:
-            product = re.compile(product.product('*', '.*'))
+        if product and product != '*':
+            product = re.compile(product.replace('*', '.*'))
             licenses = filter(lambda _license: self._match_license_by_product(_license, product), licenses)
 
-        if school_class:
+        if school_class and school_class != '*':
             school_class = self.get_class_by_name(school_class)
             licenses = filter(lambda _license: school_class in _license.classes, licenses)
 
@@ -829,11 +844,21 @@ class Instance(SchoolBaseModule):
             )
         result = []
         for _license in licenses:
+            metadata = self.repository.get_metadata_by_product_id(_license.bildungsloginProductId)
             result.append({
-                "importDate":  iso8601Date.from_datetime(_license.bildungsloginDeliveryDate),
-                "validityStart": iso8601Date.from_datetime(_license.bildungsloginValidityStartDate) if _license.bildungsloginValidityStartDate else None,
-                "validityEnd": iso8601Date.from_datetime(_license.bildungsloginValidityEndDate) if _license.bildungsloginValidityEndDate else None,
+                "licenseCode": _license.bildungsloginLicenseCode,
+                "productId": _license.bildungsloginProductId,
+                "productName": metadata.bildungsloginMetaDataTitle,
+                "publisher": metadata.bildungsloginMetaDataPublisher,
+                "licenseTypeLabel": LicenseType.label(_license.bildungsloginLicenseType),
+                "for": _license.bildungsloginLicenseSpecialType,
+                "importDate": iso8601Date.from_datetime(_license.bildungsloginDeliveryDate),
+                "validityStart": iso8601Date.from_datetime(
+                    _license.bildungsloginValidityStartDate) if _license.bildungsloginValidityStartDate else None,
+                "validityEnd": iso8601Date.from_datetime(
+                    _license.bildungsloginValidityEndDate) if _license.bildungsloginValidityEndDate else None,
                 "countAquired": undefined_if_none(_license.quantity, zero_as_none=True),
+                "countAssigned": undefined_if_none(_license.quantity_assigned),
                 "countAvailable": undefined_if_none(_license.quantity_available),
                 "countExpired": undefined_if_none(_license.quantity_expired),
             })
