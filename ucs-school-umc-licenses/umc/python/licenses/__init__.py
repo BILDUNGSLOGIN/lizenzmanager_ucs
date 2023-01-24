@@ -214,7 +214,7 @@ class LdapAssignment:
         self.entryUUID = entry_uuid
         self.bildungsloginAssignmentAssignee = bildungslogin_assignment_assignee
 
-    def reset(self):
+    def remove(self):
         self.bildungsloginAssignmentAssignee = ''
         self.bildungsloginAssignmentStatus = Status.AVAILABLE
         self.bildungsloginAssignmentTimeOfAssignment = None
@@ -752,22 +752,29 @@ class LdapRepository:
                 for assignment in assignments:
                     if assignment.bildungsloginAssignmentAssignee == user.entryUUID:
                         assignment.remove()
+                license.quantity_assigned -= 1
         elif object_type == ObjectType.GROUP:
             for object_name in object_names:
                 group = self.get_workgroup_by_name(object_name)
-                for assignment in assignments:
-                    if assignment.bildungsloginAssignmentAssignee == group.entryUUID:
-                        assignment.remove()
-                school_classes = self.get_class_by_name(object_name)
-                for assignment in assignments:
-                    if assignment.bildungsloginAssignmentAssignee == school_classes.entryUUID:
-                        assignment.remove()
+                if group:
+                    for assignment in assignments:
+                        if assignment.bildungsloginAssignmentAssignee == group.entryUUID:
+                            assignment.remove()
+                    license.quantity_assigned -= self.get_usercount_by_group(group)
+                else:
+                    school_classes = self.get_class_by_name(object_name)
+                    if school_classes:
+                        for assignment in assignments:
+                            if assignment.bildungsloginAssignmentAssignee == school_classes.entryUUID:
+                                assignment.remove()
+                    license.quantity_assigned -= self.get_usercount_by_group(school_classes)
         elif object_type == ObjectType.SCHOOL:
             for object_name in object_names:
                 school = self.get_school(object_name)
                 for assignment in assignments:
                     if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
                         assignment.remove()
+                license.quantity_assigned -= len(self._get_users_by_school(school.ou))
 
     @staticmethod
     def get_school_roles(user):
@@ -997,6 +1004,7 @@ class Instance(SchoolBaseModule):
                                                                object_type,
                                                                object_names)
 
+        object_names = filter(lambda object_name: object_name in failed_assignments, object_names)
         self.repository.remove_assignments(license_code, object_type, object_names)
         return {
             "failedAssignments": [
