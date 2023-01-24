@@ -183,6 +183,10 @@ define([
             	this._wrap_assign_result['countSuccessfulAssignments'] + ' of ' + this._wrap_assign_max + ' licenses assigned'
             );
 
+            if(result['result']['failedAssignments']) {
+                this._wrap_assign_result['failedAssignments'] = result['result']['failedAssignments'];
+            }
+
             // If there are items left: start next loop iteration.
             // If not: finish this loop, and return result.
             if (this._wrap_assign_items.length > 0) {
@@ -815,6 +819,7 @@ define([
                 .then(
                   lang.hitch(this, function (response) {
                     const result = response.result;
+
                     let msg = "";
                     if (result.notEnoughLicenses) {
                       msg +=
