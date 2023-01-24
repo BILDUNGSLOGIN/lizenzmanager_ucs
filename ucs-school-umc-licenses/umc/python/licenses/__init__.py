@@ -44,9 +44,9 @@ from univention.bildungslogin.handlers import (
     AssignmentHandler,
     BiloCreateError,
     LicenseHandler,
-    MetaDataHandler, ObjectType
+    ObjectType
 )
-from univention.bildungslogin.models import License, LicenseType, Role, Status
+from univention.bildungslogin.models import LicenseType, Role, Status
 from univention.bildungslogin.license_import import import_license, load_license_file
 from univention.lib.i18n import Translation
 from univention.management.console.config import ucr
@@ -673,37 +673,71 @@ class LdapRepository:
 
         return assignments
 
+    def get_usercount_by_group(self, group):
+        count = 0
+        for user in self._users:
+            if user.userId in group.memberUid:
+                count += 1
+
+        return count
+
     def add_assignments(self, license_codes, object_type, object_names):
         licenses = self.get_licenses_by_codes(license_codes)
-        assignments = []
+        licenses_assignments = []
         for license in licenses:
-            assignments += self.get_assignments_by_license(license)
+            assignments = self.get_assignments_by_license(license)
+            assignments = filter(lambda _assignment: _assignment.bildungsloginAssignmentStatus == Status.AVAILABLE,
+                                 assignments)
+            licenses_assignments.append(
+                {'license': license,
+                 'assignments': assignments})
 
-        assignments = filter(lambda _assignment: _assignment.bildungsloginAssignmentStatus == Status.ASSIGNED,
-                             assignments)
+        licenses_to_use = (
+            license
+            for license in licenses_assignments
+            for _ in range(license['license'].quantity_available)
+        )
 
         if object_type == ObjectType.USER:
             for object_name in object_names:
+                license = licenses_to_use.next()
                 user = self.get_user(object_name)
-                for assignment in assignments:
-                    if assignment.bildungsloginAssignmentAssignee == user.entryUUID:
+                for assignment in license['assignments']:
+                    if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
                         assignment.assign(user.entryUUID)
+                        break
+                license['license'].quantity_assigned += 1
+
         elif object_type == ObjectType.GROUP:
             for object_name in object_names:
-                group = self.get_workgroup_by_name(object_name)
-                for assignment in assignments:
-                    if assignment.bildungsloginAssignmentAssignee == group.entryUUID:
-                        assignment.assign(group.entryUUID)
                 school_class = self.get_class_by_name(object_name)
-                for assignment in assignments:
-                    if assignment.bildungsloginAssignmentAssignee == school_class.entryUUID:
-                        assignment.assign(school_class.entryUUID)
+                if school_class:
+                    license = licenses_to_use.next()
+                    for assignment in license['assignments']:
+                        if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
+                            assignment.assign(school_class.entryUUID)
+                            break
+                    license['license'].quantity_assigned += self.get_usercount_by_group(school_class)
+
+                else:
+                    group = self.get_workgroup_by_name(object_name)
+                    if group:
+                        license = licenses_to_use.next()
+                        for assignment in license['assignments']:
+                            if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
+                                assignment.assign(group.entryUUID)
+                                break
+                        license['license'].quantity_assigned += self.get_usercount_by_group(group)
+
         elif object_type == ObjectType.SCHOOL:
             for object_name in object_names:
+                license = licenses_to_use.next()
                 school = self.get_school(object_name)
-                for assignment in assignments:
+                for assignment in license['assignments']:
                     if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
                         assignment.assign(school.entryUUID)
+                        break
+                license['license'].quantity_assigned += len(self._get_users_by_school(school.ou))
 
     def remove_assignments(self, license_code, object_type, object_names):
         license = self.get_license_by_code(license_code)
@@ -899,7 +933,7 @@ class Instance(SchoolBaseModule):
             "licenseTypeLabel": LicenseType.label(license.bildungsloginLicenseType),
             "productId": meta_data.bildungsloginProductId,
             "reference": license.bildungsloginPurchasingReference,
-            "specialLicense": license.bildungsloginLicenseType,
+            "specialLicense": license.bildungsloginLicenseSpecialType,
             "usage": license.bildungsloginUtilizationSystems,
             "validityStart": optional_date2str(license.bildungsloginValidityStartDate),
             "validityEnd": optional_date2str(license.bildungsloginValidityEndDate),
@@ -1043,9 +1077,10 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.USER,
                                                request.options.get("usernames"))
-        self.repository.add_assignments(request.options.get("licenseCodes"),
-                                        ObjectType.USER,
-                                        request.options.get("usernames"))
+        if not result['notEnoughLicenses']:
+            self.repository.add_assignments(request.options.get("licenseCodes"),
+                                            ObjectType.USER,
+                                            request.options.get("usernames"))
         MODULE.info("licenses.assign_to_users: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -1064,9 +1099,10 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.SCHOOL,
                                                [request.options.get("school")])
-        self.repository.add_assignments(request.options.get("licenseCodes"),
-                                        ObjectType.SCHOOL,
-                                        request.options.get("school"))
+        if not result['notEnoughLicenses']:
+            self.repository.add_assignments(request.options.get("licenseCodes"),
+                                            ObjectType.SCHOOL,
+                                            request.options.get("school"))
         MODULE.info("licenses.assign_to_school: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -1085,9 +1121,10 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.GROUP,
                                                [request.options.get("schoolClass")])
-        self.repository.add_assignments(request.options.get("licenseCodes"),
-                                        ObjectType.GROUP,
-                                        request.options.get("schoolClass"))
+        if not result['notEnoughLicenses']:
+            self.repository.add_assignments(request.options.get("licenseCodes"),
+                                            ObjectType.GROUP,
+                                            request.options.get("schoolClass"))
         MODULE.info("licenses.assign_to_class: result: %s" % str(result))
         self.finished(request.id, result)
 
