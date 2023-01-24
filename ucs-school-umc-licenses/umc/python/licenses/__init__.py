@@ -1004,7 +1004,7 @@ class Instance(SchoolBaseModule):
                                                                object_type,
                                                                object_names)
 
-        object_names = filter(lambda object_name: object_name in failed_assignments, object_names)
+        object_names = filter(lambda object_name: object_name not in failed_assignments, object_names)
         self.repository.remove_assignments(license_code, object_type, object_names)
         return {
             "failedAssignments": [
@@ -1082,10 +1082,15 @@ class Instance(SchoolBaseModule):
         """
         MODULE.info("licenses.assign_to_users: options: %s" % str(request.options))
         ah = AssignmentHandler(ldap_user_write)
+        object_names = request.options.get("usernames")
+
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.USER,
-                                               request.options.get("usernames"))
-        if not result['notEnoughLicenses']:
+                                               object_names)
+
+        object_names = filter(lambda object_name: object_name not in result['failedAssignmentsObjects'], object_names)
+
+        if len(object_names) > 0 and not result['notEnoughLicenses']:
             self.repository.add_assignments(request.options.get("licenseCodes"),
                                             ObjectType.USER,
                                             request.options.get("usernames"))

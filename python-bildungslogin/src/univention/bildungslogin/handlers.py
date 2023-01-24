@@ -986,6 +986,7 @@ class AssignmentHandler:
             "countSuccessfulAssignments": 0,
             "notEnoughLicenses": False,
             "failedAssignments": set(),
+            "failedAssignmentsObjects": set(),
             "validityInFuture": set(),
         }
         licenses = []
@@ -1030,12 +1031,14 @@ class AssignmentHandler:
                     result["validityInFuture"].add(license.props.code)
             except BiloAssignmentError as exc:
                 result["failedAssignments"].add("{} -- {}".format(object_name, str(exc)))
+                result["failedAssignmentsObjects"].add(object_name)
         self.logger.info(
             "Assigned licenses to %r/%r users.",
             result["countSuccessfulAssignments"],
             len(object_names)
         )
         result["failedAssignments"] = list(result["failedAssignments"])
+        result["failedAssignmentsObjects"] = list(result["failedAssignmentsObjects"])
         result["validityInFuture"] = list(result["validityInFuture"])
         return result
 
