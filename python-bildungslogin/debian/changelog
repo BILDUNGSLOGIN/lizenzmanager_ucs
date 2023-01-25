@@ -1,3 +1,9 @@
+python-bildungslogin (2.0.2) unstable; urgency=medium
+
+  * Additional information for error handling in ucs-school-umc-licenses.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Wed, 25 Jan 2023 14:11:21 +0100
+
 python-bildungslogin (2.0.1) unstable; urgency=medium
 
   * Update the univention cron
