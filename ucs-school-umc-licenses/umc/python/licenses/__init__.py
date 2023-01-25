@@ -117,7 +117,7 @@ class LdapLicense:
                  bildungslogin_license_quantity=0,
                  bildungslogin_validity_start_date=None,
                  bildungslogin_validity_end_date=None, bildungslogin_purchasing_reference=None,
-                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None, quantity_assigned=None):
+                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None, quantity_assigned=None, user_strings=None):
         self.classes = []
         self.bildungsloginValidityDuration = bildungslogin_validity_duration
         self.bildungsloginUtilizationSystems = bildungslogin_utilization_systems
@@ -155,16 +155,16 @@ class LdapLicense:
         self.quantity = int(bildungslogin_license_quantity)
         self.quantity_assigned = int(quantity_assigned)
         self.publisher = None
-        self._user_strings = []
+        self.user_strings = user_strings
 
     def add_user_string(self, user_string):
-        self._user_strings.append(user_string)
+        self.user_strings.append(user_string)
 
     def remove_duplicates(self):
-        self._user_strings = list(dict.fromkeys(self._user_strings))
+        self.user_strings = list(dict.fromkeys(self.user_strings))
 
     def match_user_regex(self, user_pattern):
-        for user_string in self._user_strings:
+        for user_string in self.user_strings:
             if user_pattern.match(user_string):
                 return True
         return False
@@ -343,7 +343,8 @@ class LdapRepository:
                 bildungslogin_utilization_systems=entry[
                     'bildungsloginUtilizationSystems'],
                 bildungslogin_validity_duration=entry['bildungsloginValidityDuration'],
-                quantity_assigned=entry['quantity_assigned']))
+                quantity_assigned=entry['quantity_assigned'],
+            user_strings=entry['user_strings']))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
@@ -372,18 +373,6 @@ class LdapRepository:
                 self._publishers.append(entry['bildungsloginMetaDataPublisher'])
         self._publishers = list(dict.fromkeys(self._publishers))
 
-        for assignment in self._assignments:
-            license_dn = assignment.entry_dn.split(',', 1)[1]
-            _license = self.get_license_by_dn(license_dn)
-            if assignment.bildungsloginAssignmentStatus != 'AVAILABLE':
-                user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                if user:
-                    _license.add_user_string(user.sn)
-                    _license.add_user_string(user.givenName)
-                    _license.add_user_string(user.userId)
-                school_class = self.get_class_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                if school_class:
-                    _license.add_class(school_class)
 
     def get_publishers(self):
         return self._publishers
