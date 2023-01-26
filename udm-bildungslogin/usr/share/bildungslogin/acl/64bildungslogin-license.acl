@@ -3,6 +3,5 @@
 access to dn.subtree="cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,@%@ldap/base@%@"
         by group/univentionGroup/uniqueMember.expand="cn=DC Backup Hosts,cn=groups,@%@ldap/base@%@" write
         by set="user/objectClass & [ucsschoolAdministrator]" write
-        by dn="@%@appcenter/apps/ucsschool-apis/hostdn@%@" read
         by * none stop
 
