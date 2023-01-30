@@ -148,6 +148,7 @@ define([
         values.school = this.schoolId;
         values.licenseType = this.selectedLicenseType;
         this._grid.filter(values);
+        this._grid.resize();
       }
     },
 
