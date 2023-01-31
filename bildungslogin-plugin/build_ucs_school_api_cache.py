@@ -493,6 +493,13 @@ def transform_to_dictionary(entries):
                             break
                 license.update({'quantity_assigned': len(group['memberUid']),
                                 'user_strings': quantity_map[license['entry_dn']]['user_strings']})
+                for member_uid in group['memberUid']:
+                    for user in processed_list['users']:
+                        if user['uid'] == member_uid:
+                            license['user_strings'].append(user['uid'])
+                            license['user_strings'].append(user['givenName'])
+                            license['user_strings'].append(user['sn'])
+                            break
                 license['groups'].append(group['entry_dn'])
             else:
                 license.update({'quantity_assigned': 0, 'user_strings': []})
@@ -506,8 +513,13 @@ def transform_to_dictionary(entries):
                         for user in processed_list['users']:
                             if school['ou'] in user['ucsschoolSchool']:
                                 counter += 1
+                                if 'user_strings' not in license:
+                                    license.update({'user_strings': []})
+                                license['user_strings'].append(user['uid'])
+                                license['user_strings'].append(user['givenName'])
+                                license['user_strings'].append(user['sn'])
                 license.update(
-                    {'quantity_assigned': counter, 'user_strings': quantity_map[license['entry_dn']]['user_strings']})
+                    {'quantity_assigned': counter})
             else:
                 license.update({'quantity_assigned': 0, 'user_strings': []})
         else:
