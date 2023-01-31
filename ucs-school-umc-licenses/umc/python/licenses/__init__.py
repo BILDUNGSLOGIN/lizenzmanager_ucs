@@ -678,13 +678,13 @@ class LdapRepository:
 
         return assignments
 
-    def get_usercount_by_group(self, group):
-        count = 0
+    def get_users_by_group(self, group):
+        users = []
         for user in self._users:
             if user.userId in group.memberUid:
-                count += 1
+                users.append(user)
 
-        return count
+        return users
 
     def add_assignments(self, license_codes, object_type, object_names):
         licenses = self.get_licenses_by_codes(license_codes)
@@ -707,6 +707,9 @@ class LdapRepository:
             for object_name in object_names:
                 license = licenses_to_use.next()
                 user = self.get_user(object_name)
+                license['license'].user_strings.append(user.uid)
+                license['license'].user_strings.append(user.givenName)
+                license['license'].user_strings.append(user.sn)
                 for assignment in license['assignments']:
                     if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
                         assignment.assign(user.entryUUID)
@@ -722,7 +725,13 @@ class LdapRepository:
                         if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
                             assignment.assign(school_class.entryUUID)
                             break
-                    license['license'].quantity_assigned += self.get_usercount_by_group(school_class)
+                    license['license'].groups.append(school_class.entry_dn)
+                    users = self.get_users_by_group(school_class)
+                    license['license'].quantity_assigned += len(users)
+                    for user in users:
+                        license['license'].user_strings.append(user.uid)
+                        license['license'].user_strings.append(user.givenName)
+                        license['license'].user_strings.append(user.sn)
                 else:
                     group = self.get_workgroup_by_name(object_name)
                     if group:
@@ -731,7 +740,13 @@ class LdapRepository:
                             if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
                                 assignment.assign(group.entryUUID)
                                 break
-                        license['license'].quantity_assigned += self.get_usercount_by_group(group)
+                        license['license'].groups.append(group.entry_dn)
+                        users = self.get_users_by_group(group)
+                        license['license'].quantity_assigned += len(users)
+                        for user in users:
+                            license['license'].user_strings.append(user.uid)
+                            license['license'].user_strings.append(user.givenName)
+                            license['license'].user_strings.append(user.sn)
                     else:
                         MODULE.error("Couldn't find the group in cache.")
 
@@ -743,7 +758,12 @@ class LdapRepository:
                     if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
                         assignment.assign(school.entryUUID)
                         break
-                license['license'].quantity_assigned += len(self._get_users_by_school(school.ou))
+                users = self._get_users_by_school(school.ou)
+                license['license'].quantity_assigned += len(users)
+                for user in users:
+                    license['license'].user_strings.append(user.uid)
+                    license['license'].user_strings.append(user.givenName)
+                    license['license'].user_strings.append(user.sn)
 
     def remove_assignments(self, license_code, object_type, object_names):
         license = self.get_license_by_code(license_code)
@@ -766,14 +786,14 @@ class LdapRepository:
                     for assignment in assignments:
                         if assignment.bildungsloginAssignmentAssignee == group.entryUUID:
                             assignment.remove()
-                    license.quantity_assigned -= self.get_usercount_by_group(group)
+                    license.quantity_assigned -= self.get_users_by_group(group)
                 else:
                     school_classes = self.get_class_by_name(object_name)
                     if school_classes:
                         for assignment in assignments:
                             if assignment.bildungsloginAssignmentAssignee == school_classes.entryUUID:
                                 assignment.remove()
-                    license.quantity_assigned -= self.get_usercount_by_group(school_classes)
+                    license.quantity_assigned -= self.get_users_by_group(school_classes)
         elif object_type == ObjectType.SCHOOL:
             for object_name in object_names:
                 school = self.get_school(object_name)
