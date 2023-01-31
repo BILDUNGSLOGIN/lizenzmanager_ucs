@@ -29,7 +29,7 @@
 
 ## joinscript api: bindpwdfile
 
-VERSION=1
+VERSION=2
 
 . /usr/share/univention-lib/all.sh
 . /usr/share/univention-join/joinscripthelper.lib
@@ -76,15 +76,19 @@ check_openapi_client_knows_bildungslogin_modules() {
   if docker exec $appcenter_apps_ucsschool_apis_container python3 -c "$OPENAPI_TEST_CODE"; then
     echo "OK: OpenAPI client library already knows Bildungslogin UDM modules."
   else
-    echo "Building OpenAPI client library for UDM REST API access in Docker container..."
-    echo "==> This requires network access to Debians repositories! <=="
-    echo "If the installation fails, make sure the server can open outgoing TCP connections to 141.76.2.4:80 (ftp.de.debian.org)."
-    docker exec $appcenter_apps_ucsschool_apis_container /var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/install_udm_rest_api_client || die
-    if docker exec $appcenter_apps_ucsschool_apis_container python3 -c "$OPENAPI_TEST_CODE"; then
-      echo "OK: OpenAPI client library now knows Bildungslogin UDM modules."
-    else
-      die "FAIL: OpenAPI client library in Docker container still not usable!"
-    fi
+    install_openapi_bildungslogin_modules
+  fi
+}
+
+install_openapi_bildungslogin_modules() {
+  echo "Building OpenAPI client library for UDM REST API access in Docker container..."
+  echo "==> This requires network access to Debians repositories! <=="
+  echo "If the installation fails, make sure the server can open outgoing TCP connections to 141.76.2.4:80 (ftp.de.debian.org)."
+  docker exec $appcenter_apps_ucsschool_apis_container /var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/install_udm_rest_api_client || die
+  if docker exec $appcenter_apps_ucsschool_apis_container python3 -c "$OPENAPI_TEST_CODE"; then
+    echo "OK: OpenAPI client library now knows Bildungslogin UDM modules."
+  else
+    die "FAIL: OpenAPI client library in Docker container still not usable!"
   fi
 }
 
@@ -94,7 +98,12 @@ restart_ucsschool_apis_app() {
 }
 
 setup_udm_rest_api_access "$@"
-check_openapi_client_knows_bildungslogin_modules
+# Joinscript version 2 requires reinstall even if the module is already there
+if [ $JS_LAST_EXECUTED_VERSION -lt 2 ] ; then
+  install_openapi_bildungslogin_modules
+else
+  check_openapi_client_knows_bildungslogin_modules
+fi
 restart_ucsschool_apis_app
 
 joinscript_save_current_version

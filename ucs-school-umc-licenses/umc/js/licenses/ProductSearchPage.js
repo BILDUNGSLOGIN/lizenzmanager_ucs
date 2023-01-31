@@ -304,6 +304,7 @@ define([
             values.groupName = this.parseGroupName(this.allocation.schoolClass)
           }
           values.licenseType = ["WORKGROUP"];
+          values.showOnlyAvailable = true;
           this._gridGroup.filter(values)
             .then(() => {
               if (
