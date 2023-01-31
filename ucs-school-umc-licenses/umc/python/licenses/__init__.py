@@ -418,9 +418,9 @@ class LdapRepository:
 
     def filter_metadata(self, pattern):
         filtered_metadata = []
-        pattern = re.compile(pattern.replace('*', '.*'))
+        pattern = re.compile(pattern.lower().replace('*', '.*'))
         for metadata in self._metadata:
-            if pattern.match(metadata.bildungsloginProductId) or pattern.match(
+            if pattern.match(metadata.bildungsloginProductId.lower()) or pattern.match(
                     metadata.bildungsloginMetaDataPublisher) or pattern.match(metadata.bildungsloginMetaDataTitle):
                 filtered_metadata.append(metadata)
         return filtered_metadata
