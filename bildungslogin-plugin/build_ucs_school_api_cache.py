@@ -375,6 +375,7 @@ def transform_to_dictionary(entries):
                 'bildungsloginValidityDuration': '',
                 'bildungsloginUtilizationSystems': '',
                 'bildungsloginLicenseSpecialType': '',
+                'groups': [],
             })
 
             if 'bildungsloginValidityDuration' in dict_entry:
@@ -492,6 +493,7 @@ def transform_to_dictionary(entries):
                             break
                 license.update({'quantity_assigned': len(group['memberUid']),
                                 'user_strings': quantity_map[license['entry_dn']]['user_strings']})
+                license['groups'].append(group['entry_dn'])
             else:
                 license.update({'quantity_assigned': 0, 'user_strings': []})
 
@@ -526,27 +528,27 @@ def get_assignment_quantity_map(assignments, users):
                     found_user = user
                     break
 
-            if license_dn in dn_map:
-                dn_map[license_dn]['count'] += 1
-                if found_user:
-                    dn_map[license_dn]['user_strings'].append(found_user['givenName'])
-                    dn_map[license_dn]['user_strings'].append(found_user['sn'])
-                    dn_map[license_dn]['user_strings'].append(found_user['uid'])
-            else:
-                if found_user:
-                    dn_map.update({
-                        license_dn: {
-                            'count': 1,
-                            'user_strings': [found_user['givenName'], found_user['sn'], found_user['uid']]
-                        },
-                    })
+                if license_dn in dn_map:
+                    dn_map[license_dn]['count'] += 1
+                    if found_user:
+                        dn_map[license_dn]['user_strings'].append(found_user['givenName'])
+                        dn_map[license_dn]['user_strings'].append(found_user['sn'])
+                        dn_map[license_dn]['user_strings'].append(found_user['uid'])
                 else:
-                    dn_map.update({
-                        license_dn: {
-                            'count': 1,
-                            'user_strings': []
-                        },
-                    })
+                    if found_user:
+                        dn_map.update({
+                            license_dn: {
+                                'count': 1,
+                                'user_strings': [found_user['givenName'], found_user['sn'], found_user['uid']]
+                            },
+                        })
+                    else:
+                        dn_map.update({
+                            license_dn: {
+                                'count': 1,
+                                'user_strings': []
+                            },
+                        })
     return dn_map
 
 

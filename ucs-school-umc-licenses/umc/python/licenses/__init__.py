@@ -117,8 +117,12 @@ class LdapLicense:
                  bildungslogin_license_quantity=0,
                  bildungslogin_validity_start_date=None,
                  bildungslogin_validity_end_date=None, bildungslogin_purchasing_reference=None,
-                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None, quantity_assigned=None, user_strings=None):
-        self.classes = []
+                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None, quantity_assigned=None,
+                 user_strings=None, groups=None):
+        if groups:
+            self.groups = groups
+        else:
+            self.groups = []
         self.bildungsloginValidityDuration = bildungslogin_validity_duration
         self.bildungsloginUtilizationSystems = bildungslogin_utilization_systems
         self.bildungsloginPurchasingReference = bildungslogin_purchasing_reference
@@ -344,7 +348,8 @@ class LdapRepository:
                     'bildungsloginUtilizationSystems'],
                 bildungslogin_validity_duration=entry['bildungsloginValidityDuration'],
                 quantity_assigned=entry['quantity_assigned'],
-            user_strings=entry['user_strings']))
+                user_strings=entry['user_strings'],
+                groups=entry['groups']))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
@@ -372,7 +377,6 @@ class LdapRepository:
             if 'bildungsloginMetaDataPublisher' in entry:
                 self._publishers.append(entry['bildungsloginMetaDataPublisher'])
         self._publishers = list(dict.fromkeys(self._publishers))
-
 
     def get_publishers(self):
         return self._publishers
@@ -455,7 +459,8 @@ class LdapRepository:
             licenses = filter(lambda _license: _license.bildungsloginLicenseSchool == school, licenses)
 
         if product_id and product_id != '*':
-            licenses = filter(lambda _license: _license.bildungsloginProductId == product_id, licenses)
+            product_id = re.compile(product_id.replace('*', '.*'))
+            licenses = filter(lambda _license: product_id.match(_license.bildungsloginProductId), licenses)
 
         if license_types:
             licenses = filter(lambda _license: _license.bildungsloginLicenseType in license_types, licenses)
@@ -467,7 +472,7 @@ class LdapRepository:
             if time_to:
                 licenses = filter(lambda _license: _license.bildungsloginDeliveryDate <= time_to, licenses)
 
-        if publisher:
+        if publisher and publisher != '*':
             publisher = re.compile(publisher.replace('*', '.*'))
             licenses = filter(lambda _license: publisher.match(_license.publisher) if _license.publisher else False,
                               licenses)
@@ -479,7 +484,7 @@ class LdapRepository:
             user_pattern = re.compile(user_pattern.replace('*', '.*'))
             licenses = filter(lambda _license: _license.match_user_regex(user_pattern), licenses)
 
-        if license_code:
+        if license_code and license_code != '*':
             license_code = re.compile(license_code.replace('*', '.*'))
             licenses = filter(lambda _license: license_code.match(
                 _license.bildungsloginLicenseCode) if _license.bildungsloginLicenseCode else False,
@@ -494,9 +499,8 @@ class LdapRepository:
             product = re.compile(product.replace('*', '.*'))
             licenses = filter(lambda _license: self._match_license_by_product(_license, product), licenses)
 
-        if school_class and school_class != '*':
-            school_class = self.get_class_by_name(school_class)
-            licenses = filter(lambda _license: school_class in _license.classes, licenses)
+        if school_class:
+            licenses = filter(lambda _license: school_class in _license.groups, licenses)
 
         return licenses
 
@@ -841,6 +845,7 @@ class Instance(SchoolBaseModule):
         time_from = iso8601Date.to_datetime(time_from) if time_from else None
         time_to = request.options.get("timeTo")
         time_to = iso8601Date.to_datetime(time_to) if time_to else None
+
         school_class = request.options.get("class", None)
         if not school_class:
             school_class = request.options.get("workgroup", None)
