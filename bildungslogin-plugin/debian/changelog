@@ -1,3 +1,16 @@
+bildungslogin-plugin (2.1.3) unstable; urgency=medium
+
+  * ET-66 Correct assigned count calculations in build cache script for school and group licenses.
+  * Save the user search strings to the license in order to enhance the cache loading time.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Wed, 25 Jan 2023 14:11:21 +0100
+
+bildungslogin-plugin (2.1.2) unstable; urgency=medium
+
+  * ET-62 Update installation to run the cache script once without cron.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 12 Jan 2023 08:55:21 +0100
+
 bildungslogin-plugin (2.1.1) unstable; urgency=medium
 
   * Stop an error caused by the new caching script.
