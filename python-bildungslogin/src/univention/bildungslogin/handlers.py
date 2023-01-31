@@ -1005,6 +1005,7 @@ class AssignmentHandler:
         if num_available_licenses < len(object_names):
             result["notEnoughLicenses"] = True
             result["failedAssignments"] = list(result["failedAssignments"])
+            result["failedAssignmentsObjects"] = list(result["failedAssignmentsObjects"])
             result["validityInFuture"] = list(result["validityInFuture"])
             return result
 

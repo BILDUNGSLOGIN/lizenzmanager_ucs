@@ -81,6 +81,17 @@ def optional_date2str(date):
     return ""
 
 
+def extract_group_name(group):
+    """
+    In LDAP classes/workgroups are prepended with the school name:
+    Example: DEMOSCHOOL-Group
+
+    This function is meant to extract the name of the group
+    """
+    group_name = group.split('-', 1)
+    return group_name
+
+
 class LdapUser:
     ucsschoolRole = None  # type: list
 
@@ -459,8 +470,8 @@ class LdapRepository:
             licenses = filter(lambda _license: _license.bildungsloginLicenseSchool == school, licenses)
 
         if product_id and product_id != '*':
-            product_id = re.compile(product_id.replace('*', '.*'))
-            licenses = filter(lambda _license: product_id.match(_license.bildungsloginProductId), licenses)
+            product_id = re.compile(product_id.lower().replace('*', '.*'))
+            licenses = filter(lambda _license: product_id.match(_license.bildungsloginProductId.lower()), licenses)
 
         if license_types:
             licenses = filter(lambda _license: _license.bildungsloginLicenseType in license_types, licenses)
@@ -473,15 +484,16 @@ class LdapRepository:
                 licenses = filter(lambda _license: _license.bildungsloginDeliveryDate <= time_to, licenses)
 
         if publisher and publisher != '*':
-            publisher = re.compile(publisher.replace('*', '.*'))
-            licenses = filter(lambda _license: publisher.match(_license.publisher) if _license.publisher else False,
-                              licenses)
+            publisher = re.compile(publisher.lower().replace('*', '.*'))
+            licenses = filter(
+                lambda _license: publisher.match(_license.publisher.lower()) if _license.publisher else False,
+                licenses)
 
         if only_available_licenses:
             licenses = filter(lambda _license: _license.is_available, licenses)
 
         if user_pattern and user_pattern != '*':
-            user_pattern = re.compile(user_pattern.replace('*', '.*'))
+            user_pattern = re.compile(user_pattern.lower().replace('*', '.*'))
             licenses = filter(lambda _license: _license.match_user_regex(user_pattern), licenses)
 
         if license_code and license_code != '*':
@@ -711,7 +723,6 @@ class LdapRepository:
                             assignment.assign(school_class.entryUUID)
                             break
                     license['license'].quantity_assigned += self.get_usercount_by_group(school_class)
-
                 else:
                     group = self.get_workgroup_by_name(object_name)
                     if group:
@@ -721,6 +732,8 @@ class LdapRepository:
                                 assignment.assign(group.entryUUID)
                                 break
                         license['license'].quantity_assigned += self.get_usercount_by_group(group)
+                    else:
+                        MODULE.error("Couldn't find the group in cache.")
 
         elif object_type == ObjectType.SCHOOL:
             for object_name in object_names:
@@ -1131,7 +1144,7 @@ class Instance(SchoolBaseModule):
         if not result['notEnoughLicenses']:
             self.repository.add_assignments(request.options.get("licenseCodes"),
                                             ObjectType.GROUP,
-                                            request.options.get("schoolClass"))
+                                            [request.options.get("schoolClass")])
         MODULE.info("licenses.assign_to_class: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -1150,6 +1163,11 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.GROUP,
                                                [request.options.get("workgroup")])
+
+        if not result['notEnoughLicenses']:
+            self.repository.add_assignments(request.options.get("licenseCodes"),
+                                            ObjectType.GROUP,
+                                            [request.options.get("workgroup")])
         MODULE.info("licenses.assign_to_workgroup: result: %s" % str(result))
         self.finished(request.id, result)
 
