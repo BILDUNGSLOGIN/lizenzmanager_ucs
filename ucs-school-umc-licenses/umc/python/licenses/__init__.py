@@ -81,17 +81,6 @@ def optional_date2str(date):
     return ""
 
 
-def extract_group_name(group):
-    """
-    In LDAP classes/workgroups are prepended with the school name:
-    Example: DEMOSCHOOL-Group
-
-    This function is meant to extract the name of the group
-    """
-    group_name = group.split('-', 1)
-    return group_name
-
-
 class LdapUser:
     ucsschoolRole = None  # type: list
 
@@ -255,6 +244,17 @@ class LdapGroup:
         self.entryUUID = entry_uuid
         self.cn = cn
         self.ucsschoolRole = ucsschool_role
+
+    @property
+    def name(self):
+        """
+        In LDAP classes/workgroups are prepended with the school name:
+        Example: DEMOSCHOOL-Group
+
+        This function is meant to extract the name of the group
+        """
+        _, name = self.cn.split('-', 1)
+        return name
 
 
 class LdapMetaData:
