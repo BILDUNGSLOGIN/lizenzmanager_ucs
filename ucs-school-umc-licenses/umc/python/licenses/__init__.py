@@ -657,16 +657,30 @@ class LdapRepository:
         elif license.bildungsloginLicenseType == 'WORKGROUP':
             for assignment in assignments:
                 workgroup = self.get_workgroup_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                for member_uid in workgroup.memberUid:
-                    user = self.get_user(member_uid)
-                    users.append({
-                        'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
-                        'username': user.userId,
-                        'status': assignment.bildungsloginAssignmentStatus,
-                        'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
-                        'roles': user.get_roles(),
-                        'roleLabels': Role.label(user.get_roles()),
-                    })
+                if workgroup:
+                    for member_uid in workgroup.memberUid:
+                        user = self.get_user(member_uid)
+                        users.append({
+                            'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
+                            'username': user.userId,
+                            'status': assignment.bildungsloginAssignmentStatus,
+                            'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
+                            'roles': user.get_roles(),
+                            'roleLabels': Role.label(user.get_roles()),
+                        })
+
+                school_class = self.get_class_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                if school_class:
+                    for member_uid in school_class.memberUid:
+                        user = self.get_user(member_uid)
+                        users.append({
+                            'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
+                            'username': user.userId,
+                            'status': assignment.bildungsloginAssignmentStatus,
+                            'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
+                            'roles': user.get_roles(),
+                            'roleLabels': Role.label(user.get_roles()),
+                        })
 
         elif license.bildungsloginLicenseType == 'SCHOOL':
             for assignment in assignments:
