@@ -815,6 +815,9 @@ class LdapRepository:
                 for assignment in assignments:
                     if assignment.bildungsloginAssignmentAssignee == user.entryUUID:
                         assignment.remove()
+                        license.user_strings.remove(user.uid)
+                        license.user_strings.remove(user.givenName)
+                        license.user_strings.remove(user.sn)
                 license.quantity_assigned -= 1
         elif object_type == ObjectType.GROUP:
             for object_name in object_names:
@@ -823,21 +826,36 @@ class LdapRepository:
                     for assignment in assignments:
                         if assignment.bildungsloginAssignmentAssignee == group.entryUUID:
                             assignment.remove()
-                    license.quantity_assigned -= self.get_users_by_group(group)
+                    users = self.get_users_by_group(group)
+                    license.quantity_assigned -= len(users)
+                    for user in users:
+                        license.user_strings.remove(user.uid)
+                        license.user_strings.remove(user.givenName)
+                        license.user_strings.remove(user.sn)
                 else:
                     school_classes = self.get_class_by_name(object_name)
                     if school_classes:
                         for assignment in assignments:
                             if assignment.bildungsloginAssignmentAssignee == school_classes.entryUUID:
                                 assignment.remove()
-                    license.quantity_assigned -= self.get_users_by_group(school_classes)
+                    users = self.get_users_by_group(school_classes)
+                    license.quantity_assigned -= len(users)
+                    for user in users:
+                        license.user_strings.remove(user.uid)
+                        license.user_strings.remove(user.givenName)
+                        license.user_strings.remove(user.sn)
         elif object_type == ObjectType.SCHOOL:
             for object_name in object_names:
                 school = self.get_school(object_name)
                 for assignment in assignments:
                     if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
                         assignment.remove()
-                license.quantity_assigned -= len(self._get_users_by_school(school.ou))
+                users = self._get_users_by_school(school)
+                license.quantity_assigned -= len(users)
+                for user in users:
+                    license.user_strings.remove(user.uid)
+                    license.user_strings.remove(user.givenName)
+                    license.user_strings.remove(user.sn)
 
     @staticmethod
     def get_school_roles(user):
