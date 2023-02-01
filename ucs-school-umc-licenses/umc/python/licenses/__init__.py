@@ -585,12 +585,26 @@ class LdapRepository:
                 return school
         return None
 
+    def get_classes_by_school(self, school):
+        classes = []
+        for _class in self._classes:
+            if _class.ucsschoolRole == "school_class:school:" + school:
+                classes.append(_class)
+        return classes
+
     def get_classes(self, school, user):
         classes = []
         for _class in self._classes:
             if _class.ucsschoolRole == "school_class:school:" + school.ou and user.uid in _class.memberUid:
                 classes.append(_class)
         return classes
+
+    def get_workgroups_by_school(self, school):
+        workgroups = []
+        for workgroup in self._workgroups:
+            if workgroup.ucsschoolRole == "workgroup:school:" + school:
+                workgroups.append(workgroup)
+        return workgroups
 
     def get_workgroups(self, school, user):
         workgroups = []
@@ -1438,3 +1452,39 @@ class Instance(SchoolBaseModule):
         }
         MODULE.info("licenses.import.get: result: %s" % str(result))
         self.finished(request.id, result)
+
+    @sanitize(school=SchoolSanitizer(required=True), pattern=StringSanitizer(default=""))
+    @LDAP_Connection()
+    def classes(self, request, ldap_user_read=None):
+        """Returns a list of all classes of the given school"""
+        self.repository.update()
+        school = request.options["school"]
+        _classes = self.repository.get_classes_by_school(school)
+        school_classes = []
+        for school_class in _classes:
+            school_classes.append({
+                'id': school_class.entry_dn,
+                'label': school_class.name
+            })
+
+        self.finished(
+            request.id,
+            school_classes
+        )
+
+    @sanitize(school=SchoolSanitizer(required=True), pattern=StringSanitizer(default=""))
+    @LDAP_Connection()
+    def workgroups(self, request, ldap_user_read=None):
+        """Returns a list of all working groups of the given school"""
+        self.repository.update()
+        school = request.options["school"]
+        _workgroups = self.repository.get_workgroups_by_school(school)
+        workgroups = []
+
+        for workgroup in _workgroups:
+            workgroups.append({'id': workgroup.entry_dn, 'label': workgroup.name})
+
+        self.finished(
+            request.id,
+            workgroups
+        )
