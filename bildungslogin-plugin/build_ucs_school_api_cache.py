@@ -538,7 +538,6 @@ def get_assignment_quantity_map(assignments, users):
             for user in users:
                 if user['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
                     found_user = user
-                    break
 
                 if license_dn in dn_map:
                     dn_map[license_dn]['count'] += 1
@@ -561,6 +560,8 @@ def get_assignment_quantity_map(assignments, users):
                                 'user_strings': []
                             },
                         })
+                if found_user:
+                    break
     return dn_map
 
 
