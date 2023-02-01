@@ -768,16 +768,19 @@ class LdapRepository:
             for object_name in object_names:
                 license = licenses_to_use.next()
                 school = self.get_school(object_name)
-                for assignment in license['assignments']:
-                    if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
-                        assignment.assign(school.entryUUID)
-                        break
-                users = self._get_users_by_school(school.ou)
-                license['license'].quantity_assigned += len(users)
-                for user in users:
-                    license['license'].user_strings.append(user.uid)
-                    license['license'].user_strings.append(user.givenName)
-                    license['license'].user_strings.append(user.sn)
+                if school:
+                    for assignment in license['assignments']:
+                        if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
+                            assignment.assign(school.entryUUID)
+                            break
+                    users = self._get_users_by_school(school.ou)
+                    license['license'].quantity_assigned += len(users)
+                    for user in users:
+                        license['license'].user_strings.append(user.uid)
+                        license['license'].user_strings.append(user.givenName)
+                        license['license'].user_strings.append(user.sn)
+                else:
+                    MODULE.error("Couldn't find the school in cache.")
 
     def remove_assignments(self, license_code, object_type, object_names):
         license = self.get_license_by_code(license_code)
@@ -1156,7 +1159,7 @@ class Instance(SchoolBaseModule):
         if not result['notEnoughLicenses']:
             self.repository.add_assignments(request.options.get("licenseCodes"),
                                             ObjectType.SCHOOL,
-                                            request.options.get("school"))
+                                            [request.options.get("school")])
         MODULE.info("licenses.assign_to_school: result: %s" % str(result))
         self.finished(request.id, result)
 
