@@ -178,12 +178,18 @@ class LdapLicense:
         if self.is_expired:
             return 0
         else:
-            return self.quantity - self.quantity_assigned
+            if self.quantity_assigned > self.quantity:
+                return 0
+            else:
+                return self.quantity - self.quantity_assigned
 
     @property
     def quantity_expired(self):
         if self.is_expired:
-            return self.quantity - self.quantity_assigned
+            if self.quantity_assigned > self.quantity:
+                return 0
+            else:
+                return self.quantity - self.quantity_assigned
         else:
             return 0
 
