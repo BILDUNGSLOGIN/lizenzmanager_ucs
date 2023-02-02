@@ -494,14 +494,14 @@ class LdapRepository:
 
             if time_to:
                 licenses = filter(lambda _license: _license.bildungsloginDeliveryDate <= time_to, licenses)
-        else:
-            if pattern and pattern != '*':
-                pattern = re.compile(pattern.replace('*', '.*'))
-                licenses = filter(
-                    lambda _license: pattern.match(_license.bildungsloginLicenseCode.lower())
-                                     or pattern.match(
-                        _license.medium.bildungsloginMetaDataTitle.lower()) or pattern.match(
-                        _license.medium.bildungsloginProductId.lower()), licenses)
+
+        if pattern and pattern != '*':
+            pattern = re.compile(pattern.lower().replace('*', '.*'))
+            licenses = filter(
+                lambda _license: pattern.match(_license.bildungsloginLicenseCode.lower())
+                                 or pattern.match(
+                    _license.medium.bildungsloginMetaDataTitle.lower()) or pattern.match(
+                    _license.medium.bildungsloginProductId.lower()), licenses)
 
         if publisher:
             licenses = filter(
@@ -650,13 +650,11 @@ class LdapRepository:
         return None
 
     def get_assigned_users_by_license(self, license):
-        assignments = []
         users = []
 
-        for assignment in self._assignments:
-            if assignment.bildungsloginAssignmentStatus != 'AVAILABLE':
-                if license.entry_dn in assignment.entry_dn:
-                    assignments.append(assignment)
+        assignments = self.get_assignments_by_license(license)
+        assignments = filter(lambda _assignment: _assignment.bildungsloginAssignmentStatus != 'AVAILABLE', assignments)
+
 
         if license.bildungsloginLicenseType in ['SINGLE', 'VOLUME']:
             for assignment in assignments:
@@ -799,7 +797,7 @@ class LdapRepository:
                 school = self.get_school(object_name)
                 if school:
                     for assignment in license['assignments']:
-                        if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
+                        if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
                             assignment.assign(school.entryUUID)
                             break
                     users = self._get_users_by_school(school.ou)
