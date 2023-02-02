@@ -160,6 +160,7 @@ class LdapLicense:
         self.quantity_assigned = int(quantity_assigned)
         self.publisher = publisher
         self.user_strings = user_strings
+        self.medium = None
 
     def add_user_string(self, user_string):
         self.user_strings.append(user_string)
@@ -396,6 +397,9 @@ class LdapRepository:
                 self._publishers.append(entry['bildungsloginMetaDataPublisher'])
         self._publishers = list(dict.fromkeys(self._publishers))
 
+        for _license in self._licenses:
+            _license.medium = self.get_metadata_by_product_id(_license.bildungsloginProductId)
+
     def get_publishers(self):
         return self._publishers
 
@@ -448,11 +452,11 @@ class LdapRepository:
         return filtered_metadata
 
     def _match_license_by_publisher(self, license, regex):
-        metadata = self.get_metadata_by_product_id(license.bildungsloginProductId)
+        metadata = license.medium
         return regex.match(metadata.bildungsloginMetaDataPublisher)
 
     def _match_license_by_product(self, license, regex):
-        metadata = self.get_metadata_by_product_id(license.bildungsloginProductId)
+        metadata = license.medium
         return regex.match(metadata.bildungsloginMetaDataTitle)
 
     def filter_licenses(self, product_id=None, school=None, license_types=None,
@@ -489,6 +493,14 @@ class LdapRepository:
 
             if time_to:
                 licenses = filter(lambda _license: _license.bildungsloginDeliveryDate <= time_to, licenses)
+        else:
+            if pattern and pattern != '*':
+                pattern = re.compile(pattern.replace('*', '.*'))
+                licenses = filter(
+                    lambda _license: pattern.match(_license.bildungsloginLicenseCode.lower())
+                                     or pattern.match(
+                        _license.medium.bildungsloginMetaDataTitle.lower()) or pattern.match(
+                        _license.medium.bildungsloginProductId.lower()), licenses)
 
         if publisher:
             licenses = filter(
@@ -507,11 +519,6 @@ class LdapRepository:
             licenses = filter(lambda _license: license_code.match(
                 _license.bildungsloginLicenseCode) if _license.bildungsloginLicenseCode else False,
                               licenses)
-
-        if pattern and pattern != '*':
-            pattern = re.compile(pattern.replace('*', '.*'))
-            licenses = filter(
-                lambda _license: pattern.match(_license.bildungsloginLicenseCode), licenses)
 
         if product and product != '*':
             product = re.compile(product.replace('*', '.*'))
@@ -534,6 +541,7 @@ class LdapRepository:
             if group.cn == name:
                 return group
         return None
+
     def get_workgroup_by_name(self, name):
         for group in self._workgroups:
             if group.cn == name:
@@ -952,7 +960,7 @@ class Instance(SchoolBaseModule):
             )
         result = []
         for _license in licenses:
-            metadata = self.repository.get_metadata_by_product_id(_license.bildungsloginProductId)
+            metadata = _license.medium
             result.append({
                 "licenseCode": _license.bildungsloginLicenseCode,
                 "productId": _license.bildungsloginProductId,
@@ -995,7 +1003,7 @@ class Instance(SchoolBaseModule):
             assigned_user["dateOfAssignment"] = iso8601Date.from_datetime(
                 assigned_user["dateOfAssignment"]
             )
-        meta_data = self.repository.get_metadata_by_product_id(license.bildungsloginProductId)
+        meta_data = license.medium
         result = {
             "countAquired": undefined_if_none(license.quantity, zero_as_none=True),
             "countAssigned": license.quantity_assigned,
