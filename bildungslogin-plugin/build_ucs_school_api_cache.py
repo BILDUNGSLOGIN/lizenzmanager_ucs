@@ -75,12 +75,6 @@ PARSER.add_argument(
 )
 
 
-def get_assignment_by_license(assignments, license):
-    for assignment in assignments:
-        if license['entry_dn'] in assignment['entry_dn']:
-            return assignment
-
-
 def transform_to_dictionary(entries):
     """Transform the given LDAP objects to the format needed by UCS@School API.
 
@@ -376,6 +370,8 @@ def transform_to_dictionary(entries):
                 'bildungsloginUtilizationSystems': '',
                 'bildungsloginLicenseSpecialType': '',
                 'groups': [],
+                'user_strings': [],
+                'count': 0,
             })
 
             if 'bildungsloginValidityDuration' in dict_entry:
@@ -468,101 +464,47 @@ def transform_to_dictionary(entries):
 
             processed_list['metadata'].append(obj)
 
-    quantity_map = get_assignment_quantity_map(processed_list['assignments'], processed_list['users'])
+    assignments = processed_list['assignments'][:]
+    licenses = processed_list['licenses']
+    users = processed_list['users']
+    groups = processed_list['classes'] + processed_list['workgroups']
+    schools = processed_list['schools']
 
-    for license in processed_list['licenses']:
-        if license['bildungsloginLicenseType'] in ['SINGLE', 'VOLUME']:
-            if license['entry_dn'] in quantity_map:
-                license.update({'quantity_assigned': quantity_map[license['entry_dn']]['count'],
-                                'user_strings': quantity_map[license['entry_dn']]['user_strings']})
-            else:
-                license.update({'quantity_assigned': 0, 'user_strings': []})
-        elif license['bildungsloginLicenseType'] == 'WORKGROUP':
-            group = False
-            assignment = get_assignment_by_license(processed_list['assignments'], license)
-            if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
-                for _group in processed_list['classes']:
-                    if _group['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
-                        group = _group
-                        break
-
-                if not group:
-                    for _group in processed_list['workgroups']:
-                        if _group['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
-                            group = _group
-                            break
-                license.update({'quantity_assigned': len(group['memberUid']),
-                                'user_strings': quantity_map[license['entry_dn']]['user_strings']})
-                for member_uid in group['memberUid']:
-                    for user in processed_list['users']:
-                        if user['uid'] == member_uid:
-                            license['user_strings'].append(user['uid'])
-                            license['user_strings'].append(user['givenName'])
-                            license['user_strings'].append(user['sn'])
-                            break
-                license['groups'].append(group['entry_dn'])
-            else:
-                license.update({'quantity_assigned': 0, 'user_strings': []})
-
-        elif license['bildungsloginLicenseType'] == 'SCHOOL':
-            assignment = get_assignment_by_license(processed_list['assignments'], license)
-            if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
-                counter = 0
-                for school in processed_list['schools']:
-                    if school['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
-                        for user in processed_list['users']:
-                            if school['ou'] in user['ucsschoolSchool']:
-                                counter += 1
-                                if 'user_strings' not in license:
-                                    license.update({'user_strings': []})
-                                license['user_strings'].append(user['uid'])
-                                license['user_strings'].append(user['givenName'])
-                                license['user_strings'].append(user['sn'])
-                license.update(
-                    {'quantity_assigned': counter})
-            else:
-                license.update({'quantity_assigned': 0, 'user_strings': []})
-        else:
-            raise RuntimeError("Unknown license type: {}".format(license.license_type))
+    for _license in licenses:
+        assignments_to_remove = []
+        for assignment in assignments:
+            if _license['entry_dn'] == assignment['entry_dn']:
+                assignments_to_remove.append(assignment)
+                if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
+                    if _license['bildungsloginLicenseType'] in ['SINGLE', 'VOLUME']:
+                        for user in users:
+                            if user['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
+                                add_user_to_license(_license, user)
+                    elif _license['bildungsloginLicenseType'] == 'WORKGROUP':
+                        for group in groups:
+                            if group['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
+                                for user in users:
+                                    if user['uid'] in group['memberUid']:
+                                        add_user_to_license(_license, user)
+                                        _license['group'].append(group['entry_dn'])
+                                break
+                    elif _license['bildungsloginLicenseType'] == 'SCHOOL':
+                        for school in schools:
+                            if school['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
+                                for user in users:
+                                    if school['ou'] in user['ucsschoolSchool']:
+                                        add_user_to_license(_license, user)
+                    else:
+                        raise RuntimeError("Unknown license type: {}".format(_license['bildungsloginLicenseType']))
 
     return processed_list
 
 
-def get_assignment_quantity_map(assignments, users):
-    dn_map = {}
-    for assignment in assignments:
-        if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
-            license_dn = assignment['entry_dn'].split(',', 1)[1]
-            found_user = False
-
-            for user in users:
-                if user['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
-                    found_user = user
-
-                if license_dn in dn_map:
-                    dn_map[license_dn]['count'] += 1
-                    if found_user:
-                        dn_map[license_dn]['user_strings'].append(found_user['givenName'])
-                        dn_map[license_dn]['user_strings'].append(found_user['sn'])
-                        dn_map[license_dn]['user_strings'].append(found_user['uid'])
-                else:
-                    if found_user:
-                        dn_map.update({
-                            license_dn: {
-                                'count': 1,
-                                'user_strings': [found_user['givenName'], found_user['sn'], found_user['uid']]
-                            },
-                        })
-                    else:
-                        dn_map.update({
-                            license_dn: {
-                                'count': 1,
-                                'user_strings': []
-                            },
-                        })
-                if found_user:
-                    break
-    return dn_map
+def add_user_to_license(_license, user):
+    _license['count'] += 1
+    _license['user_strings'].append(user['givenName'])
+    _license['user_strings'].append(user['sn'])
+    _license['user_strings'].append(user['uid'])
 
 
 def main(cache_file):
