@@ -209,8 +209,6 @@ class LdapLicense:
             return self.quantity_assigned == 0 and not self.is_expired
         return False
 
-
-
     def add_class(self, school_class):
         self.classes.append(school_class)
 
@@ -573,6 +571,12 @@ class LdapRepository:
                 return group
         return None
 
+    def get_group_by_uuid(self, entry_uuid):
+        for group in self.groups:
+            if group.entryUUID == entry_uuid:
+                return group
+        return None
+
     def get_workgroup_by_uuid(self, entry_uuid):
         for group in self._workgroups:
             if group.entryUUID == entry_uuid:
@@ -655,12 +659,15 @@ class LdapRepository:
                 return school
         return None
 
+    @property
+    def groups(self):
+        return self._workgroups + self._classes
+
     def get_assigned_users_by_license(self, license):
         users = []
 
         assignments = self.get_assignments_by_license(license)
         assignments = filter(lambda _assignment: _assignment.bildungsloginAssignmentStatus != 'AVAILABLE', assignments)
-
 
         if license.bildungsloginLicenseType in ['SINGLE', 'VOLUME']:
             for assignment in assignments:
@@ -675,9 +682,9 @@ class LdapRepository:
                 })
         elif license.bildungsloginLicenseType == 'WORKGROUP':
             for assignment in assignments:
-                workgroup = self.get_workgroup_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                if workgroup:
-                    for member_uid in workgroup.memberUid:
+                group = self.get_group_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                if group:
+                    for member_uid in group.memberUid:
                         user = self.get_user(member_uid)
                         users.append({
                             'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
@@ -687,20 +694,6 @@ class LdapRepository:
                             'roles': user.get_roles(),
                             'roleLabels': Role.label(user.get_roles()),
                         })
-
-                school_class = self.get_class_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                if school_class:
-                    for member_uid in school_class.memberUid:
-                        user = self.get_user(member_uid)
-                        users.append({
-                            'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
-                            'username': user.userId,
-                            'status': assignment.bildungsloginAssignmentStatus,
-                            'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
-                            'roles': user.get_roles(),
-                            'roleLabels': Role.label(user.get_roles()),
-                        })
-
         elif license.bildungsloginLicenseType == 'SCHOOL':
             for assignment in assignments:
                 _users = self._get_users_by_school(
@@ -1362,8 +1355,7 @@ class Instance(SchoolBaseModule):
                 number_of_expired_licenses = sum(1 for license in non_ignored_licenses if license.is_expired)
                 # Counting of assignments depends on the license type: _get_total_number_of_assignments() encapsulates the logic.
                 number_of_available_licenses = \
-                    sum(1 for license in non_ignored_licenses if
-                        (license.quantity_available > 0) and not license.is_expired)
+                    sum(1 for license in non_ignored_licenses if license.is_available)
                 # Caller (grid query) can now request products with 'all' or 'only available' licenses
                 if 'showOnlyAvailable' in request.options and request.options['showOnlyAvailable']:
                     if number_of_available_licenses < 1:
