@@ -118,7 +118,7 @@ class LdapLicense:
                  bildungslogin_validity_start_date=None,
                  bildungslogin_validity_end_date=None, bildungslogin_purchasing_reference=None,
                  bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None, quantity_assigned=None,
-                 user_strings=None, groups=None):
+                 user_strings=None, groups=None, publisher=None):
         if groups:
             self.groups = groups
         else:
@@ -158,7 +158,7 @@ class LdapLicense:
         self.bildungsloginLicenseQuantity = bildungslogin_license_quantity
         self.quantity = int(bildungslogin_license_quantity)
         self.quantity_assigned = int(quantity_assigned)
-        self.publisher = None
+        self.publisher = publisher
         self.user_strings = user_strings
 
     def add_user_string(self, user_string):
@@ -366,7 +366,8 @@ class LdapRepository:
                 bildungslogin_validity_duration=entry['bildungsloginValidityDuration'],
                 quantity_assigned=entry['quantity_assigned'],
                 user_strings=entry['user_strings'],
-                groups=entry['groups']))
+                groups=entry['groups'],
+                publisher=entry['bildungsloginLicenseProvider']))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
@@ -489,10 +490,9 @@ class LdapRepository:
             if time_to:
                 licenses = filter(lambda _license: _license.bildungsloginDeliveryDate <= time_to, licenses)
 
-        if publisher and publisher != '*':
-            publisher = re.compile(publisher.lower().replace('*', '.*'))
+        if publisher:
             licenses = filter(
-                lambda _license: publisher.match(_license.publisher.lower()) if _license.publisher else False,
+                lambda _license: publisher == _license.publisher if _license.publisher else False,
                 licenses)
 
         if only_available_licenses:
@@ -1023,6 +1023,7 @@ class Instance(SchoolBaseModule):
 
     @LDAP_Connection(USER_WRITE)
     def publishers(self, request, ldap_user_write=None):
+        self.repository.update()
         MODULE.info("licenses.publishers: options: %s" % str(request.options))
         result = [{"id": publisher, "label": publisher} for publisher in self.repository.get_publishers()]
         MODULE.info("licenses.publishers: result: %s" % str(result))

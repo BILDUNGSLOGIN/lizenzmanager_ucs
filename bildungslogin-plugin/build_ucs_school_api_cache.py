@@ -366,6 +366,7 @@ def transform_to_dictionary(entries):
                 'bildungsloginIgnoredForDisplay': str(dict_entry['bildungsloginIgnoredForDisplay'][0]),
                 'bildungsloginLicenseQuantity': str(dict_entry['bildungsloginLicenseQuantity'][0]),
                 'bildungsloginDeliveryDate': str(dict_entry['bildungsloginDeliveryDate'][0]),
+                'bildungsloginLicenseProvider': str(dict_entry['bildungsloginLicenseProvider'][0]),
                 'bildungsloginValidityDuration': '',
                 'bildungsloginUtilizationSystems': '',
                 'bildungsloginLicenseSpecialType': '',
@@ -561,6 +562,7 @@ def main(cache_file):
             'bildungsloginUtilizationSystems',
             'bildungsloginPurchasingReference',
             'bildungsloginAssignmentTimeOfAssignment',
+            'bildungsloginLicenseProvider',
         ],
     )
     logger.debug('Found {} objects'.format(len(response)))
