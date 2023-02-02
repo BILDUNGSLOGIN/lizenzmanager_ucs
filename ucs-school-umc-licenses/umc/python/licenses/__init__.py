@@ -203,7 +203,13 @@ class LdapLicense:
 
     @property
     def is_available(self):
-        return self.quantity_available > 0 and not self.is_expired
+        if self.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]:
+            return self.quantity_available > 0 and not self.is_expired
+        elif self.bildungsloginLicenseType == LicenseType.WORKGROUP or self.bildungsloginLicenseType == LicenseType.SCHOOL:
+            return self.quantity_assigned == 0 and not self.is_expired
+        return False
+
+
 
     def add_class(self, school_class):
         self.classes.append(school_class)
