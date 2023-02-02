@@ -371,7 +371,7 @@ def transform_to_dictionary(entries):
                 'bildungsloginLicenseSpecialType': '',
                 'groups': [],
                 'user_strings': [],
-                'count': 0,
+                'quantity_assigned': 0,
             })
 
             if 'bildungsloginValidityDuration' in dict_entry:
@@ -473,7 +473,7 @@ def transform_to_dictionary(entries):
     for _license in licenses:
         assignments_to_remove = []
         for assignment in assignments:
-            if _license['entry_dn'] == assignment['entry_dn']:
+            if _license['entry_dn'] in assignment['entry_dn']:
                 assignments_to_remove.append(assignment)
                 if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
                     if _license['bildungsloginLicenseType'] in ['SINGLE', 'VOLUME']:
@@ -486,7 +486,7 @@ def transform_to_dictionary(entries):
                                 for user in users:
                                     if user['uid'] in group['memberUid']:
                                         add_user_to_license(_license, user)
-                                        _license['group'].append(group['entry_dn'])
+                                        _license['groups'].append(group['entry_dn'])
                                 break
                     elif _license['bildungsloginLicenseType'] == 'SCHOOL':
                         for school in schools:
@@ -496,15 +496,23 @@ def transform_to_dictionary(entries):
                                         add_user_to_license(_license, user)
                     else:
                         raise RuntimeError("Unknown license type: {}".format(_license['bildungsloginLicenseType']))
+        for assignment_to_remove in assignments_to_remove:
+            assignments.remove(assignment_to_remove)
 
     return processed_list
 
 
 def add_user_to_license(_license, user):
-    _license['count'] += 1
-    _license['user_strings'].append(user['givenName'])
-    _license['user_strings'].append(user['sn'])
-    _license['user_strings'].append(user['uid'])
+    roles = []
+    for role in user['ucsschoolRole']:
+        roles.append(role.split(':', 1)[0])
+
+    if _license['bildungsloginLicenseSpecialType'] != 'Lehrkraft' or (
+            _license['bildungsloginLicenseSpecialType'] == 'Lehrkraft' and 'teacher' in roles):
+        _license['quantity_assigned'] += 1
+        _license['user_strings'].append(user['givenName'])
+        _license['user_strings'].append(user['sn'])
+        _license['user_strings'].append(user['uid'])
 
 
 def main(cache_file):
@@ -562,7 +570,7 @@ def main(cache_file):
         sum(len(objs) for objs in filtered_dict.values())))
 
     logger.debug("Convert to JSON and write to cache file")
-    json.dump(filtered_dict, cache_file)
+    json.dump(filtered_dict, cache_file, indent=2)
 
     logger.info("Finished")
 
