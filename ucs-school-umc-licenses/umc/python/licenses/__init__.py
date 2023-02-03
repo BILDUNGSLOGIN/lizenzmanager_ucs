@@ -117,8 +117,12 @@ class LdapLicense:
                  bildungslogin_license_quantity=0,
                  bildungslogin_validity_start_date=None,
                  bildungslogin_validity_end_date=None, bildungslogin_purchasing_reference=None,
-                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None, quantity_assigned=None, user_strings=None):
-        self.classes = []
+                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None, quantity_assigned=None,
+                 user_strings=None, groups=None, publisher=None):
+        if groups:
+            self.groups = groups
+        else:
+            self.groups = []
         self.bildungsloginValidityDuration = bildungslogin_validity_duration
         self.bildungsloginUtilizationSystems = bildungslogin_utilization_systems
         self.bildungsloginPurchasingReference = bildungslogin_purchasing_reference
@@ -154,8 +158,9 @@ class LdapLicense:
         self.bildungsloginLicenseQuantity = bildungslogin_license_quantity
         self.quantity = int(bildungslogin_license_quantity)
         self.quantity_assigned = int(quantity_assigned)
-        self.publisher = None
+        self.publisher = publisher
         self.user_strings = user_strings
+        self.medium = None
 
     def add_user_string(self, user_string):
         self.user_strings.append(user_string)
@@ -174,12 +179,18 @@ class LdapLicense:
         if self.is_expired:
             return 0
         else:
-            return self.quantity - self.quantity_assigned
+            if self.quantity_assigned > self.quantity:
+                return 0
+            else:
+                return self.quantity - self.quantity_assigned
 
     @property
     def quantity_expired(self):
         if self.is_expired:
-            return self.quantity - self.quantity_assigned
+            if self.quantity_assigned > self.quantity:
+                return 0
+            else:
+                return self.quantity - self.quantity_assigned
         else:
             return 0
 
@@ -192,7 +203,11 @@ class LdapLicense:
 
     @property
     def is_available(self):
-        return self.quantity_available > 0 and not self.is_expired
+        if self.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]:
+            return self.quantity_available > 0 and not self.is_expired
+        elif self.bildungsloginLicenseType == LicenseType.WORKGROUP or self.bildungsloginLicenseType == LicenseType.SCHOOL:
+            return self.quantity_assigned == 0 and not self.is_expired
+        return False
 
     def add_class(self, school_class):
         self.classes.append(school_class)
@@ -240,6 +255,17 @@ class LdapGroup:
         self.entryUUID = entry_uuid
         self.cn = cn
         self.ucsschoolRole = ucsschool_role
+
+    @property
+    def name(self):
+        """
+        In LDAP classes/workgroups are prepended with the school name:
+        Example: DEMOSCHOOL-Group
+
+        This function is meant to extract the name of the group
+        """
+        _, name = self.cn.split('-', 1)
+        return name
 
 
 class LdapMetaData:
@@ -344,7 +370,9 @@ class LdapRepository:
                     'bildungsloginUtilizationSystems'],
                 bildungslogin_validity_duration=entry['bildungsloginValidityDuration'],
                 quantity_assigned=entry['quantity_assigned'],
-            user_strings=entry['user_strings']))
+                user_strings=entry['user_strings'],
+                groups=entry['groups'],
+                publisher=entry['bildungsloginLicenseProvider']))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
@@ -373,6 +401,8 @@ class LdapRepository:
                 self._publishers.append(entry['bildungsloginMetaDataPublisher'])
         self._publishers = list(dict.fromkeys(self._publishers))
 
+        for _license in self._licenses:
+            _license.medium = self.get_metadata_by_product_id(_license.bildungsloginProductId)
 
     def get_publishers(self):
         return self._publishers
@@ -418,19 +448,20 @@ class LdapRepository:
 
     def filter_metadata(self, pattern):
         filtered_metadata = []
-        pattern = re.compile(pattern.replace('*', '.*'))
+        pattern = re.compile(pattern.lower().replace('*', '.*'))
         for metadata in self._metadata:
-            if pattern.match(metadata.bildungsloginProductId) or pattern.match(
-                    metadata.bildungsloginMetaDataPublisher) or pattern.match(metadata.bildungsloginMetaDataTitle):
+            if pattern.match(metadata.bildungsloginProductId.lower()) or pattern.match(
+                    metadata.bildungsloginMetaDataPublisher.lower()) or pattern.match(
+                metadata.bildungsloginMetaDataTitle.lower()):
                 filtered_metadata.append(metadata)
         return filtered_metadata
 
     def _match_license_by_publisher(self, license, regex):
-        metadata = self.get_metadata_by_product_id(license.bildungsloginProductId)
+        metadata = license.medium
         return regex.match(metadata.bildungsloginMetaDataPublisher)
 
     def _match_license_by_product(self, license, regex):
-        metadata = self.get_metadata_by_product_id(license.bildungsloginProductId)
+        metadata = license.medium
         return regex.match(metadata.bildungsloginMetaDataTitle)
 
     def filter_licenses(self, product_id=None, school=None, license_types=None,
@@ -455,7 +486,8 @@ class LdapRepository:
             licenses = filter(lambda _license: _license.bildungsloginLicenseSchool == school, licenses)
 
         if product_id and product_id != '*':
-            licenses = filter(lambda _license: _license.bildungsloginProductId == product_id, licenses)
+            product_id = re.compile(product_id.lower().replace('*', '.*'))
+            licenses = filter(lambda _license: product_id.match(_license.bildungsloginProductId.lower()), licenses)
 
         if license_types:
             licenses = filter(lambda _license: _license.bildungsloginLicenseType in license_types, licenses)
@@ -467,36 +499,38 @@ class LdapRepository:
             if time_to:
                 licenses = filter(lambda _license: _license.bildungsloginDeliveryDate <= time_to, licenses)
 
+        if pattern and pattern != '*':
+            pattern = re.compile(pattern.lower().replace('*', '.*'))
+            licenses = filter(
+                lambda _license: pattern.match(_license.bildungsloginLicenseCode.lower())
+                                 or pattern.match(
+                    _license.medium.bildungsloginMetaDataTitle.lower()) or pattern.match(
+                    _license.medium.bildungsloginProductId.lower()), licenses)
+
         if publisher:
-            publisher = re.compile(publisher.replace('*', '.*'))
-            licenses = filter(lambda _license: publisher.match(_license.publisher) if _license.publisher else False,
-                              licenses)
+            licenses = filter(
+                lambda _license: publisher == _license.publisher if _license.publisher else False,
+                licenses)
 
         if only_available_licenses:
             licenses = filter(lambda _license: _license.is_available, licenses)
 
         if user_pattern and user_pattern != '*':
-            user_pattern = re.compile(user_pattern.replace('*', '.*'))
+            user_pattern = re.compile(user_pattern.lower().replace('*', '.*'))
             licenses = filter(lambda _license: _license.match_user_regex(user_pattern), licenses)
 
-        if license_code:
+        if license_code and license_code != '*':
             license_code = re.compile(license_code.replace('*', '.*'))
             licenses = filter(lambda _license: license_code.match(
                 _license.bildungsloginLicenseCode) if _license.bildungsloginLicenseCode else False,
                               licenses)
 
-        if pattern and pattern != '*':
-            pattern = re.compile(pattern.replace('*', '.*'))
-            licenses = filter(
-                lambda _license: pattern.match(_license.bildungsloginLicenseCode), licenses)
-
         if product and product != '*':
             product = re.compile(product.replace('*', '.*'))
             licenses = filter(lambda _license: self._match_license_by_product(_license, product), licenses)
 
-        if school_class and school_class != '*':
-            school_class = self.get_class_by_name(school_class)
-            licenses = filter(lambda _license: school_class in _license.classes, licenses)
+        if school_class:
+            licenses = filter(lambda _license: school_class in _license.groups, licenses)
 
         return licenses
 
@@ -504,6 +538,13 @@ class LdapRepository:
         for metadata in self._metadata:
             if metadata.bildungsloginProductId == product_id:
                 return metadata
+        return None
+
+    def get_group_by_name(self, name):
+        groups = self._workgroups + self._classes
+        for group in groups:
+            if group.cn == name:
+                return group
         return None
 
     def get_workgroup_by_name(self, name):
@@ -527,6 +568,12 @@ class LdapRepository:
     def get_class_by_dn(self, dn):
         for group in self._classes:
             if group.entry_dn == dn:
+                return group
+        return None
+
+    def get_group_by_uuid(self, entry_uuid):
+        for group in self.groups:
+            if group.entryUUID == entry_uuid:
                 return group
         return None
 
@@ -569,12 +616,26 @@ class LdapRepository:
                 return school
         return None
 
+    def get_classes_by_school(self, school):
+        classes = []
+        for _class in self._classes:
+            if _class.ucsschoolRole == "school_class:school:" + school:
+                classes.append(_class)
+        return classes
+
     def get_classes(self, school, user):
         classes = []
         for _class in self._classes:
             if _class.ucsschoolRole == "school_class:school:" + school.ou and user.uid in _class.memberUid:
                 classes.append(_class)
         return classes
+
+    def get_workgroups_by_school(self, school):
+        workgroups = []
+        for workgroup in self._workgroups:
+            if workgroup.ucsschoolRole == "workgroup:school:" + school:
+                workgroups.append(workgroup)
+        return workgroups
 
     def get_workgroups(self, school, user):
         workgroups = []
@@ -598,14 +659,15 @@ class LdapRepository:
                 return school
         return None
 
+    @property
+    def groups(self):
+        return self._workgroups + self._classes
+
     def get_assigned_users_by_license(self, license):
-        assignments = []
         users = []
 
-        for assignment in self._assignments:
-            if assignment.bildungsloginAssignmentStatus != 'AVAILABLE':
-                if license.entry_dn in assignment.entry_dn:
-                    assignments.append(assignment)
+        assignments = self.get_assignments_by_license(license)
+        assignments = filter(lambda _assignment: _assignment.bildungsloginAssignmentStatus != 'AVAILABLE', assignments)
 
         if license.bildungsloginLicenseType in ['SINGLE', 'VOLUME']:
             for assignment in assignments:
@@ -620,18 +682,18 @@ class LdapRepository:
                 })
         elif license.bildungsloginLicenseType == 'WORKGROUP':
             for assignment in assignments:
-                workgroup = self.get_workgroup_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                for member_uid in workgroup.memberUid:
-                    user = self.get_user(member_uid)
-                    users.append({
-                        'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
-                        'username': user.userId,
-                        'status': assignment.bildungsloginAssignmentStatus,
-                        'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
-                        'roles': user.get_roles(),
-                        'roleLabels': Role.label(user.get_roles()),
-                    })
-
+                group = self.get_group_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                if group:
+                    for member_uid in group.memberUid:
+                        user = self.get_user(member_uid)
+                        users.append({
+                            'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
+                            'username': user.userId,
+                            'status': assignment.bildungsloginAssignmentStatus,
+                            'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
+                            'roles': user.get_roles(),
+                            'roleLabels': Role.label(user.get_roles()),
+                        })
         elif license.bildungsloginLicenseType == 'SCHOOL':
             for assignment in assignments:
                 _users = self._get_users_by_school(
@@ -662,13 +724,29 @@ class LdapRepository:
 
         return assignments
 
-    def get_usercount_by_group(self, group):
-        count = 0
+    def get_users_by_group(self, group):
+        users = []
         for user in self._users:
             if user.userId in group.memberUid:
-                count += 1
+                users.append(user)
 
-        return count
+        return users
+
+    def add_user_to_license(self, license, user):
+        if license.bildungsloginLicenseSpecialType != 'Lehrkraft' or (
+                license.bildungsloginLicenseSpecialType == 'Lehrkraft' and 'teacher' in user.get_roles()):
+            license.user_strings.append(user.uid)
+            license.user_strings.append(user.givenName)
+            license.user_strings.append(user.sn)
+            license.quantity_assigned += 1
+
+    def remove_user_to_license(self, license, user):
+        if license.bildungsloginLicenseSpecialType != 'Lehrkraft' or (
+                license.bildungsloginLicenseSpecialType == 'Lehrkraft' and 'teacher' in user.get_roles()):
+            license.user_strings.remove(user.uid)
+            license.user_strings.remove(user.givenName)
+            license.user_strings.remove(user.sn)
+            license.quantity_assigned -= 1
 
     def add_assignments(self, license_codes, object_type, object_names):
         licenses = self.get_licenses_by_codes(license_codes)
@@ -693,40 +771,39 @@ class LdapRepository:
                 user = self.get_user(object_name)
                 for assignment in license['assignments']:
                     if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
+                        self.add_user_to_license(license['license'], user)
                         assignment.assign(user.entryUUID)
                         break
-                license['license'].quantity_assigned += 1
 
         elif object_type == ObjectType.GROUP:
             for object_name in object_names:
-                school_class = self.get_class_by_name(object_name)
-                if school_class:
-                    license = licenses_to_use.next()
-                    for assignment in license['assignments']:
-                        if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
-                            assignment.assign(school_class.entryUUID)
-                            break
-                    license['license'].quantity_assigned += self.get_usercount_by_group(school_class)
-
+                group = self.get_group_by_name(object_name)
+                license = licenses_to_use.next()
+                for assignment in license['assignments']:
+                    if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
+                        assignment.assign(group.entryUUID)
+                        break
+                license['license'].groups.append(group.entry_dn)
+                users = self.get_users_by_group(group)
+                for user in users:
+                    self.add_user_to_license(license['license'], user)
                 else:
-                    group = self.get_workgroup_by_name(object_name)
-                    if group:
-                        license = licenses_to_use.next()
-                        for assignment in license['assignments']:
-                            if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
-                                assignment.assign(group.entryUUID)
-                                break
-                        license['license'].quantity_assigned += self.get_usercount_by_group(group)
+                    MODULE.error("Couldn't find the group in cache.")
 
         elif object_type == ObjectType.SCHOOL:
             for object_name in object_names:
                 license = licenses_to_use.next()
                 school = self.get_school(object_name)
-                for assignment in license['assignments']:
-                    if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
-                        assignment.assign(school.entryUUID)
-                        break
-                license['license'].quantity_assigned += len(self._get_users_by_school(school.ou))
+                if school:
+                    for assignment in license['assignments']:
+                        if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
+                            assignment.assign(school.entryUUID)
+                            break
+                    users = self._get_users_by_school(school.ou)
+                    for user in users:
+                        self.add_user_to_license(license['license'], user)
+                else:
+                    MODULE.error("Couldn't find the school in cache.")
 
     def remove_assignments(self, license_code, object_type, object_names):
         license = self.get_license_by_code(license_code)
@@ -741,7 +818,7 @@ class LdapRepository:
                 for assignment in assignments:
                     if assignment.bildungsloginAssignmentAssignee == user.entryUUID:
                         assignment.remove()
-                license.quantity_assigned -= 1
+                        self.remove_user_to_license(license, user)
         elif object_type == ObjectType.GROUP:
             for object_name in object_names:
                 group = self.get_workgroup_by_name(object_name)
@@ -749,21 +826,27 @@ class LdapRepository:
                     for assignment in assignments:
                         if assignment.bildungsloginAssignmentAssignee == group.entryUUID:
                             assignment.remove()
-                    license.quantity_assigned -= self.get_usercount_by_group(group)
+                    users = self.get_users_by_group(group)
+                    for user in users:
+                        self.remove_user_to_license(license, user)
                 else:
                     school_classes = self.get_class_by_name(object_name)
                     if school_classes:
                         for assignment in assignments:
                             if assignment.bildungsloginAssignmentAssignee == school_classes.entryUUID:
                                 assignment.remove()
-                    license.quantity_assigned -= self.get_usercount_by_group(school_classes)
+                    users = self.get_users_by_group(school_classes)
+                    for user in users:
+                        self.remove_user_to_license(license, user)
         elif object_type == ObjectType.SCHOOL:
             for object_name in object_names:
                 school = self.get_school(object_name)
                 for assignment in assignments:
                     if assignment.bildungsloginAssignmentAssignee == school.entryUUID:
                         assignment.remove()
-                license.quantity_assigned -= len(self._get_users_by_school(school.ou))
+                users = self._get_users_by_school(school)
+                for user in users:
+                    self.remove_user_to_license(license, user)
 
     @staticmethod
     def get_school_roles(user):
@@ -841,6 +924,7 @@ class Instance(SchoolBaseModule):
         time_from = iso8601Date.to_datetime(time_from) if time_from else None
         time_to = request.options.get("timeTo")
         time_to = iso8601Date.to_datetime(time_to) if time_to else None
+
         school_class = request.options.get("class", None)
         if not school_class:
             school_class = request.options.get("workgroup", None)
@@ -874,7 +958,7 @@ class Instance(SchoolBaseModule):
             )
         result = []
         for _license in licenses:
-            metadata = self.repository.get_metadata_by_product_id(_license.bildungsloginProductId)
+            metadata = _license.medium
             result.append({
                 "licenseCode": _license.bildungsloginLicenseCode,
                 "productId": _license.bildungsloginProductId,
@@ -917,7 +1001,7 @@ class Instance(SchoolBaseModule):
             assigned_user["dateOfAssignment"] = iso8601Date.from_datetime(
                 assigned_user["dateOfAssignment"]
             )
-        meta_data = self.repository.get_metadata_by_product_id(license.bildungsloginProductId)
+        meta_data = license.medium
         result = {
             "countAquired": undefined_if_none(license.quantity, zero_as_none=True),
             "countAssigned": license.quantity_assigned,
@@ -945,6 +1029,7 @@ class Instance(SchoolBaseModule):
 
     @LDAP_Connection(USER_WRITE)
     def publishers(self, request, ldap_user_write=None):
+        self.repository.update()
         MODULE.info("licenses.publishers: options: %s" % str(request.options))
         result = [{"id": publisher, "label": publisher} for publisher in self.repository.get_publishers()]
         MODULE.info("licenses.publishers: result: %s" % str(result))
@@ -1104,7 +1189,7 @@ class Instance(SchoolBaseModule):
         if not result['notEnoughLicenses']:
             self.repository.add_assignments(request.options.get("licenseCodes"),
                                             ObjectType.SCHOOL,
-                                            request.options.get("school"))
+                                            [request.options.get("school")])
         MODULE.info("licenses.assign_to_school: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -1126,7 +1211,7 @@ class Instance(SchoolBaseModule):
         if not result['notEnoughLicenses']:
             self.repository.add_assignments(request.options.get("licenseCodes"),
                                             ObjectType.GROUP,
-                                            request.options.get("schoolClass"))
+                                            [request.options.get("schoolClass")])
         MODULE.info("licenses.assign_to_class: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -1145,6 +1230,11 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.GROUP,
                                                [request.options.get("workgroup")])
+
+        if not result['notEnoughLicenses']:
+            self.repository.add_assignments(request.options.get("licenseCodes"),
+                                            ObjectType.GROUP,
+                                            [request.options.get("workgroup")])
         MODULE.info("licenses.assign_to_workgroup: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -1265,8 +1355,7 @@ class Instance(SchoolBaseModule):
                 number_of_expired_licenses = sum(1 for license in non_ignored_licenses if license.is_expired)
                 # Counting of assignments depends on the license type: _get_total_number_of_assignments() encapsulates the logic.
                 number_of_available_licenses = \
-                    sum(1 for license in non_ignored_licenses if
-                        (license.quantity_available > 0) and not license.is_expired)
+                    sum(1 for license in non_ignored_licenses if license.is_available)
                 # Caller (grid query) can now request products with 'all' or 'only available' licenses
                 if 'showOnlyAvailable' in request.options and request.options['showOnlyAvailable']:
                     if number_of_available_licenses < 1:
@@ -1395,3 +1484,39 @@ class Instance(SchoolBaseModule):
         }
         MODULE.info("licenses.import.get: result: %s" % str(result))
         self.finished(request.id, result)
+
+    @sanitize(school=SchoolSanitizer(required=True), pattern=StringSanitizer(default=""))
+    @LDAP_Connection()
+    def classes(self, request, ldap_user_read=None):
+        """Returns a list of all classes of the given school"""
+        self.repository.update()
+        school = request.options["school"]
+        _classes = self.repository.get_classes_by_school(school)
+        school_classes = []
+        for school_class in _classes:
+            school_classes.append({
+                'id': school_class.entry_dn,
+                'label': school_class.name
+            })
+
+        self.finished(
+            request.id,
+            school_classes
+        )
+
+    @sanitize(school=SchoolSanitizer(required=True), pattern=StringSanitizer(default=""))
+    @LDAP_Connection()
+    def workgroups(self, request, ldap_user_read=None):
+        """Returns a list of all working groups of the given school"""
+        self.repository.update()
+        school = request.options["school"]
+        _workgroups = self.repository.get_workgroups_by_school(school)
+        workgroups = []
+
+        for workgroup in _workgroups:
+            workgroups.append({'id': workgroup.entry_dn, 'label': workgroup.name})
+
+        self.finished(
+            request.id,
+            workgroups
+        )

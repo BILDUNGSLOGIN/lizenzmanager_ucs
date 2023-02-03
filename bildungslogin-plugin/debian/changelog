@@ -1,3 +1,10 @@
+bildungslogin-plugin (2.1.5) unstable; urgency=medium
+
+  * Refactoring of the build cache script
+  * Correctly evaluate only teachers for the special licenses
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 02 Feb 2023 23:29:18 +0100
+
 bildungslogin-plugin (2.1.4) unstable; urgency=medium
 
   * fix(plugin) Allow installation on Backup nodes -- ET-57
