@@ -529,7 +529,7 @@ class LdapRepository:
         for metadata in self._metadata:
             if pattern.match(metadata.bildungsloginProductId.lower()) or pattern.match(
                     metadata.bildungsloginMetaDataPublisher.lower()) or pattern.match(
-                metadata.bildungsloginMetaDataTitle.lower()):
+                    metadata.bildungsloginMetaDataTitle.lower()):
                 filtered_metadata.append(metadata)
         return filtered_metadata
 
