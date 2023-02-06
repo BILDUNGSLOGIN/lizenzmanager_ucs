@@ -452,17 +452,17 @@ class LdapRepository:
         for metadata in self._metadata:
             if pattern.match(metadata.bildungsloginProductId.lower()) or pattern.match(
                     metadata.bildungsloginMetaDataPublisher.lower()) or pattern.match(
-                metadata.bildungsloginMetaDataTitle.lower()):
+                    metadata.bildungsloginMetaDataTitle.lower()):
                 filtered_metadata.append(metadata)
         return filtered_metadata
 
     def _match_license_by_publisher(self, license, regex):
         metadata = license.medium
-        return regex.match(metadata.bildungsloginMetaDataPublisher)
+        return regex.match(metadata.bildungsloginMetaDataPublisher) if metadata else False
 
     def _match_license_by_product(self, license, regex):
         metadata = license.medium
-        return regex.match(metadata.bildungsloginMetaDataTitle)
+        return regex.match(metadata.bildungsloginMetaDataTitle) if metadata else False
 
     def filter_licenses(self, product_id=None, school=None, license_types=None,
                         is_advanced_search=None,
@@ -962,8 +962,8 @@ class Instance(SchoolBaseModule):
             result.append({
                 "licenseCode": _license.bildungsloginLicenseCode,
                 "productId": _license.bildungsloginProductId,
-                "productName": metadata.bildungsloginMetaDataTitle,
-                "publisher": metadata.bildungsloginMetaDataPublisher,
+                "productName": metadata.bildungsloginMetaDataTitle if metadata else '',
+                "publisher": _license.publisher,
                 "licenseTypeLabel": LicenseType.label(_license.bildungsloginLicenseType),
                 "for": _license.bildungsloginLicenseSpecialType,
                 "importDate": iso8601Date.from_datetime(_license.bildungsloginDeliveryDate),
