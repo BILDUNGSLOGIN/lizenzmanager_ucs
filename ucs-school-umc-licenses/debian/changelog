@@ -1,3 +1,11 @@
+ucs-school-umc-licenses (2.1.5) unstable; urgency=medium
+
+  * Calculate really needed licenses (Volume) before starting
+    allocation -- ET-67
+  * Avoid showing progress bar for one chunk -- ET-67
+
+ -- Frank Greif <greif@univention.de>  Wed, 08 Feb 2023 15:54:08 +0100
+
 ucs-school-umc-licenses (2.1.4) unstable; urgency=medium
 
   * Divers fixes
