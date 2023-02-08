@@ -38,7 +38,7 @@ from typing import Dict, List, Optional, Union
 import re
 
 from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
-from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
+from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, USER_READ, LDAP_Connection
 from univention.admin.syntax import iso8601Date
 from univention.bildungslogin.handlers import (
     AssignmentHandler,
@@ -1155,8 +1155,21 @@ class Instance(SchoolBaseModule):
         }
         """
         MODULE.info("licenses.assign_to_users: options: %s" % str(request.options))
+
+
         ah = AssignmentHandler(ldap_user_write)
         object_names = request.options.get("usernames")
+
+        # Theoretically, we could reduce the user list here. Even if this would yield correct results,
+        # neither the user nor the backend caching code can cope with the difference:
+        # users_requested != users_assigned (but it is SUCCESS). So do this from the frontend,
+        # and then pass down only user lists where these user counts do not differ.
+        #leftover_users = self._not_assigned_users(ldap_user_write,
+        #            request.options.get('usernames'),
+        #            request.options.get('licenseCodes'))
+        #if len(object_names) != len(leftover_users):
+        #    MODULE.info("licenses.assign_to_users: reduced user list from %d to %d users" % (len(object_names),len(leftover_users)))
+        #    object_names = leftover_users
 
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.USER,
@@ -1170,6 +1183,41 @@ class Instance(SchoolBaseModule):
                                             request.options.get("usernames"))
         MODULE.info("licenses.assign_to_users: result: %s" % str(result))
         self.finished(request.id, result)
+
+    @sanitize(licenseCodes=ListSanitizer(required=True),
+              usernames=ListSanitizer(required=True))
+    @LDAP_Connection(USER_READ)
+    def not_assigned_users(self, request, ldap_user_read=None):
+        """ Return a list of users who do NOT have any of
+            the requested license codes
+        """
+        MODULE.info("licenses.not_assigned_users: options: %s" % str(request.options))
+        # Relocate the work into an internal function, so it can be called directly
+        # from 'assign_to_users' above
+        result = self._not_assigned_users(ldap_user_read,request.options.get('usernames'),request.options.get('licenseCodes'))
+        MODULE.info("licenses.not_assigned_users: result: %s" % str(result))
+        self.finished(request.id, result)
+
+    def _not_assigned_users(self, lo, usernames, licenseCodes):
+        """ Internal worker for 'not_assigned_users' """
+
+        assigned_users = set()
+
+        for licenseCode in licenseCodes:
+            #MODULE.info('not_assigned_users: LC = %s' % licenseCode)
+            license = self.repository.get_license_by_code(licenseCode)
+            userlist = self.repository.get_assigned_users_by_license(license)
+            for user in userlist:
+                username = user.get('username')
+                #MODULE.info('not_assigned_users:   U = %s' % username)
+                assigned_users.add(username)
+
+        result = []
+        for username in usernames:
+            if username not in assigned_users:
+                result += [username,]
+
+        return result
 
     @sanitize(licenseCodes=ListSanitizer(required=True),
               school=StringSanitizer(required=True))
