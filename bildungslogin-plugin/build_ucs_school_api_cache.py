@@ -41,6 +41,7 @@ We extensively use doctests in this script as a replacement to unittests. You ca
 import argparse
 import json
 import logging
+import os
 import re
 
 logger = logging.getLogger(__name__)
@@ -57,6 +58,7 @@ SEARCH_FILTER = ''.join([
 ])
 
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
+JSON_DIR = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/'
 
 PARSER = argparse.ArgumentParser('Create a cache file for the UCS@School API')
 PARSER.add_argument(
@@ -73,7 +75,6 @@ PARSER.add_argument(
     type=argparse.FileType('w'),
     help='The path to the cache file. (Default: %(default)s)',
 )
-
 
 def transform_to_dictionary(entries):
     """Transform the given LDAP objects to the format needed by UCS@School API.
@@ -572,7 +573,14 @@ def main(cache_file):
         sum(len(objs) for objs in filtered_dict.values())))
 
     logger.debug("Convert to JSON and write to cache file")
-    json.dump(filtered_dict, cache_file, indent=2)
+    json.dump(filtered_dict, cache_file)
+
+    for (dirpath, dirnames, filenames) in os.walk(JSON_DIR):
+        for filename in filenames:
+            regex = re.compile('license-.*json')
+            if regex.match(filename):
+                os.unlink(dirpath + filename)
+        break
 
     logger.info("Finished")
 

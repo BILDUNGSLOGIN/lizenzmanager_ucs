@@ -63,6 +63,7 @@ from univention.udm.exceptions import SearchLimitReached
 
 _ = Translation("ucs-school-umc-licenses").translate
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
+JSON_DIR = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/'
 
 
 def undefined_if_none(value, zero_as_none=False):  # type: (Optional[int], bool) -> Union[unicode, int]
@@ -209,8 +210,13 @@ class LdapLicense:
             return self.quantity_assigned == 0 and not self.is_expired
         return False
 
-    def add_class(self, school_class):
-        self.classes.append(school_class)
+    def get_cache_dictionary(self):
+        return {
+            'entryUUID': self.entryUUID,
+            'quantity_assigned': self.quantity_assigned,
+            'groups': self.groups,
+            'user_strings': self.user_strings,
+        }
 
 
 class LdapAssignment:
@@ -238,6 +244,15 @@ class LdapAssignment:
         self.bildungsloginAssignmentAssignee = entry_uuid
         self.bildungsloginAssignmentStatus = Status.ASSIGNED
         self.bildungsloginAssignmentTimeOfAssignment = datetime.now().date()
+
+    def get_cache_dictionary(self):
+        return {
+            'entryUUID': self.entryUUID,
+            'bildungsloginAssignmentAssignee': self.bildungsloginAssignmentAssignee,
+            'bildungsloginAssignmentStatus': self.bildungsloginAssignmentStatus,
+            'bildungsloginAssignmentTimeOfAssignment': self.bildungsloginAssignmentTimeOfAssignment.strftime(
+                '%Y-%m-%d') if self.bildungsloginAssignmentTimeOfAssignment else '',
+        }
 
 
 class LdapSchool:
@@ -306,16 +321,75 @@ class LdapRepository:
         stat = os.stat(JSON_PATH)
         file_time = stat.st_mtime
 
-        if self._timestamp is not None and file_time <= self._timestamp:
-            return
+        if self._timestamp is None and file_time > self._timestamp:
+            self._clear()
+            f = open(JSON_PATH, 'r')
+            json_string = f.read()
+            f.close()
+            json_dictionary = json.loads(json_string)
+            self._process_entries(json_dictionary)
+            self._timestamp = file_time
 
-        self._clear()
-        f = open(JSON_PATH, 'r')
-        json_string = f.read()
-        f.close()
-        json_dictionary = json.loads(json_string)
-        self._process_entries(json_dictionary)
-        self._timestamp = file_time
+        biggest_timestamp = self._timestamp
+        updates = []
+        for (dirpath, dirnames, filenames) in os.walk(JSON_DIR):
+            for filename in filenames:
+                regex = re.compile('license-.*json')
+                if regex.match(filename):
+                    timestamp = os.stat(dirpath + filename).st_mtime
+                    if self._timestamp < timestamp:
+                        updates.append(dirpath + filename)
+                        if biggest_timestamp < timestamp:
+                            biggest_timestamp = timestamp
+            break
+
+        self._timestamp = biggest_timestamp
+        self.apply_json_files(updates)
+
+    def apply_json_files(self, filepaths):
+        license_updates = []
+        assignment_updates = []
+
+        for filepath in filepaths:
+            f = open(filepath, 'r')
+            json_string = f.read()
+            f.close()
+            json_dictionary = json.loads(json_string)
+            license_updates.append(json_dictionary['license'])
+            assignment_updates += json_dictionary['assignments']
+
+        for _license in self._licenses:
+            if len(license_updates) <= 0:
+                break
+
+            for license_update in license_updates:
+                if _license.entryUUID == license_update['entryUUID']:
+                    _license.user_strings = license_update['user_strings']
+                    _license.groups = license_update['groups']
+                    _license.quantity_assigned = license_update['quantity_assigned']
+                    license_updates.remove(license_update)
+                    break
+
+        for _assignment in self._assignments:
+            if len(assignment_updates) <= 0:
+                break
+
+            for assignment_update in assignment_updates:
+                if _assignment.entryUUID == assignment_update['entryUUID']:
+                    _assignment.bildungsloginAssignmentAssignee = assignment_update['bildungsloginAssignmentAssignee']
+                    _assignment.bildungsloginAssignmentStatus = assignment_update['bildungsloginAssignmentStatus']
+                    _assignment.bildungsloginAssignmentTimeOfAssignment = datetime.strptime(
+                assignment_update['bildungsloginAssignmentTimeOfAssignment'],
+                '%Y-%m-%d').date() if assignment_update['bildungsloginAssignmentTimeOfAssignment'] else None
+                    assignment_updates.remove(assignment_update)
+                    break
+
+    def get_license_by_uuid(self, uuid):
+        # type: (str) -> LdapLicense
+        for license in self._licenses:
+            if license.entryUUID == uuid:
+                return license
+        return None
 
     def get_license_by_dn(self, dn):
         # type: (str) -> LdapLicense
@@ -452,7 +526,7 @@ class LdapRepository:
         for metadata in self._metadata:
             if pattern.match(metadata.bildungsloginProductId.lower()) or pattern.match(
                     metadata.bildungsloginMetaDataPublisher.lower()) or pattern.match(
-                    metadata.bildungsloginMetaDataTitle.lower()):
+                metadata.bildungsloginMetaDataTitle.lower()):
                 filtered_metadata.append(metadata)
         return filtered_metadata
 
@@ -715,6 +789,7 @@ class LdapRepository:
     def set_license_ignored(self, license_code, ignored):
         license = self.get_license_by_code(license_code)
         license.bildungsloginIgnoredForDisplay = ignored
+        self.cache_single_license(license)
 
     def get_assignments_by_license(self, license):
         assignments = []
@@ -740,7 +815,7 @@ class LdapRepository:
             license.user_strings.append(user.sn)
             license.quantity_assigned += 1
 
-    def remove_user_to_license(self, license, user):
+    def remove_user_from_license(self, license, user):
         if license.bildungsloginLicenseSpecialType != 'Lehrkraft' or (
                 license.bildungsloginLicenseSpecialType == 'Lehrkraft' and 'teacher' in user.get_roles()):
             license.user_strings.remove(user.uid)
@@ -753,8 +828,6 @@ class LdapRepository:
         licenses_assignments = []
         for license in licenses:
             assignments = self.get_assignments_by_license(license)
-            assignments = filter(lambda _assignment: _assignment.bildungsloginAssignmentStatus == Status.AVAILABLE,
-                                 assignments)
             licenses_assignments.append(
                 {'license': license,
                  'assignments': assignments})
@@ -774,19 +847,22 @@ class LdapRepository:
                         self.add_user_to_license(license['license'], user)
                         assignment.assign(user.entryUUID)
                         break
+                self.cache_single_license(license['license'], license['assignments'])
 
         elif object_type == ObjectType.GROUP:
             for object_name in object_names:
                 group = self.get_group_by_name(object_name)
-                license = licenses_to_use.next()
-                for assignment in license['assignments']:
-                    if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
-                        assignment.assign(group.entryUUID)
-                        break
-                license['license'].groups.append(group.entry_dn)
-                users = self.get_users_by_group(group)
-                for user in users:
-                    self.add_user_to_license(license['license'], user)
+                if group:
+                    license = licenses_to_use.next()
+                    for assignment in license['assignments']:
+                        if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
+                            assignment.assign(group.entryUUID)
+                            break
+                    license['license'].groups.append(group.entry_dn)
+                    users = self.get_users_by_group(group)
+                    for user in users:
+                        self.add_user_to_license(license['license'], user)
+                    self.cache_single_license(license['license'], license['assignments'])
                 else:
                     MODULE.error("Couldn't find the group in cache.")
 
@@ -802,6 +878,7 @@ class LdapRepository:
                     users = self._get_users_by_school(school.ou)
                     for user in users:
                         self.add_user_to_license(license['license'], user)
+                    self.cache_single_license(license['license'], license['assignments'])
                 else:
                     MODULE.error("Couldn't find the school in cache.")
 
@@ -809,16 +886,14 @@ class LdapRepository:
         license = self.get_license_by_code(license_code)
         assignments = self.get_assignments_by_license(license)
 
-        assignments = filter(lambda _assignment: _assignment.bildungsloginAssignmentStatus == Status.ASSIGNED,
-                             assignments)
-
         if object_type == ObjectType.USER:
             for object_name in object_names:
                 user = self.get_user(object_name)
                 for assignment in assignments:
                     if assignment.bildungsloginAssignmentAssignee == user.entryUUID:
                         assignment.remove()
-                        self.remove_user_to_license(license, user)
+                        self.remove_user_from_license(license, user)
+                        break
         elif object_type == ObjectType.GROUP:
             for object_name in object_names:
                 group = self.get_workgroup_by_name(object_name)
@@ -828,7 +903,7 @@ class LdapRepository:
                             assignment.remove()
                     users = self.get_users_by_group(group)
                     for user in users:
-                        self.remove_user_to_license(license, user)
+                        self.remove_user_from_license(license, user)
                 else:
                     school_classes = self.get_class_by_name(object_name)
                     if school_classes:
@@ -837,7 +912,7 @@ class LdapRepository:
                                 assignment.remove()
                     users = self.get_users_by_group(school_classes)
                     for user in users:
-                        self.remove_user_to_license(license, user)
+                        self.remove_user_from_license(license, user)
         elif object_type == ObjectType.SCHOOL:
             for object_name in object_names:
                 school = self.get_school(object_name)
@@ -846,7 +921,8 @@ class LdapRepository:
                         assignment.remove()
                 users = self._get_users_by_school(school)
                 for user in users:
-                    self.remove_user_to_license(license, user)
+                    self.remove_user_from_license(license, user)
+        self.cache_single_license(license, assignments)
 
     @staticmethod
     def get_school_roles(user):
@@ -876,6 +952,18 @@ class LdapRepository:
             if school_class.entryUUID == uuid:
                 return school_class
         return None
+
+    def cache_single_license(self, _license, assignments=None):
+        if not assignments:
+            assignments = self.get_assignments_by_license(_license)
+
+        to_save = {
+            'license': _license.get_cache_dictionary(),
+            'assignments': [assignment.get_cache_dictionary() for assignment in assignments]
+        }
+        license_file = open(JSON_DIR + 'license-' + _license.entryUUID + '.json', 'w')
+        json.dump(to_save, license_file)
+        license_file.close()
 
 
 class Instance(SchoolBaseModule):
@@ -994,6 +1082,7 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.get: options: %s" % str(request.options))
         # TODO should the school be incorperated in getting the license?
         # school = request.options.get("school")
+        self.repository.update()
         license_code = request.options.get("licenseCode")
         license = self.repository.get_license_by_code(license_code)
         assigned_users = self.repository.get_assigned_users_by_license(license)
