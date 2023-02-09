@@ -379,8 +379,8 @@ class LdapRepository:
                     _assignment.bildungsloginAssignmentAssignee = assignment_update['bildungsloginAssignmentAssignee']
                     _assignment.bildungsloginAssignmentStatus = assignment_update['bildungsloginAssignmentStatus']
                     _assignment.bildungsloginAssignmentTimeOfAssignment = datetime.strptime(
-                assignment_update['bildungsloginAssignmentTimeOfAssignment'],
-                '%Y-%m-%d').date() if assignment_update['bildungsloginAssignmentTimeOfAssignment'] else None
+                        assignment_update['bildungsloginAssignmentTimeOfAssignment'],
+                        '%Y-%m-%d').date() if assignment_update['bildungsloginAssignmentTimeOfAssignment'] else None
                     assignment_updates.remove(assignment_update)
                     break
 
@@ -605,6 +605,10 @@ class LdapRepository:
 
         if school_class:
             licenses = filter(lambda _license: school_class in _license.groups, licenses)
+
+        if sizelimit:
+            if len(licenses) > sizelimit:
+                raise SearchLimitReached
 
         return licenses
 
@@ -1008,7 +1012,11 @@ class Instance(SchoolBaseModule):
         }
         """
         self.repository.update()
-        sizelimit = int(ucr.get("directory/manager/web/sizelimit", 2000))
+        try:
+            sizelimit = int(ucr.get("directory/manager/web/sizelimit", 2000))
+        except ValueError:
+            sizelimit = None
+
         time_from = request.options.get("timeFrom")
         time_from = iso8601Date.to_datetime(time_from) if time_from else None
         time_to = request.options.get("timeTo")
