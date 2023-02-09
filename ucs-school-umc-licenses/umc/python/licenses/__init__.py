@@ -746,14 +746,15 @@ class LdapRepository:
         if license.bildungsloginLicenseType in ['SINGLE', 'VOLUME']:
             for assignment in assignments:
                 user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                users.append({
-                    'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
-                    'username': user.userId,
-                    'status': assignment.bildungsloginAssignmentStatus,
-                    'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
-                    'roles': user.get_roles(),
-                    'roleLabels': Role.label(user.get_roles()),
-                })
+                if user:
+                    users.append({
+                        'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
+                        'username': user.userId,
+                        'status': assignment.bildungsloginAssignmentStatus,
+                        'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
+                        'roles': user.get_roles(),
+                        'roleLabels': Role.label(user.get_roles()),
+                    })
         elif license.bildungsloginLicenseType == 'WORKGROUP':
             for assignment in assignments:
                 group = self.get_group_by_uuid(assignment.bildungsloginAssignmentAssignee)
