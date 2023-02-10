@@ -17,7 +17,7 @@
 			<description>Assign media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
 		<flavor id="licenses/import" priority="51">
-			<name>Import media licenses</name>
+			<name>Import media licenses / Update cache</name>
 			<description>Importing media licences into the BILDUNGSLOGIN licence manager</description>
 		</flavor>
 		<command name="licenses/query" function="licenses_query"></command>
