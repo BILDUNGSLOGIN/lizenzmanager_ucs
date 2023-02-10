@@ -36,7 +36,9 @@ from datetime import date, datetime
 from os.path import exists
 from typing import Dict, List, Optional, Union
 import re
+from subprocess import Popen
 
+import psutil
 from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
 from ucsschool.lib.school_umc_ldap_connection import USER_WRITE, LDAP_Connection
 from univention.admin.syntax import iso8601Date
@@ -64,6 +66,7 @@ from univention.udm.exceptions import SearchLimitReached
 _ = Translation("ucs-school-umc-licenses").translate
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
 JSON_DIR = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/'
+CACHE_BUILD_SCRIPT = '/usr/sbin/build_ucs_school_api_cache.py'
 
 
 def undefined_if_none(value, zero_as_none=False):  # type: (Optional[int], bool) -> Union[unicode, int]
@@ -1366,7 +1369,6 @@ class Instance(SchoolBaseModule):
         users = self.repository.filter_users(pattern, school, workgroup, school_class)
         school_obj = self.repository.get_school(school)
 
-        workgroups = {wg.entry_dn: wg.cn for wg in self.repository.get_all_workgroups()}
         prefix = school + "-"
         result = []
         for user in users:
@@ -1617,4 +1619,32 @@ class Instance(SchoolBaseModule):
         self.finished(
             request.id,
             workgroups
+        )
+
+    def _cache_is_running(self):
+        for process in psutil.process_iter():
+            if CACHE_BUILD_SCRIPT in process.cmdline():
+                return True
+        return False
+
+    def cache_rebuild(self, request):
+        if not self._cache_is_running():
+            Popen(['python ' + CACHE_BUILD_SCRIPT], shell=True, stdout=None)
+            self.finished(
+                request.id,
+                {'status': 1}
+            )
+        else:
+            self.finished(
+                request.id,
+                {'status': 2}
+            )
+
+    def cache_status(self, request):
+        self.finished(
+            request.id,
+            {
+                'time': datetime.fromtimestamp(os.stat(JSON_PATH).st_mtime).strftime('%H:%M:%S %d.%m.%Y'),
+                'status': self._cache_is_running()
+            }
         )
