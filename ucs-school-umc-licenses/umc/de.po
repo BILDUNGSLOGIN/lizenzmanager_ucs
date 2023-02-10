@@ -24,8 +24,8 @@ msgid ""
 msgstr ""
 "Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager anzeigen, suchen, entziehen"
 
-msgid "Import media licenses"
-msgstr "Medienlizenzen importieren"
+msgid "Import media licenses / Update cache"
+msgstr "Medienlizenzen importieren / Cache aktualisieren"
 
 msgid "Importing media licences into the BILDUNGSLOGIN licence manager"
 msgstr "Medien-Lizenzen in den BILDUNGSLOGIN-Lizenzmanager importieren"
