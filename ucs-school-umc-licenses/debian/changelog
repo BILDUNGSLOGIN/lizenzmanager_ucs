@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.2.0) unstable; urgency=medium
+
+  * ET-92 Implement button to allow a manuel cache rebuild.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 10 Feb 2023 16:59:18 +0100
+
 ucs-school-umc-licenses (2.1.6) unstable; urgency=medium
 
   * Adapt dialog messages to chunked assignment -- ET-54
