@@ -1,0 +1,8 @@
+@%@UCRWARNING=# @%@
+
+@!@
+script = '/usr/sbin/get_missing_metadata.py'
+interval = configRegistry.get('bildungslogin/get-metadata')
+if interval:
+    print('%s	root	(%s) 2>&1 | logger -t bildungslogin-get-metadata' % (interval, script))
+@!@
