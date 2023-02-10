@@ -1204,12 +1204,13 @@ class Instance(SchoolBaseModule):
         assigned_users = set()
 
         for licenseCode in licenseCodes:
-            #MODULE.info('not_assigned_users: LC = %s' % licenseCode)
             license = self.repository.get_license_by_code(licenseCode)
+            # Work around possibly inconsistent cache
+            if license is None:
+            	continue
             userlist = self.repository.get_assigned_users_by_license(license)
             for user in userlist:
                 username = user.get('username')
-                #MODULE.info('not_assigned_users:   U = %s' % username)
                 assigned_users.add(username)
 
         result = []
