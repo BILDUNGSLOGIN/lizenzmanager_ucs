@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.2.0) unstable; urgency=medium
+
+  * ET-12 Implement a script to get missing metadata.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 10 Feb 2023 16:39:44 +0100
+
 bildungslogin-plugin (2.1.5) unstable; urgency=medium
 
   * Refactoring of the build cache script
