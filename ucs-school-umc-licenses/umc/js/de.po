@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-02-10 12:30+0100\n"
+"POT-Creation-Date: 2023-02-10 18:41+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -21,6 +21,16 @@ msgstr "%d Lizenzen ausgewählt"
 #: umc/js/licenses/ProductSearchPage.js:506
 msgid "Acquired"
 msgstr "Erworben"
+
+#: umc/js/licenses/ImportMediaLicensePage.js:282
+msgid ""
+"After importing new licenses, an update via the \"Update cache\" button is "
+"also required. With a large number of licenses, this process can take "
+"several minutes."
+msgstr ""
+"Nach dem Import neuer Lizenzen ist zusätzlich eine Aktualisierung über die "
+"Schaltfläche “Cache aktualisieren” erforderlich. Dieser Vorgang kann bei "
+"sehr vielen Lizenzen mehrere Minuten dauern."
 
 #: umc/js/licenses/UserSelectionPage.js:319
 msgid "All classes"
@@ -131,6 +141,21 @@ msgstr "Verfügbar"
 msgid "Back"
 msgstr "Zurück"
 
+#: umc/js/licenses/ImportMediaLicensePage.js:188
+#: umc/js/licenses/ImportMediaLicensePage.js:250
+msgid "Cache last updated:"
+msgstr "Cache zuletzt aktualisiert:"
+
+#: umc/js/licenses/ImportMediaLicensePage.js:175
+msgid "Cache update already running."
+msgstr "Cache-Aktualisierung läuft bereits."
+
+#: umc/js/licenses/ImportMediaLicensePage.js:190
+#: umc/js/licenses/ImportMediaLicensePage.js:192
+#: umc/js/licenses/ImportMediaLicensePage.js:255
+msgid "Cache update status:"
+msgstr "Cache-Aktualisierungsstatus:"
+
 #: umc/js/licenses/LicenseSearchPage.js:627
 msgid "Change medium"
 msgstr "Medium ändern"
@@ -139,7 +164,7 @@ msgstr "Medium ändern"
 msgid "Change product"
 msgstr "Produkt ändern"
 
-#: umc/js/licenses/ImportMediaLicensePage.js:170
+#: umc/js/licenses/ImportMediaLicensePage.js:206
 #: umc/js/licenses/UserSelectionPage.js:271
 msgid "Change school"
 msgstr "Schule wechseln"
@@ -230,6 +255,10 @@ msgstr "Der ausgewählten Lerngruppe konnten keine Lizenzen zugewiesen werden."
 msgid "Filters"
 msgstr "Filter"
 
+#: umc/js/licenses/ImportMediaLicensePage.js:192
+msgid "Finished"
+msgstr "Fertig"
+
 #: umc/js/licenses/UserSelectionPage.js:433
 msgid "First name"
 msgstr "Vorname"
@@ -243,7 +272,7 @@ msgstr "Für"
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: umc/js/licenses/ImportMediaLicensePage.js:196
+#: umc/js/licenses/ImportMediaLicensePage.js:232
 msgid "Import licences"
 msgstr "Lizenzen importieren"
 
@@ -359,7 +388,7 @@ msgstr "Keine Zuweisung nötig"
 msgid "No cover available"
 msgstr "Kein Bild verfügbar"
 
-#: umc/js/licenses/ImportMediaLicensePage.js:135
+#: umc/js/licenses/ImportMediaLicensePage.js:136
 msgid "Ok"
 msgstr "Ok"
 
@@ -375,11 +404,11 @@ msgstr "Nur freie Lizenzen"
 msgid "Open license"
 msgstr "Lizenz öffnen"
 
-#: umc/js/licenses/ImportMediaLicensePage.js:186
+#: umc/js/licenses/ImportMediaLicensePage.js:222
 msgid "Pick-up number for licence data package"
 msgstr "Abholnummer für Lizenzdatenpaket"
 
-#: umc/js/licenses/ImportMediaLicensePage.js:189
+#: umc/js/licenses/ImportMediaLicensePage.js:225
 msgid ""
 "Please enter the collection number for the licence data package you wish to "
 "import. You received the collection number at the end of the purchase "
@@ -501,6 +530,10 @@ msgstr "Sonderlizenz"
 msgid "Start import period"
 msgstr "Beginn Zeitraum Import"
 
+#: umc/js/licenses/ImportMediaLicensePage.js:173
+msgid "Started cache update."
+msgstr "Cache-Aktualisierung gestartet."
+
 #: umc/js/licenses/LicenseDetailPage.js:398
 msgid "Status"
 msgstr "Status"
@@ -566,6 +599,14 @@ msgstr "Zur Lizenzauswahl"
 msgid "To media selection"
 msgstr "Zur Medienauswahl"
 
+#: umc/js/licenses/ImportMediaLicensePage.js:261
+msgid "Update cache"
+msgstr "Cache aktualisieren"
+
+#: umc/js/licenses/ImportMediaLicensePage.js:190
+msgid "Updating"
+msgstr "Aktualisiert"
+
 #: umc/js/licenses/LicenseDetailPage.js:192
 msgid "Usage"
 msgstr "Nutzung"
@@ -627,7 +668,7 @@ msgstr "Lerngruppenlizenz"
 msgid "for %(school)s"
 msgstr "für %(school)s"
 
-#: umc/js/licenses/ImportMediaLicensePage.js:127
+#: umc/js/licenses/ImportMediaLicensePage.js:128
 msgid "licenses were imported successfully"
 msgstr "Lizenzen wurden erfolgreich importiert"
 
@@ -690,6 +731,9 @@ msgstr "ausgewählte Lerngruppe/Klasse anzeigen"
 #~ "betreffende Medium.\n"
 #~ "Eine Schullizenz kann nur einmal zugewiesen und nicht wieder gelöst "
 #~ "werden."
+
+#~ msgid "Cache rebuild status:"
+#~ msgstr "Cache-Aktualisierungsstatus:"
 
 #~ msgid "Date of assignment"
 #~ msgstr "Zuweisungsdatum"

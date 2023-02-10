@@ -38,5 +38,7 @@
 		<command name="licenses/products/get" function="products_get"></command>
 		<command name="licenses/import/get" function="get_license"></command>
 		<command name="licenses/not_assigned_users" function="not_assigned_users"></command>
+		<command name="licenses/cache/rebuild" function="cache_rebuild"></command>
+		<command name="licenses/cache/status" function="cache_status"></command>
 	</module>
 </umc>

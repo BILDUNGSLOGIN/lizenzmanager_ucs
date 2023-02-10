@@ -87,6 +87,7 @@ define([
 
     _grid: null,
     _form: null,
+    _cache_form: null,
     _searchForm: null,
     _isAdvancedSearch: true,
 
@@ -160,6 +161,41 @@ define([
       );
     },
 
+    cacheRebuild: function () {
+      tools
+          .umcpCommand("licenses/cache/rebuild", {}).then(
+            lang.hitch(this, function (response) {
+              const res = response.result;
+              if (res.errorMessage) {
+                dialog.alert(result.errorMessage);
+              } else {
+                if (res.status === 1) {
+                 dialog.alert(_('Started cache update.'));
+                } else if (res.status === 2) {
+                 dialog.alert(_('Cache update already running.'));
+                }
+              }
+            })
+          )
+    },
+    getCacheStatus: function () {
+      tools.umcpCommand("licenses/cache/status", {}).then(
+          lang.hitch(this, function (response) {
+              const result = response.result;
+              if (result.errorMessage) {
+                dialog.alert(result.errorMessage);
+              } else {
+                this._cache_form.getWidget('last_cache_build').set('content', _('Cache last updated:') + ' ' + result.time)
+                if(result.status == true) {
+                  this._cache_form.getWidget('cache_build_status').set('content', _('Cache update status:') + ' ' + _('Updating'))
+                } else {
+                  this._cache_form.getWidget('cache_build_status').set('content', _('Cache update status:') + ' ' + _('Finished'))
+                }
+              }
+          })
+      )
+    },
+
     //// lifecycle
     postMixInProperties: function () {
       this.inherited(arguments);
@@ -205,7 +241,47 @@ define([
           this.getImport(pickUpNumber);
         })
       );
+
+      this._cache_form = new Form({
+        widgets: [
+          {
+            type: Text,
+            name: "last_cache_build",
+            content: _('Cache last updated:')
+          },
+            {
+            type: Text,
+            name: "cache_build_status",
+            content: _('Cache update status:')
+          },
+        ],
+        buttons: [
+          {
+            name: "submit",
+            label: _("Update cache"),
+          },
+        ],
+      })
+
+      this._cache_form.on(
+        "submit",
+        lang.hitch(this, function () {
+          this.cacheRebuild();
+          this.getCacheStatus();
+        })
+      );
+
+      this.getCacheStatus()
+      _this = this
+      setInterval(function () {
+        _this.getCacheStatus()
+      }, 10000)
+
       this.addChild(this._form);
+      this.addChild(new Text({
+        'content': _("After importing new licenses, an update via the \"Update cache\" button is also required. With a large number of licenses, this process can take several minutes."),
+      }))
+      this.addChild(this._cache_form);
     },
   });
 });
