@@ -135,6 +135,13 @@ define([
         // get the list of unassigned users, and refuse to start the assignment if the licenses will not suffice
       	this._not_assigned_users(usernames,args['licenseCodes']).then(lang.hitch(this,function(result) {
       	    var usernames = result.result;
+      	    // If the reduction yielded no user who would need the license: we should not call the assignment
+      	    // handler for NO USERS. Prepare a different message for this case.
+      	    if (usernames.length == 0) {
+      	    	var response = { 'result': {'nothingToDo': true }};
+      	    	this._wrap_assign_deferred.resolve(response);
+      	    	return;
+      	    }
       	    var new_args = {
           	    'usernames':    usernames,
           	    'licenseCodes': args['licenseCodes'],
@@ -863,6 +870,13 @@ define([
                       dialog.alert(msg, _("Assigning licenses failed"));
                       return;
                     }
+                    if (result.nothingToDo) {
+		      	    	dialog.alert(
+		      	    		'<p>' + _('All selected users already have the requested license. Therefore, nothing had to be done.') + '</p>',
+      			    		_('No assignment needed')
+		      	    	);
+                    	return;
+                    }
                     if (result.countSuccessfulAssignments) {
                       if (
                         result.countSuccessfulAssignments ===
@@ -882,7 +896,7 @@ define([
                           "<p>" +
                           entities.encode(
                             _(
-                              "Licenses were successfully assigned to %s of the %s selected users.",
+                              "Licenses were successfully assigned to %s of the %s selected users. The remaining users already had the license.",
                               result.countSuccessfulAssignments,
                               this.allocation.usernames.length
                             )
