@@ -282,6 +282,9 @@ define([
         'content': _("After importing new licenses, an update via the \"Update cache\" button is also required. With a large number of licenses, this process can take several minutes."),
       }))
       this.addChild(this._cache_form);
+      this.addChild(new Text({
+        'content': _("This button is also used to update the cache after creating new users or learning groups.")
+      }))
     },
   });
 });

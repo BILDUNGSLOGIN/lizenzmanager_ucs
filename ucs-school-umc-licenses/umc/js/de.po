@@ -665,6 +665,9 @@ msgstr "ausgewählte Benutzer anzeigen"
 msgid "show selected workgroup/class"
 msgstr "ausgewählte Lerngruppe/Klasse anzeigen"
 
+msgid "This button is also used to update the cache after creating new users or learning groups."
+msgstr "Dieser Button dient auch zur Aktualisierung des Cache nach dem Anlegen neuer Benutzer oder Lerngruppen."
+
 #~ msgid "Advanced search"
 #~ msgstr "Erweiterte Suche"
 
