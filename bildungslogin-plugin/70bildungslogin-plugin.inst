@@ -29,7 +29,7 @@
 
 ## joinscript api: bindpwdfile
 
-VERSION=5
+VERSION=6
 
 . /usr/share/univention-lib/all.sh
 . /usr/share/univention-join/joinscripthelper.lib
@@ -171,6 +171,8 @@ ucsschool_api_cache_build_and_init_ucr_vars() {
     echo "Initializing UCR variables for refresh/rebuild cron jobs"
     ucr set bildungslogin/rebuild-cache?'0 5 * * *'
     ucr set bildungslogin/refresh-cache?'after-rebuild'
+    ucr set bildungslogin/get-metadata?'0 4 * * *'
+
 
     echo "Initializing the UCS@School API cache. This might take a couple of minutes!"
     /usr/sbin/build_ucs_school_api_cache.py

@@ -6,3 +6,7 @@ Variables: bildungslogin/refresh-cache
 Type: file
 File: etc/cron.d/bildungslogin-refresh-cache
 Variables: bildungslogin/refresh-cache
+
+Type: file
+File: etc/cron.d/bildungslogin-get-metadata
+Variables: bildungslogin/get-metadata
