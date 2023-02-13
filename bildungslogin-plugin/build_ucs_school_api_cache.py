@@ -466,17 +466,16 @@ def transform_to_dictionary(entries):
 
             processed_list['metadata'].append(obj)
 
-    assignments = processed_list['assignments'][:]
+    assignments_map = get_assignment_map(processed_list['assignments'])
     licenses = processed_list['licenses']
     users = processed_list['users']
     groups = processed_list['classes'] + processed_list['workgroups']
     schools = processed_list['schools']
 
     for _license in licenses:
-        assignments_to_remove = []
-        for assignment in assignments:
-            if _license['entry_dn'] in assignment['entry_dn']:
-                assignments_to_remove.append(assignment)
+        if _license['entry_dn'] in assignments_map:
+            assignments = assignments_map[_license['entry_dn']]
+            for assignment in assignments:
                 if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
                     if _license['bildungsloginLicenseType'] in ['SINGLE', 'VOLUME']:
                         for user in users:
@@ -498,11 +497,18 @@ def transform_to_dictionary(entries):
                                         add_user_to_license(_license, user)
                     else:
                         raise RuntimeError("Unknown license type: {}".format(_license['bildungsloginLicenseType']))
-        for assignment_to_remove in assignments_to_remove:
-            assignments.remove(assignment_to_remove)
 
     return processed_list
 
+def get_assignment_map(assignments):
+    assignments_map = {}
+    for assignment in assignments:
+        license_dn = assignment['entry_dn'].split(',', 1)[1]
+        if license_dn in assignments_map:
+            assignments_map[license_dn].append(assignment)
+        else:
+            assignments_map.update({license_dn: [assignment]})
+    return assignments_map
 
 def add_user_to_license(_license, user):
     roles = []
