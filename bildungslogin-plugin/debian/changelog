@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.2.1) unstable; urgency=medium
+
+  * Optimize execution time of cache build script.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 13 Feb 2023 12:01:01 +0100
+
 bildungslogin-plugin (2.2.0) unstable; urgency=medium
 
   * ET-12 Implement a script to get missing metadata.
