@@ -1,3 +1,13 @@
+ucs-school-umc-licenses (2.2.1) unstable; urgency=medium
+
+  * ET-103 Ignore processes that stopped right as they were checked.
+  * ET-102 Make search for licenses by product title case-insensitive.
+  * ET-98 Change texts of the cache button.
+  * ET-99 Give the ability to change the grids for license selection back to the gridAllocation.
+  * ET-101 Only show the button to remove assignments on user licenses and not group and school licenses.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 14 Feb 2023 13:54:19 +0100
+
 ucs-school-umc-licenses (2.2.0) unstable; urgency=medium
 
   * ET-92 Implement button to allow a manuel cache rebuild.
