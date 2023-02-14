@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.2.2) unstable; urgency=medium
+
+  * ET-97 Write the json to a temporary file first to prevent unavailability.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 14 Feb 2023 13:52:19 +0100
+
 bildungslogin-plugin (2.2.1) unstable; urgency=medium
 
   * Optimize execution time of cache build script.
