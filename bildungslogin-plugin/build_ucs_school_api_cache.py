@@ -72,7 +72,6 @@ PARSER.add_argument(
     '--cache-file',
     metavar='FILE',
     default=JSON_PATH,
-    type=argparse.FileType('w'),
     help='The path to the cache file. (Default: %(default)s)',
 )
 
@@ -579,7 +578,15 @@ def main(cache_file):
         sum(len(objs) for objs in filtered_dict.values())))
 
     logger.debug("Convert to JSON and write to cache file")
-    json.dump(filtered_dict, cache_file)
+
+    tmp_filepath = cache_file + '~'
+    tmp_file = open(tmp_filepath, 'w')
+    json.dump(filtered_dict, tmp_file)
+    tmp_file.close()
+
+    if os.path.isfile(cache_file):
+        os.unlink(cache_file)
+    os.rename(tmp_filepath, cache_file)
 
     for (dirpath, dirnames, filenames) in os.walk(JSON_DIR):
         for filename in filenames:

@@ -391,6 +391,12 @@ define([
       this._set("allocation", allocation);
       domClass.remove(this._assignmentText.domNode, "dijitDisplayNone");
       if (allocation.usernames) {
+
+
+        this.removeChild(this._gridGroup);
+        this.addChild(this._gridAllocation);
+        this._grid = this._gridAllocation;
+
         this._headerButtons.close?.set("visible", false);
         const count = allocation.usernames.length;
         const id = this.id + "-tooltip";

@@ -279,11 +279,14 @@ define([
 
       this.addChild(this._form);
       this.addChild(new Text({
-        'content': _("After importing new licenses, an update via the \"Update cache\" button is also required. With a large number of licenses, this process can take several minutes."),
+        'content': _("After importing new licenses, an update via the \"Update cache\" button is also required."),
+      }))
+      this.addChild(new Text({
+        'content': _("This process can take a long time if you have a large number of licenses."),
       }))
       this.addChild(this._cache_form);
       this.addChild(new Text({
-        'content': _("This button is also used to update the cache after creating new users or learning groups.")
+        'content': _("This button is also used to update the cache after creating/deleting users or study groups.")
       }))
     },
   });

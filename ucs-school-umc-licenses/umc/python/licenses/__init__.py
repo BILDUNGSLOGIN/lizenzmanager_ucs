@@ -533,13 +533,9 @@ class LdapRepository:
                 filtered_metadata.append(metadata)
         return filtered_metadata
 
-    def _match_license_by_publisher(self, license, regex):
-        metadata = license.medium
-        return regex.match(metadata.bildungsloginMetaDataPublisher) if metadata else False
-
     def _match_license_by_product(self, license, regex):
         metadata = license.medium
-        return regex.match(metadata.bildungsloginMetaDataTitle) if metadata else False
+        return regex.match(metadata.bildungsloginMetaDataTitle.lower()) if metadata else False
 
     def filter_licenses(self, product_id=None, school=None, license_types=None,
                         is_advanced_search=None,
@@ -603,7 +599,7 @@ class LdapRepository:
                               licenses)
 
         if product and product != '*':
-            product = re.compile(product.replace('*', '.*'))
+            product = re.compile(product.lower().replace('*', '.*'))
             licenses = filter(lambda _license: self._match_license_by_product(_license, product), licenses)
 
         if school_class:
@@ -1124,6 +1120,7 @@ class Instance(SchoolBaseModule):
             "productName": meta_data.bildungsloginMetaDataTitle if meta_data else '',
             "publisher": meta_data.bildungsloginMetaDataPublisher if meta_data else '',
             "users": assigned_users,
+            "licenseType": license.bildungsloginLicenseType,
         }
         MODULE.info("licenses.get: result: %s" % str(result))
         self.finished(request.id, result)
@@ -1672,8 +1669,11 @@ class Instance(SchoolBaseModule):
 
     def _cache_is_running(self):
         for process in psutil.process_iter():
-            if CACHE_BUILD_SCRIPT in process.cmdline():
-                return True
+            try:
+                if CACHE_BUILD_SCRIPT in process.cmdline():
+                    return True
+            except psutil.NoSuchProcess:
+                pass
         return False
 
     def cache_rebuild(self, request):
@@ -1693,7 +1693,7 @@ class Instance(SchoolBaseModule):
         self.finished(
             request.id,
             {
-                'time': datetime.fromtimestamp(os.stat(JSON_PATH).st_mtime).strftime('%H:%M:%S %d.%m.%Y'),
+                'time': datetime.fromtimestamp(os.stat(JSON_PATH).st_mtime).strftime('%d.%m.%Y %H:%M:%S'),
                 'status': self._cache_is_running()
             }
         )
