@@ -1672,8 +1672,11 @@ class Instance(SchoolBaseModule):
 
     def _cache_is_running(self):
         for process in psutil.process_iter():
-            if CACHE_BUILD_SCRIPT in process.cmdline():
-                return True
+            try:
+                if CACHE_BUILD_SCRIPT in process.cmdline():
+                    return True
+            except psutil.NoSuchProcess:
+                pass
         return False
 
     def cache_rebuild(self, request):
