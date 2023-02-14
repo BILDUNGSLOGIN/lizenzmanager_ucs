@@ -533,13 +533,9 @@ class LdapRepository:
                 filtered_metadata.append(metadata)
         return filtered_metadata
 
-    def _match_license_by_publisher(self, license, regex):
-        metadata = license.medium
-        return regex.match(metadata.bildungsloginMetaDataPublisher) if metadata else False
-
     def _match_license_by_product(self, license, regex):
         metadata = license.medium
-        return regex.match(metadata.bildungsloginMetaDataTitle) if metadata else False
+        return regex.match(metadata.bildungsloginMetaDataTitle.lower()) if metadata else False
 
     def filter_licenses(self, product_id=None, school=None, license_types=None,
                         is_advanced_search=None,
@@ -603,7 +599,7 @@ class LdapRepository:
                               licenses)
 
         if product and product != '*':
-            product = re.compile(product.replace('*', '.*'))
+            product = re.compile(product.lower().replace('*', '.*'))
             licenses = filter(lambda _license: self._match_license_by_product(_license, product), licenses)
 
         if school_class:
