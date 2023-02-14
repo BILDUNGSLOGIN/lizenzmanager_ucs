@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-02-10 13:45+0100\n"
+"POT-Creation-Date: 2023-02-14 11:15+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -34,9 +34,10 @@ msgstr "Erworben"
 #: umc/js/licenses/ImportMediaLicensePage.js:282
 msgid ""
 "After importing new licenses, an update via the \"Update cache\" button is "
-"also required. With a large number of licenses, this process can take "
-"several minutes."
-msgstr "Nach dem Import neuer Lizenzen ist zusätzlich eine Aktualisierung über die Schaltfläche “Cache aktualisieren” erforderlich. Dieser Vorgang kann bei sehr vielen Lizenzen mehrere Minuten dauern."
+"also required."
+msgstr ""
+"Nach dem Import neuer Lizenzen ist zusätzlich eine Aktualisierung über die "
+"Schaltfläche “Cache aktualisieren” erforderlich."
 
 #: umc/js/licenses/UserSelectionPage.js:319
 msgid "All classes"
@@ -140,9 +141,6 @@ msgstr "Cache-Aktualisierung läuft bereits."
 
 #: umc/js/licenses/ImportMediaLicensePage.js:190
 #: umc/js/licenses/ImportMediaLicensePage.js:192
-msgid "Cache rebuild status:"
-msgstr "Cache-Aktualisierungsstatus:"
-
 #: umc/js/licenses/ImportMediaLicensePage.js:255
 msgid "Cache update status:"
 msgstr "Cache-Aktualisierungsstatus:"
@@ -569,6 +567,20 @@ msgstr ""
 msgid "There are unsaved changes. Are you sure to cancel?"
 msgstr "Einige Änderungen sind noch nicht gespeichert. Möchten Sie abbrechen?"
 
+#: umc/js/licenses/ImportMediaLicensePage.js:289
+msgid ""
+"This button is also used to update the cache after creating/deleting users "
+"or study groups."
+msgstr ""
+"Dieser Button dient auch zur Aktualisierung des Cache nach dem Anlegen/"
+"Löschen von Benutzern oder Lerngruppen."
+
+#: umc/js/licenses/ImportMediaLicensePage.js:285
+msgid ""
+"This process can take a long time if you have a large number of licenses."
+msgstr ""
+"Dieser Vorgang kann bei sehr vielen Lizenzen längere Zeit in Anspruch nehmen."
+
 #: umc/js/licenses/LicenseDetailPage.js:164
 #: umc/js/licenses/ProductDetailPage.js:138
 msgid "Title"
@@ -588,7 +600,7 @@ msgstr "Cache aktualisieren"
 
 #: umc/js/licenses/ImportMediaLicensePage.js:190
 msgid "Updating"
-msgstr "Aktualisiert"
+msgstr "Aktualisiert läuft"
 
 #: umc/js/licenses/LicenseDetailPage.js:192
 msgid "Usage"
@@ -665,9 +677,6 @@ msgstr "ausgewählte Benutzer anzeigen"
 msgid "show selected workgroup/class"
 msgstr "ausgewählte Lerngruppe/Klasse anzeigen"
 
-msgid "This button is also used to update the cache after creating new users or learning groups."
-msgstr "Dieser Button dient auch zur Aktualisierung des Cache nach dem Anlegen neuer Benutzer oder Lerngruppen."
-
 #~ msgid "Advanced search"
 #~ msgstr "Erweiterte Suche"
 
@@ -713,6 +722,9 @@ msgstr "Dieser Button dient auch zur Aktualisierung des Cache nach dem Anlegen n
 #~ "betreffende Medium.\n"
 #~ "Eine Schullizenz kann nur einmal zugewiesen und nicht wieder gelöst "
 #~ "werden."
+
+#~ msgid "Cache rebuild status:"
+#~ msgstr "Cache-Aktualisierungsstatus:"
 
 #~ msgid "Date of assignment"
 #~ msgstr "Zuweisungsdatum"
