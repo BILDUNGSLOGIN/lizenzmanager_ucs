@@ -1120,6 +1120,7 @@ class Instance(SchoolBaseModule):
             "productName": meta_data.bildungsloginMetaDataTitle if meta_data else '',
             "publisher": meta_data.bildungsloginMetaDataPublisher if meta_data else '',
             "users": assigned_users,
+            "licenseType": license.bildungsloginLicenseType,
         }
         MODULE.info("licenses.get: result: %s" % str(result))
         self.finished(request.id, result)
