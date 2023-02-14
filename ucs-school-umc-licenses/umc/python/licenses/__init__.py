@@ -1692,7 +1692,7 @@ class Instance(SchoolBaseModule):
         self.finished(
             request.id,
             {
-                'time': datetime.fromtimestamp(os.stat(JSON_PATH).st_mtime).strftime('%H:%M:%S %d.%m.%Y'),
+                'time': datetime.fromtimestamp(os.stat(JSON_PATH).st_mtime).strftime('%d.%m.%Y %H:%M:%S'),
                 'status': self._cache_is_running()
             }
         )
