@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.2.2) unstable; urgency=medium
+
+  * ET-92 fix status callback scheduling.
+
+ -- Frank Greif <greif@univention.de>  Wed, 15 Feb 2023 10:45:33 +0100
+
 ucs-school-umc-licenses (2.2.1) unstable; urgency=medium
 
   * ET-103 Ignore processes that stopped right as they were checked.
