@@ -178,22 +178,32 @@ define([
             })
           )
     },
-    getCacheStatus: function () {
+    // with msecs: repeat every msecs, without msecs: call only once.
+    getCacheStatus: function (msecs=null) {
       tools.umcpCommand("licenses/cache/status", {}).then(
           lang.hitch(this, function (response) {
-              const result = response.result;
-              if (result.errorMessage) {
-                dialog.alert(result.errorMessage);
-              } else {
-                this._cache_form.getWidget('last_cache_build').set('content', _('Cache last updated:') + ' ' + result.time)
-                if(result.status == true) {
-                  this._cache_form.getWidget('cache_build_status').set('content', _('Cache update status:') + ' ' + _('Updating'))
+              try {
+                const result = response.result;
+                if (result.errorMessage) {
+                  dialog.alert(result.errorMessage);
                 } else {
-                  this._cache_form.getWidget('cache_build_status').set('content', _('Cache update status:') + ' ' + _('Finished'))
+                  this._cache_form.getWidget('last_cache_build').set('content', _('Cache last updated:') + ' ' + result.time)
+                  if(result.status == true) {
+                    this._cache_form.getWidget('cache_build_status').set('content', _('Cache update status:') + ' ' + _('Updating'))
+                    this._cache_form.getButton('submit').set('disabled',true);
+                  } else {
+                    this._cache_form.getWidget('cache_build_status').set('content', _('Cache update status:') + ' ' + _('Finished'))
+                    this._cache_form.getButton('submit').set('disabled',false);
+                  }
                 }
+              if (msecs) {
+                window.setTimeout(lang.hitch(this,function() {
+                  this.getCacheStatus(msecs);
+                }),msecs);
               }
+            } catch(e) {}
           })
-      )
+      );
     },
 
     //// lifecycle
@@ -271,11 +281,7 @@ define([
         })
       );
 
-      this.getCacheStatus()
-      _this = this
-      setInterval(function () {
-        _this.getCacheStatus()
-      }, 10000)
+      this.getCacheStatus(10000);
 
       this.addChild(this._form);
       this.addChild(new Text({
