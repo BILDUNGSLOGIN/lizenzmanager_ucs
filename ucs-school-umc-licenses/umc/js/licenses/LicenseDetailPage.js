@@ -236,6 +236,11 @@ define([
       this._grid.moduleStore.setData(license.users);
       this._grid.filter();
       this._set("license", license);
+      if (license.licenseType === 'SINGLE' || license.licenseType === 'VOLUME') {
+        this._grid.set("actions", this._actions);
+      } else {
+        this._grid.set("actions", []);
+      }
     },
 
     load: function (licenseCode) {
@@ -248,6 +253,7 @@ define([
             lang.hitch(this, function (response) {
               const license = response.result;
               console.log('license', license);
+              console.log('this', this._grid.actions[0]);
               this.set("license", license);
               this._headerButtons.save.set("disabled", true);
               return license.licenseCode;
@@ -365,7 +371,7 @@ define([
         })
       );
 
-      const actions = [
+      this._actions = [
         {
           name: "delete",
           label: _("Remove assignment"),
@@ -426,7 +432,6 @@ define([
         },
       ];
       this._grid = new Grid({
-        actions: actions,
         columns: columns,
         moduleStore: new Observable(
           new Memory({

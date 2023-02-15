@@ -9,3 +9,9 @@ Description[en]=A cron interval to restart the UCS@School API. This can be used 
 Description[de]=Ein Cron Intervall um die UCS@School API neu zu starten. Dies kann verwendet werden um den neuen Cache des 'bildungslogin/rebuild-cache'-Jobs zu laden. Siehe `man 5 crontab` für weitere Hilfe zur Syntax. Diese Variable kann auch auf den Wert 'after-rebuild' gesetzt werden um den Neustart der API als Teil des rebuild-cache-Jobs ausführen zu lassen. Der Paket-Standard ist 'after-rebuild'.
 Type=str
 Categories=bildungslogin
+
+[bildungslogin/get-metadata]
+Description[en]=A cron interval to get missing metadata for licenses. See `man 5 crontab` for furhter help on the syntax. The package default is '0 4 * * *'.
+Description[de]=Ein Cron Intervall um fehlende Metadaten von Lizensen zu laden. Siehe `man 5 crontab` für weitere Hilfe zur Syntax. Der Paket-Standard ist '0 4 * * *'.
+Type=str
+Categories=bildungslogin

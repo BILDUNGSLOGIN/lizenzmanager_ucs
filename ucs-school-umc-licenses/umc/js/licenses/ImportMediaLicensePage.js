@@ -87,6 +87,7 @@ define([
 
     _grid: null,
     _form: null,
+    _cache_form: null,
     _searchForm: null,
     _isAdvancedSearch: true,
 
@@ -160,6 +161,51 @@ define([
       );
     },
 
+    cacheRebuild: function () {
+      tools
+          .umcpCommand("licenses/cache/rebuild", {}).then(
+            lang.hitch(this, function (response) {
+              const res = response.result;
+              if (res.errorMessage) {
+                dialog.alert(result.errorMessage);
+              } else {
+                if (res.status === 1) {
+                 dialog.alert(_('Started cache update.'));
+                } else if (res.status === 2) {
+                 dialog.alert(_('Cache update already running.'));
+                }
+              }
+            })
+          )
+    },
+    // with msecs: repeat every msecs, without msecs: call only once.
+    getCacheStatus: function (msecs=null) {
+      tools.umcpCommand("licenses/cache/status", {}).then(
+          lang.hitch(this, function (response) {
+              try {
+                const result = response.result;
+                if (result.errorMessage) {
+                  dialog.alert(result.errorMessage);
+                } else {
+                  this._cache_form.getWidget('last_cache_build').set('content', _('Cache last updated:') + ' ' + result.time)
+                  if(result.status == true) {
+                    this._cache_form.getWidget('cache_build_status').set('content', _('Cache update status:') + ' ' + _('Updating'))
+                    this._cache_form.getButton('submit').set('disabled',true);
+                  } else {
+                    this._cache_form.getWidget('cache_build_status').set('content', _('Cache update status:') + ' ' + _('Finished'))
+                    this._cache_form.getButton('submit').set('disabled',false);
+                  }
+                }
+              if (msecs) {
+                window.setTimeout(lang.hitch(this,function() {
+                  this.getCacheStatus(msecs);
+                }),msecs);
+              }
+            } catch(e) {}
+          })
+      );
+    },
+
     //// lifecycle
     postMixInProperties: function () {
       this.inherited(arguments);
@@ -205,7 +251,49 @@ define([
           this.getImport(pickUpNumber);
         })
       );
+
+      this._cache_form = new Form({
+        widgets: [
+          {
+            type: Text,
+            name: "last_cache_build",
+            content: _('Cache last updated:')
+          },
+            {
+            type: Text,
+            name: "cache_build_status",
+            content: _('Cache update status:')
+          },
+        ],
+        buttons: [
+          {
+            name: "submit",
+            label: _("Update cache"),
+          },
+        ],
+      })
+
+      this._cache_form.on(
+        "submit",
+        lang.hitch(this, function () {
+          this.cacheRebuild();
+          this.getCacheStatus();
+        })
+      );
+
+      this.getCacheStatus(10000);
+
       this.addChild(this._form);
+      this.addChild(new Text({
+        'content': _("After importing new licenses, an update via the \"Update cache\" button is also required."),
+      }))
+      this.addChild(new Text({
+        'content': _("This process can take a long time if you have a large number of licenses."),
+      }))
+      this.addChild(this._cache_form);
+      this.addChild(new Text({
+        'content': _("This button is also used to update the cache after creating/deleting users or study groups.")
+      }))
     },
   });
 });

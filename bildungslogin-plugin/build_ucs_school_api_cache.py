@@ -41,6 +41,7 @@ We extensively use doctests in this script as a replacement to unittests. You ca
 import argparse
 import json
 import logging
+import os
 import re
 
 logger = logging.getLogger(__name__)
@@ -57,6 +58,7 @@ SEARCH_FILTER = ''.join([
 ])
 
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
+JSON_DIR = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/'
 
 PARSER = argparse.ArgumentParser('Create a cache file for the UCS@School API')
 PARSER.add_argument(
@@ -70,10 +72,8 @@ PARSER.add_argument(
     '--cache-file',
     metavar='FILE',
     default=JSON_PATH,
-    type=argparse.FileType('w'),
     help='The path to the cache file. (Default: %(default)s)',
 )
-
 
 def transform_to_dictionary(entries):
     """Transform the given LDAP objects to the format needed by UCS@School API.
@@ -465,17 +465,16 @@ def transform_to_dictionary(entries):
 
             processed_list['metadata'].append(obj)
 
-    assignments = processed_list['assignments'][:]
+    assignments_map = get_assignment_map(processed_list['assignments'])
     licenses = processed_list['licenses']
     users = processed_list['users']
     groups = processed_list['classes'] + processed_list['workgroups']
     schools = processed_list['schools']
 
     for _license in licenses:
-        assignments_to_remove = []
-        for assignment in assignments:
-            if _license['entry_dn'] in assignment['entry_dn']:
-                assignments_to_remove.append(assignment)
+        if _license['entry_dn'] in assignments_map:
+            assignments = assignments_map[_license['entry_dn']]
+            for assignment in assignments:
                 if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
                     if _license['bildungsloginLicenseType'] in ['SINGLE', 'VOLUME']:
                         for user in users:
@@ -497,11 +496,18 @@ def transform_to_dictionary(entries):
                                         add_user_to_license(_license, user)
                     else:
                         raise RuntimeError("Unknown license type: {}".format(_license['bildungsloginLicenseType']))
-        for assignment_to_remove in assignments_to_remove:
-            assignments.remove(assignment_to_remove)
 
     return processed_list
 
+def get_assignment_map(assignments):
+    assignments_map = {}
+    for assignment in assignments:
+        license_dn = assignment['entry_dn'].split(',', 1)[1]
+        if license_dn in assignments_map:
+            assignments_map[license_dn].append(assignment)
+        else:
+            assignments_map.update({license_dn: [assignment]})
+    return assignments_map
 
 def add_user_to_license(_license, user):
     roles = []
@@ -572,7 +578,22 @@ def main(cache_file):
         sum(len(objs) for objs in filtered_dict.values())))
 
     logger.debug("Convert to JSON and write to cache file")
-    json.dump(filtered_dict, cache_file, indent=2)
+
+    tmp_filepath = cache_file + '~'
+    tmp_file = open(tmp_filepath, 'w')
+    json.dump(filtered_dict, tmp_file)
+    tmp_file.close()
+
+    if os.path.isfile(cache_file):
+        os.unlink(cache_file)
+    os.rename(tmp_filepath, cache_file)
+
+    for (dirpath, dirnames, filenames) in os.walk(JSON_DIR):
+        for filename in filenames:
+            regex = re.compile('license-.*json')
+            if regex.match(filename):
+                os.unlink(dirpath + filename)
+        break
 
     logger.info("Finished")
 
