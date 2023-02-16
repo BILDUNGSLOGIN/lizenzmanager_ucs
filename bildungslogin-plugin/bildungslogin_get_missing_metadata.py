@@ -67,7 +67,7 @@ logger = logging.getLogger("get_missing_metadata")
 def usage():
     helptext = '''
 Usage:
-    get_missing_metadata.py [-h|--help] [-f|--fix]
+    bildungslogin_get_missing_metadata.py [-h|--help] [-f|--fix]
     -h | --help         print this help
     -f | --fix          fix missing metadata
 '''

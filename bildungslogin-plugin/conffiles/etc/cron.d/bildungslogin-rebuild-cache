@@ -1,7 +1,7 @@
 @%@UCRWARNING=# @%@
 
 @!@
-script = '/usr/sbin/build_ucs_school_api_cache.py'
+script = '/usr/sbin/bildungslogin_build_ucs_school_api_cache.py'
 interval = configRegistry.get('bildungslogin/rebuild-cache')
 if interval:
     refresh_interval = configRegistry.get('bildungslogin/refresh-cache')
