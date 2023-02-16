@@ -324,7 +324,7 @@ class LdapRepository:
         stat = os.stat(JSON_PATH)
         file_time = stat.st_mtime
 
-        if self._timestamp is None and file_time > self._timestamp:
+        if self._timestamp is None or file_time > self._timestamp:
             self._clear()
             f = open(JSON_PATH, 'r')
             json_string = f.read()
