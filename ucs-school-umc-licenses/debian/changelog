@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (2.2.3) unstable; urgency=medium
+
+  * ET-98 Fix a spelling error in the german translation.
+  * ET-92 Fix an issue with the cache reload functionality.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 16 Feb 2023 16:14:06 +0100
+
 ucs-school-umc-licenses (2.2.2) unstable; urgency=medium
 
   * ET-92 fix status callback scheduling.

@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.2.3) unstable; urgency=medium
+
+  * ET-12 Prefix the script names to avoid collision with other packages.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 16 Feb 2023 16:13:42 +0100
+
 bildungslogin-plugin (2.2.2) unstable; urgency=medium
 
   * ET-97 Write the json to a temporary file first to prevent unavailability.
