@@ -1,3 +1,9 @@
+udm-bildungslogin (2.2.0) unstable; urgency=medium
+
+  * Unified version scheme between all bildungslogin related packages.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 16 Feb 2023 16:14:28 +0100
+
 udm-bildungslogin (2.0.1) unstable; urgency=medium
 
   * ET-71 Remove not needed acl rule.

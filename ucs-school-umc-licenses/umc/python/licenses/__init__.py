@@ -66,7 +66,7 @@ from univention.udm.exceptions import SearchLimitReached
 _ = Translation("ucs-school-umc-licenses").translate
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
 JSON_DIR = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/'
-CACHE_BUILD_SCRIPT = '/usr/sbin/build_ucs_school_api_cache.py'
+CACHE_BUILD_SCRIPT = '/usr/sbin/bildungslogin_build_ucs_school_api_cache.py'
 
 
 def undefined_if_none(value, zero_as_none=False):  # type: (Optional[int], bool) -> Union[unicode, int]
@@ -324,7 +324,7 @@ class LdapRepository:
         stat = os.stat(JSON_PATH)
         file_time = stat.st_mtime
 
-        if self._timestamp is None and file_time > self._timestamp:
+        if self._timestamp is None or file_time > self._timestamp:
             self._clear()
             f = open(JSON_PATH, 'r')
             json_string = f.read()

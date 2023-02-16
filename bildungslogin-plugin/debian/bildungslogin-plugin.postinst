@@ -39,6 +39,6 @@ fi
 call_joinscript 70bildungslogin-plugin.inst
 
 echo "Generating cache file. This might take a while."
-python /usr/sbin/build_ucs_school_api_cache.py
+python /usr/sbin/bildungslogin_build_ucs_school_api_cache.py
 
 exit 0
