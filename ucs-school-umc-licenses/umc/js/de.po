@@ -617,7 +617,7 @@ msgstr "Cache aktualisieren"
 
 #: umc/js/licenses/ImportMediaLicensePage.js:192
 msgid "Updating"
-msgstr "Aktualisiert läuft"
+msgstr "Aktualisierung läuft"
 
 #: umc/js/licenses/LicenseDetailPage.js:192
 msgid "Usage"
