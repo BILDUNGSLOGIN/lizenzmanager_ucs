@@ -37,7 +37,6 @@ VERSION=1
 
 . /usr/share/univention-join/joinscripthelper.lib
 . /usr/share/univention-lib/ldap.sh
-. /usr/share/ucs-school-lib/base.sh
 
 joinscript_init
 
