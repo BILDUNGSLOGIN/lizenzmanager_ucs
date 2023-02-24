@@ -54,5 +54,5 @@ update_openapi_client \
   --insecure \
   --username  "$(hostname -s)\$" \
   --password "$(cat /etc/machine.secret)" \
-  "$LDAP_SERVER_NAME"
+  "$LDAP_MASTER"
 

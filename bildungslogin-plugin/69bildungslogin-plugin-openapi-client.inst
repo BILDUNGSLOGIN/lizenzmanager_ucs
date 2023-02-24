@@ -29,7 +29,7 @@
 
 ## joinscript api: bindpwdfile
 
-VERSION=2
+VERSION=3
 
 . /usr/share/univention-lib/all.sh
 . /usr/share/univention-join/joinscripthelper.lib
@@ -99,7 +99,8 @@ restart_ucsschool_apis_app() {
 
 setup_udm_rest_api_access "$@"
 # Joinscript version 2 requires reinstall even if the module is already there
-if [ $JS_LAST_EXECUTED_VERSION -lt 2 ] ; then
+# ... and version 3 too (we had to revert the change)
+if [ $JS_LAST_EXECUTED_VERSION -lt 3 ] ; then
   install_openapi_bildungslogin_modules
 else
   check_openapi_client_knows_bildungslogin_modules
