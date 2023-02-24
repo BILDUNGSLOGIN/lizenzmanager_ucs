@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.2.4) unstable; urgency=medium
+
+  * Revert change for installation on Backup nodes -- ET-57
+
+ -- Frank Greif <greif@univention.de>  Thu, 24 Feb 2023 15:34:17 +0100
+
 bildungslogin-plugin (2.2.3) unstable; urgency=medium
 
   * ET-12 Prefix the script names to avoid collision with other packages.
