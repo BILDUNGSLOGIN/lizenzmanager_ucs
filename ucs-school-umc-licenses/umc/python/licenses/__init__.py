@@ -1341,7 +1341,7 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.SCHOOL,
                                                [request.options.get("school")])
-        if not result['notEnoughLicenses']:
+        if len(result['failedAssignments']) == 0 or not result['notEnoughLicenses']:
             self.repository.add_assignments(request.options.get("licenseCodes"),
                                             ObjectType.SCHOOL,
                                             [request.options.get("school")])
