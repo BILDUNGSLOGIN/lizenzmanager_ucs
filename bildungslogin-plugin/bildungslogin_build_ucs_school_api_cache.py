@@ -477,9 +477,16 @@ def transform_to_dictionary(entries):
             for assignment in assignments:
                 if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
                     if _license['bildungsloginLicenseType'] in ['SINGLE', 'VOLUME']:
-                        for user in users:
-                            if user['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
-                                add_user_to_license(_license, user)
+                        user = False
+                        for _user in users:
+                            if _user['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
+                                user = _user
+                                break
+                        if user:
+                            add_user_to_license(_license, user)
+                        else:
+                            _license['quantity_assigned'] += 1
+
                     elif _license['bildungsloginLicenseType'] == 'WORKGROUP':
                         for group in groups:
                             if group['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
