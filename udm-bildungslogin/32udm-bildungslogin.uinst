@@ -47,11 +47,7 @@ ucs_unregisterLDAPExtension "$@" --udm_module bildungslogin/assignment || die
 ucs_unregisterLDAPExtension "$@" --udm_module bildungslogin/metadata || die
 ucs_unregisterLDAPExtension "$@" --udm_module bildungslogin/license || die
 
-echo "Deleting metadata cache..."
-univention-directory-manager container/cn remove "$@" \
-  --dn "cn=metadata,cn=bildungslogin,cn=vbm,cn=univention,$ldap_base"
-
-echo "License and assignment data has not been deleted."
+echo "Metadata, license and assignment data has not been deleted."
 
 joinscript_remove_script_from_status_file
 
