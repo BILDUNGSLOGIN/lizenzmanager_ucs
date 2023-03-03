@@ -537,6 +537,17 @@ class LdapRepository:
         metadata = license.medium
         return regex.match(metadata.bildungsloginMetaDataTitle.lower()) if metadata else False
 
+    def _match_license_search_pattern(self, license, regex):
+        if regex.match(license.bildungsloginLicenseCode.lower()):
+            return True
+
+        if license.medium:
+            return regex.match(
+                    license.medium.bildungsloginMetaDataTitle.lower()) or regex.match(
+                    license.medium.bildungsloginProductId.lower())
+
+        return False
+
     def filter_licenses(self, product_id=None, school=None, license_types=None,
                         is_advanced_search=None,
                         time_from=None,
@@ -575,10 +586,7 @@ class LdapRepository:
         if pattern and pattern != '*':
             pattern = re.compile(pattern.lower().replace('*', '.*'))
             licenses = filter(
-                lambda _license: pattern.match(_license.bildungsloginLicenseCode.lower())
-                                 or pattern.match(
-                    _license.medium.bildungsloginMetaDataTitle.lower()) or pattern.match(
-                    _license.medium.bildungsloginProductId.lower()), licenses)
+                lambda _license: self._match_license_search_pattern(_license, pattern), licenses)
 
         if publisher:
             licenses = filter(
@@ -1333,7 +1341,7 @@ class Instance(SchoolBaseModule):
         result = ah.assign_objects_to_licenses(request.options.get("licenseCodes"),
                                                ObjectType.SCHOOL,
                                                [request.options.get("school")])
-        if not result['notEnoughLicenses']:
+        if len(result['failedAssignments']) == 0 or not result['notEnoughLicenses']:
             self.repository.add_assignments(request.options.get("licenseCodes"),
                                             ObjectType.SCHOOL,
                                             [request.options.get("school")])

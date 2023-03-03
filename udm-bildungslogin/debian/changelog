@@ -1,3 +1,9 @@
+udm-bildungslogin (2.2.2) unstable; urgency=medium
+
+  * ET-120 Catch an exception by a normal search, when a license has no metadata.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 02 Mar 2023 16:35:22 +0100
+
 udm-bildungslogin (2.2.1) unstable; urgency=medium
 
   * Fix: remove unnecessary include from join scripts -- ET-106

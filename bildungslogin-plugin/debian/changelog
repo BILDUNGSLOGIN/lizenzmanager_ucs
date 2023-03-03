@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.2.5) unstable; urgency=medium
+
+  * ET-118 Still count assigned licenses by single and volume type.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 02 Mar 2023 16:34:58 +0100
+
 bildungslogin-plugin (2.2.4) unstable; urgency=medium
 
   * Revert change for installation on Backup nodes -- ET-57
