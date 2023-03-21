@@ -1,48 +1,25 @@
-include:
-  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
-  - local: '/.gitlab-ci/base.yml'
+default:
+  image: registry.gitlab.com/bildungslogin/lizenzmanager
 
 stages:
-  - "Generate child configs"
-  - "Start child pipelines"
+  - build
 
-generate-config:
-  stage: "Generate child configs"
-  rules:
-    - when: always
-  image:
-    name: $BUILD
-    entrypoint: [""]
+build-packages:
+  stage: build
   script:
-    - >
-      deb-builder
-      --yaml .gitlab-ci/base.yml
-      --yaml .gitlab-ci/base-deb.yml
-      --out generated-config-deb.yml
-      */debian/control
+    - cd $CI_PROJECT_DIR/bildungslogin-plugin
+    - dpkg-buildpackage
+    - cd $CI_PROJECT_DIR/python-bildungslogin
+    - dpkg-buildpackage
+    - cd $CI_PROJECT_DIR/udm-bildungslogin
+    - dpkg-buildpackage
+    - cd $CI_PROJECT_DIR/ucs-school-umc-licenses
+    - dpkg-buildpackage
   artifacts:
     paths:
-      - generated-config-deb.yml
-
-deb-pipeline:
-  stage: "Start child pipelines"
-  rules:
-    - if: "$CI_COMMIT_MESSAGE =~ /skip-build/ || $pipeline =~ /skip-build/"
-      when: never
-    - if: "$CI_COMMIT_MESSAGE =~ /force-ucslint/ || $pipeline =~ /force-ucslint/"
-    - if: "$CI_COMMIT_MESSAGE =~ /force-build/ || $pipeline =~ /force-build/"
-    - if: '$CI_COMMIT_BRANCH == $BRANCH'
-      changes:
-        - "*/debian/changelog"
-    - if: '$CI_COMMIT_BRANCH == $BRANCH'
-      when: manual
-      allow_failure: false
-  needs:
-    - generate-config
-  variables:
-    pipeline: $pipeline
-  trigger:
-    include:
-      - artifact: generated-config-deb.yml
-        job: generate-config
-    strategy: depend
+      - ./*.deb
+      - ./*.changes
+      - ./*.buildinfo
+      - ./*.dsc
+  only:
+    - main
