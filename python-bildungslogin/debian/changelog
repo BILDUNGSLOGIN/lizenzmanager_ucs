@@ -1,3 +1,9 @@
+python-bildungslogin (2.2.1) unstable; urgency=medium
+
+  * ET-124 Change the BildungsloginMetaDataDownloader to work the same way as the cron and to be able to work in UCS 4.4 and 5.0.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Wed, 22 Mar 2023 17:32:03 +0100
+
 python-bildungslogin (2.2.0) unstable; urgency=medium
 
   * Unified version scheme between all bildungslogin related packages.
