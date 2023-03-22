@@ -29,13 +29,10 @@
 
 from __future__ import absolute_import
 
+import subprocess
+
 from ldap.filter import filter_format
 
-from univention.bildungslogin.media_import.cmd_media_import import (
-    ScriptError,
-    get_config_from_file,
-    import_all_media_data,
-)
 from univention.listener import ListenerModuleHandler
 
 CONFIG_FILE = "/etc/bildungslogin/config.ini"
@@ -51,6 +48,13 @@ class BildungsloginMetaDataDownloader(ListenerModuleHandler):
     def create(self, dn, new):
         code = new.get("bildungsloginLicenseCode", [None])[0]
         product_id = new.get("bildungsloginProductId", [None])[0]
+
+        if hasattr(code, 'decode'):
+            code = code.decode("utf-8")
+
+        if hasattr(product_id, 'decode'):
+            product_id = product_id.decode("utf-8")
+
         self.logger.info(
             "New Bildungslogin license. Code: %r Product ID: %r DN: %r", code, product_id, dn
         )
@@ -58,33 +62,23 @@ class BildungsloginMetaDataDownloader(ListenerModuleHandler):
         meta_data_filter = filter_format(
             "(&(objectClass=bildungsloginMetaData)(bildungsloginProductId=%s))", (product_id,)
         )
+
         if self.lo.searchDn(meta_data_filter):
             self.logger.info("Meta data for product %r already exist in LDAP.", product_id)
             return
 
         self.logger.info("Fetching metadata for product %r...", product_id)
 
-        config = get_config_from_file(CONFIG_FILE)
-        if not all(
-            (
-                config.get("client_id"),
-                config.get("client_secret"),
-                config.get("scope"),
-                config.get("auth_server"),
-                config.get("resource_server"),
-            )
-        ):
-            raise ValueError("Incomplete configuration in %r.", CONFIG_FILE)
-
-        try:
-            import_all_media_data(
-                self.lo,
-                config["client_id"],
-                config["client_secret"],
-                config["scope"],
-                config["auth_server"],
-                config["resource_server"],
-                [product_id],
-            )
-        except ScriptError as exc:
-            self.logger.error("Error retrieving meta data for product %r: %s", product_id, exc)
+        process_output = subprocess.Popen(
+            ['sudo', 'bildungslogin-media-import', '--config-file', '/etc/bildungslogin/config.ini',
+             product_id],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT)
+        stdout, stderr = process_output.communicate()
+        if hasattr(stdout, 'decode'):
+            stdout = stdout.decode("utf-8")
+        if stderr is None:
+            if stdout.startswith("Error"):
+                self.logger.error(stdout.strip())
+            else:
+                self.logger.info(stdout.strip())
