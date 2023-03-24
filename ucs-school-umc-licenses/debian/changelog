@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.2.6) unstable; urgency=medium
+
+  * ET-125 Bugfix for wrong assignment status evaluation.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 24 Mar 2023 13:53:00 +0100
+
 ucs-school-umc-licenses (2.2.5) unstable; urgency=medium
 
   * ET-125 Analyse the status of failedAssignments in order to determine if the assignment should be done in the cache.
