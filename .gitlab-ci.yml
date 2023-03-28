@@ -15,11 +15,15 @@ build-packages:
     - dpkg-buildpackage
     - cd $CI_PROJECT_DIR/ucs-school-umc-licenses
     - dpkg-buildpackage
+    - cd $CI_PROJECT_DIR
+    - python rename_packages.py
+    - dpkg-scanpackages . > Packages
+    - gzip -9c Packages > Packages.gz
+    - python build_release.py
   artifacts:
     paths:
       - ./*.deb
-      - ./*.changes
-      - ./*.buildinfo
-      - ./*.dsc
+      - ./Packages*
+      - ./Release
   only:
     - main
