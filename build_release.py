@@ -31,17 +31,17 @@ def get_package_lines():
 
     return """\
 MD5Sum:
-{md5}            {package_size} Packages
-{md5gz}            {package_gz_size} Packages.gz
+ {md5}            {package_size} Packages
+ {md5gz}            {package_gz_size} Packages.gz
 SHA1:
-{SHA1}            {package_size} Packages
-{SHA1gz}            {package_gz_size} Packages.gz
+ {SHA1}            {package_size} Packages
+ {SHA1gz}            {package_gz_size} Packages.gz
 SHA256:
-{SHA256}            {package_size} Packages
-{SHA256gz}            {package_gz_size} Packages.gz
+ {SHA256}            {package_size} Packages
+ {SHA256gz}            {package_gz_size} Packages.gz
 SHA512:
-{SHA512}            {package_size} Packages
-{SHA512gz}            {package_gz_size} Packages.gz
+ {SHA512}            {package_size} Packages
+ {SHA512gz}            {package_gz_size} Packages.gz
     """.format(package_size=package_size,
                package_gz_size=package_gz_size,
                md5=package[0],
