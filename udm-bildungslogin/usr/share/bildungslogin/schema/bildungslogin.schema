@@ -9,6 +9,7 @@
 objectIdentifier bildungsloginOID 1.3.6.1.4.1.10176.99999.172906.1
 objectIdentifier directoryStringType 1.3.6.1.4.1.1466.115.121.1.15
 objectIdentifier integerType 1.3.6.1.4.1.1466.115.121.1.27
+objectIdentifier booleanType 1.3.6.1.4.1.1466.115.121.1.54
 
 # License attributes, OIDs from 100
 
@@ -103,6 +104,24 @@ attributetype ( bildungsloginOID:114
         EQUALITY caseExactMatch
         SYNTAX directoryStringType SINGLE-VALUE )
 
+attributetype ( bildungsloginOID:115
+        NAME 'bildungsloginUsageStatus'
+        DESC 'The usage status provided by the bildungslogin api'
+        EQUALITY caseExactMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
+
+attributetype ( bildungsloginOID:116
+        NAME 'bildungsloginExpiryDate'
+        DESC 'The date the license expires for usage'
+        EQUALITY caseIgnoreMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
+
+attributetype ( bildungsloginOID:117
+        NAME 'bildungsloginRegistered'
+        DESC 'If the license was already registered to the api'
+        EQUALITY caseExactMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
+
 # Metadata attributes, OIDs from 200
 
 attributetype ( bildungsloginOID:201
@@ -180,7 +199,7 @@ objectclass ( bildungsloginOID:1
         DESC 'A volume license provided by Bildungslogin'
         SUP top STRUCTURAL
         MUST ( cn $ bildungsloginLicenseCode $ bildungsloginProductId $ bildungsloginLicenseQuantity $ bildungsloginIgnoredForDisplay $ bildungsloginDeliveryDate $ bildungsloginLicenseSchool $ bildungsloginLicenseProvider $ bildungsloginLicenseType)
-        MAY ( bildungsloginPurchasingReference $ bildungsloginUtilizationSystems $ bildungsloginLicenseSpecialType $ bildungsloginValidityDuration $ bildungsloginValidityStartDate $ bildungsloginValidityEndDate ) )
+        MAY ( bildungsloginPurchasingReference $ bildungsloginUtilizationSystems $ bildungsloginLicenseSpecialType $ bildungsloginValidityDuration $ bildungsloginValidityStartDate $ bildungsloginValidityEndDate $ bildungsloginUsageStatus $ bildungsloginExpiryDate $ bildungsloginRegistered) )
 
 objectclass ( bildungsloginOID:2
         NAME 'bildungsloginMetaData'
