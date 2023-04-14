@@ -1,8 +1,13 @@
 default:
   image: registry.gitlab.com/bildungslogin/lizenzmanager
 
+variables:
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/release/${CI_PIPELINE_IID}"
+
 stages:
   - build
+  - package
+  - release
 
 build-packages:
   stage: build
@@ -19,13 +24,46 @@ build-packages:
     - python rename_packages.py
     - mkdir -p ucs_4.4-0-bildungslogin/all/ && mv *.deb ucs_4.4-0-bildungslogin/all/
     - dpkg-scanpackages . > Packages
-    - mv ucs_4.4-0-bildungslogin/all/* .
     - gzip -9c Packages > Packages.gz
     - python build_release.py
+    - mkdir dist
+    - mv ucs_4.4-0-bildungslogin/all/* dist
+    - mv Packages* dist
+    - mv Release dist
   artifacts:
     paths:
-      - ./*.deb
-      - ./Packages*
-      - ./Release
+      - ./dist/*
   only:
     - main
+
+package-packages:
+  stage: package
+  needs:
+    - job: build-packages
+      artifacts: true
+  script:
+    - cd dist
+    - tar -czf dist.tgz *
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file dist.tgz ${PACKAGE_REGISTRY_URL}/dist.tgz
+  only:
+    - main
+
+release-packages:
+  stage: release
+  needs:
+    - job: package-packages
+  script:
+    - echo "running release_job for $CI_COMMIT_SHA"
+  only:
+    - main
+  release:
+    tag_name: 'v$CI_PIPELINE_IID'
+    description: 'v$CI_PIPELINE_IID'
+    ref: '$CI_COMMIT_SHA'
+    assets:
+      links:
+        - name: "dist"
+          url: "${PACKAGE_REGISTRY_URL}/dist.tgz"
+          link_type: package
+
