@@ -117,6 +117,12 @@ attributetype ( bildungsloginOID:116
         SYNTAX directoryStringType SINGLE-VALUE )
 
 attributetype ( bildungsloginOID:117
+        NAME 'bildungsloginValidityStatus'
+        DESC 'The validity of the license, dictated by the bildungslogin api'
+        EQUALITY caseIgnoreMatch
+        SYNTAX directoryStringType SINGLE-VALUE )
+
+attributetype ( bildungsloginOID:118
         NAME 'bildungsloginRegistered'
         DESC 'If the license was already registered to the api'
         EQUALITY caseExactMatch

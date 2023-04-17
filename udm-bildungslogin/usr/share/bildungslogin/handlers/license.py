@@ -218,6 +218,13 @@ property_descriptions = {
         may_change=True,
         editable=False,
     ),
+    "validity_status": univention.admin.property(
+        short_description=_("Validity status"),
+        long_description=_("The validity of the license, dictated by the bildungslogin api"),
+        syntax=univention.admin.syntax.boolean,
+        may_change=True,
+        editable=False,
+    ),
     "registered": univention.admin.property(
         short_description=_("Registered"),
         long_description=_("If the license was already registered to the api"),
@@ -242,7 +249,7 @@ layout = [
             ["delivery_date", "school"],
             ["num_assigned", "num_expired"],
             ["usage_status", "expiry_date"],
-            ["registered"],
+            ["validity_status", "registered"],
         ],
     )
 ]
@@ -266,6 +273,7 @@ for udm_name, ldap_name in [
     ("license_type", "bildungsloginLicenseType"),
     ("usage_status", "bildungsloginUsageStatus"),
     ("expiry_date", "bildungsloginExpiryDate"),
+    ("validity_status", "bildungsloginValidityStatus"),
     ("registered", "bildungsloginRegistered")
 ]:
     mapping.register(udm_name, ldap_name, None, univention.admin.mapping.ListToString)

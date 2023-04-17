@@ -66,6 +66,7 @@ class BildungsloginLicenseObjectProperties(GenericObjectProperties):
         "assignments": dn_list_property_encoder_for("bildungslogin/assignment"),
         "usage_status": DisabledPropertyEncoder,
         "expiry_date": DatePropertyEncoder,
+        "validity_status": DisabledPropertyEncoder,
         "registered": DisabledPropertyEncoder,
     }
 
@@ -75,16 +76,6 @@ class BildungsloginLicenseObject(GenericObject):
 
     udm_prop_class = BildungsloginLicenseObjectProperties
     now = datetime.date.today()
-
-    @property
-    def validity_status(self):
-        if self.props.expiry_date is None:
-            return True
-
-        if self.props.expiry_date >= self.now:
-            return True
-
-        return False
 
 
 class BildungsloginLicenseModule(GenericModule):
