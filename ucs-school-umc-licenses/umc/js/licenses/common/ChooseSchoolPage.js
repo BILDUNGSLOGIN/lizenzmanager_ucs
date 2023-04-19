@@ -72,10 +72,6 @@ define([
       return this._trySelectSchoolDeferred;
     },
 
-    onSchoolChosen: function (school) {
-      // event stub
-    },
-
     //// lifecycle
     buildRendering: function () {
       this.inherited(arguments);
@@ -119,7 +115,7 @@ define([
           });
 
           if (school) {
-            this.onSchoolChosen(school, hasMultipleSchools);
+            this.chooseSchool(school, hasMultipleSchools);
             if (this._trySelectSchoolDeferred) {
               this._trySelectSchoolDeferred.resolve();
             }
@@ -143,7 +139,7 @@ define([
             const schools = this._form.getWidget("school").getAllItems();
             const hasMultipleSchools = schools.length > 1;
             if (!hasMultipleSchools && schools[0]) {
-              this.onSchoolChosen(schools[0], hasMultipleSchools);
+              this.chooseSchool(schools[0], hasMultipleSchools);
             }
           }
         })
