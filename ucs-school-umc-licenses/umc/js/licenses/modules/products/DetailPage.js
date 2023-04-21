@@ -42,6 +42,7 @@ define([
   "umc/tools",
   "umc/widgets/Page",
   "umc/widgets/Grid",
+  'umc/widgets/StandbyMixin',
   "put-selector/put",
   "umc/i18n!umc/modules/licenses",
 ], function (
@@ -58,6 +59,7 @@ define([
   tools,
   Page,
   Grid,
+  StandbyMixin,
   put,
   _
 ) {
@@ -160,9 +162,6 @@ define([
     //// overwrites
     fullWidth: true,
 
-    //// self
-    schoolId: null, // required parameter
-
     _table: null,
     _grid: null,
 
@@ -180,11 +179,11 @@ define([
       this._set("product", product);
     },
 
-    load: function (schoolId, productId) {
+    load: function (productId) {
       return this.standbyDuring(
         tools
           .umcpCommand("licenses/products/get", {
-            school: schoolId,
+            school: this.getSchoolId(),
             productId: productId,
           })
           .then(
@@ -202,6 +201,9 @@ define([
 
     //// lifecycle
     postMixInProperties: function () {
+      this.inherited(arguments);
+
+
       this.headerButtons = [
         {
           name: "close",
@@ -229,7 +231,7 @@ define([
               "licenses",
               "licenses/licenses",
               {
-                moduleState: `school:${this.schoolId}:license:${licenses[0].licenseCode}`,
+                moduleState: `school:${this.getSchoolId()}:license:${licenses[0].licenseCode}`,
               }
             );
           }),

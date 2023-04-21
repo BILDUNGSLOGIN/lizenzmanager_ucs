@@ -41,7 +41,7 @@ define([
   'dojox/html/entities',
   'dijit/Tooltip',
   'umc/store',
-  'umc/widgets/Page',
+  'umc/widgets/ContainerWidget',
   'umc/widgets/Grid',
   'umc/widgets/SearchForm',
   'umc/widgets/Text',

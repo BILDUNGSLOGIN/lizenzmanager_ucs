@@ -445,8 +445,8 @@ define([
       this.selectChild(this._chooseSchoolPage);
     },
 
-    _updateModuleState: function() {
-      this.set('moduleState', this.get('moduleState'));
+    updateModuleState: function(state) {
+      this.set('moduleState', state);
     },
 
     _getModuleStateAttr: function() {
@@ -476,63 +476,48 @@ define([
       return state.join(':');
     },
 
-    _setModuleStateAttr: function(state) {
-      this._set('moduleState', state);
-      if (state === this.get('moduleState')) {
-        return;
-      }
+    onClose: function() {
+      this.inherited(arguments);
+      this.module.close();
+      return true;
+    },
 
-      const stateParts = state.split(':');
-      const schoolKey = stateParts.shift();
-      const schoolId = stateParts.shift();
-      if (schoolKey === 'school' && schoolId) {
-        this._trySelectSchool(schoolId).then(
-            lang.hitch(this, function() {
-              const detailKey = stateParts.shift();
-              if (
-                  detailKey === 'license' &&
-                  this.moduleFlavor === 'licenses/licenses'
-              ) {
-                const licenseCode = stateParts.join(':');
-                if (licenseCode) {
-                  this._showLicense(licenseCode);
-                }
-              } else if (
-                  detailKey === 'product' &&
-                  this.moduleFlavor === 'licenses/products'
-              ) {
-                const productId = stateParts.join(':');
-                if (productId) {
-                  this._showProduct(productId);
-                }
-              }
-            }),
-        );
-      }
+
+    setSchoolLabel: function(schoolLabel) {
+      this.set(
+          'schoolLabel',
+          _('for %(school)s', {
+            school: entities.encode(schoolLabel),
+          }),
+      );
     },
 
     //// lifecycle
     buildRendering: function() {
       this.inherited(arguments);
 
+      const props = {
+        moduleState: this.moduleState,
+        updateModuleState: lang.hitch(this, 'updateModuleState'),
+        setSchoolLabel: lang.hitch(this, 'setSchoolLabel'),
+      };
+
       switch (this.moduleFlavor) {
         case 'licenses/allocation':
-          this.allocationModule = new AllocationModule();
-          this.addChild(this.allocationModule);
+          this.module = new AllocationModule(props);
           break;
         case 'licenses/licenses':
-          this.licenseModule = new LicensesModule();
-          this.addChild(this.licenseModule);
+          this.module = new LicensesModule(props);
           break;
         case 'licenses/products':
-          this.productsModule = new ProductsModule();
-          this.addChild(this.productsModule);
+          this.module = new ProductsModule(props);
           break;
         case 'licenses/import':
-          this.importModule = new ImportModule();
-          this.addChild(this.importModule);
+          this.module = new ImportModule(props);
           break;
       }
+
+      this.addChild(this.module);
     },
   });
 });

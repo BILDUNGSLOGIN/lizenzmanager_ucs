@@ -1551,6 +1551,7 @@ class Instance(SchoolBaseModule):
         }
         """
         MODULE.info("licenses.products.get: options: %s" % str(request.options))
+        self.repository.update()
         school = request.options.get("school")
         product_id = request.options.get("productId")
         licenses = self.repository.get_licenses_by_product_id(product_id, school)
