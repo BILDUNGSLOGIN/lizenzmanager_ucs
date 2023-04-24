@@ -1,16 +1,15 @@
 define([
-    "dojo/_base/declare",
-    "umc/widgets/Module",
-    "umc/widgets/Text"
+  'dojo/_base/declare',
+  '../common/Module',
+    './import/import'
+], function(declare, Module, ImportPage) {
+  return declare('umc.modules.licenses.import', [Module], {
 
-], function (declare, Module, Text) {
-    return declare("umc.modules.licenses.import", [Module], {
-        _text: new Text({content: "import"}),
+    buildRendering: function() {
+      this.inherited(arguments);
+      this.importPage = new ImportPage();
 
-        buildRendering: function () {
-            this.inherited(arguments);
-            this.addChild(this._text);
-            this.selectChild(this._text);
-        }
-    })
-})
+      this.addPage(this.importPage);
+    },
+  });
+});
