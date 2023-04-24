@@ -41,7 +41,7 @@ define([
   'dojox/html/entities',
   'dijit/Tooltip',
   'umc/store',
-  'umc/widgets/ContainerWidget',
+  '../../common/Page',
   'umc/widgets/Grid',
   'umc/widgets/SearchForm',
   'umc/widgets/Text',
@@ -77,6 +77,7 @@ define([
     standbyDuring: null, // required parameter
     moduleFlavor: null, // required parameter
     showChangeSchoolButton: false,
+    activeCover: [],
 
     _grid: null,
     _gridGroup: null,
@@ -279,6 +280,17 @@ define([
       // event stub
     },
 
+    onPageChange: function() {
+      this.activeCover.map(function(element) {
+        Tooltip.hide(element);
+      });
+      return true;
+    },
+
+    registerCover: function(target) {
+      this.activeCover.push(target);
+    },
+
     refreshGrid: function(values, resize = false) {
       values.school = this.getSchoolId();
       if (this.moduleFlavor === 'licenses/allocation' && this.allocation) {
@@ -339,6 +351,8 @@ define([
 
     buildRendering: function() {
       this.inherited(arguments);
+
+      this.activeCover = [];
 
       this._assignmentText = new Text({
         region: 'nav',
@@ -563,6 +577,7 @@ define([
                 // .field-title should always exist. just to be safe
                 const tooltipTarget =
                     query('.field-title', rowNode)[0] || rowNode;
+                this.registerCover(tooltipTarget);
                 on(rowNode, mouse.enter, function() {
                   Tooltip.show(_('Loading cover...'), tooltipTarget);
                   let showImage = true;

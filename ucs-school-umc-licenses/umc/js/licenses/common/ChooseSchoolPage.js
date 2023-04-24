@@ -36,7 +36,7 @@ define([
   'dojox/html/entities',
   'umc/widgets/ComboBox',
   'umc/widgets/Form',
-  'umc/widgets/Page',
+  './Page',
   'umc/widgets/Text',
   'umc/i18n!umc/modules/licenses',
 ], function(

@@ -47,9 +47,11 @@ define([
     },
 
     selectPage: function(page) {
-      this.removeChild(this.currentPage());
-      this._currentPageId = page;
-      this.addChild(this.getPageById(page));
+      if (this.currentPage().onPageChange()) {
+        this.removeChild(this.currentPage());
+        this._currentPageId = page;
+        this.addChild(this.getPageById(page));
+      }
     },
 
     nextPage: function() {
