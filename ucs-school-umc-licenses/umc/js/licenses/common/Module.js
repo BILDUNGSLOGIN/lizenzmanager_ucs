@@ -64,7 +64,7 @@ define([
       let state = this.moduleState.split(':');
       while (state.length > 1) {
         this.state[state.shift()] = state.shift().
-            replaceAll('_', ':').
+            replaceAll('+', ':').
             split(',');
       }
     },
@@ -78,7 +78,7 @@ define([
         } else {
           state.push(key);
           state.push(this.state[key].map(function(element) {
-            return element.replaceAll(':', '_');
+            return element.replaceAll(':', '+');
           }).join(','));
         }
       }
