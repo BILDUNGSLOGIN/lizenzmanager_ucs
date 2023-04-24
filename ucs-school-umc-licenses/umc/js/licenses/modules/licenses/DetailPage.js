@@ -40,7 +40,7 @@ define([
   "dijit/_TemplatedMixin",
   "umc/tools",
   "umc/dialog",
-  "umc/widgets/Page",
+  '../../common/Page',
   "umc/widgets/Grid",
   "umc/widgets/CheckBox",
   "umc/widgets/ContainerWidget",
@@ -252,8 +252,6 @@ define([
           .then(
             lang.hitch(this, function (response) {
               const license = response.result;
-              console.log('license', license);
-              console.log('this', this._grid.actions[0]);
               this.set("license", license);
               this._headerButtons.save.set("disabled", true);
               return license.licenseCode;

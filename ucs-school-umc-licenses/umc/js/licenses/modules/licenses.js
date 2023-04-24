@@ -14,8 +14,15 @@ define([
     pages: [],
 
     openDetailPage: function(licenseId) {
+      this.updateState('license', [licenseId]);
       this.selectPage(2);
-      this.currentPage().load(this.getSchoolId(), licenseId);
+      this.currentPage().load(licenseId);
+    },
+
+    afterChooseSchool: function() {
+      if (this.state.license && this.state.license[0] !== '') {
+        this.openDetailPage(this.state.license[0]);
+      }
     },
 
     buildRendering: function() {
@@ -31,11 +38,5 @@ define([
       });
       this.addPage(detailPage);
     },
-
-    // buildRendering: function() {
-    //   this.inherited(arguments);
-    //   this._text = new Text({content: 'licenses'});
-    //   this.addChild(this._text);
-    // },
   });
 });
