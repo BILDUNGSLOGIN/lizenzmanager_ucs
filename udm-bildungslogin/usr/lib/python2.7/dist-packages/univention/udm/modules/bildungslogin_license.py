@@ -65,6 +65,7 @@ class BildungsloginLicenseObjectProperties(GenericObjectProperties):
         "num_available": StringIntPropertyEncoder,
         "assignments": dn_list_property_encoder_for("bildungslogin/assignment"),
         "usage_status": DisabledPropertyEncoder,
+        "expired": ExpiredPropertyEncoder,
         "expiry_date": DatePropertyEncoder,
         "validity_status": DisabledPropertyEncoder,
         "registered": DisabledPropertyEncoder,
