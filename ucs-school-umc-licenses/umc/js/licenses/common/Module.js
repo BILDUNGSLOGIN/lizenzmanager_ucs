@@ -20,13 +20,17 @@ define([
     updateModuleState: function(state) {},
 
     getSchoolId: function() {
+      return this.school.id;
+    },
+
+    getSchool: function() {
       return this.school;
     },
 
     afterChooseSchool: function() {},
 
     chooseSchool: function(school, hasMultiple) {
-      this.school = school.id;
+      this.school = school;
       this.multipleSchools = hasMultiple;
       this.setSchoolLabel(school.label);
       this.nextPage();
@@ -52,6 +56,7 @@ define([
         this._currentPageId = page;
         this.addChild(this.getPageById(page));
       }
+      this.currentPage().afterPageChange();
     },
 
     nextPage: function() {

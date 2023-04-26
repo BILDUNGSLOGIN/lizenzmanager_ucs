@@ -36,7 +36,7 @@ define([
   'umc/widgets/Module',
   'umc/widgets/Text',
   './licenses/common/ChooseSchoolPage',
-  './licenses/modules/allocation',
+  './licenses/modules/assignment',
   './licenses/modules/import',
   './licenses/modules/licenses',
   './licenses/modules/products',
@@ -56,7 +56,7 @@ define([
     Module,
     Text,
     ChooseSchoolPage,
-    AllocationModule,
+    AssignmentModule,
     ImportModule,
     LicensesModule,
     ProductsModule,
@@ -462,7 +462,7 @@ define([
             state.push(this._licenseDetailPage.license.licenseCode);
           }
           break;
-        case 'licenses/allocation':
+        case 'licenses/assignment':
           break;
         case 'licenses/products':
           if (this._productDetailPage && this._productDetailPage.selected) {
@@ -504,7 +504,7 @@ define([
 
       switch (this.moduleFlavor) {
         case 'licenses/allocation':
-          this.module = new AllocationModule(props);
+          this.module = new AssignmentModule(props);
           break;
         case 'licenses/licenses':
           this.module = new LicensesModule(props);

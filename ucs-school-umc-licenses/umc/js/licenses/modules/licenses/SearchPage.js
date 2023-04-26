@@ -296,7 +296,7 @@ define([
       return result;
     },
 
-    // formats the status text for the allocation grid
+    // formats the status text for the assignment grid
     _allocation_footer: function(nItems) {
       if (!nItems) { return ''; }
       var counted = this._licenses_selected();

@@ -43,6 +43,8 @@ define([
       return true;
     },
 
+    afterPageChange: function() {},
+
     buildRendering: function() {
       this.inherited(arguments);
     },

@@ -69,7 +69,7 @@ define([
     put,
     _,
 ) {
-  return declare('umc.modules.licenses.product.SearchPage', [Page], {
+  return declare('umc.modules.licenses.ProductSearchPage', [Page], {
     //// overwrites
     fullWidth: true,
 
@@ -77,7 +77,6 @@ define([
     standbyDuring: null, // required parameter
     moduleFlavor: null, // required parameter
     showChangeSchoolButton: false,
-    activeCover: [],
 
     _grid: null,
     _gridGroup: null,
@@ -89,13 +88,12 @@ define([
     availableSum: '-',
     userCount: null,
 
-    _setAllocationAttr: function(allocation) {
-      this._set('allocation', allocation);
+    updateText: function() {
       domClass.remove(this._assignmentText.domNode, 'dijitDisplayNone');
-      if (allocation.usernames) {
+      if (this.getAssignmentType() === 'user') {
         this.removeChild(this._grid);
         this.removeChild(this._gridGroup);
-        const count = allocation.usernames.length;
+        const count = this.getUserIds().length;
         const id = this.id + '-tooltipNode';
         const msg = `
 				<p>
@@ -121,7 +119,7 @@ define([
             'click',
             lang.hitch(this, function(evt) {
               let label = '';
-              for (const username of this.allocation.usernames) {
+              for (const username of this.getUserIds()) {
                 label += `<div>${entities.encode(username)}</div>`;
               }
               Tooltip.show(label, node);
@@ -135,7 +133,7 @@ define([
               );
             }),
         );
-      } else if (allocation.workgroup || allocation.schoolClass) {
+      } else if (this.getAssignmentType() === 'workgroup' || this.getAssignmentType() === 'schoolClass') {
         this.removeChild(this._grid);
         const id = this.id + '-tooltip';
         const msg = `
@@ -158,18 +156,9 @@ define([
             'click',
             lang.hitch(this, function(evt) {
               let label = '';
-              if (
-                  this.allocation.workgroup &&
-                  this.allocation.workgroup !== '__all__'
-              ) {
-                label = `<div>${entities.encode(
-                    this.allocation.workgroupName,
+              label = `<div>${entities.encode(
+                    this.getGroup(),
                 )}</div>`;
-              } else {
-                label = `<div>${entities.encode(
-                    this.allocation.className,
-                )}</div>`;
-              }
 
               Tooltip.show(label, node);
               evt.stopImmediatePropagation();
@@ -226,18 +215,10 @@ define([
           'click',
           lang.hitch(this, function(evt) {
             let label = '';
-            if (
-                this.allocation.workgroup &&
-                this.allocation.workgroup !== '__all__'
-            ) {
+
               label = `<div>${entities.encode(
-                  this.allocation.workgroupName,
+                  this.getGroup(),
               )}</div>`;
-            } else {
-              label = `<div>${entities.encode(
-                  this.allocation.className,
-              )}</div>`;
-            }
 
             Tooltip.show(label, node);
             evt.stopImmediatePropagation();
@@ -280,79 +261,61 @@ define([
       // event stub
     },
 
-    onPageChange: function() {
-      this.activeCover.map(function(element) {
-        Tooltip.hide(element);
-      });
-      return true;
-    },
-
-    registerCover: function(target) {
-      this.activeCover.push(target);
+    onShowProduct: function(productId) {
+      // event stub
     },
 
     refreshGrid: function(values, resize = false) {
       values.school = this.getSchoolId();
-      if (this.moduleFlavor === 'licenses/assignment' && this.allocation) {
-        if (this.allocation.usernames) {
-          values.licenseType = ['SINGLE', 'VOLUME'];
-          values.showOnlyAvailable = true;
-          this._grid.filter(values);
-          this.removeChild(this._gridGroup);
-          this.addChild(this._grid);
-          if (resize) {
-            this._grid.resize();
-          }
-        } else if (this.allocation.workgroup) {
-          if (this.allocation.workgroup && this.allocation.workgroup !==
-              '__all__') {
-            values.groupName = this.parseGroupName(this.allocation.workgroup);
-          }
-          if (this.allocation.schoolClass && this.allocation.schoolClass !==
-              '__all__') {
-            values.groupName = this.parseGroupName(this.allocation.schoolClass);
-          }
-          values.licenseType = ['WORKGROUP'];
-          values.showOnlyAvailable = true;
-          this._gridGroup.filter(values).then(() => {
-            if (
-                this._gridGroup.collection.data[0] &&
-                this._gridGroup.collection.data[0].user_count !== null
-            ) {
-              this._set('userCount',
-                  this._gridGroup.collection.data[0].user_count);
-              this.showUserCount();
-            }
-          });
-          this.removeChild(this._grid);
-          this.addChild(this._gridGroup);
-          if (resize) {
-            this._gridGroup.resize();
-          }
-        }
-      } else {
+      if (this.getUserIds()) {
+        values.licenseType = ['SINGLE', 'VOLUME'];
+        values.showOnlyAvailable = true;
         this._grid.filter(values);
+        this.removeChild(this._gridGroup);
+        this.addChild(this._grid);
+        if (resize) {
+          this._grid.resize();
+        }
+      } else if (['workgroup', 'schoolClass'].includes(this.getAssignmentType())) {
+        values.groupName = this.parseGroupName(this.getGroup());
+        values.licenseType = ['WORKGROUP'];
+        values.showOnlyAvailable = true;
+        this._gridGroup.filter(values).then(() => {
+          if (
+              this._gridGroup.collection.data[0] &&
+              this._gridGroup.collection.data[0].user_count !== null
+          ) {
+            this._set('userCount',
+                this._gridGroup.collection.data[0].user_count);
+            this.showUserCount();
+          }
+        });
+        this.removeChild(this._grid);
+        this.addChild(this._gridGroup);
+        if (resize) {
+          this._gridGroup.resize();
+        }
       }
+    },
+
+    afterPageChange: function() {
+      this.updateText();
     },
 
     //// lifecycle
     postMixInProperties: function() {
       this.inherited(arguments);
       const headerButtons = [];
-      if (this.moduleFlavor === 'licenses/assignment') {
-        headerButtons.push({
-          name: 'close',
-          label: _('Change user selection'),
-          callback: lang.hitch(this, 'onChangeUsers'),
-        });
-      }
+      headerButtons.push({
+        name: 'close',
+        label: _('Change user selection'),
+        callback: lang.hitch(this, 'onChangeUsers'),
+      });
       this.headerButtons = headerButtons;
     },
 
     buildRendering: function() {
       this.inherited(arguments);
-
-      this.activeCover = [];
 
       this._assignmentText = new Text({
         region: 'nav',
@@ -378,63 +341,16 @@ define([
       });
 
       const actions = [];
-      if (this.moduleFlavor === 'licenses/assignment') {
-        actions.push({
-          name: 'edit',
-          label: _('To license selection'),
-          isStandardAction: true,
-          isContextAction: true,
-          isMultiAction: false,
-          callback: lang.hitch(this, function(_idxs, products) {
-            if (this.allocation.usernames) {
-              this.onProductChosen(
-                  products[0].productId,
-                  this.allocation.usernames,
-              );
-            } else if (this.allocation.school) {
-              this.onProductChosenForSchool(
-                  products[0].productId,
-                  this.allocation.school,
-              );
-            } else if (
-                this.allocation.schoolClass &&
-                this.allocation.schoolClass !== '__all__'
-            ) {
-              this.onProductChosenForWorkgroup(
-                  products[0].productId,
-                  '',
-                  this.allocation.schoolClass,
-                  '',
-                  this.allocation.className,
-                  this.userCount,
-              );
-            } else if (
-                this.allocation.workgroup &&
-                this.allocation.workgroup !== '__all__'
-            ) {
-              this.onProductChosenForWorkgroup(
-                  products[0].productId,
-                  this.allocation.workgroup,
-                  '',
-                  this.allocation.workgroupName,
-                  '',
-                  this.userCount,
-              );
-            }
-          }),
-        });
-      } else {
-        actions.push({
-          name: 'edit',
-          label: _('Show details'),
-          isStandardAction: true,
-          isContextAction: true,
-          isMultiAction: false,
-          callback: lang.hitch(this, function(_idxs, products) {
-            this.openDetailPage(products[0].productId);
-          }),
-        });
-      }
+      actions.push({
+        name: 'edit',
+        label: _('To license selection'),
+        isStandardAction: true,
+        isContextAction: true,
+        isMultiAction: false,
+        callback: lang.hitch(this, function(_idxs, products) {
+          this.setProductId(products[0].productId);
+        }),
+      });
       const columns = [
         {
           name: 'productId',
@@ -577,7 +493,6 @@ define([
                 // .field-title should always exist. just to be safe
                 const tooltipTarget =
                     query('.field-title', rowNode)[0] || rowNode;
-                this.registerCover(tooltipTarget);
                 on(rowNode, mouse.enter, function() {
                   Tooltip.show(_('Loading cover...'), tooltipTarget);
                   let showImage = true;
@@ -649,9 +564,7 @@ define([
 
       this.addChild(this._assignmentText);
       this.addChild(this._searchForm);
-      if (this.moduleFlavor !== 'licenses/assignment') {
-        this.addChild(this._grid);
-      }
+      this.addChild(this._grid);
     },
   });
 });
