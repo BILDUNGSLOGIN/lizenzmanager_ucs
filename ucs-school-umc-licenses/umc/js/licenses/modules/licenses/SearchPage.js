@@ -29,35 +29,61 @@
 /*global define*/
 
 define([
-      'dojo/_base/declare',
-      'dojo/_base/lang',
-      'dojo/dom',
-      'dojo/dom-class',
-      'dojo/on',
-      'dojo/date/locale',
-      'dojo/Deferred',
-      'dojox/html/entities',
-      'dijit/Tooltip',
-      'umc/dialog',
-      'umc/store',
-      'umc/tools',
-      '../../common/Page',
-      'umc/widgets/Grid',
-      'umc/widgets/CheckBox',
-      'umc/widgets/DateBox',
-      'umc/widgets/ComboBox',
-      'umc/widgets/SearchForm',
-      'umc/widgets/Text',
-      'umc/widgets/TextBox',
-      'umc/widgets/SuggestionBox',
-      'umc/widgets/ProgressInfo',
-      'umc/i18n!umc/modules/licenses'],
-    function(declare, lang, dom, domClass, on, dateLocale, Deferred, entities,
-        Tooltip, dialog, store, tools, Page, Grid, CheckBox, DateBox, ComboBox,
-        SearchForm, Text, TextBox, SuggestionBox, ProgressInfo, _) {
-      return declare('umc.modules.licenses.license.SearchPage', [Page], {
-        //// overwrites
-        fullWidth: true,
+  'dojo/_base/declare',
+  'dojo/_base/lang',
+  'dojo/dom',
+  'dojo/dom-class',
+  'dojo/on',
+  'dojo/date/locale',
+  'dojo/Deferred',
+  'dojox/html/entities',
+  'dijit/Tooltip',
+  'umc/dialog',
+  'umc/store',
+  'umc/tools',
+  '../../common/Page',
+  'umc/widgets/Grid',
+  'umc/widgets/CheckBox',
+  'umc/widgets/DateBox',
+  'umc/widgets/ComboBox',
+  'umc/widgets/Form',
+  'umc/widgets/SearchForm',
+  'umc/widgets/Text',
+  'umc/widgets/TextBox',
+  'umc/widgets/SuggestionBox',
+  'umc/widgets/ProgressInfo',
+  'umc/i18n!umc/modules/licenses',
+  '../../../libraries/FileSaver',
+  '../../../libraries/base64',
+], function(
+    declare,
+    lang,
+    dom,
+    domClass,
+    on,
+    dateLocale,
+    Deferred,
+    entities,
+    Tooltip,
+    dialog,
+    store,
+    tools,
+    Page,
+    Grid,
+    CheckBox,
+    DateBox,
+    ComboBox,
+    Form,
+    SearchForm,
+    Text,
+    TextBox,
+    SuggestionBox,
+    ProgressInfo,
+    _,
+) {
+  return declare('umc.modules.licenses.license.SearchPage', [Page], {
+    //// overwrites
+    fullWidth: true,
 
         //// self
         standbyDuring: null, // required parameter
@@ -69,7 +95,8 @@ define([
         _gridFooter: null,
         _gridOverview: null,
         _gridGroup: null,
-        _searchForm: null,
+        _excelExportForm: null,
+    _searchForm: null,
 
         _isAdvancedSearch: false,
 
@@ -344,7 +371,7 @@ define([
 
         refreshGrid: function(values) {
           values.isAdvancedSearch = this._isAdvancedSearch;
-          values.school = this.getSchoolId();
+          values.onlyAvailableLicenses = false;values.school = this.getSchoolId();
           values.isAdvancedSearch = true;
           values.onlyAvailableLicenses = true;
 
@@ -363,7 +390,18 @@ define([
           values.licenseType = '';
         },
 
-        // allow only either class or workgroup to be set
+        exportToExcel: function(values) {
+      tools.umcpCommand('licenses/export_to_excel', values).then(
+          lang.hitch(this, function(response) {
+            const res = response.result;
+            if (res.errorMessage) {
+              dialog.alert(result.errorMessage);
+            } else {
+              saveAs(b64toBlob(res.file), res.fileName);
+            }
+          }),
+      );
+    },// allow only either class or workgroup to be set
         onChooseDifferentClass: function() {
           const workgroupWidget = this._searchForm.getWidget('workgroup');
           workgroupWidget.setValue('');
@@ -401,7 +439,41 @@ define([
             this.removeChild(this._grid);
           }
 
-          const widgets = [
+          this._excelExportForm = new Form({
+        widgets: [],
+        buttons: [
+          {
+            name: 'submit',
+            label: _('Export to Excel'),
+            style: 'margin-top:20px'
+          },
+        ],
+      });
+
+      this._excelExportForm.on(
+          'submit',
+          lang.hitch(this, function() {
+            values = this._searchForm.value;
+            values.isAdvancedSearch = this._isAdvancedSearch;
+            values.onlyAvailableLicenses = false;
+            values.school = this.getSchoolId();
+            values.licenseCodes = this._grid.getSelectedItems().map(i => i.licenseCode);
+
+            if (values.licenseType == '') {
+              values.licenseType = [];
+            } else if (values.licenseType == 'SINGLE') {
+              values.licenseType = ['SINGLE'];
+            } else if (values.licenseType == 'VOLUME') {
+              values.licenseType = ['VOLUME'];
+            } else if (values.licenseType == 'SCHOOL') {
+              values.licenseType = ['SCHOOL'];
+            } else if (values.licenseType == 'WORKGROUP') {
+              values.licenseType = ['WORKGROUP'];
+            }
+
+            this.exportToExcel(values);
+          }),
+      );const widgets = [
             {
               type: DateBox,
               name: 'timeFrom',
@@ -661,6 +733,6 @@ define([
               then(lang.hitch(this, function(data) {
                 this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
               }));
-        },
+        this.addChild(this._excelExportForm);},
       });
     });

@@ -41,13 +41,17 @@ define([
   'dojox/html/entities',
   'dijit/Tooltip',
   'umc/store',
+  'umc/tools',
   '../../common/Page',
   'umc/widgets/Grid',
+  'umc/widgets/Form',
   'umc/widgets/SearchForm',
   'umc/widgets/Text',
   'umc/widgets/TextBox',
   'put-selector/put',
   'umc/i18n!umc/modules/licenses',
+  '../../../libraries/FileSaver',
+  '../../../libraries/base64',
 ], function(
     declare,
     lang,
@@ -61,8 +65,10 @@ define([
     entities,
     Tooltip,
     store,
+    tools,
     Page,
     Grid,
+    Form,
     SearchForm,
     Text,
     TextBox,
@@ -76,11 +82,13 @@ define([
     //// self
     standbyDuring: null, // required parameter
     moduleFlavor: null, // required parameter
+    getSchoolId: function() {}, // required parameter
     showChangeSchoolButton: false,
     activeCover: [],
 
     _grid: null,
     _gridGroup: null,
+    _excelExportForm: null,
     _searchForm: null,
 
     maxUserSum: '-',
@@ -335,6 +343,19 @@ define([
       }
     },
 
+    exportToExcel: function(values) {
+      tools.umcpCommand('licenses/products/export_to_excel', values).then(
+          lang.hitch(this, function(response) {
+            const res = response.result;
+            if (res.errorMessage) {
+              dialog.alert(result.errorMessage);
+            } else {
+              saveAs(b64toBlob(res.file), res.fileName);
+            }
+          }),
+      );
+    },
+
     //// lifecycle
     postMixInProperties: function() {
       this.inherited(arguments);
@@ -358,6 +379,28 @@ define([
         region: 'nav',
         class: 'dijitDisplayNone',
       });
+
+      this._excelExportForm = new Form({
+        widgets: [],
+        buttons: [
+          {
+            name: 'submit',
+            label: _('Export to Excel'),
+            style: 'margin-top:20px'
+          },
+        ],
+      });
+
+      this._excelExportForm.on(
+          'submit',
+          lang.hitch(this, function() {
+            values = this._searchForm.value
+            values.school = this.getSchoolId(),
+            values.productIds = this._grid.getSelectedItems().map(i => i.productId),
+            values.pattern = this._searchForm.value.pattern
+            this.exportToExcel(values);
+          }),
+      );
 
       const widgets = [
         {
@@ -554,6 +597,7 @@ define([
         sortIndex: -8,
         addTitleOnCellHoverIfOverflow: true,
       });
+      
       this._gridGroup = new Grid({
         actions: actions,
         columns: columnsGroup,
@@ -652,6 +696,7 @@ define([
       if (this.moduleFlavor !== 'licenses/assignment') {
         this.addChild(this._grid);
       }
+      this.addChild(this._excelExportForm);
     },
   });
 });
