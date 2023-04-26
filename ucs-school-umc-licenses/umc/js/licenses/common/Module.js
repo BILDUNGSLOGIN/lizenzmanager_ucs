@@ -75,14 +75,10 @@ define([
       let state = [];
 
       for (const key in this.state) {
-        if (key === 'schoolId') {
-          state.push(this.state.schoolId);
-        } else {
-          state.push(key);
-          state.push(this.state[key].map(function(element) {
-            return element.replaceAll(':', '+');
-          }).join(','));
-        }
+        state.push(key);
+        state.push(this.state[key].map(function(element) {
+          return element.replaceAll(':', '+');
+        }).join(','));
       }
 
       this.updateModuleState(state.join(':'));
@@ -90,6 +86,11 @@ define([
 
     updateState: function(key, values) {
       this.state[key] = values;
+      this._updateState();
+    },
+
+    deleteState: function(key) {
+      delete this.state[key];
       this._updateState();
     },
 
