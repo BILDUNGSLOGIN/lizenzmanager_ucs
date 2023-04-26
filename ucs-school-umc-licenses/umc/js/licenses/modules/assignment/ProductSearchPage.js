@@ -267,7 +267,7 @@ define([
 
     refreshGrid: function(values, resize = false) {
       values.school = this.getSchoolId();
-      if (this.getUserIds()) {
+      if (this.getAssignmentType() === 'user') {
         values.licenseType = ['SINGLE', 'VOLUME'];
         values.showOnlyAvailable = true;
         this._grid.filter(values);
@@ -300,6 +300,7 @@ define([
 
     afterPageChange: function() {
       this.updateText();
+      this.refreshGrid({pattern: ''}, true);
     },
 
     //// lifecycle
@@ -564,7 +565,6 @@ define([
 
       this.addChild(this._assignmentText);
       this.addChild(this._searchForm);
-      this.addChild(this._grid);
     },
   });
 });

@@ -540,6 +540,10 @@ define([
           this.headerButtons = headerButtons;
         },
 
+        afterPageChange: function() {
+          this.refreshGrid({pattern: ''});
+        },
+
         buildRendering: function() {
           this.inherited(arguments);
 
