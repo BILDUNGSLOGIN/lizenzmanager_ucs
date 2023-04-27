@@ -5,13 +5,15 @@ define([
   './assignment/UserSelectionPage',
   './assignment/ProductSearchPage',
   './assignment/LicenseSearchPage',
+  'umc/i18n!umc/modules/licenses',
 ], function(
     declare,
     lang,
     Module,
     UserSelectionPage,
     ProductSearchPage,
-    LicenseSearchPage) {
+    LicenseSearchPage,
+    _) {
   return declare('umc.modules.licenses.assignment', [Module], {
     userIds: [],
     productId: null,
@@ -22,6 +24,7 @@ define([
       this.userIds = userIds;
       this.setAssignmentType('user');
       this.updateState('user', userIds);
+      this._headerButtons.toChangeUser.set('visible', true);
       this.nextPage();
     },
 
@@ -30,11 +33,12 @@ define([
       this.group = group;
       this.updateState('type', [type]);
       this.updateState('group', [group]);
+      this._headerButtons.toChangeUser.set('visible', true);
       this.nextPage();
     },
 
     getGroup: function() {
-      return this.group
+      return this.group;
     },
 
     setProductId: function(productId) {
@@ -65,13 +69,61 @@ define([
       return this.productId;
     },
 
+    toChangeUser: function() {
+      if (this.state.product) {
+        this.deleteState('product');
+      }
+
+      if (this.state.user) {
+        this.deleteState('user');
+      }
+
+      if (this.state.group) {
+        this.deleteState('group');
+      }
+
+      this._headerButtons.toChangeUser.set('visible', false);
+      this.selectPage(1);
+    },
+
+    backToChooseSchool: function() {
+      this.inherited(arguments);
+      this._headerButtons.toChangeUser.set('visible', false);
+    },
+
+    backToChooseProduct: function() {
+      if (this.state.product) {
+        this.deleteState('product');
+      }
+      this._headerButtons.changeMedium.set('visible', false);
+      this.selectPage(2);
+    },
+
+    postMixInProperties: function() {
+      this.inherited(arguments);
+
+      this.addHeaderButton({
+        name: 'toChangeUser',
+        label: _('Change user selection'),
+        callback: lang.hitch(this, 'toChangeUser'),
+        visible: false,
+      });
+
+      this.addHeaderButton({
+        name: 'changeMedium',
+        label: _('Change medium'),
+        callback: lang.hitch(this, 'backToChooseProduct'),
+        visible: true,
+      });
+    },
+
     afterChooseSchool: function() {
       if (this.state.user && this.state.user[0] !== '') {
         this.setUserIds(this.state.user);
       }
 
       if (this.state.type && this.state.group[0] !== '') {
-        this.setGroup(this.state.group[0], this.state.type[0])
+        this.setGroup(this.state.group[0], this.state.type[0]);
       }
 
       if (this.state.product && this.state.product[0] !== '') {
@@ -88,6 +140,9 @@ define([
       this._assignmentType = null;
 
       const userSelectionPage = new UserSelectionPage({
+        'setHeaderButtons': lang.hitch(this, 'setHeaderButtons'),
+        'getMultipleSchools': lang.hitch(this, 'getMultipleSchools'),
+        'backToChooseSchool': lang.hitch(this, 'backToChooseSchool'),
         'getSchoolId': lang.hitch(this, 'getSchoolId'),
         'setUserIds': lang.hitch(this, 'setUserIds'),
         'setGroup': lang.hitch(this, 'setGroup'),

@@ -527,17 +527,6 @@ define([
             {id: '', label: ''},
             {id: 'SINGLE', label: _('Single license')},
             {id: 'VOLUME', label: _('Volume license')}];
-          headerButtons.push({
-            name: 'changeUsers',
-            label: _('Change user selection'),
-            callback: lang.hitch(this, 'onChangeUsers'),
-          });
-          headerButtons.push({
-            name: 'changeMedium',
-            label: _('Change medium'),
-            callback: lang.hitch(this, 'onChangeProduct'),
-          });
-          this.headerButtons = headerButtons;
         },
 
         afterPageChange: function() {

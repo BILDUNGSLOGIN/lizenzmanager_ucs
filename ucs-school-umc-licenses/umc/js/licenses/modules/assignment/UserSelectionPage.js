@@ -111,28 +111,6 @@ define([
       );
     },
 
-    onBack: function() {
-      // event stub
-    },
-
-    onChooseDifferentSchool: function() {
-      // event stub
-    },
-
-    onSchoolSelected: function(schoolId) {
-    },
-
-    onLicenseTypeSelected: function(licenseType) {
-    },
-
-    onWorkgroupSelected: function(
-        classId,
-        workgroupId,
-        className,
-        workgroupName,
-    ) {
-    },
-
     onSearchSubmit: function(values) {
       this.toogleNotification('');
       if (this.selectedLicenseType === 'SINGLE_AND_VOLUME') {
@@ -244,14 +222,12 @@ define([
       this.removeChild(this._grid);
       const licenseTypeWidget = this._searchForm.getWidget('licenseType');
       licenseTypeWidget.reset();
-      this._headerButtons.changeSchool.set('visible', true);
-      this._headerButtons.back.set('visible', false);
       this.addChild(this._searchForm);
     },
 
     isButtonDisabled: function(schoolClass, workgroup) {
       isDisabled = false;
-      if (schoolClass == '__all__' && workgroup == '__all__') {
+      if (schoolClass === '__all__' && workgroup === '__all__') {
         isDisabled = true;
       }
       return isDisabled;
@@ -261,29 +237,11 @@ define([
       this._searchForm.getButton('submit').set('disabled', disable);
     },
 
-    //// lifecycle
-    postMixInProperties: function() {
-      this.inherited(arguments);
-      this.headerButtons = [
-        {
-          name: 'changeSchool',
-          label: _('Change school'),
-          callback: lang.hitch(this, 'onChooseDifferentSchool'),
-          visible: false,
-        },
-        {
-          name: 'back',
-          label: _('Back'),
-          callback: lang.hitch(this, function() {
-            this.onBackBtnClick();
-          }),
-          visible: false,
-        },
-      ];
-    },
-
     afterPageChange: function() {
       this.removeChild(this._grid);
+      if (this._searchForm) {
+        this.removeChild(this._searchForm);
+      }
 
       const notificationWidget = {
         type: Text,

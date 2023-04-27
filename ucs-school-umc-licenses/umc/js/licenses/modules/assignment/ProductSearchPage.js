@@ -303,18 +303,6 @@ define([
       this.refreshGrid({pattern: ''}, true);
     },
 
-    //// lifecycle
-    postMixInProperties: function() {
-      this.inherited(arguments);
-      const headerButtons = [];
-      headerButtons.push({
-        name: 'close',
-        label: _('Change user selection'),
-        callback: lang.hitch(this, 'onChangeUsers'),
-      });
-      this.headerButtons = headerButtons;
-    },
-
     buildRendering: function() {
       this.inherited(arguments);
 

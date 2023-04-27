@@ -15,6 +15,7 @@ define([
     _currentPageId: 0,
     multipleSchools: false,
     state: {},
+    headerButtons: [],
 
     //required
     updateModuleState: function(state) {},
@@ -27,6 +28,10 @@ define([
       return this.school;
     },
 
+    getMultipleSchools: function() {
+      return this.multipleSchools;
+    },
+
     afterChooseSchool: function() {},
 
     chooseSchool: function(school, hasMultiple) {
@@ -35,6 +40,7 @@ define([
       this.setSchoolLabel(school.label);
       this.nextPage();
       this.updateState('school', [school.id]);
+      this._headerButtons.changeSchool.set('visible', true);
       this.afterChooseSchool();
     },
 
@@ -57,6 +63,7 @@ define([
         this.addChild(this.getPageById(page));
       }
       this.currentPage().afterPageChange();
+      this.resetView();
     },
 
     nextPage: function() {
@@ -102,6 +109,33 @@ define([
     resetState: function() {
       this.state = [];
       this.updateModuleState('');
+    },
+
+    setHeaderButtons: function(headerButtons) {
+      this.headerButtons = headerButtons;
+    },
+
+    addHeaderButton: function(headerButton) {
+      this.headerButtons.push(headerButton);
+    },
+
+    backToChooseSchool: function() {
+      this.resetState();
+      this._headerButtons.changeSchool.set('visible', false);
+      this.selectPage(0);
+    },
+
+    postMixInProperties: function() {
+      this.inherited(arguments);
+
+      this.setHeaderButtons([
+        {
+          name: 'changeSchool',
+          label: _('Change school'),
+          callback: lang.hitch(this, 'backToChooseSchool'),
+          visible: false,
+        },
+      ]);
     },
 
     buildRendering: function() {
