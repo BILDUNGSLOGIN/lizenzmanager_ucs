@@ -311,8 +311,6 @@ define([
 
     _toggleSearch: function() {
       this._isAdvancedSearch = !this._isAdvancedSearch;
-      // toggle visibility
-      console.log('Search', this);
 
       [
         'timeFrom',
@@ -379,6 +377,8 @@ define([
     refreshGrid: function(values) {
       values.isAdvancedSearch = this._isAdvancedSearch;
       values.school = this.getSchoolId();
+      values.isAdvancedSearch = true;
+      values.onlyAvailableLicenses = true;
 
       if (values.licenseType == '') {
         values.licenseType = [];
