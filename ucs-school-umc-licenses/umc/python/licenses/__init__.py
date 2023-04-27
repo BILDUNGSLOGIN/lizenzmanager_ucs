@@ -59,6 +59,7 @@ from univention.management.console.modules.sanitizers import (
     StringSanitizer,
 )
 from univention.udm.exceptions import SearchLimitReached
+from .cache import *
 from .constants import *
 
 _ = Translation("ucs-school-umc-licenses").translate
@@ -230,6 +231,9 @@ class Instance(SchoolBaseModule):
             "publisher": meta_data.bildungsloginMetaDataPublisher if meta_data else '',
             "users": assigned_users,
             "licenseType": license.bildungsloginLicenseType,
+            "usageStatus": license.bildungsloginUsageStatus,
+            "expiryDate": optional_date2str(license.bildungsloginExpiryDate),
+            "validityStatus": license.bildungsloginValidityStatus,
         }
         MODULE.info("licenses.get: result: %s" % str(result))
         self.finished(request.id, result)

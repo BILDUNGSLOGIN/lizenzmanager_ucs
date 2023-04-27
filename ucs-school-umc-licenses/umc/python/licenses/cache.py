@@ -1,7 +1,9 @@
+import os
 from datetime import date, datetime
 import json
 from os.path import exists
 import re
+from univention.management.console.log import MODULE
 
 from univention.bildungslogin.handlers import (
     AssignmentHandler,
@@ -11,8 +13,10 @@ from univention.bildungslogin.handlers import (
 )
 
 from univention.bildungslogin.models import LicenseType, Role, Status
+from univention.udm.exceptions import SearchLimitReached
 
 from .constants import *
+
 
 class LdapUser:
     ucsschoolRole = None  # type: list
@@ -50,7 +54,9 @@ class LdapLicense:
                  bildungslogin_license_quantity=0,
                  bildungslogin_validity_start_date=None,
                  bildungslogin_validity_end_date=None, bildungslogin_purchasing_reference=None,
-                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None, quantity_assigned=None,
+                 bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None,
+                 bildungslogin_usage_status=None, bildungslogin_expiry_date=None, bildungslogin_validity_status=None,
+                 quantity_assigned=None,
                  user_strings=None, groups=None, publisher=None):
         if groups:
             self.groups = groups
@@ -94,6 +100,10 @@ class LdapLicense:
         self.publisher = publisher
         self.user_strings = user_strings
         self.medium = None
+
+        self.bildungsloginUsageStatus = bildungslogin_usage_status
+        self.bildungsloginExpiryDate = bildungslogin_expiry_date
+        self.bildungsloginValidityStatus = bildungslogin_validity_status
 
     def add_user_string(self, user_string):
         self.user_strings.append(user_string)

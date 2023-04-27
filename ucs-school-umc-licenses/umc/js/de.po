@@ -698,6 +698,33 @@ msgstr "ausgewählte Benutzer anzeigen"
 msgid "show selected workgroup/class"
 msgstr "ausgewählte Lerngruppe/Klasse anzeigen"
 
+msgid "Validity status"
+msgstr "Nutzungsstatus"
+
+msgid "Usage status"
+msgstr "Nutzungsstatus"
+
+msgid "Expiry date"
+msgstr "Ablaufdatum"
+
+msgid "invalid"
+msgstr "ungültig"
+
+msgid "valid"
+msgstr "gültig"
+
+msgid "not activated"
+msgstr "nicht aktiviert"
+
+msgid "activated"
+msgstr "aktiviert"
+
+msgid "undefined"
+msgstr "unbestimmt"
+
+msgid "unlimited"
+msgstr "unbefristet"
+
 #~ msgid "Advanced search"
 #~ msgstr "Erweiterte Suche"
 

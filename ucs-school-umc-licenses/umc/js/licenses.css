@@ -28,37 +28,21 @@
 }
 
 .licensesTable__data {
-  flex: 1 1 auto;
-  display: grid;
-  grid-template-columns: auto auto auto 1fr;
-  gap: 0px 16px;
+  width: 100%;
   height: min-content;
 }
 
-/*.licensesTable__licenses .dgrid {*/
-/*  max-height: 40em !important;*/
-/*}*/
-
-/*.licensesTable__sum .field-selectorType-checkbox {*/
-/*  visibility: hidden !important;*/
-/*  opacity: 0 !important;*/
-/*}*/
-
-/*.licensesTable__sum .dgrid-sort-arrow {*/
-/*  display: none !important;*/
-/*}*/
-
-/*.licensesTable__sum .dgrid-column-0 {*/
-/*  padding-left: 74px;*/
-/*}*/
-
-.productsTable__data {
-  flex: 1 1 auto;
+.licensesTable__data {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0px 16px;
+  grid-template-columns: auto auto auto;
+}
+
+.licensesTable__row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
   height: min-content;
 }
+
 
 .licensesTable__dataLabel {
   font-weight: 500;

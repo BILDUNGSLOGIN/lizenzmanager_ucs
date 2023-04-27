@@ -29,48 +29,48 @@
 /*global define*/
 
 define([
-  "dojo/_base/declare",
-  "dojo/_base/lang",
-  "dojo/dom-class",
-  "dojo/on",
-  "dojo/date/locale",
-  "dojo/store/Memory",
-  "dojo/store/Observable",
-  "dijit/_WidgetBase",
-  "dijit/_TemplatedMixin",
-  "umc/tools",
-  "umc/dialog",
+  'dojo/_base/declare',
+  'dojo/_base/lang',
+  'dojo/dom-class',
+  'dojo/on',
+  'dojo/date/locale',
+  'dojo/store/Memory',
+  'dojo/store/Observable',
+  'dijit/_WidgetBase',
+  'dijit/_TemplatedMixin',
+  'umc/tools',
+  'umc/dialog',
   '../../common/Page',
-  "umc/widgets/Grid",
-  "umc/widgets/CheckBox",
-  "umc/widgets/ContainerWidget",
-  "put-selector/put",
-  "umc/i18n!umc/modules/licenses",
-], function (
-  declare,
-  lang,
-  domClass,
-  on,
-  dateLocale,
-  Memory,
-  Observable,
-  _WidgetBase,
-  _TemplatedMixin,
-  tools,
-  dialog,
-  Page,
-  Grid,
-  CheckBox,
-  ContainerWidget,
-  put,
-  _
+  'umc/widgets/Grid',
+  'umc/widgets/CheckBox',
+  'umc/widgets/ContainerWidget',
+  'put-selector/put',
+  'umc/i18n!umc/modules/licenses',
+], function(
+    declare,
+    lang,
+    domClass,
+    on,
+    dateLocale,
+    Memory,
+    Observable,
+    _WidgetBase,
+    _TemplatedMixin,
+    tools,
+    dialog,
+    Page,
+    Grid,
+    CheckBox,
+    ContainerWidget,
+    put,
+    _,
 ) {
   const _Table = declare(
-    "umc.modules.licenses.license.DetailPage",
-    [_WidgetBase, _TemplatedMixin],
-    {
-      //// overwrites
-      templateString: `
+      'umc.modules.licenses.license.DetailPage',
+      [_WidgetBase, _TemplatedMixin],
+      {
+        //// overwrites
+        templateString: `
 			<div class="licensesTable">
 				<div
 					class="licensesTable__coverWrapper"
@@ -91,138 +91,201 @@ define([
 			</div>
 		`,
 
-      //// self
-      standbyDuring: null, // required
+        //// self
+        standbyDuring: null, // required
 
-      license: null,
-      _setLicenseAttr: function (license) {
-        domClass.remove(this._coverFallbackNode, "dijitDisplayNone");
-        domClass.add(this._coverNode, "dijitDisplayNone");
-        if (license.cover) {
-          this._coverFallbackNode.innerHTML = _("Loading cover...");
-          const img = new Image();
-          on(
-            img,
-            "load",
-            lang.hitch(this, function () {
-              domClass.add(this._coverFallbackNode, "dijitDisplayNone");
-              domClass.remove(this._coverNode, "dijitDisplayNone");
-              this._coverNode.src = license.cover;
-            })
-          );
-          on(
-            img,
-            "error",
-            lang.hitch(this, function () {
-              this._coverFallbackNode.innerHTML = _("No cover available");
-            })
-          );
-          img.src = license.cover;
-        } else {
-          this._coverFallbackNode.innerHTML = _("No cover available");
-        }
-
-        this._tableNode.innerHTML = "";
-        function e(id) {
-          let val = license[id];
-          if (val === null) {
-            val = "";
-          }
-          if (typeof val === "string") {
-            val = val || "---";
-          }
-          if (id === "productId" && val.startsWith("urn:bilo:medium:")) {
-            val = val.slice(16, val.length);
-          }
-          return val;
-        }
-
-        function d(id) {
-          let date = license[id];
-          if (date) {
-            date = dateLocale.format(new Date(date), {
-              fullYear: true,
-              selector: "date",
-            });
+        license: null,
+        _setLicenseAttr: function(license) {
+          domClass.remove(this._coverFallbackNode, 'dijitDisplayNone');
+          domClass.add(this._coverNode, 'dijitDisplayNone');
+          if (license.cover) {
+            this._coverFallbackNode.innerHTML = _('Loading cover...');
+            const img = new Image();
+            on(
+                img,
+                'load',
+                lang.hitch(this, function() {
+                  domClass.add(this._coverFallbackNode, 'dijitDisplayNone');
+                  domClass.remove(this._coverNode, 'dijitDisplayNone');
+                  this._coverNode.src = license.cover;
+                }),
+            );
+            on(
+                img,
+                'error',
+                lang.hitch(this, function() {
+                  this._coverFallbackNode.innerHTML = _('No cover available');
+                }),
+            );
+            img.src = license.cover;
           } else {
-            date = "---";
+            this._coverFallbackNode.innerHTML = _('No cover available');
           }
-          return date;
-        }
 
-        const ignore = lang.hitch(this, function ignore() {
-          this._ignore = new CheckBox({
-            value: license.ignore,
-            onChange: lang.hitch(this, function () {
-              this.onIgnoreCheckBoxClicked();
-            }),
+          this._tableNode.innerHTML = '';
+
+          function e(id) {
+            let val = license[id];
+            if (val === null) {
+              val = '';
+            }
+            if (typeof val === 'string') {
+              val = val || '---';
+            }
+            if (id === 'productId' && val.startsWith('urn:bilo:medium:')) {
+              val = val.slice(16, val.length);
+            }
+            return val;
+          }
+
+          function d(id) {
+            let date = license[id];
+            if (date) {
+              date = dateLocale.format(new Date(date), {
+                fullYear: true,
+                selector: 'date',
+              });
+            } else {
+              date = '---';
+            }
+            return date;
+          }
+          
+           function validityStatus(id) {
+            let val = license[id];
+
+            if (val === null) {
+              val = '';
+            }
+            if (typeof val === 'string') {
+              val = val || _('invalid');
+            }
+
+            return val;
+          }
+
+          function usageStatus(id) {
+            let val = license[id];
+
+            if (val === null) {
+              val = '';
+            }
+            if (typeof val === 'string') {
+              val = val || _('not activated');
+            }
+
+            return val;
+          }
+          
+          function expiryDate() {
+            if (license['expiryDate']) {
+              return d(license['expiryDate']);
+            }
+
+            if(license['usageStatus']) {
+              return _('unlimited');
+            } else {
+              return _('undefined');
+            }
+          }
+
+          const ignore = lang.hitch(this, function ignore() {
+            this._ignore = new CheckBox({
+              value: license.ignore,
+              onChange: lang.hitch(this, function() {
+                this.onIgnoreCheckBoxClicked();
+              }),
+            });
+            return this._ignore.domNode;
           });
-          return this._ignore.domNode;
-        });
 
-        const data = [
-          [_("Title"), e("productName"), _("Ignore"), ignore()],
-          [_("Author"), e("author"), _("Delivery"), d("importDate")],
-          [
-            _("Publisher"),
-            e("publisher"),
-            _("Validity start"),
-            d("validityStart"),
-          ],
-          [_("Medium ID"), e("productId"), _("Validity end"), d("validityEnd")],
-          [
-            _("License code"),
-            e("licenseCode"),
-            _("Validity span"),
-            e("validitySpan"),
-          ],
-          [
-            _("License type"),
-            e("licenseTypeLabel"),
-            _("Max. Users"),
-            e("countAquired"),
-          ],
-          [
-            _("Special license"),
-            e("specialLicense"),
-            _("Available"),
-            e("countAvailable"),
-          ],
-          [_("Reference"), e("reference"), _("Assigned"), e("countAssigned")],
-          [_("Usage"), e("usage"), _("Expired"), e("countExpired")],
-        ];
+          const data = [
+            [
+              [_('Title'), e('productName')],
+              [
+                _('Author'),
+                e('author')],
+              [
+                _('Publisher'),
+                e('publisher')],
+              [
+                _('Medium ID'),
+                e('productId')],
+              [
+                _('License code'),
+                e('licenseCode')],
+              [
+                _('License type'),
+                e('licenseTypeLabel')],
+              [
+                _('Special license'),
+                e('specialLicense')],
+              [_('Reference'), e('reference')],
+              [_('Usage'), e('usage')],
+            ],
+            [
+              [_('Ignore'), ignore()],
+              [
+                _('Delivery'),
+                d('importDate')],
+              [
+                _('Validity start'),
+                d('validityStart')],
+              [
+                _('Validity end'),
+                d('validityEnd')],
+              [
+                _('Validity span'),
+                e('validitySpan')],
+              [
+                _('Max. Users'),
+                e('countAquired')],
+              [
+                _('Available'),
+                e('countAvailable')],
+              [_('Assigned'), e('countAssigned')],
+              [_('Expired'), e('countExpired')],
+            ],
+            [
+              [_('Validity status'), validityStatus('validityStatus')],
+              [_('Usage status'), usageStatus('usageStatus')],
+              [_('Expiry date'), expiryDate()],
+            ],
+          ];
 
-        for (const row of data) {
-          put(
-            this._tableNode,
-            "div.licensesTable__dataLabel",
-            row[0],
-            "+ div",
-            row[1],
-            "+ div.licensesTable__dataLabel",
-            row[2],
-            "+ div",
-            row[3]
-          );
-        }
-        this._set("license", license);
+          for (const column of data) {
+            let _column = put('div.licensesTable__column');
+            for (const row of column) {
+              let _row = put('div.licensesTable__row');
+              put(_row,
+                  'div.licensesTable__dataLabel',
+                  row[0],
+                  '+ div.licensesTable__dataValue',
+                  row[1],
+              );
+              put(_column, _row);
+            }
+            put(this._tableNode, _column);
+          }
+
+          this._set('license', license);
+        },
+
+        onIgnoreCheckBoxClicked: function() {
+          // evt stub
+        },
+
+        ignoreChanged: function() {
+          return this.getIgnore() !== this.license.ignore;
+        },
+
+        getIgnore: function() {
+          return this._ignore.get('value');
+        },
       },
-
-      onIgnoreCheckBoxClicked: function () {
-        // evt stub
-      },
-
-      ignoreChanged: function () {
-        return this.getIgnore() !== this.license.ignore;
-      },
-
-      getIgnore: function () {
-        return this._ignore.get("value");
-      },
-    }
   );
 
-  return declare("umc.modules.licenses.LicenseDetailPage", [Page], {
+  return declare('umc.modules.licenses.LicenseDetailPage', [Page], {
     //// overwrites
     fullWidth: true,
 
@@ -231,198 +294,180 @@ define([
     _grid: null,
 
     license: null,
-    _setLicenseAttr: function (license) {
-      this._table.set("license", license);
+    _setLicenseAttr: function(license) {
+      this._table.set('license', license);
       this._grid.moduleStore.setData(license.users);
       this._grid.filter();
-      this._set("license", license);
-      if (license.licenseType === 'SINGLE' || license.licenseType === 'VOLUME') {
-        this._grid.set("actions", this._actions);
+      this._set('license', license);
+      if (license.licenseType === 'SINGLE' || license.licenseType ===
+          'VOLUME') {
+        this._grid.set('actions', this._actions);
       } else {
-        this._grid.set("actions", []);
+        this._grid.set('actions', []);
       }
     },
 
-    load: function (licenseCode) {
+    load: function(licenseCode) {
       return this.standbyDuring(
-        tools
-          .umcpCommand("licenses/get", {
+          tools.umcpCommand('licenses/get', {
             licenseCode: licenseCode,
-          })
-          .then(
-            lang.hitch(this, function (response) {
-              const license = response.result;
-              this.set("license", license);
-              this._headerButtons.save.set("disabled", true);
-              return license.licenseCode;
-            })
-          )
+          }).then(
+              lang.hitch(this, function(response) {
+                const license = response.result;
+                this.set('license', license);
+                this._headerButtons.save.set('disabled', true);
+                return license.licenseCode;
+              }),
+          ),
       );
     },
 
-    save: function () {
+    save: function() {
       if (!this._table.ignoreChanged()) {
         this.onBack();
       } else {
         this.standbyDuring(
-          tools
-            .umcpCommand("licenses/set_ignore", {
+            tools.umcpCommand('licenses/set_ignore', {
               licenseCode: this.license.licenseCode,
               ignore: this._table.getIgnore(),
-            })
-            .then(
-              lang.hitch(this, function (response) {
-                const result = response.result;
-                if (result.errorMessage) {
-                  dialog.alert(result.errorMessage);
-                } else {
-                  this.onBack();
-                }
-              })
-            )
+            }).then(
+                lang.hitch(this, function(response) {
+                  const result = response.result;
+                  if (result.errorMessage) {
+                    dialog.alert(result.errorMessage);
+                  } else {
+                    this.onBack();
+                  }
+                }),
+            ),
         );
       }
     },
 
-    removeLicenseFromUsers: function (usernames) {
-      tools
-        .umcpCommand("licenses/remove_from_users", {
-          licenseCode: this.license.licenseCode,
-          usernames: usernames,
-        })
-        .then(
-          lang.hitch(this, function (response) {
+    removeLicenseFromUsers: function(usernames) {
+      tools.umcpCommand('licenses/remove_from_users', {
+        licenseCode: this.license.licenseCode,
+        usernames: usernames,
+      }).then(
+          lang.hitch(this, function(response) {
             this.load(this.license.licenseCode);
             const failedAssignments = response.result.failedAssignments;
             if (failedAssignments.length) {
               const containerWidget = new ContainerWidget({});
-              const container = put(containerWidget.domNode, "div");
+              const container = put(containerWidget.domNode, 'div');
               put(
-                container,
-                "p",
-                _("The license could not be removed from the following users:")
+                  container,
+                  'p',
+                  _('The license could not be removed from the following users:'),
               );
-              const table = put(container, "table");
+              const table = put(container, 'table');
               for (let failedAssignment of failedAssignments) {
-                const tr = put(table, "tr");
-                put(tr, "td", failedAssignment.username);
-                put(tr, "td", failedAssignment.error);
+                const tr = put(table, 'tr');
+                put(tr, 'td', failedAssignment.username);
+                put(tr, 'td', failedAssignment.error);
               }
               dialog.alert(containerWidget);
             }
-          })
-        );
+          }),
+      );
     },
 
-    back: function () {
+    back: function() {
       if (this._table.ignoreChanged()) {
         dialog.confirm(
-          _("There are unsaved changes. Are you sure to cancel?"),
-          [
-            {
-              label: _("Continue editing"),
-            },
-            {
-              label: _("Discard changes"),
-              default: true,
-              callback: lang.hitch(this, "onBack"),
-            },
-          ]
+            _('There are unsaved changes. Are you sure to cancel?'),
+            [
+              {
+                label: _('Continue editing'),
+              },
+              {
+                label: _('Discard changes'),
+                default: true,
+                callback: lang.hitch(this, 'onBack'),
+              },
+            ],
         );
       } else {
         this.onBack();
       }
     },
 
-    onBack: function () {
+    onBack: function() {
       // event stub
     },
 
     //// lifecycle
-    postMixInProperties: function () {
+    postMixInProperties: function() {
       this.headerButtons = [
         {
-          name: "save",
-          label: _("Save"),
-          callback: lang.hitch(this, "save"),
+          name: 'save',
+          label: _('Save'),
+          callback: lang.hitch(this, 'save'),
         },
         {
-          name: "close",
-          label: _("Back"),
-          callback: lang.hitch(this, "back"),
+          name: 'close',
+          label: _('Back'),
+          callback: lang.hitch(this, 'back'),
         },
       ];
     },
 
-    buildRendering: function () {
+    buildRendering: function() {
       this.inherited(arguments);
 
       this._table = new _Table({});
       on(
-        this._table,
-        "ignoreCheckBoxClicked",
-        lang.hitch(this, function () {
-          this._headerButtons.save.set(
-            "disabled",
-            !this._table.ignoreChanged()
-          );
-        })
+          this._table,
+          'ignoreCheckBoxClicked',
+          lang.hitch(this, function() {
+            this._headerButtons.save.set(
+                'disabled',
+                !this._table.ignoreChanged(),
+            );
+          }),
       );
 
       this._actions = [
         {
-          name: "delete",
-          label: _("Remove assignment"),
+          name: 'delete',
+          label: _('Remove assignment'),
           isStandardAction: true,
           isContextAction: true,
           isMultiAction: true,
-          canExecute: function (user) {
-            return user.status === "ASSIGNED";
+          canExecute: function(user) {
+            return user.status === 'ASSIGNED';
           },
-          callback: lang.hitch(this, function (idxs, users) {
+          callback: lang.hitch(this, function(idxs, users) {
             this.removeLicenseFromUsers(
-              users.map(function (user) {
-                return user.username;
-              })
+                users.map(function(user) {
+                  return user.username;
+                }),
             );
           }),
         },
       ];
       const columns = [
         {
-          name: "username",
-          label: _("User"),
+          name: 'username',
+          label: _('User'),
         },
         {
-          name: "roleLabels",
-          label: _("Roles"),
+          name: 'roleLabels',
+          label: _('Roles'),
         },
         {
-          name: "statusLabel",
-          label: _("Status"),
+          name: 'statusLabel',
+          label: _('Status'),
         },
-        /*{
-          name: "dateOfAssignment",
-          label: _("Date of assignment"),
-          formatter: function (value, object) {
-            if (value) {
-              value = dateLocale.format(new Date(value), {
-                fullYear: true,
-                selector: "date",
-              });
-            }
-            return value;
-          },
-        },*/
         {
-          name: "validityEnd",
-          label: _("Validity end"),
+          name: 'validityEnd',
+          label: _('Validity end'),
           visible: false,
-          formatter: function (value, object) {
+          formatter: function(value, object) {
             if (value) {
               value = dateLocale.format(new Date(value), {
                 fullYear: true,
-                selector: "date",
+                selector: 'date',
               });
             }
             return value;
@@ -432,10 +477,10 @@ define([
       this._grid = new Grid({
         columns: columns,
         moduleStore: new Observable(
-          new Memory({
-            data: [],
-            idProperty: "username",
-          })
+            new Memory({
+              data: [],
+              idProperty: 'username',
+            }),
         ),
       });
 
@@ -443,8 +488,9 @@ define([
       this.addChild(this._grid);
     },
 
-    _onShow: function () {
+    _onShow: function() {
       this._grid.filter();
     },
   });
-});
+})
+;
