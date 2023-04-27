@@ -150,8 +150,8 @@ define([
             }
             return date;
           }
-          
-           function validityStatus(id) {
+
+          function validityStatus(id) {
             let val = license[id];
 
             if (val === null) {
@@ -176,13 +176,13 @@ define([
 
             return val;
           }
-          
+
           function expiryDate() {
             if (license['expiryDate']) {
               return d(license['expiryDate']);
             }
 
-            if(license['usageStatus']) {
+            if (license['usageStatus']) {
               return _('unlimited');
             } else {
               return _('undefined');
@@ -456,12 +456,21 @@ define([
           label: _('Roles'),
         },
         {
+          name: 'classes',
+          label: _('Class'),
+        },
+        {
+          name: 'workgroups',
+          label: _('Workgroup'),
+        },
+
+        {
           name: 'statusLabel',
           label: _('Status'),
         },
         {
-          name: 'validityEnd',
-          label: _('Validity end'),
+          name: 'dateOfAssignment',
+          label: _('Date of assignment'),
           visible: false,
           formatter: function(value, object) {
             if (value) {

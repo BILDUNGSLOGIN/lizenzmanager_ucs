@@ -583,7 +583,23 @@ class LdapRepository:
                 return group
         return None
 
-    def get_workgroup_by_dn(self, dn):
+    def get_workgroup_names_by_user(self, user):
+        groups = []
+
+        for group in self._workgroups:
+            if user.uid in group.memberUid:
+                groups.append(group.cn.split('-')[1])
+        return groups
+
+    def get_class_names_by_user(self, user):
+        groups = []
+
+        for group in self._classes:
+            if user.uid in group.memberUid:
+                groups.append(group.cn.split('-')[1])
+        return groups
+
+    def get_workgroups_by_dn(self, dn):
         for group in self._workgroups:
             if group.entry_dn == dn:
                 return group
@@ -704,6 +720,8 @@ class LdapRepository:
                         'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
                         'roles': user.get_roles(),
                         'roleLabels': Role.label(user.get_roles()),
+                        'classes': self.get_class_names_by_user(user),
+                        'workgroups': self.get_workgroup_names_by_user(user),
                     })
         elif license.bildungsloginLicenseType == 'WORKGROUP':
             for assignment in assignments:
@@ -718,6 +736,8 @@ class LdapRepository:
                             'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
                             'roles': user.get_roles(),
                             'roleLabels': Role.label(user.get_roles()),
+                            'classes': self.get_class_names_by_user(user),
+                            'workgroups': self.get_workgroup_names_by_user(user),
                         })
         elif license.bildungsloginLicenseType == 'SCHOOL':
             for assignment in assignments:
@@ -731,6 +751,8 @@ class LdapRepository:
                         'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
                         'roles': user.get_roles(),
                         'roleLabels': Role.label(user.get_roles()),
+                        'classes': self.get_class_names_by_user(user),
+                        'workgroups': self.get_workgroup_names_by_user(user),
                     })
         else:
             raise RuntimeError("Unknown license type: {}".format(license.license_type))

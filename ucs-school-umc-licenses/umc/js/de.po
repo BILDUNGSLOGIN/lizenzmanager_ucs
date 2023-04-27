@@ -725,6 +725,9 @@ msgstr "unbestimmt"
 msgid "unlimited"
 msgstr "unbefristet"
 
+msgid "Date of assignment"
+msgstr "Zuweisungsdatum"
+
 #~ msgid "Advanced search"
 #~ msgstr "Erweiterte Suche"
 
@@ -771,8 +774,6 @@ msgstr "unbefristet"
 #~ msgid "Cache rebuild status:"
 #~ msgstr "Cache-Aktualisierungsstatus:"
 
-#~ msgid "Date of assignment"
-#~ msgstr "Zuweisungsdatum"
 
 #~ msgid "Import date"
 #~ msgstr "Importiert am"
