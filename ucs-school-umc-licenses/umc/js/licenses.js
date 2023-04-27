@@ -52,7 +52,6 @@ define([
     ImportModule,
     LicensesModule,
     ProductsModule,
-    ImportMediaLicensePage,
     _,
 ) {
   return declare('umc.modules.licenses', [Module], {
@@ -68,7 +67,6 @@ define([
       this.module.close();
       return true;
     },
-
 
     setSchoolLabel: function(schoolLabel) {
       this.set(
