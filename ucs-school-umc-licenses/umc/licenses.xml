@@ -37,6 +37,7 @@
 		<command name="licenses/assign_to_class" function="assign_to_class"></command>
 		<command name="licenses/assign_to_workgroup" function="assign_to_workgroup"></command>
 		<command name="licenses/schools" function="schools"></command>
+		<command name="licenses/delete" function="licenses_delete"></command>
 		<command name="licenses/users/query" function="users_query"></command>
 		<command name="licenses/products/query" function="products_query"></command>
 		<command name="licenses/products/get" function="products_get"></command>

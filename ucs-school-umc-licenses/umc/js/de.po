@@ -209,6 +209,15 @@ msgstr "Buchdeckel nicht gefunden"
 msgid "Date of assignment"
 msgstr "Zuweisungsdatum"
 
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "You have selected %s licenses. Do you really want to delete this? This process is irreversible!"
+msgstr "Sie haben %s Lizenzen ausgewählt. Wollen Sie diese wirklich löschen? Dieser Vorgang ist nicht umkehrbar!"
+
+msgid "You have selected over a thousand licenses for deletion. This process will take several minutes."
+msgstr "Sie haben über Tausend Lizenzen für die Löschung ausgewählt. Dieser Vorgang wird mehrere Minuten dauern."
+
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:937
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:996
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:387

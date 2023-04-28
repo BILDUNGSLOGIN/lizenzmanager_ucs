@@ -80,6 +80,7 @@ def optional_date2str(date):
         return iso8601Date.from_datetime(date)
     return ""
 
+
 class Instance(SchoolBaseModule):
 
     def __init__(self, *args, **kwargs):
@@ -181,6 +182,9 @@ class Instance(SchoolBaseModule):
                 "countAssigned": undefined_if_none(_license.quantity_assigned),
                 "countAvailable": undefined_if_none(_license.quantity_available),
                 "countExpired": undefined_if_none(_license.quantity_expired),
+                "usageStatus": _license.bildungsloginUsageStatus,
+                "expiryDate": optional_date2str(_license.bildungsloginExpiryDate),
+                "validityStatus": _license.bildungsloginValidityStatus,
             })
 
         self.finished(request.id, result)
@@ -367,7 +371,6 @@ class Instance(SchoolBaseModule):
         """
         MODULE.info("licenses.assign_to_users: options: %s" % str(request.options))
 
-
         ah = AssignmentHandler(ldap_user_write)
         object_names = request.options.get("usernames")
 
@@ -375,10 +378,10 @@ class Instance(SchoolBaseModule):
         # neither the user nor the backend caching code can cope with the difference:
         # users_requested != users_assigned (but it is SUCCESS). So do this from the frontend,
         # and then pass down only user lists where these user counts do not differ.
-        #leftover_users = self._not_assigned_users(ldap_user_write,
+        # leftover_users = self._not_assigned_users(ldap_user_write,
         #            request.options.get('usernames'),
         #            request.options.get('licenseCodes'))
-        #if len(object_names) != len(leftover_users):
+        # if len(object_names) != len(leftover_users):
         #    MODULE.info("licenses.assign_to_users: reduced user list from %d to %d users" % (len(object_names),len(leftover_users)))
         #    object_names = leftover_users
 
@@ -405,7 +408,8 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.not_assigned_users: options: %s" % str(request.options))
         # Relocate the work into an internal function, so it can be called directly
         # from 'assign_to_users' above
-        result = self._not_assigned_users(ldap_user_read,request.options.get('usernames'),request.options.get('licenseCodes'))
+        result = self._not_assigned_users(ldap_user_read, request.options.get('usernames'),
+                                          request.options.get('licenseCodes'))
         MODULE.info("licenses.not_assigned_users: result: %s" % str(result))
         self.finished(request.id, result)
 
@@ -418,7 +422,7 @@ class Instance(SchoolBaseModule):
             license = self.repository.get_license_by_code(licenseCode)
             # Work around possibly inconsistent cache
             if license is None:
-            	continue
+                continue
             userlist = self.repository.get_assigned_users_by_license(license)
             for user in userlist:
                 username = user.get('username')
@@ -427,7 +431,7 @@ class Instance(SchoolBaseModule):
         result = []
         for username in usernames:
             if username not in assigned_users:
-                result += [username,]
+                result += [username, ]
 
         return result
 
