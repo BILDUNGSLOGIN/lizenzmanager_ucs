@@ -4,21 +4,25 @@
 		<categories>
 			<category name="ucs-school-class"/>
 		</categories>
-		<flavor id="licenses/products" icon="licensed-media" priority="54">
+		<flavor id="licenses/products" icon="licensed-media" priority="55">
 			<name>Licensed media</name>
 			<description>View and search licensed media in the BILDUNGSLOGIN license manager</description>
 		</flavor>
-		<flavor id="licenses/licenses" icon="media-license-overview" priority="53">
+		<flavor id="licenses/licenses" icon="media-license-overview" priority="54">
 			<name>Media license overview</name>
 			<description>Display, search and revoke media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
-		<flavor id="licenses/allocation" icon="assign-media-licences" priority="52">
+		<flavor id="licenses/allocation" icon="assign-media-licences" priority="53">
 			<name>Assign media licenses</name>
 			<description>Assign media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
-		<flavor id="licenses/import" icon="import-media-licenses" priority="51">
+		<flavor id="licenses/import" icon="import-media-licenses" priority="52">
 			<name>Import media licenses / Update cache</name>
 			<description>Importing media licences into the BILDUNGSLOGIN licence manager</description>
+		</flavor>
+		<flavor id="licenses/delete" icon="media-license-overview" priority="51">
+			<name>Delete licenses</name>
+			<description>Delete media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
 		<command name="licenses/query" function="licenses_query"></command>
 		<command name="licenses/get" function="licenses_get"></command>
