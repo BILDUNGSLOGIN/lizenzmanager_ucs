@@ -551,6 +551,21 @@ class LicenseHandler:
         )
         return retrieve_licenses(None, pickup_number)
 
+    def get_license_by_license_code(self, license_code):  # type: (str) -> UdmObject
+        filter_s = filter_format("(code=%s)", [license_code])
+        try:
+            license = [o for o in self._licenses_mod.search(filter_s)][0]
+            return license
+        except IndexError:
+            raise BiloLicenseNotFoundError(
+                _("No license with code {license_code!r} was found!")
+                .format(license_code=license_code))
+
+    def delete_license(self, license_codes):
+        for lc in license_codes:
+            license = self.get_license_by_license_code(lc)
+            license.delete(True)
+
 
 class MetaDataHandler:
     def __init__(self, lo):  # type: (LoType) -> None

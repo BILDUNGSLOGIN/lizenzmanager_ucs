@@ -32,6 +32,8 @@ Module and object specific for "bildungslogin/license" UDM module.
 
 from __future__ import absolute_import, unicode_literals
 
+import datetime
+
 from ..encoders import (
     DatePropertyEncoder,
     DisabledPropertyEncoder,
@@ -62,7 +64,11 @@ class BildungsloginLicenseObjectProperties(GenericObjectProperties):
         "num_expired": StringIntPropertyEncoder,
         "num_available": StringIntPropertyEncoder,
         "assignments": dn_list_property_encoder_for("bildungslogin/assignment"),
+        "usage_status": DisabledPropertyEncoder,
         "expired": ExpiredPropertyEncoder,
+        "expiry_date": DatePropertyEncoder,
+        "validity_status": DisabledPropertyEncoder,
+        "registered": DisabledPropertyEncoder,
     }
 
 
@@ -70,6 +76,7 @@ class BildungsloginLicenseObject(GenericObject):
     """Better representation of bildungslogin/license properties."""
 
     udm_prop_class = BildungsloginLicenseObjectProperties
+    now = datetime.date.today()
 
 
 class BildungsloginLicenseModule(GenericModule):

@@ -75,6 +75,11 @@ PARSER.add_argument(
     help='The path to the cache file. (Default: %(default)s)',
 )
 
+def add_attribute_to_dictionary(dict_entry, obj, key):
+    if key in dict_entry:
+        obj[key] = str(
+            dict_entry[key][0])
+
 def transform_to_dictionary(entries):
     """Transform the given LDAP objects to the format needed by UCS@School API.
 
@@ -370,30 +375,25 @@ def transform_to_dictionary(entries):
                 'bildungsloginValidityDuration': '',
                 'bildungsloginUtilizationSystems': '',
                 'bildungsloginLicenseSpecialType': '',
+                'bildungsloginUsageStatus': '',
+                'bildungsloginExpiryDate': '',
+                'bildungsloginValidityStatus': '',
+                'bildungsloginRegistered': '',
                 'groups': [],
                 'user_strings': [],
                 'quantity_assigned': 0,
             })
 
-            if 'bildungsloginValidityDuration' in dict_entry:
-                obj['bildungsloginValidityDuration'] = str(
-                    dict_entry['bildungsloginValidityDuration'][0])
+            add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginValidityDuration')
+            add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginUtilizationSystems')
+            add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginValidityStartDate')
+            add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginValidityEndDate')
+            add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginLicenseSpecialType')
 
-            if 'bildungsloginUtilizationSystems' in dict_entry:
-                obj['bildungsloginUtilizationSystems'] = str(
-                    dict_entry['bildungsloginUtilizationSystems'][0])
+            add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginUsageStatus')
+            add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginExpiryDate')
+            add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginValidityStatus')
 
-            if 'bildungsloginValidityStartDate' in dict_entry:
-                obj['bildungsloginValidityStartDate'] = str(
-                    dict_entry['bildungsloginValidityStartDate'][0])
-
-            if 'bildungsloginValidityEndDate' in dict_entry:
-                obj['bildungsloginValidityEndDate'] = str(
-                    dict_entry['bildungsloginValidityEndDate'][0])
-
-            if 'bildungsloginLicenseSpecialType' in dict_entry:
-                obj['bildungsloginLicenseSpecialType'] = str(
-                    dict_entry['bildungsloginLicenseSpecialType'][0])
 
             processed_list['licenses'].append(obj)
         elif 'bildungsloginAssignment' in dict_entry['objectClass']:
@@ -576,6 +576,9 @@ def main(cache_file):
             'bildungsloginPurchasingReference',
             'bildungsloginAssignmentTimeOfAssignment',
             'bildungsloginLicenseProvider',
+            'bildungsloginUsageStatus',
+            'bildungsloginExpiryDate',
+            'bildungsloginValidityStatus'
         ],
     )
     logger.debug('Found {} objects'.format(len(response)))

@@ -1,3 +1,9 @@
+udm-bildungslogin (2.3.0) unstable; urgency=medium
+
+  * Implement new license attributes
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 02 May 2023 17:31:52 +0200
+
 udm-bildungslogin (2.2.2) unstable; urgency=medium
 
   * ET-120 Catch an exception by a normal search, when a license has no metadata.

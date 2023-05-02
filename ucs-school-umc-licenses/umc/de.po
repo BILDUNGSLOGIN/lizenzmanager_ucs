@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: Fri, 13 May 2022 13:28:23 +0200\n"
+"POT-Creation-Date: Fri, 28 Apr 2023 06:42:50 +0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention GmbH <packages@univention.de>\n"
 "Language-Team: Univention GmbH <packages@univention.de>\n"
@@ -17,6 +17,12 @@ msgstr "Medienlizenzen zuweisen"
 
 msgid "Assign media licenses in the BILDUNGSLOGIN license manager"
 msgstr "Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager zuweisen"
+
+msgid "Delete licenses"
+msgstr "Lizenzen löschen"
+
+msgid "Delete media licenses in the BILDUNGSLOGIN license manager"
+msgstr "Medienlizenzen im BILDUNGSLOGIN-Lizenzmanager löschen"
 
 msgid ""
 "Display, search and revoke media licenses in the BILDUNGSLOGIN license "

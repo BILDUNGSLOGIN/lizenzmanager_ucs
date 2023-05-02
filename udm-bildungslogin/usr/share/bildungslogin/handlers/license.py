@@ -203,7 +203,35 @@ property_descriptions = {
         syntax=univention.admin.syntax.string,
         required=True,
         may_change=False,
-    )
+    ),
+    "usage_status": univention.admin.property(
+        short_description=_("Usage Status"),
+        long_description=_("The usage status provided by the bildungslogin api"),
+        syntax=univention.admin.syntax.boolean,
+        may_change=True,
+        editable=False,
+    ),
+    "expiry_date": univention.admin.property(
+        short_description=_("Expiry Date"),
+        long_description=_("The date the license expires for usage"),
+        syntax=univention.admin.syntax.iso8601Date,
+        may_change=True,
+        editable=False,
+    ),
+    "validity_status": univention.admin.property(
+        short_description=_("Validity status"),
+        long_description=_("The validity of the license, dictated by the bildungslogin api"),
+        syntax=univention.admin.syntax.boolean,
+        may_change=True,
+        editable=False,
+    ),
+    "registered": univention.admin.property(
+        short_description=_("Registered"),
+        long_description=_("If the license was already registered to the api"),
+        syntax=univention.admin.syntax.boolean,
+        may_change=True,
+        editable=False,
+    ),
 }
 
 layout = [
@@ -220,6 +248,8 @@ layout = [
             ["validity_duration", "special_type", "license_type"],
             ["delivery_date", "school"],
             ["num_assigned", "num_expired"],
+            ["usage_status", "expiry_date"],
+            ["validity_status", "registered"],
         ],
     )
 ]
@@ -240,7 +270,11 @@ for udm_name, ldap_name in [
     ("ignored", "bildungsloginIgnoredForDisplay"),
     ("delivery_date", "bildungsloginDeliveryDate"),
     ("school", "bildungsloginLicenseSchool"),
-    ("license_type", "bildungsloginLicenseType")
+    ("license_type", "bildungsloginLicenseType"),
+    ("usage_status", "bildungsloginUsageStatus"),
+    ("expiry_date", "bildungsloginExpiryDate"),
+    ("validity_status", "bildungsloginValidityStatus"),
+    ("registered", "bildungsloginRegistered")
 ]:
     mapping.register(udm_name, ldap_name, None, univention.admin.mapping.ListToString)
 
