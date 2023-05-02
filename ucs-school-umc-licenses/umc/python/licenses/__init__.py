@@ -816,3 +816,20 @@ class Instance(SchoolBaseModule):
                 'status': self._cache_is_running()
             }
         )
+
+    @sanitize(school=SchoolSanitizer(required=True), licenseCodes=ListSanitizer(required=True))
+    @LDAP_Connection(USER_WRITE)
+    def licenses_delete(self, request, ldap_user_write):
+        self.repository.update()
+
+        license_codes = request.options.get("licenseCodes")
+        lh = LicenseHandler(ldap_user_write)
+        lh.delete_license(license_codes)
+        self.repository.delete_licenses(license_codes)
+
+        for license_code in license_codes:
+            MODULE.info('Deleted license: ' + license_code)
+
+        self.finished(request.id, {
+            'result': 'success'
+        })

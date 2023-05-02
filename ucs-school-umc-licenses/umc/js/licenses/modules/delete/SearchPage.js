@@ -204,7 +204,10 @@ define([
         temp_codes.push(licenseCodes.pop());
       }
 
-      tools.umcpCommand('licenses/delete', {licenses: temp_codes}).
+      let refreshGrid = lang.hitch(this, 'refreshGrid')
+
+      tools.umcpCommand('licenses/delete',
+          {school: this.getSchoolId(), licenseCodes: temp_codes}).
           then(function(result) {
             this.current += temp_codes.length;
 
@@ -215,6 +218,8 @@ define([
 
             if (licenseCodes.length > 0) {
               this._delete(licenseCodes);
+            } else {
+              refreshGrid({});
             }
 
           }, function(result) {

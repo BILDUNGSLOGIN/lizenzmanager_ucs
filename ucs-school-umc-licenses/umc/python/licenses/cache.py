@@ -291,46 +291,76 @@ class LdapRepository:
     def apply_json_files(self, filepaths):
         license_updates = []
         assignment_updates = []
+        delete_licenses = []
+        delete_assignments = []
 
         for filepath in filepaths:
             f = open(filepath, 'r')
             json_string = f.read()
             f.close()
             json_dictionary = json.loads(json_string)
-            license_updates.append(json_dictionary['license'])
-            assignment_updates += json_dictionary['assignments']
+            if 'deleted' in json_dictionary and json_dictionary['deleted']:
+                delete_licenses.append(json_dictionary['license'])
+                delete_assignments += json_dictionary['assignments']
+            else:
+                license_updates.append(json_dictionary['license'])
+                assignment_updates += json_dictionary['assignments']
 
         for _license in self._licenses:
-            if len(license_updates) <= 0:
+            if len(license_updates) <= 0 and len(delete_licenses) <= 0:
                 break
 
-            for license_update in license_updates:
-                if _license.entryUUID == license_update['entryUUID']:
-                    _license.user_strings = license_update['user_strings']
-                    _license.groups = license_update['groups']
-                    _license.quantity_assigned = license_update['quantity_assigned']
-                    license_updates.remove(license_update)
+            deleted = False
+            for delete_license in delete_licenses:
+                if _license.entryUUID == delete_license['entryUUID']:
+                    self._licenses.remove(_license)
+                    del _license
+                    deleted = True
                     break
+
+            if not deleted:
+                for license_update in license_updates:
+                    if _license.entryUUID == license_update['entryUUID']:
+                        _license.user_strings = license_update['user_strings']
+                        _license.groups = license_update['groups']
+                        _license.quantity_assigned = license_update['quantity_assigned']
+                        license_updates.remove(license_update)
+                        break
 
         for _assignment in self._assignments:
-            if len(assignment_updates) <= 0:
+            if len(assignment_updates) <= 0 and len(delete_assignments) <= 0:
                 break
 
-            for assignment_update in assignment_updates:
-                if _assignment.entryUUID == assignment_update['entryUUID']:
-                    _assignment.bildungsloginAssignmentAssignee = assignment_update['bildungsloginAssignmentAssignee']
-                    _assignment.bildungsloginAssignmentStatus = assignment_update['bildungsloginAssignmentStatus']
-                    _assignment.bildungsloginAssignmentTimeOfAssignment = datetime.strptime(
-                        assignment_update['bildungsloginAssignmentTimeOfAssignment'],
-                        '%Y-%m-%d').date() if assignment_update['bildungsloginAssignmentTimeOfAssignment'] else None
-                    assignment_updates.remove(assignment_update)
+            deleted = False
+            for delete_assignment in delete_assignments:
+                if _assignment.entryUUID == delete_assignment['entryUUID']:
+                    self._assignments.remove(_assignment)
+                    del _assignment
+                    deleted = True
                     break
+
+            if not deleted:
+                for assignment_update in assignment_updates:
+                    if _assignment.entryUUID == assignment_update['entryUUID']:
+                        _assignment.bildungsloginAssignmentAssignee = assignment_update['bildungsloginAssignmentAssignee']
+                        _assignment.bildungsloginAssignmentStatus = assignment_update['bildungsloginAssignmentStatus']
+                        _assignment.bildungsloginAssignmentTimeOfAssignment = datetime.strptime(
+                            assignment_update['bildungsloginAssignmentTimeOfAssignment'],
+                            '%Y-%m-%d').date() if assignment_update['bildungsloginAssignmentTimeOfAssignment'] else None
+                        assignment_updates.remove(assignment_update)
+                        break
 
     def get_license_by_uuid(self, uuid):
         # type: (str) -> LdapLicense
         for license in self._licenses:
             if license.entryUUID == uuid:
                 return license
+        return None
+
+    def get_assignment_by_uuid(self, uuid):
+        for assignment in self._assignments:
+            if assignment.entryUUID == uuid:
+                return assignment
         return None
 
     def get_license_by_dn(self, dn):
@@ -926,6 +956,9 @@ class LdapRepository:
                 return school_class
         return None
 
+    def _get_license_cache_file(self, entry_uuid):
+        return open(JSON_DIR + 'license-' + entry_uuid + '.json', 'w')
+
     def cache_single_license(self, _license, assignments=None):
         if not assignments:
             assignments = self.get_assignments_by_license(_license)
@@ -934,6 +967,20 @@ class LdapRepository:
             'license': _license.get_cache_dictionary(),
             'assignments': [assignment.get_cache_dictionary() for assignment in assignments]
         }
-        license_file = open(JSON_DIR + 'license-' + _license.entryUUID + '.json', 'w')
+        license_file = self._get_license_cache_file(_license.entryUUID)
         json.dump(to_save, license_file)
         license_file.close()
+
+    def delete_licenses(self, license_codes):
+        for license_code in license_codes:
+            _license = self.get_license_by_code(license_code)
+            assignments = self.get_assignments_by_license(_license)
+
+            to_save = {
+                'deleted': True,
+                'license': _license.get_cache_dictionary(),
+                'assignments': [assignment.get_cache_dictionary() for assignment in assignments]
+            }
+            license_file = self._get_license_cache_file(_license.entryUUID)
+            json.dump(to_save, license_file)
+            license_file.close()
