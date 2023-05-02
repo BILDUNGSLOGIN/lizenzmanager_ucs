@@ -522,7 +522,6 @@ define([
         //// lifecycle
         postMixInProperties: function() {
           this.inherited(arguments);
-          const headerButtons = [];
           this._licenseTypes = [
             {id: '', label: ''},
             {id: 'SINGLE', label: _('Single license')},

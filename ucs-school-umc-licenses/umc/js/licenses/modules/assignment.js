@@ -44,6 +44,7 @@ define([
     setProductId: function(productId) {
       this.productId = productId;
       this.updateState('product', [productId]);
+      this._headerButtons.changeMedium.set('visible', true);
       this.nextPage();
     },
 
@@ -83,12 +84,14 @@ define([
       }
 
       this._headerButtons.toChangeUser.set('visible', false);
+      this._headerButtons.changeMedium.set('visible', false);
       this.selectPage(1);
     },
 
     backToChooseSchool: function() {
       this.inherited(arguments);
       this._headerButtons.toChangeUser.set('visible', false);
+      this._headerButtons.changeMedium.set('visible', false);
     },
 
     backToChooseProduct: function() {
@@ -113,7 +116,7 @@ define([
         name: 'changeMedium',
         label: _('Change medium'),
         callback: lang.hitch(this, 'backToChooseProduct'),
-        visible: true,
+        visible: false,
       });
     },
 
