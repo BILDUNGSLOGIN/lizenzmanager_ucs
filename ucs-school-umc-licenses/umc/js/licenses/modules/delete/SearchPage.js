@@ -204,7 +204,7 @@ define([
         temp_codes.push(licenseCodes.pop());
       }
 
-      let refreshGrid = lang.hitch(this, 'refreshGrid')
+      let refreshGrid = lang.hitch(this, 'refreshGrid');
 
       tools.umcpCommand('licenses/delete',
           {school: this.getSchoolId(), licenseCodes: temp_codes}).
@@ -285,17 +285,13 @@ define([
     },
 
     afterPageChange: function() {
-      this.refreshGrid({});
-    },
+      if (this._searchForm) {
+        this.removeChild(this._searchForm);
+      }
 
-    buildRendering: function() {
-      this.inherited(arguments);
-
-      // retrieve chunksize from UCR if present.
-      tools.ucr('bildungslogin/assignment/chunksize').
-          then(lang.hitch(this, function(data) {
-            this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
-          }));
+      if (this._grid) {
+        this.removeChild(this._grid);
+      }
 
       const widgets = [
         {
@@ -304,47 +300,103 @@ define([
           visible: false,
           label: _('Start import period'),
           size: 'TwoThirds',
-        },
-        {
+        }, {
           type: DateBox,
           name: 'timeTo',
           label: _('End import period'),
           size: 'TwoThirds',
           visible: false,
-        },
-        {
+        }, {
           type: ComboBox,
           name: 'licenseType',
           label: _('License type'),
           staticValues: this._licenseTypes,
           size: 'TwoThirds',
           visible: false,
-        },
-        {
+        }, {
           type: TextBox,
           name: 'userPattern',
           label: _('User ID'),
           description: _(
-              'Search for licenses that have this user assigned. (Searches for \'first name\', \'last name\' and \'username\')',
-          ),
+              'Search for licenses that have this user assigned. (Searches for \'first name\', \'last name\' and \'username\')'),
           size: 'TwoThirds',
           visible: false,
-        },
-        {
+        }, {
           type: TextBox,
           name: 'licenseCode',
           label: _('License code'),
           size: 'TwoThirds',
           visible: false,
-        },
-        {
+        }, {
           type: TextBox,
           name: 'pattern',
           label: '&nbsp;',
           inlineLabel: _('Search licenses'),
+        }];
+      widgets.push({
+        type: TextBox,
+        name: 'product',
+        label: _('Media Title'),
+        size: 'TwoThirds',
+        visible: false,
+      }, {
+        type: TextBox,
+        name: 'productId',
+        label: _('Medium ID'),
+        size: 'TwoThirds',
+        visible: false,
+        formatter: function(value) {
+          if (value && value.startsWith('urn:bilo:medium:')) {
+            value = value.slice(16, value.length);
+          }
+          return value;
         },
-      ];
-      const layout = [
+      }, {
+        type: CheckBox,
+        name: 'onlyAvailableLicenses',
+        label: _('Only assignable licenses'),
+        value: false,
+        size: 'TwoThirds',
+        visible: false,
+      }, {
+        type: ComboBox,
+        name: 'publisher',
+        label: _('Publisher'),
+        staticValues: [{id: '', label: ''}],
+        dynamicValues: 'licenses/publishers',
+        size: 'TwoThirds',
+        visible: false,
+      }, {
+        type: ComboBox,
+        name: 'workgroup',
+        label: _('Assigned to Workgroup'),
+        staticValues: [{id: '', label: ''}],
+        dynamicValues: 'licenses/workgroups',
+        dynamicOptions: {
+          school: this.getSchoolId(),
+        },
+        size: 'TwoThirds',
+        visible: false,
+        onChange: lang.hitch(this, function(values) {
+          this.onChooseDifferentWorkgroup(values);
+        }),
+      }, {
+        type: SuggestionBox,
+        name: 'class',
+        label: _('Assigned to Class'),
+        staticValues: [{id: '', label: ''}],
+        dynamicValues: 'licenses/classes',
+        dynamicOptions: {
+          school: this.getSchoolId(),
+        },
+        size: 'TwoThirds',
+        visible: false,
+        onChange: lang.hitch(this, function(values) {
+          this.onChooseDifferentClass(values);
+        }),
+      });
+
+      let layout = [
         ['timeFrom', 'timeTo', 'onlyAvailableLicenses'],
         ['publisher', 'licenseType', 'userPattern'],
         ['workgroup', 'class'],
@@ -355,9 +407,7 @@ define([
           'pattern',
           'submit',
           'toggleSearchLabel',
-          'toggleSearch',
-        ],
-      ];
+          'toggleSearch']];
       const buttons = [
         {
           name: 'toggleSearch',
@@ -492,6 +542,19 @@ define([
 
       this.addChild(this._searchForm);
       this.addChild(this._grid);
+
+      this.refreshGrid({});
+    },
+
+    buildRendering: function() {
+      this.inherited(arguments);
+
+      // retrieve chunksize from UCR if present.
+      tools.ucr('bildungslogin/assignment/chunksize').
+          then(lang.hitch(this, function(data) {
+            this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
+          }));
+
     },
   });
 });
