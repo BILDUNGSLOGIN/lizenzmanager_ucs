@@ -188,7 +188,6 @@ define([
       this.removeChild(this._grid);
       this.addChild(this._description);
       this._searchForm.getButton('submit').set('visible', true);
-      this.onLicenseTypeSelected(licenseType);
       switch (licenseType) {
         case 'SCHOOL':
           this.selectedLicenseType = 'SCHOOL';

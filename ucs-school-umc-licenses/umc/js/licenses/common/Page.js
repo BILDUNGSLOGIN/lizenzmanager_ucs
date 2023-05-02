@@ -30,7 +30,7 @@
 
 define([
   'dojo/_base/declare',
-  'umc/widgets/ContainerWidget',
+  'umc/widgets/Page',
 ], function(
     declare,
     ContainerWidget,
