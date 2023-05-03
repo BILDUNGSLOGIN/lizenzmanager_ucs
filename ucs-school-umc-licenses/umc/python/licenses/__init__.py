@@ -295,10 +295,12 @@ class Instance(SchoolBaseModule):
             ])
 
         output = io.BytesIO()
-        workbook = xlsxwriter.Workbook(output) #{"in_memory": True})
+        workbook = xlsxwriter.Workbook(output)  # {"in_memory": True})
         worksheet = workbook.add_worksheet()
 
-        columns = ['License code','Medium ID','Medium','Publisher','License type','Special License type', 'Import Date', 'Validity start', 'Validity end','Num. licenses','Num. assigned licenses', 'Num. available licenses', 'Num. expired licenses']
+        columns = ['License code', 'Medium ID', 'Medium', 'Publisher', 'License type', 'Special License type',
+                   'Import Date', 'Validity start', 'Validity end', 'Num. licenses', 'Num. assigned licenses',
+                   'Num. available licenses', 'Num. expired licenses']
 
         result.insert(0, columns)
 
@@ -310,12 +312,12 @@ class Instance(SchoolBaseModule):
         xlsx_data = output.getvalue()
 
         MODULE.info("licenses.products.export_to_excel: result: %s" % str(xlsx_data))
-        self.finished(request.id, 
-            { 
-                "file" : base64.encodestring(xlsx_data),
-                "fileName" : "licenses.xls"
-            }
-        )
+        self.finished(request.id,
+                      {
+                          "file": base64.encodestring(xlsx_data),
+                          "fileName": "licenses.xls"
+                      }
+                      )
 
     @sanitize(
         #  school=StringSanitizer(required=True),
@@ -775,7 +777,6 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.products.query: result: %s" % str(result))
         self.finished(request.id, result)
 
-
     @sanitize(
         school=SchoolSanitizer(required=True),
         productIds=ListSanitizer(required=True),
@@ -873,10 +874,12 @@ class Instance(SchoolBaseModule):
                 )
 
         output = io.BytesIO()
-        workbook = xlsxwriter.Workbook(output) #{"in_memory": True})
+        workbook = xlsxwriter.Workbook(output)  # {"in_memory": True})
         worksheet = workbook.add_worksheet()
 
-        columns = ['Medium ID','Medium','Publisher','Cover','Max. User','Assigned','Expired','Available','Delivery','Num. Licenses','Num. assigned licenses','Num. expired licenses','Num. available licenses', 'Num. Users']
+        columns = ['Medium ID', 'Medium', 'Publisher', 'Cover', 'Max. User', 'Assigned', 'Expired', 'Available',
+                   'Delivery', 'Num. Licenses', 'Num. assigned licenses', 'Num. expired licenses',
+                   'Num. available licenses', 'Num. Users']
 
         result.insert(0, columns)
 
@@ -888,12 +891,12 @@ class Instance(SchoolBaseModule):
         xlsx_data = output.getvalue()
 
         # MODULE.info("licenses.products.export_to_excel: result: %s" % str(xlsx_data))
-        self.finished(request.id, 
-            { 
-                "file" : base64.encodestring(xlsx_data),
-                "fileName" : "products.xls"
-            }
-        )
+        self.finished(request.id,
+                      {
+                          "file": base64.encodestring(xlsx_data),
+                          "fileName": "products.xls"
+                      }
+                      )
 
     @sanitize(
         school=SchoolSanitizer(required=True),
