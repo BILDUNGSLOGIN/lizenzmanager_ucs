@@ -16,6 +16,7 @@ Depends:
  python-bildungslogin (>=0.0.5),
  python-ucs-school (>= 12.1.9),
  python-univention-directory-manager,
+ python-xlsxwriter,
  shell-ucs-school,
  ucs-school-umc-common,
  univention-config-registry,
