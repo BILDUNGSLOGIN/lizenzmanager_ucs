@@ -15,7 +15,7 @@ from univention.bildungslogin.handlers import (
 from univention.bildungslogin.models import LicenseType, Role, Status
 from univention.udm.exceptions import SearchLimitReached
 
-from .constants import *
+from .constants import JSON_PATH, JSON_DIR, CACHE_BUILD_SCRIPT
 
 
 class LdapUser:

@@ -213,7 +213,7 @@ define([
 
             if (this.progressInfo) {
               this.progressInfo.update(this.current,
-                  _('Deleted %s', this.current, this.max));
+                  _('Deleted %s from %s', this.current, this.max));
             }
 
             if (licenseCodes.length > 0) {
