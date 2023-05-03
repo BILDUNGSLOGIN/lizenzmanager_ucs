@@ -59,8 +59,8 @@ from univention.management.console.modules.sanitizers import (
     StringSanitizer,
 )
 from univention.udm.exceptions import SearchLimitReached
-from .cache import *
-from .constants import *
+from .cache import LdapRepository
+from .constants import JSON_PATH, JSON_DIR, CACHE_BUILD_SCRIPT
 
 _ = Translation("ucs-school-umc-licenses").translate
 
