@@ -47,6 +47,7 @@ define([
   'umc/widgets/Text',
   'umc/widgets/ProgressInfo',
   '../../common/LicenseSearchformMixin',
+  '../../common/FormatterMixin',
   'umc/i18n!umc/modules/licenses',
   '../../../libraries/FileSaver',
   '../../../libraries/base64',
@@ -69,263 +70,227 @@ define([
     Text,
     ProgressInfo,
     LicenseSearchformMixin,
+    FormatterMixin,
     _,
 ) {
-  return declare('umc.modules.licenses.license.SearchPage', [Page, LicenseSearchformMixin], {
-    //// overwrites
-    fullWidth: true,
+  return declare('umc.modules.licenses.license.SearchPage',
+      [Page, LicenseSearchformMixin, FormatterMixin], {
+        //// overwrites
+        fullWidth: true,
 
-    //// self
-    standbyDuring: null, // required parameter
-    getSchoolId: function() {}, // required parameter
-    showChangeSchoolButton: false,
+        //// self
+        standbyDuring: null, // required parameter
+        getSchoolId: function() {}, // required parameter
+        showChangeSchoolButton: false,
 
-    _licenseTypes: [], // reference to the currently active grid
-    _grid: null,
-    _gridFooter: null,
-    _gridOverview: null,
-    _gridGroup: null,
-    _excelExportForm: null,
-    _searchForm: null,
+        _licenseTypes: [], // reference to the currently active grid
+        _grid: null,
+        _gridFooter: null,
+        _gridOverview: null,
+        _gridGroup: null,
+        _excelExportForm: null,
+        _searchForm: null,
 
-    _isAdvancedSearch: false,
+        _isAdvancedSearch: false,
 
-    maxUserSum: '-',
-    assignedSum: '-',
-    expiredSum: '-',
-    availableSum: '-',
+        maxUserSum: '-',
+        assignedSum: '-',
+        expiredSum: '-',
+        availableSum: '-',
 
-    query: function() {
-      this.standbyDuring(// Deactivated in this flavor due to Issue #97
-          this._searchForm.ready().then(lang.hitch(this, function() {
-            this._searchForm.submit();
-          })));
-    },
-
-    onChangeUsers: function() {
-      this.resetAdvancedSearch();
-    },
-
-    onChangeProduct: function() {
-      this.resetAdvancedSearch();
-    },
-
-    resetAdvancedSearch: function() {
-      if (this._isAdvancedSearch) {
-        this._toggleSearch();
-      }
-    },
-
-    refreshGrid: function(values) {
-      values.isAdvancedSearch = this._isAdvancedSearch;
-      values.onlyAvailableLicenses = false;
-      values.school = this.getSchoolId();
-      values.isAdvancedSearch = true;
-      values.onlyAvailableLicenses = true;
-
-      if (values.licenseType == '') {
-        values.licenseType = [];
-      } else if (values.licenseType == 'SINGLE') {
-        values.licenseType = ['SINGLE'];
-      } else if (values.licenseType == 'VOLUME') {
-        values.licenseType = ['VOLUME'];
-      } else if (values.licenseType == 'SCHOOL') {
-        values.licenseType = ['SCHOOL'];
-      } else if (values.licenseType == 'WORKGROUP') {
-        values.licenseType = ['WORKGROUP'];
-      }
-      this._grid.filter(values);
-      values.licenseType = '';
-    },
-
-    exportToExcel: function(values) {
-      tools.umcpCommand('licenses/export_to_excel', values).then(
-          lang.hitch(this, function(response) {
-            const res = response.result;
-            if (res.errorMessage) {
-              dialog.alert(result.errorMessage);
-            } else {
-              saveAs(b64toBlob(res.file), res.fileName);
-            }
-          }),
-      );
-    },// allow only either class or workgroup to be set
-
-    //// lifecycle
-    postMixInProperties: function() {
-      this.inherited(arguments);
-    },
-
-    afterPageChange: function() {
-
-      if (this._searchForm) {
-        this.removeChild(this._searchForm);
-      }
-
-      if (this._grid) {
-        this.removeChild(this._grid);
-      }
-
-      this._excelExportForm = new Form({
-        widgets: [],
-        buttons: [
-          {
-            name: 'submit',
-            label: _('Export to Excel'),
-            style: 'margin-top:20px',
-          },
-        ],
-      });
-
-      this._excelExportForm.on(
-          'submit',
-          lang.hitch(this, function() {
-            values = this._searchForm.value;
-            values.isAdvancedSearch = this._isAdvancedSearch;
-            values.onlyAvailableLicenses = false;
-            values.school = this.getSchoolId();
-            values.licenseCodes = this._grid.getSelectedItems().
-                map(i => i.licenseCode);
-
-            if (values.licenseType == '') {
-              values.licenseType = [];
-            } else if (values.licenseType == 'SINGLE') {
-              values.licenseType = ['SINGLE'];
-            } else if (values.licenseType == 'VOLUME') {
-              values.licenseType = ['VOLUME'];
-            } else if (values.licenseType == 'SCHOOL') {
-              values.licenseType = ['SCHOOL'];
-            } else if (values.licenseType == 'WORKGROUP') {
-              values.licenseType = ['WORKGROUP'];
-            }
-
-            this.exportToExcel(values);
-          }),
-      );
-
-      const actions = [];
-      actions.push({
-        name: 'edit',
-        label: _('Edit'),
-        iconClass: 'umcIconEdit',
-        isStandardAction: true,
-        isContextAction: true,
-        isMultiAction: false,
-        callback: lang.hitch(this, function(_idxs, licenses) {
-          this.openDetailPage(licenses[0].licenseCode);
-        }),
-      });
-      const columns = [
-        {
-          name: 'licenseCode', label: _('License code'), width: '60px',
-        }, {
-          name: 'productId',
-          label: _('Medium ID'),
-          width: '60px',
-          formatter: function(value) {
-            if (value && value.startsWith('urn:bilo:medium:')) {
-              value = value.slice(16, value.length);
-            }
-            return value;
-          },
-        }, {
-          name: 'productName', label: _('Medium'), width: '200px',
-        }, {
-          name: 'publisher', label: _('Publisher'), width: '50px',
-        }, {
-          name: 'licenseTypeLabel', label: _('License type'),
-        }, {
-          name: 'countAquired', label: _('Max. Users'), width: 'adjust',
-        }, {
-          name: 'countAssigned', label: _('Assigned'), width: 'adjust',
-        }, {
-          name: 'countExpired', label: _('Expired'), width: 'adjust',
-        }, {
-          name: 'countAvailable', label: _('Available'), width: 'adjust',
-        }, {
-          name: 'importDate',
-          label: _('Delivery'),
-          formatter: function(value, object) {
-            if (value) {
-              value = dateLocale.format(new Date(value), {
-                fullYear: true, selector: 'date',
-              });
-            }
-            return value;
-          },
-        }];
-      const columnsOverview = [
-        {
-          name: 'licenseCode', label: _('License code'), width: '66px',
-        }, {
-          name: 'productId',
-          label: _('Medium ID'),
-          width: '66px',
-          formatter: function(value) {
-            if (value && value.startsWith('urn:bilo:medium:')) {
-              value = value.slice(16, value.length);
-            }
-            return value;
-          },
-        }, {
-          name: 'productName', label: _('Medium'), width: '200px',
-        }, {
-          name: 'publisher', label: _('Publisher'), width: '50px',
-        }, {
-          name: 'licenseTypeLabel', label: _('License type'), width: '66px',
-        }, {
-          name: 'for', label: _('For'), width: '66px',
-        }, {
-          name: 'countAquired', label: _('Max. Users'), width: '66px',
-        }, {
-          name: 'countAssigned', label: _('Assigned'), width: '66px',
-        }, {
-          name: 'countExpired', label: _('Expired'), width: '66px',
-        }, {
-          name: 'countAvailable', label: _('Available'), width: '66px',
-        }, {
-          name: 'importDate',
-          label: _('Delivery'),
-          width: '66px',
-          formatter: function(value, object) {
-            if (value) {
-              value = dateLocale.format(new Date(value), {
-                fullYear: true, selector: 'date',
-              });
-            }
-            return value;
-          },
-        }];
-
-      this._grid = new Grid({
-        actions: actions,
-        columns: columnsOverview,
-        moduleStore: store('licenseCode', 'licenses'),
-        sortIndex: -10,
-        addTitleOnCellHoverIfOverflow: true,
-        class: 'licensesTable__licenses',
-        gridOptions: {
-          selectionMode: 'single',
+        query: function() {
+          this.standbyDuring(// Deactivated in this flavor due to Issue #97
+              this._searchForm.ready().then(lang.hitch(this, function() {
+                this._searchForm.submit();
+              })));
         },
-        selectorType: 'radio',
+
+        onChangeUsers: function() {
+          this.resetAdvancedSearch();
+        },
+
+        onChangeProduct: function() {
+          this.resetAdvancedSearch();
+        },
+
+        resetAdvancedSearch: function() {
+          if (this._isAdvancedSearch) {
+            this._toggleSearch();
+          }
+        },
+
+        refreshGrid: function(values) {
+          values.isAdvancedSearch = this._isAdvancedSearch;
+          values.onlyAvailableLicenses = false;
+          values.school = this.getSchoolId();
+          values.isAdvancedSearch = true;
+          values.onlyAvailableLicenses = true;
+
+          if (values.licenseType == '') {
+            values.licenseType = [];
+          } else if (values.licenseType == 'SINGLE') {
+            values.licenseType = ['SINGLE'];
+          } else if (values.licenseType == 'VOLUME') {
+            values.licenseType = ['VOLUME'];
+          } else if (values.licenseType == 'SCHOOL') {
+            values.licenseType = ['SCHOOL'];
+          } else if (values.licenseType == 'WORKGROUP') {
+            values.licenseType = ['WORKGROUP'];
+          }
+          this._grid.filter(values);
+          values.licenseType = '';
+        },
+
+        exportToExcel: function(values) {
+          tools.umcpCommand('licenses/export_to_excel', values).then(
+              lang.hitch(this, function(response) {
+                const res = response.result;
+                if (res.errorMessage) {
+                  dialog.alert(result.errorMessage);
+                } else {
+                  saveAs(b64toBlob(res.file), res.fileName);
+                }
+              }),
+          );
+        },// allow only either class or workgroup to be set
+
+        //// lifecycle
+        postMixInProperties: function() {
+          this.inherited(arguments);
+        },
+
+        afterPageChange: function() {
+
+          if (this._searchForm) {
+            this.removeChild(this._searchForm);
+          }
+
+          if (this._grid) {
+            this.removeChild(this._grid);
+          }
+
+          this._excelExportForm = new Form({
+            widgets: [],
+            buttons: [
+              {
+                name: 'submit',
+                label: _('Export to Excel'),
+                style: 'margin-top:20px',
+              },
+            ],
+          });
+
+          this._excelExportForm.on(
+              'submit',
+              lang.hitch(this, function() {
+                values = this._searchForm.value;
+                values.isAdvancedSearch = this._isAdvancedSearch;
+                values.onlyAvailableLicenses = false;
+                values.school = this.getSchoolId();
+                values.licenseCodes = this._grid.getSelectedItems().
+                    map(i => i.licenseCode);
+
+                if (values.licenseType == '') {
+                  values.licenseType = [];
+                } else if (values.licenseType == 'SINGLE') {
+                  values.licenseType = ['SINGLE'];
+                } else if (values.licenseType == 'VOLUME') {
+                  values.licenseType = ['VOLUME'];
+                } else if (values.licenseType == 'SCHOOL') {
+                  values.licenseType = ['SCHOOL'];
+                } else if (values.licenseType == 'WORKGROUP') {
+                  values.licenseType = ['WORKGROUP'];
+                }
+
+                this.exportToExcel(values);
+              }),
+          );
+
+          const actions = [];
+          actions.push({
+            name: 'edit',
+            label: _('Edit'),
+            iconClass: 'umcIconEdit',
+            isStandardAction: true,
+            isContextAction: true,
+            isMultiAction: false,
+            callback: lang.hitch(this, function(_idxs, licenses) {
+              this.openDetailPage(licenses[0].licenseCode);
+            }),
+          });
+          const columnsOverview = [
+            {
+              name: 'licenseCode', label: _('License code'), width: '66px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            }, {
+              name: 'productId',
+              label: _('Medium ID'),
+              width: '66px',
+              formatter: lang.hitch(this, function(value, license) {
+                if (value && value.startsWith('urn:bilo:medium:')) {
+                  value = value.slice(16, value.length);
+                }
+                return this.formatExpired(value, license);
+              }),
+            }, {
+              name: 'productName', label: _('Medium'), width: '200px',formatter: lang.hitch(this, 'formatExpired'),
+            }, {
+              name: 'publisher', label: _('Publisher'), width: '50px',formatter: lang.hitch(this, 'formatExpired'),
+            }, {
+              name: 'licenseTypeLabel', label: _('License type'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+            }, {
+              name: 'for', label: _('For'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+            }, {
+              name: 'countAquired', label: _('Max. Users'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+            }, {
+              name: 'countAssigned', label: _('Assigned'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+            }, {
+              name: 'countExpired', label: _('Expired'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+            }, {
+              name: 'countAvailable', label: _('Available'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+            }, {
+              name: 'importDate',
+              label: _('Delivery'),
+              width: '66px',
+              formatter: lang.hitch(this, function(value, license) {
+                if (value) {
+                  value = dateLocale.format(new Date(value), {
+                    fullYear: true, selector: 'date',
+                  });
+                }
+                return this.formatExpired(value, license);
+              }),
+            }];
+
+          this._grid = new Grid({
+            actions: actions,
+            columns: columnsOverview,
+            moduleStore: store('licenseCode', 'licenses'),
+            sortIndex: -10,
+            addTitleOnCellHoverIfOverflow: true,
+            class: 'licensesTable__licenses',
+            gridOptions: {
+              selectionMode: 'single',
+            },
+            selectorType: 'radio',
+          });
+
+          this.createLicenseSearchWidget();
+
+          this.addChild(this._searchForm);
+          this.addChild(this._excelExportForm);
+          this.addChild(this._grid);
+        },
+
+        buildRendering: function() {
+          this.inherited(arguments);
+          this._isAdvancedSearch = true;
+
+          // retrieve chunksize from UCR if present.
+          tools.ucr('bildungslogin/assignment/chunksize').
+              then(lang.hitch(this, function(data) {
+                this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
+              }));
+        },
       });
-
-      this.createLicenseSearchWidget();
-
-      this.addChild(this._searchForm);
-      this.addChild(this._excelExportForm);
-      this.addChild(this._grid);
-    },
-
-    buildRendering: function() {
-      this.inherited(arguments);
-      this._isAdvancedSearch = true;
-
-      // retrieve chunksize from UCR if present.
-      tools.ucr('bildungslogin/assignment/chunksize').
-          then(lang.hitch(this, function(data) {
-            this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
-          }));
-    },
-  });
 });
