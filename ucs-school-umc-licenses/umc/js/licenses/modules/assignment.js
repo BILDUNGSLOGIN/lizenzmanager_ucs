@@ -37,6 +37,13 @@ define([
       this.nextPage();
     },
 
+    setSchoolAssignment: function() {
+      this.setAssignmentType('school');
+      this.updateState('type', ['school']);
+      this._headerButtons.toChangeUser.set('visible', true);
+      this.selectPage(3);
+    },
+
     getGroup: function() {
       return this.group;
     },
@@ -125,7 +132,11 @@ define([
         this.setUserIds(this.state.user);
       }
 
-      if (this.state.type && this.state.group[0] !== '') {
+      if (this.state.type && this.state.type[0] === 'school') {
+        this.setSchoolAssignment();
+      }
+
+      if (this.state.type && this.state.type[0] !== 'school' && this.state.group[0] !== '') {
         this.setGroup(this.state.group[0], this.state.type[0]);
       }
 
@@ -149,6 +160,7 @@ define([
         'getSchoolId': lang.hitch(this, 'getSchoolId'),
         'setUserIds': lang.hitch(this, 'setUserIds'),
         'setGroup': lang.hitch(this, 'setGroup'),
+        'setSchoolAssignment': lang.hitch(this, 'setSchoolAssignment'),
       });
       const productSearchPage = new ProductSearchPage({
         'getSchoolId': lang.hitch(this, 'getSchoolId'),

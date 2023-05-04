@@ -766,11 +766,11 @@ define([
                           message);
 
                     });
-              } else if (this.allocation.school) {
+              } else if (this.getAssignmentType() === 'school') {
                 tools.umcpCommand('licenses/assign_to_school', {
                   licenseCodes: licenses.map(
                       (license) => license.licenseCode),
-                  school: this.allocation.school,
+                  school: this.getSchoolId(),
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
                   let msg = '';
@@ -810,12 +810,12 @@ define([
                   const title = _('Assigning licenses');
                   dialog.alert(msg, title);
                 }));
-              } else if (this.allocation.schoolClass) {
+              } else if (this.getAssignmentType() === 'schoolClass') {
                 tools.umcpCommand('licenses/assign_to_class', {
                   licenseCodes: licenses.map(
                       (license) => license.licenseCode),
-                  schoolClass: this.allocation.schoolClass.substr(3,
-                      this.allocation.schoolClass.indexOf(',') - 3),
+                  schoolClass: this.getGroup().substr(3,
+                      this.getGroup().indexOf(',') - 3),
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
                   let msg = '';
@@ -855,7 +855,7 @@ define([
                   const title = _('Assigning licenses');
                   dialog.alert(msg, title);
                 }));
-              } else if (this.allocation.workgroup) {
+              } else if (this.getAssignmentType() === 'workgroup') {
                 tools.umcpCommand('licenses/assign_to_workgroup', {
                   licenseCodes: licenses.map(
                       (license) => license.licenseCode),

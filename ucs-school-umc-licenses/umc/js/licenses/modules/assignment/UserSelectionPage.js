@@ -341,7 +341,7 @@ define([
         onSearch: lang.hitch(this, function(values) {
           switch (this.selectedLicenseType) {
             case 'SCHOOL':
-              this.onSchoolSelected(this.getSchoolId());
+              this.setSchoolAssignment();
               break;
             case 'WORKGROUP':
               let className =
