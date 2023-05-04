@@ -102,8 +102,14 @@ class LdapLicense:
         self.medium = None
 
         self.bildungsloginUsageStatus = bildungslogin_usage_status
-        self.bildungsloginExpiryDate = bildungslogin_expiry_date
         self.bildungsloginValidityStatus = bildungslogin_validity_status
+
+        if bildungslogin_expiry_date is not None:
+            try:
+                self.bildungsloginExpiryDate = datetime.strptime(bildungslogin_expiry_date,
+                                                                 '%Y-%m-%d').date()
+            except ValueError:
+                self.bildungsloginExpiryDate = None
 
     def add_user_string(self, user_string):
         self.user_strings.append(user_string)
@@ -342,7 +348,8 @@ class LdapRepository:
             if not deleted:
                 for assignment_update in assignment_updates:
                     if _assignment.entryUUID == assignment_update['entryUUID']:
-                        _assignment.bildungsloginAssignmentAssignee = assignment_update['bildungsloginAssignmentAssignee']
+                        _assignment.bildungsloginAssignmentAssignee = assignment_update[
+                            'bildungsloginAssignmentAssignee']
                         _assignment.bildungsloginAssignmentStatus = assignment_update['bildungsloginAssignmentStatus']
                         _assignment.bildungsloginAssignmentTimeOfAssignment = datetime.strptime(
                             assignment_update['bildungsloginAssignmentTimeOfAssignment'],
@@ -418,7 +425,10 @@ class LdapRepository:
                 quantity_assigned=entry['quantity_assigned'],
                 user_strings=entry['user_strings'],
                 groups=entry['groups'],
-                publisher=entry['bildungsloginLicenseProvider']))
+                publisher=entry['bildungsloginLicenseProvider'],
+                bildungslogin_validity_status=entry['bildungsloginValidityStatus'],
+                bildungslogin_usage_status=entry['bildungsloginUsageStatus'],
+                bildungslogin_expiry_date=entry['bildungsloginExpiryDate']))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
