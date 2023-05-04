@@ -154,11 +154,8 @@ define([
           function validityStatus(id) {
             let val = license[id];
 
-            if (val === null) {
-              val = '';
-            }
-            if (typeof val === 'string') {
-              val = val || _('invalid');
+            if (val) {
+              val = _('valid') || _('invalid');
             }
 
             return val;
@@ -167,11 +164,8 @@ define([
           function usageStatus(id) {
             let val = license[id];
 
-            if (val === null) {
-              val = '';
-            }
-            if (typeof val === 'string') {
-              val = val || _('not activated');
+            if (val) {
+              val = _('activated') || _('not activated');
             }
 
             return val;
@@ -179,7 +173,7 @@ define([
 
           function expiryDate() {
             if (license['expiryDate']) {
-              return d(license['expiryDate']);
+              return d('expiryDate');
             }
 
             if (license['usageStatus']) {
