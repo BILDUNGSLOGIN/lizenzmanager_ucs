@@ -43,15 +43,13 @@ define([
   'umc/tools',
   '../../common/Page',
   'umc/widgets/Grid',
-  'umc/widgets/CheckBox',
-  'umc/widgets/DateBox',
-  'umc/widgets/ComboBox',
-  'umc/widgets/SearchForm',
+  'umc/widgets/Form',
   'umc/widgets/Text',
-  'umc/widgets/TextBox',
-  'umc/widgets/SuggestionBox',
   'umc/widgets/ProgressInfo',
+  '../../common/LicenseSearchformMixin',
   'umc/i18n!umc/modules/licenses',
+  '../../../libraries/FileSaver',
+  '../../../libraries/base64',
 ], function(
     declare,
     lang,
@@ -67,17 +65,13 @@ define([
     tools,
     Page,
     Grid,
-    CheckBox,
-    DateBox,
-    ComboBox,
-    SearchForm,
+    Form,
     Text,
-    TextBox,
-    SuggestionBox,
     ProgressInfo,
+    LicenseSearchformMixin,
     _,
 ) {
-  return declare('umc.modules.licenses.license.SearchPage', [Page], {
+  return declare('umc.modules.licenses.license.SearchPage', [Page, LicenseSearchformMixin], {
     //// overwrites
     fullWidth: true,
 
@@ -293,150 +287,6 @@ define([
         this.removeChild(this._grid);
       }
 
-      const widgets = [
-        {
-          type: DateBox,
-          name: 'timeFrom',
-          visible: false,
-          label: _('Start import period'),
-          size: 'TwoThirds',
-        }, {
-          type: DateBox,
-          name: 'timeTo',
-          label: _('End import period'),
-          size: 'TwoThirds',
-          visible: false,
-        }, {
-          type: ComboBox,
-          name: 'licenseType',
-          label: _('License type'),
-          staticValues: this._licenseTypes,
-          size: 'TwoThirds',
-          visible: false,
-        }, {
-          type: TextBox,
-          name: 'userPattern',
-          label: _('User ID'),
-          description: _(
-              'Search for licenses that have this user assigned. (Searches for \'first name\', \'last name\' and \'username\')'),
-          size: 'TwoThirds',
-          visible: false,
-        }, {
-          type: TextBox,
-          name: 'licenseCode',
-          label: _('License code'),
-          size: 'TwoThirds',
-          visible: false,
-        }, {
-          type: TextBox,
-          name: 'pattern',
-          label: '&nbsp;',
-          inlineLabel: _('Search licenses'),
-        }];
-      widgets.push({
-        type: TextBox,
-        name: 'product',
-        label: _('Media Title'),
-        size: 'TwoThirds',
-        visible: false,
-      }, {
-        type: TextBox,
-        name: 'productId',
-        label: _('Medium ID'),
-        size: 'TwoThirds',
-        visible: false,
-        formatter: function(value) {
-          if (value && value.startsWith('urn:bilo:medium:')) {
-            value = value.slice(16, value.length);
-          }
-          return value;
-        },
-      }, {
-        type: CheckBox,
-        name: 'onlyAvailableLicenses',
-        label: _('Only assignable licenses'),
-        value: false,
-        size: 'TwoThirds',
-        visible: false,
-      }, {
-        type: ComboBox,
-        name: 'publisher',
-        label: _('Publisher'),
-        staticValues: [{id: '', label: ''}],
-        dynamicValues: 'licenses/publishers',
-        size: 'TwoThirds',
-        visible: false,
-      }, {
-        type: ComboBox,
-        name: 'workgroup',
-        label: _('Assigned to Workgroup'),
-        staticValues: [{id: '', label: ''}],
-        dynamicValues: 'licenses/workgroups',
-        dynamicOptions: {
-          school: this.getSchoolId(),
-        },
-        size: 'TwoThirds',
-        visible: false,
-        onChange: lang.hitch(this, function(values) {
-          this.onChooseDifferentWorkgroup(values);
-        }),
-      }, {
-        type: SuggestionBox,
-        name: 'class',
-        label: _('Assigned to Class'),
-        staticValues: [{id: '', label: ''}],
-        dynamicValues: 'licenses/classes',
-        dynamicOptions: {
-          school: this.getSchoolId(),
-        },
-        size: 'TwoThirds',
-        visible: false,
-        onChange: lang.hitch(this, function(values) {
-          this.onChooseDifferentClass(values);
-        }),
-      });
-
-      let layout = [
-        ['timeFrom', 'timeTo', 'onlyAvailableLicenses'],
-        ['publisher', 'licenseType', 'userPattern'],
-        ['workgroup', 'class'],
-        [
-          'productId',
-          'product',
-          'licenseCode',
-          'pattern',
-          'submit',
-          'toggleSearchLabel',
-          'toggleSearch']];
-      const buttons = [
-        {
-          name: 'toggleSearch',
-          labelConf: {
-            class: 'umcFilters',
-          },
-          label: _('Filters'),
-          iconClass: 'umcDoubleRightIcon',
-
-          callback: lang.hitch(this, function() {
-            this._toggleSearch();
-          }),
-        },
-      ];
-      this._searchForm = new SearchForm({
-        class: 'umcUDMSearchForm umcUDMSearchFormSimpleTextBox',
-        region: 'nav',
-        widgets: widgets,
-        buttons: buttons,
-        layout: layout,
-        onSearch: lang.hitch(this, function(values) {
-          this.refreshGrid(values);
-        }),
-      });
-      domClass.add(
-          this._searchForm.getWidget('licenseCode').$refLabel$.domNode,
-          'umcSearchFormElementBeforeSubmitButton',
-      );
-
       const actions = [];
       actions.push({
         name: 'delete',
@@ -539,6 +389,9 @@ define([
         },
         selectorType: 'radio',
       });
+
+      this.createLicenseSearchWidget();
+
 
       this.addChild(this._searchForm);
       this.addChild(this._grid);

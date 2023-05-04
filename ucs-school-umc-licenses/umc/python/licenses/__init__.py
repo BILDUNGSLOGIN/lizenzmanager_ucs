@@ -135,6 +135,11 @@ class Instance(SchoolBaseModule):
         time_to = request.options.get("timeTo")
         time_to = iso8601Date.to_datetime(time_to) if time_to else None
 
+        expiry_from = request.options.get("expiryDateFrom")
+        expiry_from = iso8601Date.to_datetime(expiry_from) if expiry_from else None
+        expiry_to = request.options.get("expiryDateTo")
+        expiry_to = iso8601Date.to_datetime(expiry_to) if expiry_to else None
+
         school_class = request.options.get("class", None)
         if not school_class:
             school_class = request.options.get("workgroup", None)
@@ -156,7 +161,12 @@ class Instance(SchoolBaseModule):
                 restrict_to_this_product_id=request.options.get(
                     "allocationProductId"),
                 sizelimit=sizelimit,
-                school_class=school_class)
+                school_class=school_class,
+                valid_status=request.options.get("validStatus"),
+                usage_status=request.options.get("usageStatus"),
+                expiry_date_from=expiry_from,
+                expiry_date_to=expiry_to
+            )
         except SearchLimitReached:
             raise UMC_Error(
                 _("Hint"
