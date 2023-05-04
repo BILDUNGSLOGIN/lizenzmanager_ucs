@@ -724,6 +724,7 @@ define([
       });
 
       this.addChild(this._searchForm);
+      this.addChild(this._excelExportForm);
       this.addChild(this._grid);
     },
 
@@ -736,7 +737,6 @@ define([
           then(lang.hitch(this, function(data) {
             this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
           }));
-      this.addChild(this._excelExportForm);
     },
   });
 });
