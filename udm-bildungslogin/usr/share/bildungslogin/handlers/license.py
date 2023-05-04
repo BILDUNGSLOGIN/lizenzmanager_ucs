@@ -209,28 +209,24 @@ property_descriptions = {
         long_description=_("The usage status provided by the bildungslogin api"),
         syntax=univention.admin.syntax.boolean,
         may_change=True,
-        editable=False,
     ),
     "expiry_date": univention.admin.property(
         short_description=_("Expiry Date"),
         long_description=_("The date the license expires for usage"),
         syntax=univention.admin.syntax.iso8601Date,
         may_change=True,
-        editable=False,
     ),
     "validity_status": univention.admin.property(
         short_description=_("Validity status"),
         long_description=_("The validity of the license, dictated by the bildungslogin api"),
         syntax=univention.admin.syntax.boolean,
         may_change=True,
-        editable=False,
     ),
     "registered": univention.admin.property(
         short_description=_("Registered"),
         long_description=_("If the license was already registered to the api"),
         syntax=univention.admin.syntax.boolean,
         may_change=True,
-        editable=False,
     ),
 }
 

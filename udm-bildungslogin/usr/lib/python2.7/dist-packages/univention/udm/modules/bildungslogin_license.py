@@ -76,7 +76,6 @@ class BildungsloginLicenseObject(GenericObject):
     """Better representation of bildungslogin/license properties."""
 
     udm_prop_class = BildungsloginLicenseObjectProperties
-    now = datetime.date.today()
 
 
 class BildungsloginLicenseModule(GenericModule):

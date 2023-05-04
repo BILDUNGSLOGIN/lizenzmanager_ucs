@@ -205,7 +205,7 @@ objectclass ( bildungsloginOID:1
         DESC 'A volume license provided by Bildungslogin'
         SUP top STRUCTURAL
         MUST ( cn $ bildungsloginLicenseCode $ bildungsloginProductId $ bildungsloginLicenseQuantity $ bildungsloginIgnoredForDisplay $ bildungsloginDeliveryDate $ bildungsloginLicenseSchool $ bildungsloginLicenseProvider $ bildungsloginLicenseType)
-        MAY ( bildungsloginPurchasingReference $ bildungsloginUtilizationSystems $ bildungsloginLicenseSpecialType $ bildungsloginValidityDuration $ bildungsloginValidityStartDate $ bildungsloginValidityEndDate $ bildungsloginUsageStatus $ bildungsloginExpiryDate $ bildungsloginRegistered) )
+        MAY ( bildungsloginPurchasingReference $ bildungsloginUtilizationSystems $ bildungsloginLicenseSpecialType $ bildungsloginValidityDuration $ bildungsloginValidityStartDate $ bildungsloginValidityEndDate $ bildungsloginUsageStatus $ bildungsloginExpiryDate $ bildungsloginValidityStatus $ bildungsloginRegistered) )
 
 objectclass ( bildungsloginOID:2
         NAME 'bildungsloginMetaData'
