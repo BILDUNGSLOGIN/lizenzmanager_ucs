@@ -174,7 +174,7 @@ define([
             buttons: [
               {
                 name: 'submit',
-                label: _('Export to Excel'),
+                label: _('Export'),
                 style: 'margin-top:20px',
               },
             ],
