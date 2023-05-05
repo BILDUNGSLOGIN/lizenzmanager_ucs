@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-05-04 06:40+0000\n"
+"POT-Creation-Date: 2023-05-05 12:05+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: umc/python/licenses/__init__.py:162 umc/python/licenses/__init__.py:267
+#: umc/python/licenses/__init__.py:172 umc/python/licenses/__init__.py:274
 msgid ""
 "HintThe number of licenses to be displayed is over {} and thus exceeds the "
 "set maximum value.You can use the filter/search parameters to limit the "
@@ -25,11 +25,11 @@ msgstr ""
 "für die Anzeige von einem Administrator mit der UCR-Variabledirectory/"
 "manager/web/sizelimit angepasst werden."
 
-#: umc/python/licenses/__init__.py:930
+#: umc/python/licenses/__init__.py:929
 msgid "No"
 msgstr "Nein"
 
-#: umc/python/licenses/__init__.py:413
+#: umc/python/licenses/__init__.py:418
 msgid ""
 "The 'Ignore' state cannot be changed because users are already assigned to "
 "the license."
@@ -37,7 +37,7 @@ msgstr ""
 "Der Status 'Ignorieren' kann nicht geändert werden, da der Lizenz bereits "
 "Benutzer zugewiesen sind."
 
-#: umc/python/licenses/__init__.py:930
+#: umc/python/licenses/__init__.py:929
 msgid "Yes"
 msgstr "Ja"
 
