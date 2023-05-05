@@ -47,7 +47,6 @@ define([
   'umc/widgets/Text',
   'umc/widgets/ProgressInfo',
   '../../common/LicenseSearchformMixin',
-  '../../common/FormatterMixin',
   'umc/i18n!umc/modules/licenses',
   '../../../libraries/FileSaver',
   '../../../libraries/base64',
@@ -70,11 +69,10 @@ define([
     Text,
     ProgressInfo,
     LicenseSearchformMixin,
-    FormatterMixin,
     _,
 ) {
   return declare('umc.modules.licenses.license.SearchPage',
-      [Page, LicenseSearchformMixin, FormatterMixin], {
+      [Page, LicenseSearchformMixin], {
         //// overwrites
         fullWidth: true,
 
@@ -221,7 +219,6 @@ define([
           const columnsOverview = [
             {
               name: 'licenseCode', label: _('License code'), width: '66px',
-              formatter: lang.hitch(this, 'formatExpired'),
             }, {
               name: 'productId',
               label: _('Medium ID'),
@@ -230,24 +227,24 @@ define([
                 if (value && value.startsWith('urn:bilo:medium:')) {
                   value = value.slice(16, value.length);
                 }
-                return this.formatExpired(value, license);
+                return value;
               }),
             }, {
-              name: 'productName', label: _('Medium'), width: '200px',formatter: lang.hitch(this, 'formatExpired'),
+              name: 'productName', label: _('Medium'), width: '200px',
             }, {
-              name: 'publisher', label: _('Publisher'), width: '50px',formatter: lang.hitch(this, 'formatExpired'),
+              name: 'publisher', label: _('Publisher'), width: '50px',
             }, {
-              name: 'licenseTypeLabel', label: _('License type'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+              name: 'licenseTypeLabel', label: _('License type'), width: '66px',
             }, {
-              name: 'for', label: _('For'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+              name: 'for', label: _('For'), width: '66px',
             }, {
-              name: 'countAquired', label: _('Max. Users'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+              name: 'countAquired', label: _('Max. Users'), width: '66px',
             }, {
-              name: 'countAssigned', label: _('Assigned'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+              name: 'countAssigned', label: _('Assigned'), width: '66px',
             }, {
-              name: 'countExpired', label: _('Expired'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+              name: 'countExpired', label: _('Expired'), width: '66px',
             }, {
-              name: 'countAvailable', label: _('Available'), width: '66px',formatter: lang.hitch(this, 'formatExpired'),
+              name: 'countAvailable', label: _('Available'), width: '66px',
             }, {
               name: 'importDate',
               label: _('Delivery'),
@@ -258,7 +255,7 @@ define([
                     fullYear: true, selector: 'date',
                   });
                 }
-                return this.formatExpired(value, license);
+                return value;
               }),
             }];
 

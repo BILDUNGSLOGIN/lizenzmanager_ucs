@@ -47,6 +47,7 @@ define([
   'umc/widgets/Text',
   'umc/widgets/ProgressInfo',
   '../../common/LicenseSearchformMixin',
+  '../../common/FormatterMixin',
   'umc/i18n!umc/modules/licenses',
   '../../../libraries/FileSaver',
   '../../../libraries/base64',
@@ -69,345 +70,355 @@ define([
     Text,
     ProgressInfo,
     LicenseSearchformMixin,
+    FormatterMixin,
     _,
 ) {
-  return declare('umc.modules.licenses.license.SearchPage', [Page, LicenseSearchformMixin], {
-    //// overwrites
-    fullWidth: true,
+  return declare('umc.modules.licenses.license.SearchPage',
+      [Page, LicenseSearchformMixin, FormatterMixin], {
+        //// overwrites
+        fullWidth: true,
 
-    //// self
-    standbyDuring: null, // required parameter
-    getSchoolId: function() {}, // required parameter
+        //// self
+        standbyDuring: null, // required parameter
+        getSchoolId: function() {}, // required parameter
 
-    _licenseTypes: [],
-    // reference to the currently active grid
-    _grid: null,
-    _gridFooter: null,
-    _searchForm: null,
+        _licenseTypes: [],
+        // reference to the currently active grid
+        _grid: null,
+        _gridFooter: null,
+        _searchForm: null,
 
-    _isAdvancedSearch: false,
+        _isAdvancedSearch: false,
 
-    maxUserSum: '-',
-    assignedSum: '-',
-    expiredSum: '-',
-    availableSum: '-',
+        maxUserSum: '-',
+        assignedSum: '-',
+        expiredSum: '-',
+        availableSum: '-',
 
-    deferred: null,
-    progressInfo: null,
-    max: 0,
-    current: 0,
+        deferred: null,
+        progressInfo: null,
+        max: 0,
+        current: 0,
 
-    _toggleSearch: function() {
-      this._isAdvancedSearch = !this._isAdvancedSearch;
+        _toggleSearch: function() {
+          this._isAdvancedSearch = !this._isAdvancedSearch;
 
-      [
-        'timeFrom',
-        'timeTo',
-        'onlyAvailableLicenses',
-        'publisher',
-        'licenseType',
-        'userPattern',
-        'productId',
-        'product',
-        'licenseCode',
-        'workgroup',
-        'class',
-      ].forEach(
-          lang.hitch(this, function(widgetName) {
-            const widget = this._searchForm.getWidget(widgetName);
-            if (widget) {
-              widget.set('visible', this._isAdvancedSearch);
-            }
-          }),
-      );
-
-      this._searchForm.getWidget('pattern').
-          set('visible', !this._isAdvancedSearch);
-
-      // update toggle button
-      const button = this._searchForm.getButton('toggleSearch');
-      if (this._isAdvancedSearch) {
-        button.set('iconClass', 'umcDoubleLeftIcon');
-      } else {
-        button.set('iconClass', 'umcDoubleRightIcon');
-      }
-    },
-
-    query: function() {
-      this.standbyDuring(
-          // Deactivated in this flavor due to Issue #97
-          this._searchForm.ready().then(
-              lang.hitch(this, function() {
-                this._searchForm.submit();
+          [
+            'timeFrom',
+            'timeTo',
+            'onlyAvailableLicenses',
+            'publisher',
+            'licenseType',
+            'userPattern',
+            'productId',
+            'product',
+            'licenseCode',
+            'workgroup',
+            'class',
+          ].forEach(
+              lang.hitch(this, function(widgetName) {
+                const widget = this._searchForm.getWidget(widgetName);
+                if (widget) {
+                  widget.set('visible', this._isAdvancedSearch);
+                }
               }),
-          ),
-      );
-    },
+          );
 
-    resetAdvancedSearch: function() {
-      if (this._isAdvancedSearch) {
-        this._toggleSearch();
-      }
-    },
+          this._searchForm.getWidget('pattern').
+              set('visible', !this._isAdvancedSearch);
 
-    refreshGrid: function(values) {
-      values.isAdvancedSearch = this._isAdvancedSearch;
-      values.school = this.getSchoolId();
-      values.isAdvancedSearch = true;
-      values.onlyAvailableLicenses = true;
-
-      if (values.licenseType == '') {
-        values.licenseType = [];
-      } else if (values.licenseType == 'SINGLE') {
-        values.licenseType = ['SINGLE'];
-      } else if (values.licenseType == 'VOLUME') {
-        values.licenseType = ['VOLUME'];
-      } else if (values.licenseType == 'SCHOOL') {
-        values.licenseType = ['SCHOOL'];
-      } else if (values.licenseType == 'WORKGROUP') {
-        values.licenseType = ['WORKGROUP'];
-      }
-      this._grid.filter(values);
-      values.licenseType = '';
-    },
-
-    //// lifecycle
-    postMixInProperties: function() {
-      this.inherited(arguments);
-
-      this._licenseTypes = [
-        {id: '', label: ''},
-        {id: 'SINGLE', label: _('Single license')},
-        {id: 'VOLUME', label: _('Volume license')},
-        {
-          id: 'WORKGROUP',
-          label: _('Workgroup license'),
+          // update toggle button
+          const button = this._searchForm.getButton('toggleSearch');
+          if (this._isAdvancedSearch) {
+            button.set('iconClass', 'umcDoubleLeftIcon');
+          } else {
+            button.set('iconClass', 'umcDoubleRightIcon');
+          }
         },
-        {
-          id: 'SCHOOL',
-          label: _('School license'),
+
+        query: function() {
+          this.standbyDuring(
+              // Deactivated in this flavor due to Issue #97
+              this._searchForm.ready().then(
+                  lang.hitch(this, function() {
+                    this._searchForm.submit();
+                  }),
+              ),
+          );
         },
-      ];
-    },
 
-    _delete: function(licenseCodes) {
-      let temp_codes = [];
-
-      while (temp_codes.length < this.allocation_chunksize &&
-      licenseCodes.length > 0) {
-        temp_codes.push(licenseCodes.pop());
-      }
-
-      let refreshGrid = lang.hitch(this, 'refreshGrid');
-
-      tools.umcpCommand('licenses/delete',
-          {school: this.getSchoolId(), licenseCodes: temp_codes}).
-          then(function(result) {
-            this.current += temp_codes.length;
-
-            if (this.progressInfo) {
-              this.progressInfo.update(this.current,
-                  _('Deleted %s from %s', this.current, this.max));
-            }
-
-            if (licenseCodes.length > 0) {
-              this._delete(licenseCodes);
-            } else {
-              refreshGrid({});
-            }
-
-          }, function(result) {
-            this.deferred.resolve({
-              'error': null,
-              'message': null,
-              'reason': null,
-              'result': null,
-            });
-            this.progressInfo.destroyRecursive();
-            alert('something went wrong');
-          });
-    },
-
-    deleteLicenses: function(licenses) {
-      this.deferred = new Deferred();
-      let licenseCodes = licenses.map(function(element) {
-        return element.licenseCode;
-      });
-
-      this.max = licenseCodes.length;
-      this.current = 0;
-
-      if (licenseCodes.length <= this.allocation_chunksize) {
-        this._delete(licenseCodes);
-      } else {
-        this.progressInfo = new ProgressInfo({
-          maximum: licenseCodes.length,
-        });
-
-        this.progressInfo._delete.set('maximum', licenseCodes.length);
-
-        this._delete(licenseCodes);
-
-        this.standbyDuring(this.deferred, this.progressInfo);
-      }
-    },
-
-    askDeleteLicenses: function(licenses) {
-      let count = licenses.length;
-      let message = `<p>${_(
-          'You have selected %s licenses. ' +
-          'Do you really want to delete this? ' +
-          'This process is irreversible!',
-          count)}</p>`;
-
-      if (count > 1000) {
-        message += `<p>${_(
-            'You have selected over a thousand licenses for deletion. This process will take several minutes.')}</p>`;
-      }
-
-      dialog.confirm(message, [
-        {
-          'label': _('Cancel'),
+        resetAdvancedSearch: function() {
+          if (this._isAdvancedSearch) {
+            this._toggleSearch();
+          }
         },
-        {
-          'label': _('Delete'),
-          'callback': lang.hitch(this, function() {
-            this.deleteLicenses(licenses);
-          }),
-        },
-      ]);
-    },
 
-    afterPageChange: function() {
-      if (this._searchForm) {
-        this.removeChild(this._searchForm);
-      }
+        refreshGrid: function(values) {
+          values.isAdvancedSearch = this._isAdvancedSearch;
+          values.school = this.getSchoolId();
+          values.isAdvancedSearch = true;
+          values.onlyAvailableLicenses = true;
 
-      if (this._grid) {
-        this.removeChild(this._grid);
-      }
+          if (values.licenseType == '') {
+            values.licenseType = [];
+          } else if (values.licenseType == 'SINGLE') {
+            values.licenseType = ['SINGLE'];
+          } else if (values.licenseType == 'VOLUME') {
+            values.licenseType = ['VOLUME'];
+          } else if (values.licenseType == 'SCHOOL') {
+            values.licenseType = ['SCHOOL'];
+          } else if (values.licenseType == 'WORKGROUP') {
+            values.licenseType = ['WORKGROUP'];
+          }
+          this._grid.filter(values);
+          values.licenseType = '';
+        },
 
-      const actions = [];
-      actions.push({
-        name: 'delete',
-        label: _('Delete'),
-        iconClass: 'trash',
-        isStandardAction: true,
-        isContextAction: true,
-        isMultiAction: true,
-        callback: lang.hitch(this, function(_idxs, licenses) {
-          this.askDeleteLicenses(licenses);
-        }),
-      });
-      const columnsOverview = [
-        {
-          name: 'licenseCode',
-          label: _('License code'),
-          width: '66px',
+        //// lifecycle
+        postMixInProperties: function() {
+          this.inherited(arguments);
+
+          this._licenseTypes = [
+            {id: '', label: ''},
+            {id: 'SINGLE', label: _('Single license')},
+            {id: 'VOLUME', label: _('Volume license')},
+            {
+              id: 'WORKGROUP',
+              label: _('Workgroup license'),
+            },
+            {
+              id: 'SCHOOL',
+              label: _('School license'),
+            },
+          ];
         },
-        {
-          name: 'productId',
-          label: _('Medium ID'),
-          width: '66px',
-          formatter: function(value) {
-            if (value && value.startsWith('urn:bilo:medium:')) {
-              value = value.slice(16, value.length);
-            }
-            return value;
-          },
-        },
-        {
-          name: 'productName',
-          label: _('Medium'),
-          width: '150px',
-        },
-        {
-          name: 'publisher',
-          label: _('Publisher'),
-          width: '50px',
-        },
-        {
-          name: 'licenseTypeLabel',
-          label: _('License type'),
-          width: '66px',
-        },
-        {
-          name: 'for',
-          label: _('For'),
-          width: '66px',
-        },
-        {
-          name: 'countAquired',
-          label: _('Max. Users'),
-          width: '66px',
-        },
-        {
-          name: 'countAssigned',
-          label: _('Assigned'),
-          width: '66px',
-        },
-        {
-          name: 'countExpired',
-          label: _('Expired'),
-          width: '66px',
-        },
-        {
-          name: 'countAvailable',
-          label: _('Available'),
-          width: '66px',
-        },
-        {
-          name: 'expiryDate',
-          label: _('Expiry date'),
-          width: '100px',
-          formatter: function(value, object) {
-            if (value) {
-              value = dateLocale.format(new Date(value), {
-                fullYear: true,
-                selector: 'date',
+
+        _delete: function(licenseCodes) {
+          let temp_codes = [];
+
+          while (temp_codes.length < this.allocation_chunksize &&
+          licenseCodes.length > 0) {
+            temp_codes.push(licenseCodes.pop());
+          }
+
+          let refreshGrid = lang.hitch(this, 'refreshGrid');
+
+          tools.umcpCommand('licenses/delete',
+              {school: this.getSchoolId(), licenseCodes: temp_codes}).
+              then(function(result) {
+                this.current += temp_codes.length;
+
+                if (this.progressInfo) {
+                  this.progressInfo.update(this.current,
+                      _('Deleted %s from %s', this.current, this.max));
+                }
+
+                if (licenseCodes.length > 0) {
+                  this._delete(licenseCodes);
+                } else {
+                  refreshGrid({});
+                }
+
+              }, function(result) {
+                this.deferred.resolve({
+                  'error': null,
+                  'message': null,
+                  'reason': null,
+                  'result': null,
+                });
+                this.progressInfo.destroyRecursive();
+                alert('something went wrong');
               });
-              return value;
-            }
-            if (object.usageStatus) {
-              return _('unlimited');
-            } else {
-              return _('undefined');
-            }
-          },
         },
-      ];
 
-      this._grid = new Grid({
-        actions: actions,
-        columns: columnsOverview,
-        moduleStore: store('licenseCode', 'licenses'),
-        sortIndex: -11,
-        addTitleOnCellHoverIfOverflow: true,
-        class: 'licensesTable__licenses',
-        gridOptions: {
-          selectionMode: 'single',
+        deleteLicenses: function(licenses) {
+          this.deferred = new Deferred();
+          let licenseCodes = licenses.map(function(element) {
+            return element.licenseCode;
+          });
+
+          this.max = licenseCodes.length;
+          this.current = 0;
+
+          if (licenseCodes.length <= this.allocation_chunksize) {
+            this._delete(licenseCodes);
+          } else {
+            this.progressInfo = new ProgressInfo({
+              maximum: licenseCodes.length,
+            });
+
+            this.progressInfo._delete.set('maximum', licenseCodes.length);
+
+            this._delete(licenseCodes);
+
+            this.standbyDuring(this.deferred, this.progressInfo);
+          }
         },
-        selectorType: 'radio',
+
+        askDeleteLicenses: function(licenses) {
+          let count = licenses.length;
+          let message = `<p>${_(
+              'You have selected %s licenses. ' +
+              'Do you really want to delete this? ' +
+              'This process is irreversible!',
+              count)}</p>`;
+
+          if (count > 1000) {
+            message += `<p>${_(
+                'You have selected over a thousand licenses for deletion. This process will take several minutes.')}</p>`;
+          }
+
+          dialog.confirm(message, [
+            {
+              'label': _('Cancel'),
+            },
+            {
+              'label': _('Delete'),
+              'callback': lang.hitch(this, function() {
+                this.deleteLicenses(licenses);
+              }),
+            },
+          ]);
+        },
+
+        afterPageChange: function() {
+          if (this._searchForm) {
+            this.removeChild(this._searchForm);
+          }
+
+          if (this._grid) {
+            this.removeChild(this._grid);
+          }
+
+          const actions = [];
+          actions.push({
+            name: 'delete',
+            label: _('Delete'),
+            iconClass: 'trash',
+            isStandardAction: true,
+            isContextAction: true,
+            isMultiAction: true,
+            callback: lang.hitch(this, function(_idxs, licenses) {
+              this.askDeleteLicenses(licenses);
+            }),
+          });
+          const columnsOverview = [
+            {
+              name: 'licenseCode',
+              label: _('License code'),
+              width: '66px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            },
+            {
+              name: 'productId',
+              label: _('Medium ID'),
+              width: '66px',
+              formatter: lang.hitch(this, function(value, license) {
+                if (value && value.startsWith('urn:bilo:medium:')) {
+                  value = value.slice(16, value.length);
+                }
+                return this.formatExpired(value, license);
+              }),
+            },
+            {
+              name: 'productName',
+              label: _('Medium'),
+              width: '150px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            },
+            {
+              name: 'publisher',
+              label: _('Publisher'),
+              width: '50px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            },
+            {
+              name: 'licenseTypeLabel',
+              label: _('License type'),
+              width: '66px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            },
+            {
+              name: 'for',
+              label: _('For'),
+              width: '66px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            },
+            {
+              name: 'countAquired',
+              label: _('Max. Users'),
+              width: '66px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            },
+            {
+              name: 'countAssigned',
+              label: _('Assigned'),
+              width: '66px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            },
+            {
+              name: 'countExpired',
+              label: _('Expired'),
+              width: '66px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            },
+            {
+              name: 'countAvailable',
+              label: _('Available'),
+              width: '66px',
+              formatter: lang.hitch(this, 'formatExpired'),
+            },
+            {
+              name: 'expiryDate',
+              label: _('Expiry date'),
+              width: '100px',
+              formatter: lang.hitch(this, function(value, license) {
+                if (value) {
+                  value = dateLocale.format(new Date(value), {
+                    fullYear: true,
+                    selector: 'date',
+                  });
+                  return this.formatExpired(value, license);
+                }
+                if (license.usageStatus) {
+                  return _('unlimited');
+                } else {
+                  return _('undefined');
+                }
+              }),
+            },
+          ];
+
+          this._grid = new Grid({
+            actions: actions,
+            columns: columnsOverview,
+            moduleStore: store('licenseCode', 'licenses'),
+            sortIndex: -11,
+            addTitleOnCellHoverIfOverflow: true,
+            class: 'licensesTable__licenses',
+            gridOptions: {
+              selectionMode: 'single',
+            },
+            selectorType: 'radio',
+          });
+
+          this.createLicenseSearchWidget();
+
+          this.addChild(this._searchForm);
+          this.addChild(this._grid);
+
+          this.refreshGrid({});
+        },
+
+        buildRendering: function() {
+          this.inherited(arguments);
+
+          // retrieve chunksize from UCR if present.
+          tools.ucr('bildungslogin/assignment/chunksize').
+              then(lang.hitch(this, function(data) {
+                this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
+              }));
+
+        },
       });
-
-      this.createLicenseSearchWidget();
-
-
-      this.addChild(this._searchForm);
-      this.addChild(this._grid);
-
-      this.refreshGrid({});
-    },
-
-    buildRendering: function() {
-      this.inherited(arguments);
-
-      // retrieve chunksize from UCR if present.
-      tools.ucr('bildungslogin/assignment/chunksize').
-          then(lang.hitch(this, function(data) {
-            this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
-          }));
-
-    },
-  });
 });
