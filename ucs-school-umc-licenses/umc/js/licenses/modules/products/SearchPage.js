@@ -396,7 +396,6 @@ define([
           lang.hitch(this, function() {
             values = this._searchForm.value
             values.school = this.getSchoolId(),
-            values.productIds = this._grid.getSelectedItems().map(i => i.productId),
             values.pattern = this._searchForm.value.pattern
             this.exportToExcel(values);
           }),

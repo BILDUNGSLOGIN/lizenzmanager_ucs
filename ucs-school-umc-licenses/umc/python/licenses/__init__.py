@@ -212,7 +212,6 @@ class Instance(SchoolBaseModule):
         licenseType=ListSanitizer(sanitizer=LDAPSearchSanitizer(add_asterisks=False)),
         userPattern=LDAPSearchSanitizer(default=""),
         productId=LDAPSearchSanitizer(default=""),
-        licenseCodes=ListSanitizer(required=True),
         product=LDAPSearchSanitizer(default=""),
         licenseCode=LDAPSearchSanitizer(default=""),
         pattern=LDAPSearchSanitizer(default=""),
@@ -231,7 +230,6 @@ class Instance(SchoolBaseModule):
             licenseType -- list
             userPattern -- str
             productId -- str
-            licenseCodes -- array
             product -- str
             licenseCode -- str
             pattern -- str
@@ -248,7 +246,6 @@ class Instance(SchoolBaseModule):
         time_from = iso8601Date.to_datetime(time_from) if time_from else None
         time_to = request.options.get("timeTo")
         time_to = iso8601Date.to_datetime(time_to) if time_to else None
-        licenseCodes = request.options.get("licenseCodes")
 
         school_class = request.options.get("class", None)
         if not school_class:
@@ -283,8 +280,6 @@ class Instance(SchoolBaseModule):
             )
         result = []
         for _license in licenses:
-            if _license.bildungsloginLicenseCode not in licenseCodes:
-                continue
             metadata = _license.medium
             result.append([
                 _license.bildungsloginLicenseCode,
@@ -789,7 +784,6 @@ class Instance(SchoolBaseModule):
 
     @sanitize(
         school=SchoolSanitizer(required=True),
-        productIds=ListSanitizer(required=True),
         pattern=LDAPSearchSanitizer(),
         licenseType=ListSanitizer(sanitizer=LDAPSearchSanitizer(add_asterisks=False))
     )
@@ -798,7 +792,6 @@ class Instance(SchoolBaseModule):
         """Searches for products
         requests.options = {
             school:  str
-            productIds: array
             pattern: str
             licenseType: List
             showOnlyAvailable: bool [optional]
@@ -809,7 +802,6 @@ class Instance(SchoolBaseModule):
         result = []
 
         school = request.options.get("school")
-        productIds = request.options.get("productIds")
         pattern = request.options.get("pattern")
         license_types = request.options.get("licenseType", None)
 
@@ -826,9 +818,6 @@ class Instance(SchoolBaseModule):
         meta_data_objs = self.repository.filter_metadata(pattern)
 
         for meta_datum_obj in meta_data_objs:
-            if meta_datum_obj.bildungsloginProductId not in productIds:
-                continue
-
             licenses = self.repository.filter_licenses(meta_datum_obj.bildungsloginProductId, school, license_types)
 
             if licenses:

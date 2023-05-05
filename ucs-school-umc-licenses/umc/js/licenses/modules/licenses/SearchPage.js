@@ -185,8 +185,7 @@ define([
                 values.isAdvancedSearch = this._isAdvancedSearch;
                 values.onlyAvailableLicenses = false;
                 values.school = this.getSchoolId();
-                values.licenseCodes = this._grid.getSelectedItems().
-                    map(i => i.licenseCode);
+
 
                 if (values.licenseType == '') {
                   values.licenseType = [];
