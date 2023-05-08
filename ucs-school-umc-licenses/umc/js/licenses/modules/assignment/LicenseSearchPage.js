@@ -51,10 +51,11 @@ define([
       'umc/widgets/TextBox',
       'umc/widgets/SuggestionBox',
       'umc/widgets/ProgressInfo',
+      'umc/widgets/Form',
       'umc/i18n!umc/modules/licenses'],
     function(declare, lang, dom, domClass, on, dateLocale, Deferred, entities,
         Tooltip, dialog, store, tools, Page, Grid, CheckBox, DateBox, ComboBox,
-        SearchForm, Text, TextBox, SuggestionBox, ProgressInfo, _) {
+        SearchForm, Text, TextBox, SuggestionBox, ProgressInfo, Form, _) {
       return declare('umc.modules.licenses.LicenseSearchPage', [Page], {
         //// overwrites
         fullWidth: true,
@@ -527,6 +528,41 @@ define([
           this.refreshGrid(this._searchForm.value);
         },
 
+        exportToExcel: function(values) {
+          values.isAdvancedSearch = this._isAdvancedSearch;
+          values.school = this.getSchoolId();
+          values.isAdvancedSearch = true;
+          values.onlyAvailableLicenses = true;
+
+          if (this.getAssignmentType() === 'user') {
+            values.allocationProductId = this.getProductId();
+            if (values.licenseType === '') {
+              values.licenseType = ['SINGLE', 'VOLUME'];
+            } else if (values.licenseType === 'SINGLE') {
+              values.licenseType = ['SINGLE'];
+            } else if (values.licenseType === 'VOLUME') {
+              values.licenseType = ['VOLUME'];
+            }
+          } else if (this.getAssignmentType() === 'school') {
+            values.licenseType = ['SCHOOL'];
+          } else if (['schoolClass', 'workgroup'].includes(
+              this.getAssignmentType())) {
+            values.allocationProductId = this.getProductId();
+            values.licenseType = ['WORKGROUP'];
+          }
+
+          tools.umcpCommand('licenses/export_to_excel', values).then(
+              lang.hitch(this, function(response) {
+                const res = response.result;
+                if (res.errorMessage) {
+                  dialog.alert(result.errorMessage);
+                } else {
+                  saveAs(b64toBlob(res.file), res.fileName);
+                }
+              }),
+          );
+        },
+
         buildRendering: function() {
           this.inherited(arguments);
 
@@ -812,8 +848,8 @@ define([
                   licenseCodes: licenses.map(
                       (license) => license.licenseCode),
                   schoolClass: this.getGroup().substr(
-                    3,
-                    this.getGroup().indexOf(",") - 3
+                      3,
+                      this.getGroup().indexOf(',') - 3,
                   ),
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
@@ -859,8 +895,8 @@ define([
                   licenseCodes: licenses.map(
                       (license) => license.licenseCode),
                   workgroup: this.getGroup().substr(
-                    3,
-                    this.getGroup().indexOf(",") - 3
+                      3,
+                      this.getGroup().indexOf(',') - 3,
                   ),
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
@@ -1025,8 +1061,30 @@ define([
             selectorType: 'radio',
           });
 
+          this._excelExportForm = new Form({
+            widgets: [],
+            buttons: [
+              {
+                name: 'submit',
+                label: _('Export'),
+                style: 'margin-top:20px',
+              },
+            ],
+          });
+
+          this._excelExportForm.on(
+              'submit',
+              lang.hitch(this, function() {
+                values = this._searchForm.value;
+                values.school = this.getSchoolId();
+                values.pattern = this._searchForm.value.pattern;
+                this.exportToExcel(values);
+              }),
+          );
+
           this.addChild(this._assignmentText);
           this.addChild(this._searchForm);
+          this.addChild(this._excelExportForm);
 
           this.addChild(this._gridAllocation);
           this._grid = this._gridAllocation;

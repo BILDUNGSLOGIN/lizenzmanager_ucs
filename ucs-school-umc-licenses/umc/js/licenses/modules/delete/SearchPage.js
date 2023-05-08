@@ -100,42 +100,6 @@ define([
         max: 0,
         current: 0,
 
-        _toggleSearch: function() {
-          this._isAdvancedSearch = !this._isAdvancedSearch;
-
-          [
-            'timeFrom',
-            'timeTo',
-            'onlyAvailableLicenses',
-            'publisher',
-            'licenseType',
-            'userPattern',
-            'productId',
-            'product',
-            'licenseCode',
-            'workgroup',
-            'class',
-          ].forEach(
-              lang.hitch(this, function(widgetName) {
-                const widget = this._searchForm.getWidget(widgetName);
-                if (widget) {
-                  widget.set('visible', this._isAdvancedSearch);
-                }
-              }),
-          );
-
-          this._searchForm.getWidget('pattern').
-              set('visible', !this._isAdvancedSearch);
-
-          // update toggle button
-          const button = this._searchForm.getButton('toggleSearch');
-          if (this._isAdvancedSearch) {
-            button.set('iconClass', 'umcDoubleLeftIcon');
-          } else {
-            button.set('iconClass', 'umcDoubleRightIcon');
-          }
-        },
-
         query: function() {
           this.standbyDuring(
               // Deactivated in this flavor due to Issue #97
@@ -156,8 +120,6 @@ define([
         refreshGrid: function(values) {
           values.isAdvancedSearch = this._isAdvancedSearch;
           values.school = this.getSchoolId();
-          values.isAdvancedSearch = true;
-          values.onlyAvailableLicenses = true;
 
           if (values.licenseType == '') {
             values.licenseType = [];
@@ -216,7 +178,7 @@ define([
                 if (licenseCodes.length > 0) {
                   this._delete(licenseCodes);
                 } else {
-                  refreshGrid({});
+                  refreshGrid(this._searchForm.value);
                 }
 
               }, function(result) {
@@ -281,9 +243,26 @@ define([
           ]);
         },
 
+        exportToExcel: function(values) {
+          tools.umcpCommand('licenses/export_to_excel', values).then(
+              lang.hitch(this, function(response) {
+                const res = response.result;
+                if (res.errorMessage) {
+                  dialog.alert(result.errorMessage);
+                } else {
+                  saveAs(b64toBlob(res.file), res.fileName);
+                }
+              }),
+          );
+        },// allow only either class or workgroup to be set
+
         afterPageChange: function() {
           if (this._searchForm) {
             this.removeChild(this._searchForm);
+          }
+
+          if (this._excelExportForm) {
+            this.removeChild(this._excelExportForm);
           }
 
           if (this._grid) {
@@ -417,10 +396,45 @@ define([
 
           this.createLicenseSearchWidget();
 
-          this.addChild(this._searchForm);
-          this.addChild(this._grid);
+          this._excelExportForm = new Form({
+            widgets: [],
+            buttons: [
+              {
+                name: 'submit',
+                label: _('Export'),
+                style: 'margin-top:20px',
+              },
+            ],
+          });
 
-          this.refreshGrid({});
+          this._excelExportForm.on(
+              'submit',
+              lang.hitch(this, function() {
+                values = this._searchForm.value;
+                values.isAdvancedSearch = this._isAdvancedSearch;
+                values.onlyAvailableLicenses = false;
+                values.school = this.getSchoolId();
+
+
+                if (values.licenseType == '') {
+                  values.licenseType = [];
+                } else if (values.licenseType == 'SINGLE') {
+                  values.licenseType = ['SINGLE'];
+                } else if (values.licenseType == 'VOLUME') {
+                  values.licenseType = ['VOLUME'];
+                } else if (values.licenseType == 'SCHOOL') {
+                  values.licenseType = ['SCHOOL'];
+                } else if (values.licenseType == 'WORKGROUP') {
+                  values.licenseType = ['WORKGROUP'];
+                }
+
+                this.exportToExcel(values);
+              }),
+          );
+
+          this.addChild(this._searchForm);
+          this.addChild(this._excelExportForm);
+          this.addChild(this._grid);
         },
 
         buildRendering: function() {

@@ -47,6 +47,8 @@ define([
   'umc/widgets/Text',
   'umc/widgets/TextBox',
   'put-selector/put',
+  'umc/widgets/Form',
+  'umc/tools',
   'umc/i18n!umc/modules/licenses',
 ], function(
     declare,
@@ -67,6 +69,8 @@ define([
     Text,
     TextBox,
     put,
+    Form,
+    tools,
     _,
 ) {
   return declare('umc.modules.licenses.ProductSearchPage', [Page], {
@@ -263,6 +267,27 @@ define([
 
     onShowProduct: function(productId) {
       // event stub
+    },
+
+    exportToExcel: function(values) {
+      if (this.getAssignmentType() === 'user') {
+        values.licenseType = ['SINGLE', 'VOLUME'];
+        values.showOnlyAvailable = true;
+      } else if (['workgroup', 'schoolClass'].includes(this.getAssignmentType())) {
+        values.groupName = this.parseGroupName(this.getGroup());
+        values.licenseType = ['WORKGROUP'];
+        values.showOnlyAvailable = true;
+      }
+      tools.umcpCommand('licenses/products/export_to_excel', values).then(
+          lang.hitch(this, function(response) {
+            const res = response.result;
+            if (res.errorMessage) {
+              dialog.alert(result.errorMessage);
+            } else {
+              saveAs(b64toBlob(res.file), res.fileName);
+            }
+          }),
+      );
     },
 
     refreshGrid: function(values, resize = false) {
@@ -570,8 +595,31 @@ define([
           }),
       );
 
+      this._excelExportForm = new Form({
+        widgets: [],
+        buttons: [
+          {
+            name: 'submit',
+            label: _('Export'),
+            style: 'margin-top:20px',
+          },
+        ],
+      });
+
+      this._excelExportForm.on(
+          'submit',
+          lang.hitch(this, function() {
+            values = this._searchForm.value;
+            values.school = this.getSchoolId();
+            values.pattern = this._searchForm.value.pattern;
+            this.exportToExcel(values);
+          }),
+      );
+
       this.addChild(this._assignmentText);
       this.addChild(this._searchForm);
+      this.addChild(this._excelExportForm);
+
     },
   });
 });
