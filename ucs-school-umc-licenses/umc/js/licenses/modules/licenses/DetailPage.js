@@ -164,11 +164,11 @@ define([
           function usageStatus(id) {
             let val = license[id];
 
-            if (val) {
-              val = _('activated') || _('not activated');
+            if (val === "1") {
+              return _('activated');
+            } else {
+              return _('not activated');
             }
-
-            return val;
           }
 
           function expiryDate() {
