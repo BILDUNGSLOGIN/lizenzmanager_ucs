@@ -26,7 +26,7 @@ define([
 
       this.addHeaderButton({
         name: 'toOverview',
-        label: _('Back to overview'),
+        label: _('Back'),
         callback: lang.hitch(this, 'backToOverview'),
         visible: false,
       });
