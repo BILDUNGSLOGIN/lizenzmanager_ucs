@@ -35,7 +35,7 @@ define([
       this.inherited(arguments);
       this.addHeaderButton({
         name: 'backToOverview',
-        label: _('Back to media overview'),
+        label: _('Back'),
         callback: lang.hitch(this, 'backToOverview'),
         visible: false,
       });

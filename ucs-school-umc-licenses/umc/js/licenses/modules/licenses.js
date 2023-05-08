@@ -18,6 +18,7 @@ define([
       this.selectPage(2);
       this.currentPage().load(licenseId);
       this._headerButtons.save.set('visible', true);
+      this._headerButtons.backToOverview.set('visible', true);
     },
 
     afterChooseSchool: function() {
@@ -31,6 +32,7 @@ define([
       this.deleteState('license');
       this._headerButtons.save.set('visible', false);
       this._headerButtons.save.set('disabled', true);
+      this._headerButtons.backToOverview.set('visible', false);
     },
 
     getSaveButton: function() {
@@ -48,6 +50,12 @@ define([
         }),
         visible: false,
         disabled: true,
+      });
+      this.addHeaderButton({
+        name: 'backToOverview',
+        label: _('Back'),
+        callback: lang.hitch(this, 'backToOverview'),
+        visible: false,
       });
     },
 
