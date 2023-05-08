@@ -138,22 +138,31 @@ define([
           }
 
           const data = [
-            [_('Title'), e('title')],
-            [_('Author'), e('author')],
-            [_('Publisher'), e('publisher')],
-            [_('Medium ID'), e('productId')],
-            [_('Description'), e('description')],
+            [
+              [_('Title'), e('title')],
+              [_('Author'), e('author')],
+              [_('Publisher'), e('publisher')],
+              [_('Medium ID'), e('productId')],
+              [_('Description'), e('description')],
+            ],
+            [], [],
           ];
 
-          for (const row of data) {
-            put(
-                this._tableNode,
-                'div.licensesTable__dataLabel',
-                row[0],
-                '+ div',
-                row[1],
-            );
+          for (const column of data) {
+            let _column = put('div.licensesTable__column');
+            for (const row of column) {
+              let _row = put('div.licensesTable__row');
+              put(_row,
+                  'div.licensesTable__dataLabel',
+                  row[0],
+                  '+ div.licensesTable__dataValue',
+                  row[1],
+              );
+              put(_column, _row);
+            }
+            put(this._tableNode, _column);
           }
+
           this._set('product', product);
         },
       },
