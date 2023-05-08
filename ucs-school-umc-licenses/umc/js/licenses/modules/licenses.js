@@ -17,12 +17,38 @@ define([
       this.updateState('license', [licenseId]);
       this.selectPage(2);
       this.currentPage().load(licenseId);
+      this._headerButtons.save.set('visible', true);
     },
 
     afterChooseSchool: function() {
       if (this.state.license && this.state.license[0] !== '') {
         this.openDetailPage(this.state.license[0]);
       }
+    },
+
+    backToOverview: function() {
+      this.selectPage(1);
+      this.deleteState('license');
+      this._headerButtons.save.set('visible', false);
+      this._headerButtons.save.set('disabled', true);
+    },
+
+    getSaveButton: function() {
+      return this._headerButtons.save;
+    },
+
+    postMixInProperties: function() {
+      this.inherited(arguments);
+
+      this.addHeaderButton({
+        name: 'save',
+        label: _('Save'),
+        callback: lang.hitch(this, function() {
+          this.detailPage.save();
+        }),
+        visible: false,
+        disabled: true,
+      });
     },
 
     buildRendering: function() {
@@ -33,10 +59,12 @@ define([
       });
       this.addPage(searchPage);
 
-      const detailPage = new DetailPage({
-        standbyDuring: lang.hitch(this, 'standbyDuring')
+      this.detailPage = new DetailPage({
+        standbyDuring: lang.hitch(this, 'standbyDuring'),
+        onBack: lang.hitch(this, 'backToOverview'),
+        getSaveButton: lang.hitch(this, 'getSaveButton'),
       });
-      this.addPage(detailPage);
+      this.addPage(this.detailPage);
     },
   });
 });

@@ -309,7 +309,6 @@ define([
               lang.hitch(this, function(response) {
                 const license = response.result;
                 this.set('license', license);
-                this._headerButtons.save.set('disabled', true);
                 return license.licenseCode;
               }),
           ),
@@ -414,7 +413,7 @@ define([
           this._table,
           'ignoreCheckBoxClicked',
           lang.hitch(this, function() {
-            this._headerButtons.save.set(
+            this.getSaveButton().set(
                 'disabled',
                 !this._table.ignoreChanged(),
             );
