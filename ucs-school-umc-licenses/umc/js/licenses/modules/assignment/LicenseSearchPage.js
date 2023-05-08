@@ -348,8 +348,7 @@ define([
             this.addChild(this._gridAllocation);
             this._grid = this._gridAllocation;
 
-            this._headerButtons.close?.set('visible', false);
-            const count = allocation.usernames.length;
+            const count = this.getUserIds().length;
             const id = this.id + '-tooltip';
             const msg = `
 				<p>
@@ -525,7 +524,7 @@ define([
 
         afterPageChange: function() {
           this.updateText();
-          this.refreshGrid({pattern: ''});
+          this.refreshGrid(this._searchForm.value);
         },
 
         buildRendering: function() {
