@@ -18,28 +18,27 @@ define([
     userIds: [],
     productId: null,
     group: null,
+    groupName: null,
+    userCount: null,
     _assignmentType: null,
 
     setUserIds: function(userIds) {
       this.userIds = userIds;
       this.setAssignmentType('user');
-      this.updateState('user', userIds);
       this._headerButtons.toChangeUser.set('visible', true);
       this.nextPage();
     },
 
-    setGroup: function(group, type) {
+    setGroup: function(group, groupName, type) {
       this.setAssignmentType(type);
       this.group = group;
-      this.updateState('type', [type]);
-      this.updateState('group', [group]);
+      this.groupName = groupName;
       this._headerButtons.toChangeUser.set('visible', true);
       this.nextPage();
     },
 
     setSchoolAssignment: function() {
       this.setAssignmentType('school');
-      this.updateState('type', ['school']);
       this._headerButtons.toChangeUser.set('visible', true);
       this.selectPage(3);
     },
@@ -48,11 +47,15 @@ define([
       return this.group;
     },
 
+    getGroupName: function() {
+      return this.groupName;
+    },
+
     setProductId: function(productId) {
       this.productId = productId;
-      this.updateState('product', [productId]);
       this._headerButtons.changeMedium.set('visible', true);
       this.nextPage();
+      this.currentPage().updateText();
     },
 
     setAssignmentType: function(type) {
@@ -78,21 +81,17 @@ define([
     },
 
     toChangeUser: function() {
-      if (this.state.product) {
-        this.deleteState('product');
-      }
-
-      if (this.state.user) {
-        this.deleteState('user');
-      }
-
-      if (this.state.group) {
-        this.deleteState('group');
-      }
-
       this._headerButtons.toChangeUser.set('visible', false);
       this._headerButtons.changeMedium.set('visible', false);
       this.selectPage(1);
+    },
+
+    setUserCount: function(userCount) {
+      this.userCount = userCount;
+    },
+
+    getUserCount: function() {
+      return this.userCount
     },
 
     backToChooseSchool: function() {
@@ -102,9 +101,6 @@ define([
     },
 
     backToChooseProduct: function() {
-      if (this.state.product) {
-        this.deleteState('product');
-      }
       this._headerButtons.changeMedium.set('visible', false);
       this.selectPage(2);
     },
@@ -125,24 +121,6 @@ define([
         callback: lang.hitch(this, 'backToChooseProduct'),
         visible: false,
       });
-    },
-
-    afterChooseSchool: function() {
-      if (this.state.user && this.state.user[0] !== '') {
-        this.setUserIds(this.state.user);
-      }
-
-      if (this.state.type && this.state.type[0] === 'school') {
-        this.setSchoolAssignment();
-      }
-
-      if (this.state.type && this.state.type[0] !== 'school' && this.state.group[0] !== '') {
-        this.setGroup(this.state.group[0], this.state.type[0]);
-      }
-
-      if (this.state.product && this.state.product[0] !== '') {
-        this.setProductId(this.state.product[0]);
-      }
     },
 
     buildRendering: function() {
@@ -168,6 +146,8 @@ define([
         'setProductId': lang.hitch(this, 'setProductId'),
         'getAssignmentType': lang.hitch(this, 'getAssignmentType'),
         'getGroup': lang.hitch(this, 'getGroup'),
+        'getGroupName': lang.hitch(this, 'getGroupName'),
+        'setUserCount': lang.hitch(this, 'setUserCount')
       });
       const licenseSearchPage = new LicenseSearchPage({
         'getSchoolId': lang.hitch(this, 'getSchoolId'),
@@ -175,6 +155,9 @@ define([
         'getProductId': lang.hitch(this, 'getProductId'),
         'getAssignmentType': lang.hitch(this, 'getAssignmentType'),
         'standbyDuring': lang.hitch(this, 'standbyDuring'),
+        'getGroup': lang.hitch(this, 'getGroup'),
+        'getGroupName': lang.hitch(this, 'getGroupName'),
+        'getUserCount': lang.hitch(this, 'getUserCount'),
       });
 
       this.addPage(userSelectionPage);

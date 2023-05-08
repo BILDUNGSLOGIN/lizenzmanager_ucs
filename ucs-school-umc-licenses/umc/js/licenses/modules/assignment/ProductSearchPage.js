@@ -280,7 +280,11 @@ define([
         values.groupName = this.parseGroupName(this.getGroup());
         values.licenseType = ['WORKGROUP'];
         values.showOnlyAvailable = true;
+
+        let setUserCount = this.setUserCount;
+
         this._gridGroup.filter(values).then(() => {
+
           if (
               this._gridGroup.collection.data[0] &&
               this._gridGroup.collection.data[0].user_count !== null
@@ -288,6 +292,7 @@ define([
             this._set('userCount',
                 this._gridGroup.collection.data[0].user_count);
             this.showUserCount();
+            setUserCount(this._gridGroup.collection.data[0].user_count);
           }
         });
         this.removeChild(this._grid);

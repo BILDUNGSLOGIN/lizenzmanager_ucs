@@ -340,11 +340,9 @@ define([
           }
         },
 
-        allocation: null,
-        _setAllocationAttr: function(allocation) {
-          this._set('allocation', allocation);
+        updateText: function() {
           domClass.remove(this._assignmentText.domNode, 'dijitDisplayNone');
-          if (allocation.usernames) {
+          if (this.getAssignmentType() === 'user') {
 
             this.removeChild(this._gridGroup);
             this.addChild(this._gridAllocation);
@@ -370,7 +368,7 @@ define([
             const node = dom.byId(id);
             on(node, 'click', lang.hitch(this, function(evt) {
               let label = '';
-              for (const username of this.allocation.usernames) {
+              for (const username of this.getUserIds()) {
                 label += `<div>${entities.encode(username)}</div>`;
               }
               Tooltip.show(label, node);
@@ -379,10 +377,7 @@ define([
                 Tooltip.hide(node);
               }));
             }));
-          } else if (allocation.school) {
-            this._headerButtons.changeMedium?.set('visible', false);
-            this._headerButtons.changeUsers?.set('visible', false);
-            this._headerButtons.close?.set('visible', true);
+          } else if (this.getAssignmentType() === 'school') {
             this.removeChild(this._gridAllocation);
             this.addChild(this._gridGroup);
             this._grid = this._gridGroup;
@@ -402,7 +397,7 @@ define([
             const node = dom.byId(id);
             on(node, 'click', lang.hitch(this, function(evt) {
               let label = `<div>${entities.encode(
-                  this.allocation.school)}</div>`;
+                  this.getSchoolId())}</div>`;
 
               Tooltip.show(label, node);
               evt.stopImmediatePropagation();
@@ -410,20 +405,19 @@ define([
                 Tooltip.hide(node);
               }));
             }));
-          } else if (allocation.workgroup || allocation.schoolClass) {
-            this._headerButtons.changeMedium?.set('visible', true);
-            this._headerButtons.close?.set('visible', false);
+          } else if (this.getAssignmentType() === 'workgroup' ||
+              this.getAssignmentType() === 'schoolClass') {
             this.removeChild(this._gridAllocation);
             this.addChild(this._gridGroup);
             this._grid = this._gridGroup;
             const id = this.id + '-tooltip';
             let assignmentLabel = entities.encode(
                 _('Assign licenses to selected workgroup/class.'));
-            if (allocation.userCount) {
-              assignmentLabel = entities.encode(allocation.userCount === 1 ? _(
+            if (this.getUserCount()) {
+              assignmentLabel = entities.encode(this.getUserCount() === 1 ? _(
                   'Assign licenses to 1 selected user.') : _(
                   'Assign licenses to %s selected users.',
-                  allocation.userCount));
+                  this.getUserCount()));
             }
             const msg = `
 				<p>
@@ -442,10 +436,10 @@ define([
               let label = '';
               if (allocation.workgroup && allocation.workgroup !== '') {
                 label = `<div>${entities.encode(
-                    this.allocation.workgroupName)}</div>`;
+                    this.getGroup())}</div>`;
               } else {
                 label = `<div>${entities.encode(
-                    this.allocation.className)}</div>`;
+                    this.getGroup())}</div>`;
               }
               Tooltip.show(label, node);
               evt.stopImmediatePropagation();
@@ -501,7 +495,8 @@ define([
             }
           } else if (this.getAssignmentType() === 'school') {
             values.licenseType = ['SCHOOL'];
-          } else if (['schoolClass', 'workgroup'].includes(this.getAssignmentType())) {
+          } else if (['schoolClass', 'workgroup'].includes(
+              this.getAssignmentType())) {
             values.allocationProductId = this.getProductId();
             values.licenseType = ['WORKGROUP'];
           }
@@ -529,6 +524,7 @@ define([
         },
 
         afterPageChange: function() {
+          this.updateText();
           this.refreshGrid({pattern: ''});
         },
 
@@ -717,7 +713,7 @@ define([
                       }
                       if (result.countSuccessfulAssignments) {
                         if (result.countSuccessfulAssignments ===
-                            this.allocation.usernames.length) {
+                            this.getAssignmentType() === 'user') {
                           msg += '<p>' + entities.encode(
                                   _('Licenses were successfully assigned to all %s selected users.',
                                       result.countSuccessfulAssignments)) +
@@ -726,7 +722,7 @@ define([
                           msg += '<p>' + entities.encode(
                                   _('Licenses were successfully assigned to %s of the %s selected users. The remaining users already had the license.',
                                       result.countSuccessfulAssignments,
-                                      this.allocation.usernames.length)) +
+                                      this.getUserIds().length)) +
                               '</p>';
                         }
                       }
@@ -767,10 +763,12 @@ define([
 
                     });
               } else if (this.getAssignmentType() === 'school') {
+                let school = this.getSchoolId();
+
                 tools.umcpCommand('licenses/assign_to_school', {
                   licenseCodes: licenses.map(
                       (license) => license.licenseCode),
-                  school: this.getSchoolId(),
+                  school: school,
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
                   let msg = '';
@@ -814,8 +812,10 @@ define([
                 tools.umcpCommand('licenses/assign_to_class', {
                   licenseCodes: licenses.map(
                       (license) => license.licenseCode),
-                  schoolClass: this.getGroup().substr(3,
-                      this.getGroup().indexOf(',') - 3),
+                  schoolClass: this.getGroup().substr(
+                    3,
+                    this.getGroup().indexOf(",") - 3
+                  ),
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
                   let msg = '';
@@ -859,8 +859,10 @@ define([
                 tools.umcpCommand('licenses/assign_to_workgroup', {
                   licenseCodes: licenses.map(
                       (license) => license.licenseCode),
-                  workgroup: this.allocation.workgroup.substr(3,
-                      this.allocation.workgroup.indexOf(',') - 3),
+                  workgroup: this.getGroup().substr(
+                    3,
+                    this.getGroup().indexOf(",") - 3
+                  ),
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
                   let msg = '';
