@@ -298,6 +298,17 @@ define([
       }
     },
 
+    onPageChange: function() {
+      this.activeCover.map(function(element) {
+        Tooltip.hide(element);
+      });
+      return true;
+    },
+
+    registerCover: function(target) {
+      this.activeCover.push(target);
+    },
+
     afterPageChange: function() {
       this.updateText();
       this.refreshGrid({pattern: ''}, true);
@@ -305,11 +316,13 @@ define([
 
     buildRendering: function() {
       this.inherited(arguments);
+      this.activeCover = [];
 
       this._assignmentText = new Text({
         region: 'nav',
         class: 'dijitDisplayNone',
       });
+
 
       const widgets = [
         {
@@ -482,6 +495,7 @@ define([
                 // .field-title should always exist. just to be safe
                 const tooltipTarget =
                     query('.field-title', rowNode)[0] || rowNode;
+                this.registerCover(tooltipTarget);
                 on(rowNode, mouse.enter, function() {
                   Tooltip.show(_('Loading cover...'), tooltipTarget);
                   let showImage = true;
