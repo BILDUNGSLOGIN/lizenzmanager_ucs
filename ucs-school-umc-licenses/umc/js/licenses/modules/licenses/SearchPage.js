@@ -118,11 +118,8 @@ define([
         },
 
         refreshGrid: function(values) {
-          values.isAdvancedSearch = this._isAdvancedSearch;
-          values.onlyAvailableLicenses = false;
           values.school = this.getSchoolId();
           values.isAdvancedSearch = true;
-          values.onlyAvailableLicenses = true;
 
           if (values.licenseType == '') {
             values.licenseType = [];
