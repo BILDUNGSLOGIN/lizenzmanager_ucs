@@ -302,6 +302,19 @@ define([
               this.askDeleteLicenses(licenses);
             }),
           });
+
+          actions.push({
+            name: 'view',
+            label: _('View'),
+            iconClass: '',
+            isStandardAction: true,
+            isContextAction: true,
+            isMultiAction: false,
+            callback: lang.hitch(this, function(_idxs, licenses) {
+              this.openDetailPage(licenses[0].licenseCode);
+            }),
+          });
+
           const columnsOverview = [
             {
               name: 'licenseCode',
@@ -418,7 +431,6 @@ define([
               then(lang.hitch(this, function(data) {
                 this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
               }));
-
         },
       });
 });

@@ -833,6 +833,9 @@ msgstr "unbefristet"
 msgid "valid"
 msgstr "gültig"
 
+msgid "View"
+msgstr "Anzeigen"
+
 #~ msgid "Advanced search"
 #~ msgstr "Erweiterte Suche"
 
