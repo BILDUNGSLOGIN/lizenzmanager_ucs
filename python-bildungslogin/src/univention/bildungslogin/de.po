@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-bildungslogin 0.0.3\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-02-14 16:19+0100\n"
+"POT-Creation-Date: 2023-05-08 15:07+0000\n"
 "PO-Revision-Date: 2021-08-12 11:58+0200\n"
 "Last-Translator: Daniel Tröder <troeder@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -28,7 +28,7 @@ msgstr "Zugewiesen"
 msgid "Available"
 msgstr "Verfügbar"
 
-#: src/univention/bildungslogin/handlers.py:786
+#: src/univention/bildungslogin/handlers.py:801
 msgid ""
 "Error creating assignment for {license_code!r}!\n"
 "{exc!s}"
@@ -44,7 +44,7 @@ msgstr ""
 "Fehler beim anlegen der Lizenz {license_code!r}!\n"
 "{exc}"
 
-#: src/univention/bildungslogin/handlers.py:580
+#: src/univention/bildungslogin/handlers.py:595
 msgid ""
 "Error creating meta data for product id {p_id!r}!\n"
 "{exc}"
@@ -52,11 +52,11 @@ msgstr ""
 "Fehler beim Erstellen von Metadaten für das Produkt mit der ID {p_id!r}!\n"
 "{exc}"
 
-#: src/univention/bildungslogin/handlers.py:1079
+#: src/univention/bildungslogin/handlers.py:1094
 msgid "Illegal status change to {status!r}!"
 msgstr "Ungültiger Statusübergang zu {status!r}!"
 
-#: src/univention/bildungslogin/handlers.py:1108
+#: src/univention/bildungslogin/handlers.py:1123
 #, python-brace-format
 msgid ""
 "Invalid assignment status change!\n"
@@ -65,22 +65,22 @@ msgstr ""
 "Ungültige Änderung des Zuweisungsstatus!\n"
 "{exc}"
 
-#: src/univention/bildungslogin/handlers.py:864
+#: src/univention/bildungslogin/handlers.py:879
 msgid "License can't be assigned to a different school"
 msgstr "Die Lizenz kann keiner anderen Schule zugewiesen werden"
 
-#: src/univention/bildungslogin/handlers.py:818
+#: src/univention/bildungslogin/handlers.py:833
 #, python-brace-format
 msgid "License can't be assigned to user in schools {ous}!"
 msgstr "Lizenz kann nicht an User in Schulen {ous} zugewiesen werden!"
 
-#: src/univention/bildungslogin/handlers.py:799
+#: src/univention/bildungslogin/handlers.py:814
 msgid "License is 'ignored for display' and thus can't be assigned!"
 msgstr ""
 "Die Lizenz ist auf 'In Ansicht ignorieren' gesetzt und kann daher nicht "
 "zugewiesen werden!"
 
-#: src/univention/bildungslogin/handlers.py:804
+#: src/univention/bildungslogin/handlers.py:819
 msgid "License is expired and thus can't be assigned!"
 msgstr "Die Lizenz ist abgelaufen und kann nicht mehr zugewiesen werden!"
 
@@ -88,7 +88,7 @@ msgstr "Die Lizenz ist abgelaufen und kann nicht mehr zugewiesen werden!"
 msgid "License with code {license_code!r} does not exist."
 msgstr "Lizenz mit Code {license_code!r} existiert nicht."
 
-#: src/univention/bildungslogin/handlers.py:890
+#: src/univention/bildungslogin/handlers.py:905
 msgid ""
 "License with license type {license_type!r} can't be assigned to the object "
 "type {object_type!r}"
@@ -96,7 +96,7 @@ msgstr ""
 "Lizenz mit Lizenztyp {license_type!r} kann dem Objekttyp {object_type!r} "
 "nicht zugewiesen werden"
 
-#: src/univention/bildungslogin/handlers.py:829
+#: src/univention/bildungslogin/handlers.py:844
 msgid ""
 "License with special type 'Lehrkraft' can't be assigned to user {username!r}"
 " with roles {roles!r}!"
@@ -104,22 +104,23 @@ msgstr ""
 "Die Lizenz mit dem Sondertyp 'Lehrkraft' kann dem User {username!r} mit den "
 "Rollen {roles!r} nicht zugewiesen werden!"
 
-#: src/univention/bildungslogin/handlers.py:647
+#: src/univention/bildungslogin/handlers.py:662
 msgid "Meta data object with product id {p_id!r} does not exist!"
 msgstr "Metadaten Objekt mit Produkt ID {p_id!r} existiert nicht!"
 
-#: src/univention/bildungslogin/handlers.py:1057
+#: src/univention/bildungslogin/handlers.py:1072
 msgid ""
 "No assignment for license with {dn!r} was found for object {object_uuid!r}."
 msgstr ""
 "Keine Zuweisung für die Lizenz {dn!r} wurde für das Objekt {object_uuid!r} "
 "gefunden."
 
-#: src/univention/bildungslogin/handlers.py:774
+#: src/univention/bildungslogin/handlers.py:561
+#: src/univention/bildungslogin/handlers.py:789
 msgid "No license with code {license_code!r} was found!"
 msgstr "Lizenz mit Code {license_code!r} nicht gefunden!"
 
-#: src/univention/bildungslogin/handlers.py:744
+#: src/univention/bildungslogin/handlers.py:759
 msgid "No {obj!r} with name {name!r} exists!"
 msgstr "Es existiert kein {obj!r} mit Name {un!r}!"
 
@@ -151,7 +152,7 @@ msgstr "Lehrer"
 msgid "Teacher and staff"
 msgstr "Lehrer und Mitarbeiter"
 
-#: src/univention/bildungslogin/handlers.py:940
+#: src/univention/bildungslogin/handlers.py:955
 msgid ""
 "There are no more assignments available for the license with code "
 "{license_code!r}. No license has been assigned to the object "
@@ -160,11 +161,11 @@ msgstr ""
 "Es sind keine Zuweisungen für die Lizenz mit dem Code {license_code!r} mehr "
 "verfügbar. Dem Objekt {object_name!r} wurde keine Lizenz zugewiesen!"
 
-#: src/univention/bildungslogin/handlers.py:684
+#: src/univention/bildungslogin/handlers.py:699
 msgid "There is no license for the assignment {dn!r}!"
 msgstr "Es existiert keine Lizenz für die Zuweisung {dn!r}!"
 
-#: src/univention/bildungslogin/handlers.py:857
+#: src/univention/bildungslogin/handlers.py:872
 #, python-brace-format
 msgid ""
 "This license is allowed for assignments to groups including a maximum of "
@@ -173,7 +174,7 @@ msgstr ""
 "Diese Lizenz kann nur Gruppen zugewiesen werden, in denen maximal <{ous}> "
 "Personen sind. Bitte passen Sie Ihre Gruppenauswahl entsprechend an."
 
-#: src/univention/bildungslogin/handlers.py:840
+#: src/univention/bildungslogin/handlers.py:855
 msgid ""
 "This license is allowed for assignments to groups including only teachers. "
 "Please modify your group selection accordingly."
@@ -181,7 +182,7 @@ msgstr ""
 "Diese Lizenz kann nur Gruppen zugewiesen werden, in denen ausschließlich "
 "Lehrerkräfte sind. Bitte passen Sie Ihre Gruppenauswahl entsprechend an."
 
-#: src/univention/bildungslogin/handlers.py:876
+#: src/univention/bildungslogin/handlers.py:891
 #, python-brace-format
 msgid ""
 "This license is allowed for assignments to schools including a maximum of "
@@ -198,7 +199,7 @@ msgstr "Volumenlizenz"
 msgid "Workgroup license"
 msgstr "Lerngruppenlizenz"
 
-#: src/univention/bildungslogin/handlers.py:848
+#: src/univention/bildungslogin/handlers.py:863
 msgid ""
 "license can't be assigned to group as it doesn't belong to the same school"
 msgstr ""

@@ -154,11 +154,11 @@ define([
           function validityStatus(id) {
             let val = license[id];
 
-            if (val) {
-              val = _('valid') || _('invalid');
+            if (val === "1" || val === undefined) {
+              return _('valid');
+            } else {
+              return _('invalid');
             }
-
-            return val;
           }
 
           function usageStatus(id) {
@@ -459,7 +459,7 @@ define([
 
         {
           name: 'statusLabel',
-          label: _('Status'),
+          label: _('Assignment status'),
         },
         {
           name: 'dateOfAssignment',
