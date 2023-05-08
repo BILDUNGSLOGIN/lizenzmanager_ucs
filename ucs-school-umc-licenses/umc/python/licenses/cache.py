@@ -660,7 +660,7 @@ class LdapRepository:
                 groups.append(group.cn.split('-')[1])
         return groups
 
-    def get_workgroups_by_dn(self, dn):
+    def get_workgroup_by_dn(self, dn):
         for group in self._workgroups:
             if group.entry_dn == dn:
                 return group
