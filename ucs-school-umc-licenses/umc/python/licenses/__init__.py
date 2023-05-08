@@ -307,11 +307,16 @@ class Instance(SchoolBaseModule):
                    'Import Date', 'Validity start', 'Validity end', 'Num. licenses', 'Num. assigned licenses',
                    'Num. available licenses', 'Num. expired licenses']
 
+        header_format = workbook.add_format({'bold': True})
         result.insert(0, columns)
+        worksheet.set_column(0, len(columns), 25)
 
         for row_num, row in enumerate(result):
             for col_num, data in enumerate(row):
-                worksheet.write(row_num, col_num, data)
+                if (row_num == 0):
+                    worksheet.write(row_num, col_num, data, header_format)
+                else:
+                    worksheet.write(row_num, col_num, data)
         workbook.close()
 
         xlsx_data = output.getvalue()
@@ -798,7 +803,6 @@ class Instance(SchoolBaseModule):
         }
         """
         self.repository.update()
-        # MODULE.info("licenses.products.export_to_excel: options: %s" % str(request.options))
         result = []
 
         school = request.options.get("school")
@@ -880,16 +884,20 @@ class Instance(SchoolBaseModule):
                    'Delivery', 'Num. Licenses', 'Num. assigned licenses', 'Num. expired licenses',
                    'Num. available licenses', 'Num. Users']
 
+        header_format = workbook.add_format({'bold': True})
         result.insert(0, columns)
+        worksheet.set_column(0, len(columns), 25)
 
         for row_num, row in enumerate(result):
             for col_num, data in enumerate(row):
-                worksheet.write(row_num, col_num, data)
+                if (row_num == 0):
+                    worksheet.write(row_num, col_num, data, header_format)
+                else:
+                    worksheet.write(row_num, col_num, data)
         workbook.close()
 
         xlsx_data = output.getvalue()
 
-        # MODULE.info("licenses.products.export_to_excel: result: %s" % str(xlsx_data))
         self.finished(request.id,
                       {
                           "file": base64.encodestring(xlsx_data),
