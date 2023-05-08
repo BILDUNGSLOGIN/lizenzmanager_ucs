@@ -836,6 +836,9 @@ msgstr "gültig"
 msgid "View"
 msgstr "Anzeigen"
 
+msgid "Back to media overview"
+msgstr "zurück zur Medienübersicht"
+
 #~ msgid "Advanced search"
 #~ msgstr "Erweiterte Suche"
 
