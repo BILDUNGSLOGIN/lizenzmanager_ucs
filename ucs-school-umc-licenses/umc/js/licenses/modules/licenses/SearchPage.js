@@ -160,6 +160,10 @@ define([
             this.removeChild(this._searchForm);
           }
 
+          if (this._excelExportForm) {
+            this.removeChild(this._excelExportForm);
+          }
+
           if (this._grid) {
             this.removeChild(this._grid);
           }
