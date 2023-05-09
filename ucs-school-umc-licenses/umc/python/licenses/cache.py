@@ -17,6 +17,8 @@ from univention.udm.exceptions import SearchLimitReached
 
 from .constants import JSON_PATH, JSON_DIR, CACHE_BUILD_SCRIPT
 
+today = date.today()
+
 
 class LdapUser:
     ucsschoolRole = None  # type: list
@@ -152,6 +154,10 @@ class LdapLicense:
 
     @property
     def is_available(self):
+        if self.bildungsloginValidityStatus == '0':
+            return False
+        if self.bildungsloginExpiryDate and self.bildungsloginExpiryDate < today:
+            return False
         if self.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]:
             return self.quantity_available > 0 and not self.is_expired
         elif self.bildungsloginLicenseType == LicenseType.WORKGROUP or self.bildungsloginLicenseType == LicenseType.SCHOOL:
