@@ -297,15 +297,21 @@ class Instance(SchoolBaseModule):
                 undefined_if_none(_license.quantity_assigned),
                 undefined_if_none(_license.quantity_available),
                 undefined_if_none(_license.quantity_expired),
+                _('valid') if _license.bildungsloginValidityStatus == '1' else _('invalid'),
+                _('activated') if _license.bildungsloginUsageStatus == '1' else _('not activated'),
+                optional_date2str(_license.bildungsloginExpiryDate)
             ])
 
         output = io.BytesIO()
         workbook = Workbook(output)  # {"in_memory": True})
         worksheet = workbook.add_worksheet()
 
-        columns = ['License code', 'Medium ID', 'Medium', 'Publisher', 'License type', 'Special License type',
-                   'Import Date', 'Validity start', 'Validity end', 'Num. licenses', 'Num. assigned licenses',
-                   'Num. available licenses', 'Num. expired licenses']
+        columns = [_('License code'), _('Medium ID'), _('Medium'), _('Publisher'), _('License type'),
+                   _('Special License type'),
+                   _('Delivery Date'), _('Validity start'), _('Validity end'), _('Number of licenses'),
+                   _('Number of assigned licenses'),
+                   _('Number of available licenses'), _('Number of expired licenses'), _('Validity status'),
+                   _('Usage status'), _('Expiry date')]
 
         header_format = workbook.add_format({'bold': True})
         result.insert(0, columns)
@@ -880,9 +886,13 @@ class Instance(SchoolBaseModule):
         workbook = xlsxwriter.Workbook(output)  # {"in_memory": True})
         worksheet = workbook.add_worksheet()
 
-        columns = ['Medium ID', 'Medium', 'Publisher', 'Cover', 'Max. User', 'Assigned', 'Expired', 'Available',
-                   'Delivery', 'Num. Licenses', 'Num. assigned licenses', 'Num. expired licenses',
-                   'Num. available licenses', 'Num. Users']
+        columns = [_('Medium ID'), _('Medium'), _('Publisher'), _('Cover'), _('Maximal number of users'), _('Assigned'),
+                   _('Expired'),
+                   _('Available'),
+                   _('Import date'), _('Number of Licenses'), _('Number of assigned licenses'),
+                   _('Number of expired licenses'),
+                   _('Number of available licenses'),
+                   _('Number of Users')]
 
         header_format = workbook.add_format({'bold': True})
         result.insert(0, columns)
