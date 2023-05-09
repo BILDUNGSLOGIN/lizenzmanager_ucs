@@ -47,6 +47,7 @@ define([
   'umc/widgets/Text',
   'umc/widgets/ProgressInfo',
   '../../common/LicenseSearchformMixin',
+  '../../common/FormatterMixin',
   'umc/i18n!umc/modules/licenses',
   '../../../libraries/FileSaver',
   '../../../libraries/base64',
@@ -69,10 +70,11 @@ define([
     Text,
     ProgressInfo,
     LicenseSearchformMixin,
+    FormatterMixin,
     _,
 ) {
   return declare('umc.modules.licenses.license.SearchPage',
-      [Page, LicenseSearchformMixin], {
+      [Page, LicenseSearchformMixin, FormatterMixin], {
         //// overwrites
         fullWidth: true,
 
@@ -219,6 +221,7 @@ define([
           const columnsOverview = [
             {
               name: 'licenseCode', label: _('License code'), width: '66px',
+              formatter: lang.hitch(this, 'formatInvalid')
             }, {
               name: 'productId',
               label: _('Medium ID'),
@@ -241,6 +244,7 @@ define([
               name: 'countAquired', label: _('Max. Users'), width: '66px',
             }, {
               name: 'countAssigned', label: _('Assigned'), width: '66px',
+              formatter: lang.hitch(this, 'formatActivated')
             }, {
               name: 'countExpired', label: _('Expired'), width: '66px',
             }, {

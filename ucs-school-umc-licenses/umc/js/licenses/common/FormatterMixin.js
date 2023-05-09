@@ -38,6 +38,22 @@ define([
       return declare('umc.modules.licenses.FormatterMixin', [], {
         _today: new Date(),
 
+        formatInvalid: function(value, license) {
+          if(license && license.validityStatus === '0') {
+            return `<span class="bildungslogin-red">${value}</span>`;
+          } else {
+            return value;
+          }
+        },
+
+        formatActivated: function(value, license) {
+          if(license && license.usageStatus === '1') {
+            return `<span class="bildungslogin-green">${value}</span>`;
+          } else {
+            return value;
+          }
+        },
+
         formatExpired(value, license) {
           if (license && license.expiryDate) {
             let date = new Date(license.expiryDate)
@@ -46,9 +62,7 @@ define([
               return `<span class="bildungslogin-red">${value}</span>`;
             }
           }
-
           return value;
-
         },
       });
     });

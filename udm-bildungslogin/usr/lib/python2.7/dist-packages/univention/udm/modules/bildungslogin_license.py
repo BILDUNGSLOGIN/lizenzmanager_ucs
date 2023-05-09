@@ -51,6 +51,16 @@ class ExpiredPropertyEncoder(DisabledPropertyEncoder):
         return "1" if value else "0"
 
 
+class ValidityStatusPropertyEncoder(DisabledPropertyEncoder):
+
+    @staticmethod
+    def decode(value=None):
+        if value is None or value == "1":
+            return True
+        elif value == "0":
+            return False
+
+
 class BildungsloginLicenseObjectProperties(GenericObjectProperties):
     """bildungslogin/license UDM properties."""
 
@@ -67,7 +77,7 @@ class BildungsloginLicenseObjectProperties(GenericObjectProperties):
         "usage_status": DisabledPropertyEncoder,
         "expired": ExpiredPropertyEncoder,
         "expiry_date": DatePropertyEncoder,
-        "validity_status": DisabledPropertyEncoder,
+        "validity_status": ValidityStatusPropertyEncoder,
         "registered": DisabledPropertyEncoder,
     }
 

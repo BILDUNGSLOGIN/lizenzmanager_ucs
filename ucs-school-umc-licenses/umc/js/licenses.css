@@ -101,5 +101,10 @@ form[name="searchForm"] .dijitButton {
 }
 
 .bildungslogin-red {
-  color: red !important;
+  color: red;
+}
+
+.bildungslogin-green {
+  color: green;
+  font-weight: bold;
 }

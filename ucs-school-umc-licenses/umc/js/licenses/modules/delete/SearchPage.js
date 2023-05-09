@@ -299,7 +299,6 @@ define([
               name: 'licenseCode',
               label: _('License code'),
               width: '66px',
-              formatter: lang.hitch(this, 'formatExpired'),
             },
             {
               name: 'productId',
@@ -309,56 +308,48 @@ define([
                 if (value && value.startsWith('urn:bilo:medium:')) {
                   value = value.slice(16, value.length);
                 }
-                return this.formatExpired(value, license);
+                return value;
               }),
             },
             {
               name: 'productName',
               label: _('Medium'),
               width: '150px',
-              formatter: lang.hitch(this, 'formatExpired'),
             },
             {
               name: 'publisher',
               label: _('Publisher'),
               width: '50px',
-              formatter: lang.hitch(this, 'formatExpired'),
             },
             {
               name: 'licenseTypeLabel',
               label: _('License type'),
               width: '66px',
-              formatter: lang.hitch(this, 'formatExpired'),
             },
             {
               name: 'for',
               label: _('For'),
               width: '66px',
-              formatter: lang.hitch(this, 'formatExpired'),
             },
             {
               name: 'countAquired',
               label: _('Max. Users'),
               width: '66px',
-              formatter: lang.hitch(this, 'formatExpired'),
             },
             {
               name: 'countAssigned',
               label: _('Assigned'),
               width: '66px',
-              formatter: lang.hitch(this, 'formatExpired'),
             },
             {
               name: 'countExpired',
               label: _('Expired'),
               width: '66px',
-              formatter: lang.hitch(this, 'formatExpired'),
             },
             {
               name: 'countAvailable',
               label: _('Available'),
               width: '66px',
-              formatter: lang.hitch(this, 'formatExpired'),
             },
             {
               name: 'expiryDate',
@@ -385,7 +376,7 @@ define([
             actions: actions,
             columns: columnsOverview,
             moduleStore: store('licenseCode', 'licenses'),
-            sortIndex: -11,
+            sortIndex: 11,
             addTitleOnCellHoverIfOverflow: true,
             class: 'licensesTable__licenses',
             gridOptions: {
