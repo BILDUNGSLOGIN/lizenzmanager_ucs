@@ -1,0 +1,8 @@
+@%@UCRWARNING=# @%@
+
+@!@
+script = '/usr/sbin/bildungslogin_update_license_status.py --config-file /etc/bildungslogin/config.ini'
+interval = configRegistry.get('bildungslogin/update-license-status')
+if interval and interval != 'after-rebuild':
+    print('%s	root	(%s) 2>&1 | logger -t bildungslogin-update-license-status' % (interval, script))
+@!@
