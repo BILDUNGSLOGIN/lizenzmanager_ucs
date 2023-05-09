@@ -29,33 +29,52 @@
 /*global define*/
 
 define([
-      'dojo/_base/declare',
-      'dojo/_base/lang',
-      'dojo/dom',
-      'dojo/dom-class',
-      'dojo/on',
-      'dojo/date/locale',
-      'dojo/Deferred',
-      'dojox/html/entities',
-      'dijit/Tooltip',
-      'umc/dialog',
-      'umc/store',
-      'umc/tools',
-      '../../common/Page',
-      'umc/widgets/Grid',
-      'umc/widgets/CheckBox',
-      'umc/widgets/DateBox',
-      'umc/widgets/ComboBox',
-      'umc/widgets/SearchForm',
-      'umc/widgets/Text',
-      'umc/widgets/TextBox',
-      'umc/widgets/SuggestionBox',
-      'umc/widgets/ProgressInfo',
-      'umc/i18n!umc/modules/licenses'],
-    function(declare, lang, dom, domClass, on, dateLocale, Deferred, entities,
-        Tooltip, dialog, store, tools, Page, Grid, CheckBox, DateBox, ComboBox,
-        SearchForm, Text, TextBox, SuggestionBox, ProgressInfo, _) {
-      return declare('umc.modules.licenses.license.SearchPage', [Page], {
+  'dojo/_base/declare',
+  'dojo/_base/lang',
+  'dojo/dom',
+  'dojo/dom-class',
+  'dojo/on',
+  'dojo/date/locale',
+  'dojo/Deferred',
+  'dojox/html/entities',
+  'dijit/Tooltip',
+  'umc/dialog',
+  'umc/store',
+  'umc/tools',
+  '../../common/Page',
+  'umc/widgets/Grid',
+  'umc/widgets/Form',
+  'umc/widgets/Text',
+  'umc/widgets/ProgressInfo',
+  '../../common/LicenseSearchformMixin',
+  '../../common/FormatterMixin',
+  'umc/i18n!umc/modules/licenses',
+  '../../../libraries/FileSaver',
+  '../../../libraries/base64',
+], function(
+    declare,
+    lang,
+    dom,
+    domClass,
+    on,
+    dateLocale,
+    Deferred,
+    entities,
+    Tooltip,
+    dialog,
+    store,
+    tools,
+    Page,
+    Grid,
+    Form,
+    Text,
+    ProgressInfo,
+    LicenseSearchformMixin,
+    FormatterMixin,
+    _,
+) {
+  return declare('umc.modules.licenses.license.SearchPage',
+      [Page, LicenseSearchformMixin, FormatterMixin], {
         //// overwrites
         fullWidth: true,
 
@@ -69,6 +88,7 @@ define([
         _gridFooter: null,
         _gridOverview: null,
         _gridGroup: null,
+        _excelExportForm: null,
         _searchForm: null,
 
         _isAdvancedSearch: false,
@@ -77,245 +97,6 @@ define([
         assignedSum: '-',
         expiredSum: '-',
         availableSum: '-',
-
-        // temp variables for progress display
-        _wrap_assign_function: null,
-        _wrap_assign_arg: null,
-        _wrap_assign_max: null,
-        _wrap_assign_items: null,
-        _wrap_assign_args: null,
-        _wrap_assign_chunksize: null,
-        _wrap_assign_deferred: null,
-        _wrap_assign_result: null,
-        _wrap_assign_progress: null,
-
-        // Wraps the backend calls to assign_<something> such that it features:
-        //
-        //  *   a busy state (user-visible state: i'm working right now)
-        //  *   the capability to split the call into several calls and to collect
-        //      their results
-        //  *   a percentual sign of progress
-        //
-        // Function returns a Deferred with the result, so it is a full replacement
-        // to the original UMCP command call.
-        _wrap_assign: function(umcp_function, args, chunksize = 1) {
-
-          this._wrap_assign_deferred = new Deferred();    // do this first
-
-          var arg_to_split = 'usernames';     // currently only for users
-          var usernames = args[arg_to_split]; // requested users. Will be replaced soon...
-
-          // get the list of unassigned users, and refuse to start the assignment if the licenses will not suffice
-          this._not_assigned_users(usernames, args['licenseCodes']).
-              then(lang.hitch(this, function(result) {
-                var usernames = result.result;
-                // If the reduction yielded no user who would need the license: we should not call the assignment
-                // handler for NO USERS. Prepare a different message for this case.
-                if (usernames.length == 0) {
-                  var response = {'result': {'nothingToDo': true}};
-                  this._wrap_assign_deferred.resolve(response);
-                  return;
-                }
-                var new_args = {
-                  'usernames': usernames, 'licenseCodes': args['licenseCodes'],
-                };
-
-                // Check if licenses will suffice, and bail out if not
-                var avail = this._licenses_selected();
-                if (avail < usernames.length) {
-                  this._wrap_assign_deferred.cancel(
-                      _('Assigning licenses to %d users failed',
-                          usernames.length));
-                  return;
-                }
-
-                // From here onwards, the status variables have to be object-global to our
-                // 'this' object instance, so the wrap_assign_handler() function can pick them
-                // up and change them. We prepend '_wrap_assign_' to all these variable names.
-                this._wrap_assign_function = umcp_function;
-                this._wrap_assign_arg = arg_to_split;
-                // This must be a copy, or else the original selection is being emptied!
-                this._wrap_assign_items = Object.create(usernames);
-                this._wrap_assign_max = usernames.length;
-                this._wrap_assign_args = new_args;
-                this._wrap_assign_chunksize = chunksize;
-                this._wrap_assign_result = {
-                  'countSuccessfulAssignments': 0,
-                  'notEnoughLicenses': false,
-                  'failedAssignments': [],
-                  'validityInFuture': [],
-                };
-
-                // ET-67: It makes no sense to show the progress bar if the number of to-be-assigned
-                //	users fits into one chunk size... HERE is the point to check for this condition
-                if (usernames.length <= chunksize) {
-                  this._wrap_assign_progress = null;	// so the _wrap_assign_handler knows it should
-                  // NOT set percentage info and show the simple spinner instead
-                  this._wrap_assign_handler();
-                  this.standbyDuring(this._wrap_assign_deferred);
-                } else {
-                  // Make a progress bar
-                  this._wrap_assign_progress = new ProgressInfo(
-                      {maximum: usernames.length});
-                  // umc.web's Progressinfo discards all constructor arguments, even 'maximum' :-(
-                  this._wrap_assign_progress._progressBar.set('maximum',
-                      usernames.length);
-
-                  this._wrap_assign_handler();
-
-                  this.standbyDuring(this._wrap_assign_deferred,
-                      this._wrap_assign_progress);
-                }
-              }));        // FIXME make an error handler that will resolve the deferred with an error message
-
-          return this._wrap_assign_deferred;
-        },
-
-        // Helper function for wrap_assign: it maintains the status variables
-        // while a request is underway. This function will call umcpCommand with
-        // one chunk of items, and reschedule itself until there are no items left.
-        _wrap_assign_handler: function() {
-          var temp_request = this._wrap_assign_args;
-          var temp_items = [];
-          while ((temp_items.length < this._wrap_assign_chunksize) &&
-          (this._wrap_assign_items.length > 0)) {
-            temp_items.push(this._wrap_assign_items.pop());
-          }
-          temp_request[this._wrap_assign_arg] = temp_items;
-          tools.umcpCommand(this._wrap_assign_function, temp_request).
-              then(lang.hitch(this, function(result) {
-
-                // merge result into global result
-                this._wrap_assign_result['countSuccessfulAssignments'] += result['result']['countSuccessfulAssignments'];
-                // If the limit kicks in: stop immediately.
-                if (result['result']['notEnoughLicenses']) {
-                  this._wrap_assign_result['notEnoughLicenses'] = true;
-                  this._wrap_assign_items = [];
-                }
-
-                // update progress bar, but only if there's one
-                if (this._wrap_assign_progress) {
-                  this._wrap_assign_progress.update(
-                      this._wrap_assign_result['countSuccessfulAssignments'],
-                      this._wrap_assign_result['countSuccessfulAssignments'] +
-                      ' of ' + this._wrap_assign_max + ' licenses assigned');
-                }
-
-                if (result['result']['failedAssignments']) {
-                  this._wrap_assign_result['failedAssignments'] = result['result']['failedAssignments'];
-                }
-
-                // If there are items left: start next loop iteration.
-                // If not: finish this loop, and return result.
-                if (this._wrap_assign_items.length > 0) {
-                  this._wrap_assign_handler();
-                } else {
-                  // clean up progress display?
-                  if (this._wrap_assign_progress) {
-                    this._wrap_assign_progress.destroyRecursive();
-                  }
-                  var result = {
-                    'error': null,
-                    'message': null,
-                    'reason': null,
-                    'result': this._wrap_assign_result,
-                  };
-                  this._wrap_assign_deferred.resolve(result);
-                }
-              }), lang.hitch(this, function(result) {
-                alert('something went wrong');
-              }));
-        },
-
-        _not_assigned_users: function(usernames, licenseCodes) {
-          // reduce the list of selected usernames to those who do not have any
-          // of the selected license codes assigned. This is done by UMCP. The
-          // function will at least be called after the 'assign licenses' button
-          // but before we start splitting the user list into chunks. Since we know
-          // the 'available' counts of the selected licenses we can decide in advance
-          // if the chunked assignment really CAN come to a successful end.
-          //
-          // NOTE: Only for volume licenses, this function will reduce the number of 'licenses needed'
-          //		because this does not work for any other license types.
-          // NOTE: because umcpCommand IS a deferred we cannot wait for it to be fulfilled here
-          return tools.umcpCommand('licenses/not_assigned_users', {
-            'usernames': usernames, 'licenseCodes': licenseCodes,
-          });
-        },
-
-        // check if the requested count of licenses is really available, and disable/enable the
-        // action button accordingly. Note that umc.web's grid does not pass all selected items to
-        // one callback: therefore we have to retrieve all selected items and sum their 'countAvailable'
-        // properties, and return the global permission on each and every item.
-        _can_assign_licenses: function(obj) {
-          // ET-67: currently we cannot decide IN ADVANCE, so allow pushing the button and
-          //	defer the real calculation into the backend (TODO: write the backend function)
-          return true;
-        },
-
-        // return the sum of 'available' counts of all selected licenses.
-        _licenses_selected: function() {
-          var counted = 0;
-          this._grid.getSelectedItems().forEach(function(item) {
-            counted += item['countAvailable'];
-          });
-          return counted;
-        },
-
-        // return the codes of selected licenses
-        _license_codes_selected: function() {
-          var result = [];
-          this._grid.getSelectedItems().forEach(function(item) {
-            result.push(item['licenseCode']);
-          });
-          return result;
-        },
-
-        // formats the status text for the assignment grid
-        _allocation_footer: function(nItems) {
-          if (!nItems) { return ''; }
-          var counted = this._licenses_selected();
-          msg = '';
-          if (counted === 1) {
-            msg += _('One license selected');
-          } else {
-            msg += _('%d licenses selected', counted);
-          }
-          return msg;
-        },
-
-        _toggleSearch: function() {
-          this._isAdvancedSearch = !this._isAdvancedSearch;
-
-          [
-            'timeFrom',
-            'timeTo',
-            'onlyAvailableLicenses',
-            'publisher',
-            'licenseType',
-            'userPattern',
-            'productId',
-            'product',
-            'licenseCode',
-            'workgroup',
-            'class'].forEach(lang.hitch(this, function(widgetName) {
-            const widget = this._searchForm.getWidget(widgetName);
-            if (widget) {
-              widget.set('visible', this._isAdvancedSearch);
-            }
-          }));
-
-          this._searchForm.getWidget('pattern').
-              set('visible', !this._isAdvancedSearch);
-
-          // update toggle button
-          const button = this._searchForm.getButton('toggleSearch');
-          if (this._isAdvancedSearch) {
-            button.set('iconClass', 'umcDoubleLeftIcon');
-          } else {
-            button.set('iconClass', 'umcDoubleRightIcon');
-          }
-        },
 
         query: function() {
           this.standbyDuring(// Deactivated in this flavor due to Issue #97
@@ -332,10 +113,6 @@ define([
           this.resetAdvancedSearch();
         },
 
-        onBack: function() {
-          // event stub
-        },
-
         resetAdvancedSearch: function() {
           if (this._isAdvancedSearch) {
             this._toggleSearch();
@@ -343,10 +120,8 @@ define([
         },
 
         refreshGrid: function(values) {
-          values.isAdvancedSearch = this._isAdvancedSearch;
           values.school = this.getSchoolId();
           values.isAdvancedSearch = true;
-          values.onlyAvailableLicenses = true;
 
           if (values.licenseType == '') {
             values.licenseType = [];
@@ -363,32 +138,22 @@ define([
           values.licenseType = '';
         },
 
-        // allow only either class or workgroup to be set
-        onChooseDifferentClass: function() {
-          const workgroupWidget = this._searchForm.getWidget('workgroup');
-          workgroupWidget.setValue('');
-        },
-        onChooseDifferentWorkgroup: function() {
-          const classWidget = this._searchForm.getWidget('class');
-          classWidget.setValue('');
-        },
+        exportToExcel: function(values) {
+          tools.umcpCommand('licenses/export_to_excel', values).then(
+              lang.hitch(this, function(response) {
+                const res = response.result;
+                if (res.errorMessage) {
+                  dialog.alert(result.errorMessage);
+                } else {
+                  saveAs(b64toBlob(res.file), res.fileName);
+                }
+              }),
+          );
+        },// allow only either class or workgroup to be set
 
         //// lifecycle
         postMixInProperties: function() {
           this.inherited(arguments);
-          const headerButtons = [];
-
-          this._licenseTypes = [
-            {id: '', label: ''},
-            {id: 'SINGLE', label: _('Single license')},
-            {id: 'VOLUME', label: _('Volume license')},
-            {
-              id: 'WORKGROUP', label: _('Workgroup license'),
-            },
-            {
-              id: 'SCHOOL', label: _('School license'),
-            }];
-          this.headerButtons = headerButtons;
         },
 
         afterPageChange: function() {
@@ -397,149 +162,49 @@ define([
             this.removeChild(this._searchForm);
           }
 
+          if (this._excelExportForm) {
+            this.removeChild(this._excelExportForm);
+          }
+
           if (this._grid) {
             this.removeChild(this._grid);
           }
 
-          const widgets = [
-            {
-              type: DateBox,
-              name: 'timeFrom',
-              visible: false,
-              label: _('Start import period'),
-              size: 'TwoThirds',
-            }, {
-              type: DateBox,
-              name: 'timeTo',
-              label: _('End import period'),
-              size: 'TwoThirds',
-              visible: false,
-            }, {
-              type: ComboBox,
-              name: 'licenseType',
-              label: _('License type'),
-              staticValues: this._licenseTypes,
-              size: 'TwoThirds',
-              visible: false,
-            }, {
-              type: TextBox,
-              name: 'userPattern',
-              label: _('User ID'),
-              description: _(
-                  'Search for licenses that have this user assigned. (Searches for \'first name\', \'last name\' and \'username\')'),
-              size: 'TwoThirds',
-              visible: false,
-            }, {
-              type: TextBox,
-              name: 'licenseCode',
-              label: _('License code'),
-              size: 'TwoThirds',
-              visible: false,
-            }, {
-              type: TextBox,
-              name: 'pattern',
-              label: '&nbsp;',
-              inlineLabel: _('Search licenses'),
-            }];
-          widgets.push({
-            type: TextBox,
-            name: 'product',
-            label: _('Media Title'),
-            size: 'TwoThirds',
-            visible: false,
-          }, {
-            type: TextBox,
-            name: 'productId',
-            label: _('Medium ID'),
-            size: 'TwoThirds',
-            visible: false,
-            formatter: function(value) {
-              if (value && value.startsWith('urn:bilo:medium:')) {
-                value = value.slice(16, value.length);
-              }
-              return value;
-            },
-          }, {
-            type: CheckBox,
-            name: 'onlyAvailableLicenses',
-            label: _('Only assignable licenses'),
-            value: false,
-            size: 'TwoThirds',
-            visible: false,
-          }, {
-            type: ComboBox,
-            name: 'publisher',
-            label: _('Publisher'),
-            staticValues: [{id: '', label: ''}],
-            dynamicValues: 'licenses/publishers',
-            size: 'TwoThirds',
-            visible: false,
-          }, {
-            type: ComboBox,
-            name: 'workgroup',
-            label: _('Assigned to Workgroup'),
-            staticValues: [{id: '', label: ''}],
-            dynamicValues: 'licenses/workgroups',
-            dynamicOptions: {
-              school: this.getSchoolId(),
-            },
-            size: 'TwoThirds',
-            visible: false,
-            onChange: lang.hitch(this, function(values) {
-              this.onChooseDifferentWorkgroup(values);
-            }),
-          }, {
-            type: SuggestionBox,
-            name: 'class',
-            label: _('Assigned to Class'),
-            staticValues: [{id: '', label: ''}],
-            dynamicValues: 'licenses/classes',
-            dynamicOptions: {
-              school: this.getSchoolId(),
-            },
-            size: 'TwoThirds',
-            visible: false,
-            onChange: lang.hitch(this, function(values) {
-              this.onChooseDifferentClass(values);
-            }),
+          this._excelExportForm = new Form({
+            widgets: [],
+            buttons: [
+              {
+                name: 'submit',
+                label: _('Export'),
+                style: 'margin-top:20px',
+              },
+            ],
           });
 
-          let layout = [
-            ['timeFrom', 'timeTo', 'onlyAvailableLicenses'],
-            ['publisher', 'licenseType', 'userPattern'],
-            ['workgroup', 'class'],
-            [
-              'productId',
-              'product',
-              'licenseCode',
-              'pattern',
+          this._excelExportForm.on(
               'submit',
-              'toggleSearchLabel',
-              'toggleSearch']];
-          const buttons = [
-            {
-              name: 'toggleSearch', labelConf: {
-                class: 'umcFilters',
-              }, label: _('Filters'), iconClass: 'umcDoubleRightIcon',
+              lang.hitch(this, function() {
+                values = this._searchForm.value;
+                values.isAdvancedSearch = this._isAdvancedSearch;
+                values.onlyAvailableLicenses = false;
+                values.school = this.getSchoolId();
 
-              callback: lang.hitch(this, function() {
-                this._toggleSearch();
+
+                if (values.licenseType == '') {
+                  values.licenseType = [];
+                } else if (values.licenseType == 'SINGLE') {
+                  values.licenseType = ['SINGLE'];
+                } else if (values.licenseType == 'VOLUME') {
+                  values.licenseType = ['VOLUME'];
+                } else if (values.licenseType == 'SCHOOL') {
+                  values.licenseType = ['SCHOOL'];
+                } else if (values.licenseType == 'WORKGROUP') {
+                  values.licenseType = ['WORKGROUP'];
+                }
+
+                this.exportToExcel(values);
               }),
-            }];
-
-          this._searchForm = new SearchForm({
-            class: 'umcUDMSearchForm umcUDMSearchFormSimpleTextBox',
-            region: 'nav',
-            widgets: widgets,
-            buttons: buttons,
-            layout: layout,
-            onSearch: lang.hitch(this, function(values) {
-              this.refreshGrid(values);
-            }),
-          });
-          domClass.add(
-              this._searchForm.getWidget('licenseCode').$refLabel$.domNode,
-              'umcSearchFormElementBeforeSubmitButton');
+          );
 
           const actions = [];
           actions.push({
@@ -553,58 +218,20 @@ define([
               this.openDetailPage(licenses[0].licenseCode);
             }),
           });
-          const columns = [
-            {
-              name: 'licenseCode', label: _('License code'), width: '60px',
-            }, {
-              name: 'productId',
-              label: _('Medium ID'),
-              width: '60px',
-              formatter: function(value) {
-                if (value && value.startsWith('urn:bilo:medium:')) {
-                  value = value.slice(16, value.length);
-                }
-                return value;
-              },
-            }, {
-              name: 'productName', label: _('Medium'), width: '200px',
-            }, {
-              name: 'publisher', label: _('Publisher'), width: '50px',
-            }, {
-              name: 'licenseTypeLabel', label: _('License type'),
-            }, {
-              name: 'countAquired', label: _('Max. Users'), width: 'adjust',
-            }, {
-              name: 'countAssigned', label: _('Assigned'), width: 'adjust',
-            }, {
-              name: 'countExpired', label: _('Expired'), width: 'adjust',
-            }, {
-              name: 'countAvailable', label: _('Available'), width: 'adjust',
-            }, {
-              name: 'importDate',
-              label: _('Delivery'),
-              formatter: function(value, object) {
-                if (value) {
-                  value = dateLocale.format(new Date(value), {
-                    fullYear: true, selector: 'date',
-                  });
-                }
-                return value;
-              },
-            }];
           const columnsOverview = [
             {
               name: 'licenseCode', label: _('License code'), width: '66px',
+              formatter: lang.hitch(this, 'formatInvalid')
             }, {
               name: 'productId',
               label: _('Medium ID'),
               width: '66px',
-              formatter: function(value) {
+              formatter: lang.hitch(this, function(value, license) {
                 if (value && value.startsWith('urn:bilo:medium:')) {
                   value = value.slice(16, value.length);
                 }
                 return value;
-              },
+              }),
             }, {
               name: 'productName', label: _('Medium'), width: '200px',
             }, {
@@ -617,6 +244,7 @@ define([
               name: 'countAquired', label: _('Max. Users'), width: '66px',
             }, {
               name: 'countAssigned', label: _('Assigned'), width: '66px',
+              formatter: lang.hitch(this, 'formatActivated')
             }, {
               name: 'countExpired', label: _('Expired'), width: '66px',
             }, {
@@ -625,14 +253,14 @@ define([
               name: 'importDate',
               label: _('Delivery'),
               width: '66px',
-              formatter: function(value, object) {
+              formatter: lang.hitch(this, function(value, license) {
                 if (value) {
                   value = dateLocale.format(new Date(value), {
                     fullYear: true, selector: 'date',
                   });
                 }
                 return value;
-              },
+              }),
             }];
 
           this._grid = new Grid({
@@ -648,7 +276,10 @@ define([
             selectorType: 'radio',
           });
 
+          this.createLicenseSearchWidget();
+
           this.addChild(this._searchForm);
+          this.addChild(this._excelExportForm);
           this.addChild(this._grid);
         },
 
@@ -663,4 +294,4 @@ define([
               }));
         },
       });
-    });
+});

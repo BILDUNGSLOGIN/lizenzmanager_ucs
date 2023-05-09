@@ -34,7 +34,7 @@
 ## joinscript api: bindpwdfile
 
 # shellcheck disable=SC2034
-VERSION=10
+VERSION=11
 
 . /usr/share/univention-join/joinscripthelper.lib
 . /usr/share/univention-lib/ldap.sh

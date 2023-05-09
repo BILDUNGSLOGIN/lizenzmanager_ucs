@@ -99,3 +99,12 @@ form[name="searchForm"] .dijitButton {
   grid-column-gap: 25px;
   margin-top: 30px;
 }
+
+.bildungslogin-red {
+  color: red;
+}
+
+.bildungslogin-green {
+  color: green;
+  font-weight: bold;
+}

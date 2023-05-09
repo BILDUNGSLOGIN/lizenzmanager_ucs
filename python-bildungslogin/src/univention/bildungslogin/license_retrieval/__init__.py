@@ -148,7 +148,7 @@ def get_access_token(client_id, client_secret, scope, auth_server):
         data={"grant_type": "client_credentials", "scope": scope},
         auth=(client_id, client_secret),
     )
-    print(response.json())
+
     if response.status_code != 200:
         raise AuthError("Authorization failed: %s" % (response.json()["error_description"],))
     return response.json()["access_token"]

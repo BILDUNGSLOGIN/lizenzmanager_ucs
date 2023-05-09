@@ -341,18 +341,18 @@ define([
         onSearch: lang.hitch(this, function(values) {
           switch (this.selectedLicenseType) {
             case 'SCHOOL':
-              this.onSchoolSelected(this.getSchoolId());
+              this.setSchoolAssignment();
               break;
             case 'WORKGROUP':
               let className =
-                  this._searchForm.getWidget('class').displayedValue;
+                this._searchForm.getWidget("class").displayedValue;
               let workgroupName =
-                  this._searchForm.getWidget('workgroup').displayedValue;
+                this._searchForm.getWidget("workgroup").displayedValue;
 
-              if (className !== '__all__') {
-                this.setGroup(className, 'schoolClass');
-              } else if (workgroupName !== 'all') {
-                this.setGroup(workgroupName, 'workgroup');
+              if (values.class !== '__all__') {
+                this.setGroup(values.class, className, 'schoolClass');
+              } else if (values.workgroup !== '__all__') {
+                this.setGroup(values.workgroup, workgroupName, 'workgroup');
               }
               break;
             case 'SINGLE_AND_VOLUME':

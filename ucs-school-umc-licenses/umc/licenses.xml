@@ -26,6 +26,7 @@
 		</flavor>
 		<command name="licenses/query" function="licenses_query"></command>
 		<command name="licenses/get" function="licenses_get"></command>
+		<command name="licenses/export_to_excel" function="licenses_to_excel"></command>
 		<command name="licenses/publishers" function="publishers"></command>
 		<command name="licenses/license_types" function="license_types"></command>
 		<command name="licenses/classes" function="classes"></command>
@@ -41,6 +42,7 @@
 		<command name="licenses/users/query" function="users_query"></command>
 		<command name="licenses/products/query" function="products_query"></command>
 		<command name="licenses/products/get" function="products_get"></command>
+		<command name="licenses/products/export_to_excel" function="products_to_excel"></command>
 		<command name="licenses/import/get" function="get_license"></command>
 		<command name="licenses/not_assigned_users" function="not_assigned_users"></command>
 		<command name="licenses/cache/rebuild" function="cache_rebuild"></command>

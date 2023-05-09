@@ -41,13 +41,17 @@ define([
   'dojox/html/entities',
   'dijit/Tooltip',
   'umc/store',
+  'umc/tools',
   '../../common/Page',
   'umc/widgets/Grid',
+  'umc/widgets/Form',
   'umc/widgets/SearchForm',
   'umc/widgets/Text',
   'umc/widgets/TextBox',
   'put-selector/put',
   'umc/i18n!umc/modules/licenses',
+  '../../../libraries/FileSaver',
+  '../../../libraries/base64',
 ], function(
     declare,
     lang,
@@ -61,8 +65,10 @@ define([
     entities,
     Tooltip,
     store,
+    tools,
     Page,
     Grid,
+    Form,
     SearchForm,
     Text,
     TextBox,
@@ -76,11 +82,13 @@ define([
     //// self
     standbyDuring: null, // required parameter
     moduleFlavor: null, // required parameter
+    getSchoolId: function() {}, // required parameter
     showChangeSchoolButton: false,
     activeCover: [],
 
     _grid: null,
     _gridGroup: null,
+    _excelExportForm: null,
     _searchForm: null,
 
     maxUserSum: '-',
@@ -252,34 +260,6 @@ define([
       );
     },
 
-    onBack: function() {
-      // event stub
-    },
-
-    onProductChosen: function() {
-      // event stub
-    },
-
-    onProductChosenForSchool: function() {
-      // event stub
-    },
-
-    onProductChosenForClass: function() {
-      // event stub
-    },
-
-    onProductChosenForWorkgroup: function() {
-      // event stub
-    },
-
-    onChangeUsers: function() {
-      // event stub
-    },
-
-    onChooseDifferentSchool: function() {
-      // event stub
-    },
-
     onPageChange: function() {
       this.activeCover.map(function(element) {
         Tooltip.hide(element);
@@ -293,60 +273,20 @@ define([
 
     refreshGrid: function(values, resize = false) {
       values.school = this.getSchoolId();
-      if (this.moduleFlavor === 'licenses/assignment' && this.allocation) {
-        if (this.allocation.usernames) {
-          values.licenseType = ['SINGLE', 'VOLUME'];
-          values.showOnlyAvailable = true;
-          this._grid.filter(values);
-          this.removeChild(this._gridGroup);
-          this.addChild(this._grid);
-          if (resize) {
-            this._grid.resize();
-          }
-        } else if (this.allocation.workgroup) {
-          if (this.allocation.workgroup && this.allocation.workgroup !==
-              '__all__') {
-            values.groupName = this.parseGroupName(this.allocation.workgroup);
-          }
-          if (this.allocation.schoolClass && this.allocation.schoolClass !==
-              '__all__') {
-            values.groupName = this.parseGroupName(this.allocation.schoolClass);
-          }
-          values.licenseType = ['WORKGROUP'];
-          values.showOnlyAvailable = true;
-          this._gridGroup.filter(values).then(() => {
-            if (
-                this._gridGroup.collection.data[0] &&
-                this._gridGroup.collection.data[0].user_count !== null
-            ) {
-              this._set('userCount',
-                  this._gridGroup.collection.data[0].user_count);
-              this.showUserCount();
-            }
-          });
-          this.removeChild(this._grid);
-          this.addChild(this._gridGroup);
-          if (resize) {
-            this._gridGroup.resize();
-          }
-        }
-      } else {
-        this._grid.filter(values);
-      }
+      this._grid.filter(values);
     },
 
-    //// lifecycle
-    postMixInProperties: function() {
-      this.inherited(arguments);
-      const headerButtons = [];
-      if (this.moduleFlavor === 'licenses/assignment') {
-        headerButtons.push({
-          name: 'close',
-          label: _('Change user selection'),
-          callback: lang.hitch(this, 'onChangeUsers'),
-        });
-      }
-      this.headerButtons = headerButtons;
+    exportToExcel: function(values) {
+      tools.umcpCommand('licenses/products/export_to_excel', values).then(
+          lang.hitch(this, function(response) {
+            const res = response.result;
+            if (res.errorMessage) {
+              dialog.alert(result.errorMessage);
+            } else {
+              saveAs(b64toBlob(res.file), res.fileName);
+            }
+          }),
+      );
     },
 
     buildRendering: function() {
@@ -358,6 +298,27 @@ define([
         region: 'nav',
         class: 'dijitDisplayNone',
       });
+
+      this._excelExportForm = new Form({
+        widgets: [],
+        buttons: [
+          {
+            name: 'submit',
+            label: _('Export'),
+            style: 'margin-top:20px',
+          },
+        ],
+      });
+
+      this._excelExportForm.on(
+          'submit',
+          lang.hitch(this, function() {
+            values = this._searchForm.value;
+            values.school = this.getSchoolId();
+            values.pattern = this._searchForm.value.pattern;
+            this.exportToExcel(values);
+          }),
+      );
 
       const widgets = [
         {
@@ -377,64 +338,17 @@ define([
         }),
       });
 
-      const actions = [];
-      if (this.moduleFlavor === 'licenses/assignment') {
-        actions.push({
-          name: 'edit',
-          label: _('To license selection'),
-          isStandardAction: true,
-          isContextAction: true,
-          isMultiAction: false,
-          callback: lang.hitch(this, function(_idxs, products) {
-            if (this.allocation.usernames) {
-              this.onProductChosen(
-                  products[0].productId,
-                  this.allocation.usernames,
-              );
-            } else if (this.allocation.school) {
-              this.onProductChosenForSchool(
-                  products[0].productId,
-                  this.allocation.school,
-              );
-            } else if (
-                this.allocation.schoolClass &&
-                this.allocation.schoolClass !== '__all__'
-            ) {
-              this.onProductChosenForWorkgroup(
-                  products[0].productId,
-                  '',
-                  this.allocation.schoolClass,
-                  '',
-                  this.allocation.className,
-                  this.userCount,
-              );
-            } else if (
-                this.allocation.workgroup &&
-                this.allocation.workgroup !== '__all__'
-            ) {
-              this.onProductChosenForWorkgroup(
-                  products[0].productId,
-                  this.allocation.workgroup,
-                  '',
-                  this.allocation.workgroupName,
-                  '',
-                  this.userCount,
-              );
-            }
-          }),
-        });
-      } else {
-        actions.push({
-          name: 'edit',
-          label: _('Show details'),
-          isStandardAction: true,
-          isContextAction: true,
-          isMultiAction: false,
-          callback: lang.hitch(this, function(_idxs, products) {
-            this.openDetailPage(products[0].productId);
-          }),
-        });
-      }
+      const actions = [{
+        name: 'edit',
+        label: _('Show details'),
+        isStandardAction: true,
+        isContextAction: true,
+        isMultiAction: false,
+        callback: lang.hitch(this, function(_idxs, products) {
+          this.openDetailPage(products[0].productId);
+        }),
+      }];
+
       const columns = [
         {
           name: 'productId',
@@ -554,6 +468,7 @@ define([
         sortIndex: -8,
         addTitleOnCellHoverIfOverflow: true,
       });
+
       this._gridGroup = new Grid({
         actions: actions,
         columns: columnsGroup,
@@ -649,9 +564,8 @@ define([
 
       this.addChild(this._assignmentText);
       this.addChild(this._searchForm);
-      if (this.moduleFlavor !== 'licenses/assignment') {
-        this.addChild(this._grid);
-      }
+      this.addChild(this._excelExportForm);
+      this.addChild(this._grid);
     },
   });
 });

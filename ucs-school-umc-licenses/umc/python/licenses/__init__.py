@@ -34,6 +34,9 @@ import os
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 from subprocess import Popen
+from .xlsxwriter import Workbook
+import io
+import base64
 
 import psutil
 from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
@@ -132,6 +135,11 @@ class Instance(SchoolBaseModule):
         time_to = request.options.get("timeTo")
         time_to = iso8601Date.to_datetime(time_to) if time_to else None
 
+        expiry_from = request.options.get("expiryDateFrom")
+        expiry_from = iso8601Date.to_datetime(expiry_from) if expiry_from else None
+        expiry_to = request.options.get("expiryDateTo")
+        expiry_to = iso8601Date.to_datetime(expiry_to) if expiry_to else None
+
         school_class = request.options.get("class", None)
         if not school_class:
             school_class = request.options.get("workgroup", None)
@@ -153,7 +161,12 @@ class Instance(SchoolBaseModule):
                 restrict_to_this_product_id=request.options.get(
                     "allocationProductId"),
                 sizelimit=sizelimit,
-                school_class=school_class)
+                school_class=school_class,
+                valid_status=request.options.get("validStatus"),
+                usage_status=request.options.get("usageStatus"),
+                expiry_date_from=expiry_from,
+                expiry_date_to=expiry_to
+            )
         except SearchLimitReached:
             raise UMC_Error(
                 _("Hint"
@@ -188,6 +201,139 @@ class Instance(SchoolBaseModule):
             })
 
         self.finished(request.id, result)
+
+    @sanitize(
+        isAdvancedSearch=BooleanSanitizer(required=True),
+        school=SchoolSanitizer(required=True),
+        onlyAvailableLicenses=BooleanSanitizer(required=True),
+        timeFrom=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
+        timeTo=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
+        publisher=LDAPSearchSanitizer(add_asterisks=False, default=""),
+        licenseType=ListSanitizer(sanitizer=LDAPSearchSanitizer(add_asterisks=False)),
+        userPattern=LDAPSearchSanitizer(default=""),
+        productId=LDAPSearchSanitizer(default=""),
+        product=LDAPSearchSanitizer(default=""),
+        licenseCode=LDAPSearchSanitizer(default=""),
+        pattern=LDAPSearchSanitizer(default=""),
+        allocationProductId=LDAPSearchSanitizer(add_asterisks=False, default=""),
+    )
+    @LDAP_Connection(USER_WRITE)
+    def licenses_to_excel(self, request, ldap_user_write=None):
+        """Searches for licenses
+        requests.options = {
+            isAdvancedSearch -- boolean
+            school -- str (schoolId)
+            timeFrom -- str (ISO 8601 date string)
+            timeTo -- str (ISO 8601 date string)
+            onlyAllocatableLicenses -- boolean
+            publisher -- str
+            licenseType -- list
+            userPattern -- str
+            productId -- str
+            product -- str
+            licenseCode -- str
+            pattern -- str
+            class -- str
+        }
+        """
+        self.repository.update()
+        try:
+            sizelimit = int(ucr.get("directory/manager/web/sizelimit", 2000))
+        except ValueError:
+            sizelimit = None
+
+        time_from = request.options.get("timeFrom")
+        time_from = iso8601Date.to_datetime(time_from) if time_from else None
+        time_to = request.options.get("timeTo")
+        time_to = iso8601Date.to_datetime(time_to) if time_to else None
+
+        school_class = request.options.get("class", None)
+        if not school_class:
+            school_class = request.options.get("workgroup", None)
+        try:
+            licenses = self.repository.filter_licenses(
+                is_advanced_search=request.options.get("isAdvancedSearch"),
+                school=request.options.get("school"),
+                time_from=time_from,
+                time_to=time_to,
+                only_available_licenses=request.options.get(
+                    "onlyAvailableLicenses"),
+                publisher=request.options.get("publisher"),
+                license_types=request.options.get("licenseType"),
+                user_pattern=request.options.get("userPattern"),
+                product_id=request.options.get("productId"),
+                product=request.options.get("product"),
+                license_code=request.options.get("licenseCode"),
+                pattern=request.options.get("pattern"),
+                restrict_to_this_product_id=request.options.get(
+                    "allocationProductId"),
+                sizelimit=sizelimit,
+                school_class=school_class)
+        except SearchLimitReached:
+            raise UMC_Error(
+                _("Hint"
+                  "The number of licenses to be displayed is over {} and thus exceeds the set maximum value."
+                  "You can use the filter/search parameters to limit the selection."
+                  "Alternatively, the maximum number for the display can be adjusted by an administrator with "
+                  "the UCR variable directory/manager/web/sizelimit."
+                  ).format(sizelimit)
+            )
+        result = []
+        for _license in licenses:
+            metadata = _license.medium
+            result.append([
+                _license.bildungsloginLicenseCode,
+                _license.bildungsloginProductId,
+                metadata.bildungsloginMetaDataTitle if metadata else '',
+                _license.publisher,
+                LicenseType.label(_license.bildungsloginLicenseType),
+                _license.bildungsloginLicenseSpecialType,
+                iso8601Date.from_datetime(_license.bildungsloginDeliveryDate),
+                iso8601Date.from_datetime(
+                    _license.bildungsloginValidityStartDate) if _license.bildungsloginValidityStartDate else None,
+                iso8601Date.from_datetime(
+                    _license.bildungsloginValidityEndDate) if _license.bildungsloginValidityEndDate else None,
+                undefined_if_none(_license.quantity, zero_as_none=True),
+                undefined_if_none(_license.quantity_assigned),
+                undefined_if_none(_license.quantity_available),
+                undefined_if_none(_license.quantity_expired),
+                _('valid') if _license.bildungsloginValidityStatus == '1' else _('invalid'),
+                _('activated') if _license.bildungsloginUsageStatus == '1' else _('not activated'),
+                optional_date2str(_license.bildungsloginExpiryDate)
+            ])
+
+        output = io.BytesIO()
+        workbook = Workbook(output)  # {"in_memory": True})
+        worksheet = workbook.add_worksheet()
+
+        columns = [_('License code'), _('Medium ID'), _('Medium'), _('Publisher'), _('License type'),
+                   _('Special License type'),
+                   _('Delivery Date'), _('Validity start'), _('Validity end'), _('Number of licenses'),
+                   _('Number of assigned licenses'),
+                   _('Number of available licenses'), _('Number of expired licenses'), _('Validity status'),
+                   _('Usage status'), _('Expiry date')]
+
+        header_format = workbook.add_format({'bold': True})
+        result.insert(0, columns)
+        worksheet.set_column(0, len(columns), 25)
+
+        for row_num, row in enumerate(result):
+            for col_num, data in enumerate(row):
+                if (row_num == 0):
+                    worksheet.write(row_num, col_num, data, header_format)
+                else:
+                    worksheet.write(row_num, col_num, data)
+        workbook.close()
+
+        xlsx_data = output.getvalue()
+
+        MODULE.info("licenses.products.export_to_excel: result: %s" % str(xlsx_data))
+        self.finished(request.id,
+                      {
+                          "file": base64.encodestring(xlsx_data),
+                          "fileName": "licenses.xls"
+                      }
+                      )
 
     @sanitize(
         #  school=StringSanitizer(required=True),
@@ -646,6 +792,128 @@ class Instance(SchoolBaseModule):
                 )
         MODULE.info("licenses.products.query: result: %s" % str(result))
         self.finished(request.id, result)
+
+    @sanitize(
+        school=SchoolSanitizer(required=True),
+        pattern=LDAPSearchSanitizer(),
+        licenseType=ListSanitizer(sanitizer=LDAPSearchSanitizer(add_asterisks=False))
+    )
+    @LDAP_Connection(USER_WRITE)
+    def products_to_excel(self, request, ldap_user_write=None):
+        """Searches for products
+        requests.options = {
+            school:  str
+            pattern: str
+            licenseType: List
+            showOnlyAvailable: bool [optional]
+        }
+        """
+        self.repository.update()
+        result = []
+
+        school = request.options.get("school")
+        pattern = request.options.get("pattern")
+        license_types = request.options.get("licenseType", None)
+
+        user_count = None
+
+        if license_types is not None and "WORKGROUP" in license_types:
+            workgroup_name = request.options.get("groupName", None)
+
+            if workgroup_name is not None:
+                group = self.repository.get_workgroup_by_name(workgroup_name)
+
+                if group:
+                    user_count = len(group.memberUid)
+        meta_data_objs = self.repository.filter_metadata(pattern)
+
+        for meta_datum_obj in meta_data_objs:
+            licenses = self.repository.filter_licenses(meta_datum_obj.bildungsloginProductId, school, license_types)
+
+            if licenses:
+                non_ignored_licenses = [license for license in licenses if not license.bildungsloginIgnoredForDisplay]
+
+                sum_quantity = 0
+                for license in non_ignored_licenses:
+                    sum_quantity += license.quantity
+
+                sum_num_assigned = 0
+                for license in non_ignored_licenses:
+                    sum_num_assigned += license.quantity_assigned
+
+                sum_num_expired = 0
+                sum_num_available = 0
+                for license in non_ignored_licenses:
+                    if license.is_expired:
+                        sum_num_expired += license.quantity_expired
+                    else:
+                        sum_num_available += license.quantity_available
+
+                # count info about licenses
+                number_of_licenses = len(non_ignored_licenses)
+                number_of_assigned_licenses = \
+                    sum(1 for l in non_ignored_licenses if l.quantity_assigned > 0)
+                number_of_expired_licenses = sum(1 for license in non_ignored_licenses if license.is_expired)
+                # Counting of assignments depends on the license type: _get_total_number_of_assignments() encapsulates the logic.
+                number_of_available_licenses = \
+                    sum(1 for license in non_ignored_licenses if license.is_available)
+                # Caller (grid query) can now request products with 'all' or 'only available' licenses
+                if 'showOnlyAvailable' in request.options and request.options['showOnlyAvailable']:
+                    if number_of_available_licenses < 1:
+                        continue
+
+                latest_delivery_date = max(lic_udm.bildungsloginDeliveryDate for lic_udm in licenses)
+                result.append(
+                    [
+                        meta_datum_obj.bildungsloginProductId,
+                        meta_datum_obj.bildungsloginMetaDataTitle,
+                        meta_datum_obj.bildungsloginMetaDataPublisher,
+                        meta_datum_obj.bildungsloginMetaDataCoverSmall or meta_datum_obj.bildungsloginMetaDataCover,
+                        undefined_if_none(sum_quantity),
+                        sum_num_assigned,
+                        undefined_if_none(sum_num_expired),
+                        undefined_if_none(sum_num_available),
+                        iso8601Date.from_datetime(latest_delivery_date),
+                        number_of_licenses,
+                        number_of_assigned_licenses,
+                        number_of_expired_licenses,
+                        number_of_available_licenses,
+                        user_count
+                    ]
+                )
+
+        output = io.BytesIO()
+        workbook = Workbook(output)  # {"in_memory": True})
+        worksheet = workbook.add_worksheet()
+
+        columns = [_('Medium ID'), _('Medium'), _('Publisher'), _('Cover'), _('Maximal number of users'), _('Assigned'),
+                   _('Expired'),
+                   _('Available'),
+                   _('Import date'), _('Number of Licenses'), _('Number of assigned licenses'),
+                   _('Number of expired licenses'),
+                   _('Number of available licenses'),
+                   _('Number of Users')]
+
+        header_format = workbook.add_format({'bold': True})
+        result.insert(0, columns)
+        worksheet.set_column(0, len(columns), 25)
+
+        for row_num, row in enumerate(result):
+            for col_num, data in enumerate(row):
+                if (row_num == 0):
+                    worksheet.write(row_num, col_num, data, header_format)
+                else:
+                    worksheet.write(row_num, col_num, data)
+        workbook.close()
+
+        xlsx_data = output.getvalue()
+
+        self.finished(request.id,
+                      {
+                          "file": base64.encodestring(xlsx_data),
+                          "fileName": "products.xls"
+                      }
+                      )
 
     @sanitize(
         school=SchoolSanitizer(required=True),

@@ -47,6 +47,8 @@ define([
   'umc/widgets/Text',
   'umc/widgets/TextBox',
   'put-selector/put',
+  'umc/widgets/Form',
+  'umc/tools',
   'umc/i18n!umc/modules/licenses',
 ], function(
     declare,
@@ -67,6 +69,8 @@ define([
     Text,
     TextBox,
     put,
+    Form,
+    tools,
     _,
 ) {
   return declare('umc.modules.licenses.ProductSearchPage', [Page], {
@@ -265,6 +269,27 @@ define([
       // event stub
     },
 
+    exportToExcel: function(values) {
+      if (this.getAssignmentType() === 'user') {
+        values.licenseType = ['SINGLE', 'VOLUME'];
+        values.showOnlyAvailable = true;
+      } else if (['workgroup', 'schoolClass'].includes(this.getAssignmentType())) {
+        values.groupName = this.parseGroupName(this.getGroup());
+        values.licenseType = ['WORKGROUP'];
+        values.showOnlyAvailable = true;
+      }
+      tools.umcpCommand('licenses/products/export_to_excel', values).then(
+          lang.hitch(this, function(response) {
+            const res = response.result;
+            if (res.errorMessage) {
+              dialog.alert(result.errorMessage);
+            } else {
+              saveAs(b64toBlob(res.file), res.fileName);
+            }
+          }),
+      );
+    },
+
     refreshGrid: function(values, resize = false) {
       values.school = this.getSchoolId();
       if (this.getAssignmentType() === 'user') {
@@ -280,7 +305,11 @@ define([
         values.groupName = this.parseGroupName(this.getGroup());
         values.licenseType = ['WORKGROUP'];
         values.showOnlyAvailable = true;
+
+        let setUserCount = this.setUserCount;
+
         this._gridGroup.filter(values).then(() => {
+
           if (
               this._gridGroup.collection.data[0] &&
               this._gridGroup.collection.data[0].user_count !== null
@@ -288,6 +317,7 @@ define([
             this._set('userCount',
                 this._gridGroup.collection.data[0].user_count);
             this.showUserCount();
+            setUserCount(this._gridGroup.collection.data[0].user_count);
           }
         });
         this.removeChild(this._grid);
@@ -298,6 +328,17 @@ define([
       }
     },
 
+    onPageChange: function() {
+      this.activeCover.map(function(element) {
+        Tooltip.hide(element);
+      });
+      return true;
+    },
+
+    registerCover: function(target) {
+      this.activeCover.push(target);
+    },
+
     afterPageChange: function() {
       this.updateText();
       this.refreshGrid({pattern: ''}, true);
@@ -305,11 +346,13 @@ define([
 
     buildRendering: function() {
       this.inherited(arguments);
+      this.activeCover = [];
 
       this._assignmentText = new Text({
         region: 'nav',
         class: 'dijitDisplayNone',
       });
+
 
       const widgets = [
         {
@@ -482,6 +525,7 @@ define([
                 // .field-title should always exist. just to be safe
                 const tooltipTarget =
                     query('.field-title', rowNode)[0] || rowNode;
+                this.registerCover(tooltipTarget);
                 on(rowNode, mouse.enter, function() {
                   Tooltip.show(_('Loading cover...'), tooltipTarget);
                   let showImage = true;
@@ -551,8 +595,31 @@ define([
           }),
       );
 
+      this._excelExportForm = new Form({
+        widgets: [],
+        buttons: [
+          {
+            name: 'submit',
+            label: _('Export'),
+            style: 'margin-top:20px',
+          },
+        ],
+      });
+
+      this._excelExportForm.on(
+          'submit',
+          lang.hitch(this, function() {
+            values = this._searchForm.value;
+            values.school = this.getSchoolId();
+            values.pattern = this._searchForm.value.pattern;
+            this.exportToExcel(values);
+          }),
+      );
+
       this.addChild(this._assignmentText);
       this.addChild(this._searchForm);
+      this.addChild(this._excelExportForm);
+
     },
   });
 });

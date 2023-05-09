@@ -15,3 +15,9 @@ Description[en]=A cron interval to get missing metadata for licenses. See `man 5
 Description[de]=Ein Cron Intervall um fehlende Metadaten von Lizensen zu laden. Siehe `man 5 crontab` für weitere Hilfe zur Syntax. Der Paket-Standard ist '0 4 * * *'.
 Type=str
 Categories=bildungslogin
+
+[bildungslogin/update-license-status]
+Description[en]=A cron interval to get updates for license stati. See `man 5 crontab` for furhter help on the syntax. The package default is '0 2 * * *'.
+Description[de]=Ein Cron Intervall um Lizenzstati updates zu laden. Siehe `man 5 crontab` für weitere Hilfe zur Syntax. Der Paket-Standard ist '0 2 * * *'.
+Type=str
+Categories=bildungslogin

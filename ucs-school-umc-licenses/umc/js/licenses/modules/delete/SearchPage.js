@@ -43,15 +43,14 @@ define([
   'umc/tools',
   '../../common/Page',
   'umc/widgets/Grid',
-  'umc/widgets/CheckBox',
-  'umc/widgets/DateBox',
-  'umc/widgets/ComboBox',
-  'umc/widgets/SearchForm',
+  'umc/widgets/Form',
   'umc/widgets/Text',
-  'umc/widgets/TextBox',
-  'umc/widgets/SuggestionBox',
   'umc/widgets/ProgressInfo',
+  '../../common/LicenseSearchformMixin',
+  '../../common/FormatterMixin',
   'umc/i18n!umc/modules/licenses',
+  '../../../libraries/FileSaver',
+  '../../../libraries/base64',
 ], function(
     declare,
     lang,
@@ -67,494 +66,376 @@ define([
     tools,
     Page,
     Grid,
-    CheckBox,
-    DateBox,
-    ComboBox,
-    SearchForm,
+    Form,
     Text,
-    TextBox,
-    SuggestionBox,
     ProgressInfo,
+    LicenseSearchformMixin,
+    FormatterMixin,
     _,
 ) {
-  return declare('umc.modules.licenses.license.SearchPage', [Page], {
-    //// overwrites
-    fullWidth: true,
+  return declare('umc.modules.licenses.license.SearchPage',
+      [Page, LicenseSearchformMixin, FormatterMixin], {
+        //// overwrites
+        fullWidth: true,
 
-    //// self
-    standbyDuring: null, // required parameter
-    getSchoolId: function() {}, // required parameter
+        //// self
+        standbyDuring: null, // required parameter
+        getSchoolId: function() {}, // required parameter
 
-    _licenseTypes: [],
-    // reference to the currently active grid
-    _grid: null,
-    _gridFooter: null,
-    _searchForm: null,
+        _licenseTypes: [],
+        // reference to the currently active grid
+        _grid: null,
+        _gridFooter: null,
+        _searchForm: null,
 
-    _isAdvancedSearch: false,
+        _isAdvancedSearch: false,
 
-    maxUserSum: '-',
-    assignedSum: '-',
-    expiredSum: '-',
-    availableSum: '-',
+        maxUserSum: '-',
+        assignedSum: '-',
+        expiredSum: '-',
+        availableSum: '-',
 
-    deferred: null,
-    progressInfo: null,
-    max: 0,
-    current: 0,
+        deferred: null,
+        progressInfo: null,
+        max: 0,
+        current: 0,
 
-    _toggleSearch: function() {
-      this._isAdvancedSearch = !this._isAdvancedSearch;
-
-      [
-        'timeFrom',
-        'timeTo',
-        'onlyAvailableLicenses',
-        'publisher',
-        'licenseType',
-        'userPattern',
-        'productId',
-        'product',
-        'licenseCode',
-        'workgroup',
-        'class',
-      ].forEach(
-          lang.hitch(this, function(widgetName) {
-            const widget = this._searchForm.getWidget(widgetName);
-            if (widget) {
-              widget.set('visible', this._isAdvancedSearch);
-            }
-          }),
-      );
-
-      this._searchForm.getWidget('pattern').
-          set('visible', !this._isAdvancedSearch);
-
-      // update toggle button
-      const button = this._searchForm.getButton('toggleSearch');
-      if (this._isAdvancedSearch) {
-        button.set('iconClass', 'umcDoubleLeftIcon');
-      } else {
-        button.set('iconClass', 'umcDoubleRightIcon');
-      }
-    },
-
-    query: function() {
-      this.standbyDuring(
-          // Deactivated in this flavor due to Issue #97
-          this._searchForm.ready().then(
-              lang.hitch(this, function() {
-                this._searchForm.submit();
-              }),
-          ),
-      );
-    },
-
-    resetAdvancedSearch: function() {
-      if (this._isAdvancedSearch) {
-        this._toggleSearch();
-      }
-    },
-
-    refreshGrid: function(values) {
-      values.isAdvancedSearch = this._isAdvancedSearch;
-      values.school = this.getSchoolId();
-      values.isAdvancedSearch = true;
-      values.onlyAvailableLicenses = true;
-
-      if (values.licenseType == '') {
-        values.licenseType = [];
-      } else if (values.licenseType == 'SINGLE') {
-        values.licenseType = ['SINGLE'];
-      } else if (values.licenseType == 'VOLUME') {
-        values.licenseType = ['VOLUME'];
-      } else if (values.licenseType == 'SCHOOL') {
-        values.licenseType = ['SCHOOL'];
-      } else if (values.licenseType == 'WORKGROUP') {
-        values.licenseType = ['WORKGROUP'];
-      }
-      this._grid.filter(values);
-      values.licenseType = '';
-    },
-
-    //// lifecycle
-    postMixInProperties: function() {
-      this.inherited(arguments);
-
-      this._licenseTypes = [
-        {id: '', label: ''},
-        {id: 'SINGLE', label: _('Single license')},
-        {id: 'VOLUME', label: _('Volume license')},
-        {
-          id: 'WORKGROUP',
-          label: _('Workgroup license'),
+        query: function() {
+          this.standbyDuring(
+              // Deactivated in this flavor due to Issue #97
+              this._searchForm.ready().then(
+                  lang.hitch(this, function() {
+                    this._searchForm.submit();
+                  }),
+              ),
+          );
         },
-        {
-          id: 'SCHOOL',
-          label: _('School license'),
-        },
-      ];
-    },
 
-    _delete: function(licenseCodes) {
-      let temp_codes = [];
-
-      while (temp_codes.length < this.allocation_chunksize &&
-      licenseCodes.length > 0) {
-        temp_codes.push(licenseCodes.pop());
-      }
-
-      let refreshGrid = lang.hitch(this, 'refreshGrid');
-
-      tools.umcpCommand('licenses/delete',
-          {school: this.getSchoolId(), licenseCodes: temp_codes}).
-          then(function(result) {
-            this.current += temp_codes.length;
-
-            if (this.progressInfo) {
-              this.progressInfo.update(this.current,
-                  _('Deleted %s from %s', this.current, this.max));
-            }
-
-            if (licenseCodes.length > 0) {
-              this._delete(licenseCodes);
-            } else {
-              refreshGrid({});
-            }
-
-          }, function(result) {
-            this.deferred.resolve({
-              'error': null,
-              'message': null,
-              'reason': null,
-              'result': null,
-            });
-            this.progressInfo.destroyRecursive();
-            alert('something went wrong');
-          });
-    },
-
-    deleteLicenses: function(licenses) {
-      this.deferred = new Deferred();
-      let licenseCodes = licenses.map(function(element) {
-        return element.licenseCode;
-      });
-
-      this.max = licenseCodes.length;
-      this.current = 0;
-
-      if (licenseCodes.length <= this.allocation_chunksize) {
-        this._delete(licenseCodes);
-      } else {
-        this.progressInfo = new ProgressInfo({
-          maximum: licenseCodes.length,
-        });
-
-        this.progressInfo._delete.set('maximum', licenseCodes.length);
-
-        this._delete(licenseCodes);
-
-        this.standbyDuring(this.deferred, this.progressInfo);
-      }
-    },
-
-    askDeleteLicenses: function(licenses) {
-      let count = licenses.length;
-      let message = `<p>${_(
-          'You have selected %s licenses. ' +
-          'Do you really want to delete this? ' +
-          'This process is irreversible!',
-          count)}</p>`;
-
-      if (count > 1000) {
-        message += `<p>${_(
-            'You have selected over a thousand licenses for deletion. This process will take several minutes.')}</p>`;
-      }
-
-      dialog.confirm(message, [
-        {
-          'label': _('Cancel'),
-        },
-        {
-          'label': _('Delete'),
-          'callback': lang.hitch(this, function() {
-            this.deleteLicenses(licenses);
-          }),
-        },
-      ]);
-    },
-
-    afterPageChange: function() {
-      if (this._searchForm) {
-        this.removeChild(this._searchForm);
-      }
-
-      if (this._grid) {
-        this.removeChild(this._grid);
-      }
-
-      const widgets = [
-        {
-          type: DateBox,
-          name: 'timeFrom',
-          visible: false,
-          label: _('Start import period'),
-          size: 'TwoThirds',
-        }, {
-          type: DateBox,
-          name: 'timeTo',
-          label: _('End import period'),
-          size: 'TwoThirds',
-          visible: false,
-        }, {
-          type: ComboBox,
-          name: 'licenseType',
-          label: _('License type'),
-          staticValues: this._licenseTypes,
-          size: 'TwoThirds',
-          visible: false,
-        }, {
-          type: TextBox,
-          name: 'userPattern',
-          label: _('User ID'),
-          description: _(
-              'Search for licenses that have this user assigned. (Searches for \'first name\', \'last name\' and \'username\')'),
-          size: 'TwoThirds',
-          visible: false,
-        }, {
-          type: TextBox,
-          name: 'licenseCode',
-          label: _('License code'),
-          size: 'TwoThirds',
-          visible: false,
-        }, {
-          type: TextBox,
-          name: 'pattern',
-          label: '&nbsp;',
-          inlineLabel: _('Search licenses'),
-        }];
-      widgets.push({
-        type: TextBox,
-        name: 'product',
-        label: _('Media Title'),
-        size: 'TwoThirds',
-        visible: false,
-      }, {
-        type: TextBox,
-        name: 'productId',
-        label: _('Medium ID'),
-        size: 'TwoThirds',
-        visible: false,
-        formatter: function(value) {
-          if (value && value.startsWith('urn:bilo:medium:')) {
-            value = value.slice(16, value.length);
-          }
-          return value;
-        },
-      }, {
-        type: CheckBox,
-        name: 'onlyAvailableLicenses',
-        label: _('Only assignable licenses'),
-        value: false,
-        size: 'TwoThirds',
-        visible: false,
-      }, {
-        type: ComboBox,
-        name: 'publisher',
-        label: _('Publisher'),
-        staticValues: [{id: '', label: ''}],
-        dynamicValues: 'licenses/publishers',
-        size: 'TwoThirds',
-        visible: false,
-      }, {
-        type: ComboBox,
-        name: 'workgroup',
-        label: _('Assigned to Workgroup'),
-        staticValues: [{id: '', label: ''}],
-        dynamicValues: 'licenses/workgroups',
-        dynamicOptions: {
-          school: this.getSchoolId(),
-        },
-        size: 'TwoThirds',
-        visible: false,
-        onChange: lang.hitch(this, function(values) {
-          this.onChooseDifferentWorkgroup(values);
-        }),
-      }, {
-        type: SuggestionBox,
-        name: 'class',
-        label: _('Assigned to Class'),
-        staticValues: [{id: '', label: ''}],
-        dynamicValues: 'licenses/classes',
-        dynamicOptions: {
-          school: this.getSchoolId(),
-        },
-        size: 'TwoThirds',
-        visible: false,
-        onChange: lang.hitch(this, function(values) {
-          this.onChooseDifferentClass(values);
-        }),
-      });
-
-      let layout = [
-        ['timeFrom', 'timeTo', 'onlyAvailableLicenses'],
-        ['publisher', 'licenseType', 'userPattern'],
-        ['workgroup', 'class'],
-        [
-          'productId',
-          'product',
-          'licenseCode',
-          'pattern',
-          'submit',
-          'toggleSearchLabel',
-          'toggleSearch']];
-      const buttons = [
-        {
-          name: 'toggleSearch',
-          labelConf: {
-            class: 'umcFilters',
-          },
-          label: _('Filters'),
-          iconClass: 'umcDoubleRightIcon',
-
-          callback: lang.hitch(this, function() {
+        resetAdvancedSearch: function() {
+          if (this._isAdvancedSearch) {
             this._toggleSearch();
-          }),
+          }
         },
-      ];
-      this._searchForm = new SearchForm({
-        class: 'umcUDMSearchForm umcUDMSearchFormSimpleTextBox',
-        region: 'nav',
-        widgets: widgets,
-        buttons: buttons,
-        layout: layout,
-        onSearch: lang.hitch(this, function(values) {
-          this.refreshGrid(values);
-        }),
-      });
-      domClass.add(
-          this._searchForm.getWidget('licenseCode').$refLabel$.domNode,
-          'umcSearchFormElementBeforeSubmitButton',
-      );
 
-      const actions = [];
-      actions.push({
-        name: 'delete',
-        label: _('Delete'),
-        iconClass: 'trash',
-        isStandardAction: true,
-        isContextAction: true,
-        isMultiAction: true,
-        callback: lang.hitch(this, function(_idxs, licenses) {
-          this.askDeleteLicenses(licenses);
-        }),
-      });
-      const columnsOverview = [
-        {
-          name: 'licenseCode',
-          label: _('License code'),
-          width: '66px',
+        refreshGrid: function(values) {
+          values.isAdvancedSearch = this._isAdvancedSearch;
+          values.school = this.getSchoolId();
+
+          if (values.licenseType == '') {
+            values.licenseType = [];
+          } else if (values.licenseType == 'SINGLE') {
+            values.licenseType = ['SINGLE'];
+          } else if (values.licenseType == 'VOLUME') {
+            values.licenseType = ['VOLUME'];
+          } else if (values.licenseType == 'SCHOOL') {
+            values.licenseType = ['SCHOOL'];
+          } else if (values.licenseType == 'WORKGROUP') {
+            values.licenseType = ['WORKGROUP'];
+          }
+          this._grid.filter(values);
+          values.licenseType = '';
         },
-        {
-          name: 'productId',
-          label: _('Medium ID'),
-          width: '66px',
-          formatter: function(value) {
-            if (value && value.startsWith('urn:bilo:medium:')) {
-              value = value.slice(16, value.length);
-            }
-            return value;
-          },
+
+        //// lifecycle
+        postMixInProperties: function() {
+          this.inherited(arguments);
+
+          this._licenseTypes = [
+            {id: '', label: ''},
+            {id: 'SINGLE', label: _('Single license')},
+            {id: 'VOLUME', label: _('Volume license')},
+            {
+              id: 'WORKGROUP',
+              label: _('Workgroup license'),
+            },
+            {
+              id: 'SCHOOL',
+              label: _('School license'),
+            },
+          ];
         },
-        {
-          name: 'productName',
-          label: _('Medium'),
-          width: '150px',
-        },
-        {
-          name: 'publisher',
-          label: _('Publisher'),
-          width: '50px',
-        },
-        {
-          name: 'licenseTypeLabel',
-          label: _('License type'),
-          width: '66px',
-        },
-        {
-          name: 'for',
-          label: _('For'),
-          width: '66px',
-        },
-        {
-          name: 'countAquired',
-          label: _('Max. Users'),
-          width: '66px',
-        },
-        {
-          name: 'countAssigned',
-          label: _('Assigned'),
-          width: '66px',
-        },
-        {
-          name: 'countExpired',
-          label: _('Expired'),
-          width: '66px',
-        },
-        {
-          name: 'countAvailable',
-          label: _('Available'),
-          width: '66px',
-        },
-        {
-          name: 'expiryDate',
-          label: _('Expiry date'),
-          width: '100px',
-          formatter: function(value, object) {
-            if (value) {
-              value = dateLocale.format(new Date(value), {
-                fullYear: true,
-                selector: 'date',
+
+        _delete: function(licenseCodes) {
+          let temp_codes = [];
+
+          while (temp_codes.length < this.allocation_chunksize &&
+          licenseCodes.length > 0) {
+            temp_codes.push(licenseCodes.pop());
+          }
+
+          let refreshGrid = lang.hitch(this, 'refreshGrid');
+
+          tools.umcpCommand('licenses/delete',
+              {school: this.getSchoolId(), licenseCodes: temp_codes}).
+              then(function(result) {
+                this.current += temp_codes.length;
+
+                if (this.progressInfo) {
+                  this.progressInfo.update(this.current,
+                      _('Deleted %s from %s', this.current, this.max));
+                }
+
+                if (licenseCodes.length > 0) {
+                  this._delete(licenseCodes);
+                } else {
+                  refreshGrid(this._searchForm.value);
+                }
+
+              }, function(result) {
+                this.deferred.resolve({
+                  'error': null,
+                  'message': null,
+                  'reason': null,
+                  'result': null,
+                });
+                this.progressInfo.destroyRecursive();
+                alert('something went wrong');
               });
-              return value;
-            }
-            if (object.usageStatus) {
-              return _('unlimited');
-            } else {
-              return _('undefined');
-            }
-          },
         },
-      ];
 
-      this._grid = new Grid({
-        actions: actions,
-        columns: columnsOverview,
-        moduleStore: store('licenseCode', 'licenses'),
-        sortIndex: -11,
-        addTitleOnCellHoverIfOverflow: true,
-        class: 'licensesTable__licenses',
-        gridOptions: {
-          selectionMode: 'single',
+        deleteLicenses: function(licenses) {
+          this.deferred = new Deferred();
+          let licenseCodes = licenses.map(function(element) {
+            return element.licenseCode;
+          });
+
+          this.max = licenseCodes.length;
+          this.current = 0;
+
+          if (licenseCodes.length <= this.allocation_chunksize) {
+            this._delete(licenseCodes);
+          } else {
+            this.progressInfo = new ProgressInfo({
+              maximum: licenseCodes.length,
+            });
+
+            this.progressInfo._delete.set('maximum', licenseCodes.length);
+
+            this._delete(licenseCodes);
+
+            this.standbyDuring(this.deferred, this.progressInfo);
+          }
         },
-        selectorType: 'radio',
+
+        askDeleteLicenses: function(licenses) {
+          let count = licenses.length;
+          let message = `<p>${_(
+              'You have selected %s licenses. ' +
+              'Do you really want to delete this? ' +
+              'This process is irreversible!',
+              count)}</p>`;
+
+          if (count > 1000) {
+            message += `<p>${_(
+                'You have selected over a thousand licenses for deletion. This process will take several minutes.')}</p>`;
+          }
+
+          dialog.confirm(message, [
+            {
+              'label': _('Cancel'),
+            },
+            {
+              'label': _('Delete'),
+              'callback': lang.hitch(this, function() {
+                this.deleteLicenses(licenses);
+              }),
+            },
+          ]);
+        },
+
+        exportToExcel: function(values) {
+          tools.umcpCommand('licenses/export_to_excel', values).then(
+              lang.hitch(this, function(response) {
+                const res = response.result;
+                if (res.errorMessage) {
+                  dialog.alert(result.errorMessage);
+                } else {
+                  saveAs(b64toBlob(res.file), res.fileName);
+                }
+              }),
+          );
+        },// allow only either class or workgroup to be set
+
+        afterPageChange: function() {
+          if (this._searchForm) {
+            this.removeChild(this._searchForm);
+          }
+
+          if (this._excelExportForm) {
+            this.removeChild(this._excelExportForm);
+          }
+
+          if (this._grid) {
+            this.removeChild(this._grid);
+          }
+
+          const actions = [];
+          actions.push({
+            name: 'delete',
+            label: _('Delete'),
+            iconClass: 'trash',
+            isStandardAction: true,
+            isContextAction: true,
+            isMultiAction: true,
+            callback: lang.hitch(this, function(_idxs, licenses) {
+              this.askDeleteLicenses(licenses);
+            }),
+          });
+
+          actions.push({
+            name: 'view',
+            label: _('View'),
+            iconClass: '',
+            isStandardAction: true,
+            isContextAction: true,
+            isMultiAction: false,
+            callback: lang.hitch(this, function(_idxs, licenses) {
+              this.openDetailPage(licenses[0].licenseCode);
+            }),
+          });
+
+          const columnsOverview = [
+            {
+              name: 'licenseCode',
+              label: _('License code'),
+              width: '66px',
+            },
+            {
+              name: 'productId',
+              label: _('Medium ID'),
+              width: '66px',
+              formatter: lang.hitch(this, function(value, license) {
+                if (value && value.startsWith('urn:bilo:medium:')) {
+                  value = value.slice(16, value.length);
+                }
+                return value;
+              }),
+            },
+            {
+              name: 'productName',
+              label: _('Medium'),
+              width: '150px',
+            },
+            {
+              name: 'publisher',
+              label: _('Publisher'),
+              width: '50px',
+            },
+            {
+              name: 'licenseTypeLabel',
+              label: _('License type'),
+              width: '66px',
+            },
+            {
+              name: 'for',
+              label: _('For'),
+              width: '66px',
+            },
+            {
+              name: 'countAquired',
+              label: _('Max. Users'),
+              width: '66px',
+            },
+            {
+              name: 'countAssigned',
+              label: _('Assigned'),
+              width: '66px',
+            },
+            {
+              name: 'countExpired',
+              label: _('Expired'),
+              width: '66px',
+            },
+            {
+              name: 'countAvailable',
+              label: _('Available'),
+              width: '66px',
+            },
+            {
+              name: 'expiryDate',
+              label: _('Expiry date'),
+              width: '100px',
+              formatter: lang.hitch(this, function(value, license) {
+                if (value) {
+                  value = dateLocale.format(new Date(value), {
+                    fullYear: true,
+                    selector: 'date',
+                  });
+                  return this.formatExpired(value, license);
+                }
+                if (license.usageStatus) {
+                  return _('unlimited');
+                } else {
+                  return _('undefined');
+                }
+              }),
+            },
+          ];
+
+          this._grid = new Grid({
+            actions: actions,
+            columns: columnsOverview,
+            moduleStore: store('licenseCode', 'licenses'),
+            sortIndex: 11,
+            addTitleOnCellHoverIfOverflow: true,
+            class: 'licensesTable__licenses',
+            gridOptions: {
+              selectionMode: 'single',
+            },
+            selectorType: 'radio',
+          });
+
+          this.createLicenseSearchWidget();
+
+          this._excelExportForm = new Form({
+            widgets: [],
+            buttons: [
+              {
+                name: 'submit',
+                label: _('Export'),
+                style: 'margin-top:20px',
+              },
+            ],
+          });
+
+          this._excelExportForm.on(
+              'submit',
+              lang.hitch(this, function() {
+                values = this._searchForm.value;
+                values.isAdvancedSearch = this._isAdvancedSearch;
+                values.onlyAvailableLicenses = false;
+                values.school = this.getSchoolId();
+
+
+                if (values.licenseType == '') {
+                  values.licenseType = [];
+                } else if (values.licenseType == 'SINGLE') {
+                  values.licenseType = ['SINGLE'];
+                } else if (values.licenseType == 'VOLUME') {
+                  values.licenseType = ['VOLUME'];
+                } else if (values.licenseType == 'SCHOOL') {
+                  values.licenseType = ['SCHOOL'];
+                } else if (values.licenseType == 'WORKGROUP') {
+                  values.licenseType = ['WORKGROUP'];
+                }
+
+                this.exportToExcel(values);
+              }),
+          );
+
+          this.addChild(this._searchForm);
+          this.addChild(this._excelExportForm);
+          this.addChild(this._grid);
+        },
+
+        buildRendering: function() {
+          this.inherited(arguments);
+
+          // retrieve chunksize from UCR if present.
+          tools.ucr('bildungslogin/assignment/chunksize').
+              then(lang.hitch(this, function(data) {
+                this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
+              }));
+        },
       });
-
-      this.addChild(this._searchForm);
-      this.addChild(this._grid);
-
-      this.refreshGrid({});
-    },
-
-    buildRendering: function() {
-      this.inherited(arguments);
-
-      // retrieve chunksize from UCR if present.
-      tools.ucr('bildungslogin/assignment/chunksize').
-          then(lang.hitch(this, function(data) {
-            this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
-          }));
-
-    },
-  });
 });

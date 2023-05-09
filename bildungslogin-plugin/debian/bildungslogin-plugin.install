@@ -1,5 +1,6 @@
 bildungslogin_build_ucs_school_api_cache.py usr/sbin/
 bildungslogin_get_missing_metadata.py usr/sbin/
+bildungslogin_update_license_status.py usr/sbin/
 70bildungslogin-plugin.inst  usr/lib/univention-install/
 30bildungslogin-plugin.uinst usr/lib/univention-uninstall/
 bildungslogin_plugin var/lib/univention-appcenter/apps/ucsschool-apis/data/plugins/bildungslogin-plugin/

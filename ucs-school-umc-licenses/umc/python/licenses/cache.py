@@ -17,6 +17,8 @@ from univention.udm.exceptions import SearchLimitReached
 
 from .constants import JSON_PATH, JSON_DIR, CACHE_BUILD_SCRIPT
 
+today = date.today()
+
 
 class LdapUser:
     ucsschoolRole = None  # type: list
@@ -101,9 +103,15 @@ class LdapLicense:
         self.user_strings = user_strings
         self.medium = None
 
-        self.bildungsloginUsageStatus = bildungslogin_usage_status
-        self.bildungsloginExpiryDate = bildungslogin_expiry_date
-        self.bildungsloginValidityStatus = bildungslogin_validity_status
+        self.bildungsloginUsageStatus = bildungslogin_usage_status if bildungslogin_usage_status else '0'
+        self.bildungsloginValidityStatus = bildungslogin_validity_status if bildungslogin_validity_status else '1'
+
+        if bildungslogin_expiry_date is not None:
+            try:
+                self.bildungsloginExpiryDate = datetime.strptime(bildungslogin_expiry_date,
+                                                                 '%Y-%m-%d').date()
+            except ValueError:
+                self.bildungsloginExpiryDate = None
 
     def add_user_string(self, user_string):
         self.user_strings.append(user_string)
@@ -146,6 +154,10 @@ class LdapLicense:
 
     @property
     def is_available(self):
+        if self.bildungsloginValidityStatus == '0':
+            return False
+        if self.bildungsloginExpiryDate and self.bildungsloginExpiryDate < today:
+            return False
         if self.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]:
             return self.quantity_available > 0 and not self.is_expired
         elif self.bildungsloginLicenseType == LicenseType.WORKGROUP or self.bildungsloginLicenseType == LicenseType.SCHOOL:
@@ -342,7 +354,8 @@ class LdapRepository:
             if not deleted:
                 for assignment_update in assignment_updates:
                     if _assignment.entryUUID == assignment_update['entryUUID']:
-                        _assignment.bildungsloginAssignmentAssignee = assignment_update['bildungsloginAssignmentAssignee']
+                        _assignment.bildungsloginAssignmentAssignee = assignment_update[
+                            'bildungsloginAssignmentAssignee']
                         _assignment.bildungsloginAssignmentStatus = assignment_update['bildungsloginAssignmentStatus']
                         _assignment.bildungsloginAssignmentTimeOfAssignment = datetime.strptime(
                             assignment_update['bildungsloginAssignmentTimeOfAssignment'],
@@ -418,7 +431,10 @@ class LdapRepository:
                 quantity_assigned=entry['quantity_assigned'],
                 user_strings=entry['user_strings'],
                 groups=entry['groups'],
-                publisher=entry['bildungsloginLicenseProvider']))
+                publisher=entry['bildungsloginLicenseProvider'],
+                bildungslogin_validity_status=entry['bildungsloginValidityStatus'],
+                bildungslogin_usage_status=entry['bildungsloginUsageStatus'],
+                bildungslogin_expiry_date=entry['bildungsloginExpiryDate']))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
@@ -529,7 +545,12 @@ class LdapRepository:
                         pattern=None,
                         restrict_to_this_product_id=None,
                         sizelimit=None,
-                        school_class=None):
+                        school_class=None,
+                        valid_status=None,
+                        usage_status=None,
+                        expiry_date_from=None,
+                        expiry_date_to=None,
+                        ):
 
         licenses = self._licenses
         if restrict_to_this_product_id:
@@ -582,6 +603,22 @@ class LdapRepository:
         if school_class:
             licenses = filter(lambda _license: school_class in _license.groups, licenses)
 
+        if valid_status:
+            licenses = filter(lambda _license: _license.bildungsloginValidityStatus == valid_status, licenses)
+
+        if usage_status:
+            licenses = filter(lambda _license: _license.bildungsloginUsageStatus == usage_status, licenses)
+
+        if expiry_date_from:
+            licenses = filter(lambda
+                                  _license: _license.bildungsloginExpiryDate and _license.bildungsloginExpiryDate >= expiry_date_from,
+                              licenses)
+
+        if expiry_date_to:
+            licenses = filter(lambda
+                                  _license: _license.bildungsloginExpiryDate and _license.bildungsloginExpiryDate <= expiry_date_to,
+                              licenses)
+
         if sizelimit:
             if len(licenses) > sizelimit:
                 raise SearchLimitReached
@@ -629,7 +666,7 @@ class LdapRepository:
                 groups.append(group.cn.split('-')[1])
         return groups
 
-    def get_workgroups_by_dn(self, dn):
+    def get_workgroup_by_dn(self, dn):
         for group in self._workgroups:
             if group.entry_dn == dn:
                 return group

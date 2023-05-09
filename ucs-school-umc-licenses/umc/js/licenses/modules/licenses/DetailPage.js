@@ -154,32 +154,26 @@ define([
           function validityStatus(id) {
             let val = license[id];
 
-            if (val === null) {
-              val = '';
+            if (val === "1" || val === undefined) {
+              return _('valid');
+            } else {
+              return _('invalid');
             }
-            if (typeof val === 'string') {
-              val = val || _('invalid');
-            }
-
-            return val;
           }
 
           function usageStatus(id) {
             let val = license[id];
 
-            if (val === null) {
-              val = '';
+            if (val === "1") {
+              return _('activated');
+            } else {
+              return _('not activated');
             }
-            if (typeof val === 'string') {
-              val = val || _('not activated');
-            }
-
-            return val;
           }
 
           function expiryDate() {
             if (license['expiryDate']) {
-              return d(license['expiryDate']);
+              return d('expiryDate');
             }
 
             if (license['usageStatus']) {
@@ -315,7 +309,6 @@ define([
               lang.hitch(this, function(response) {
                 const license = response.result;
                 this.set('license', license);
-                this._headerButtons.save.set('disabled', true);
                 return license.licenseCode;
               }),
           ),
@@ -420,7 +413,7 @@ define([
           this._table,
           'ignoreCheckBoxClicked',
           lang.hitch(this, function() {
-            this._headerButtons.save.set(
+            this.getSaveButton().set(
                 'disabled',
                 !this._table.ignoreChanged(),
             );
@@ -466,7 +459,7 @@ define([
 
         {
           name: 'statusLabel',
-          label: _('Status'),
+          label: _('Assignment status'),
         },
         {
           name: 'dateOfAssignment',

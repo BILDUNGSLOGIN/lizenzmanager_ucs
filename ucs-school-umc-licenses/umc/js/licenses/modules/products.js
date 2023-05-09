@@ -16,12 +16,29 @@ define([
       this.updateState('product', [productId]);
       this.selectPage(2);
       this.currentPage().load(productId);
+      this._headerButtons.backToOverview.set('visible', true);
     },
 
     afterChooseSchool: function() {
       if (this.state.product && this.state.product[0] !== '') {
         this.openDetailPage(this.state.product[0]);
       }
+    },
+
+    backToOverview: function() {
+      this._headerButtons.backToOverview.set('visible', false);
+      this.selectPage(1);
+      this.deleteState('product');
+    },
+
+    postMixInProperties: function () {
+      this.inherited(arguments);
+      this.addHeaderButton({
+        name: 'backToOverview',
+        label: _('Back'),
+        callback: lang.hitch(this, 'backToOverview'),
+        visible: false,
+      });
     },
 
     buildRendering: function() {
