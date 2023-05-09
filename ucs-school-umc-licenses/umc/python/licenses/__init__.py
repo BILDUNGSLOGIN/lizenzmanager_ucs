@@ -883,7 +883,7 @@ class Instance(SchoolBaseModule):
                 )
 
         output = io.BytesIO()
-        workbook = xlsxwriter.Workbook(output)  # {"in_memory": True})
+        workbook = Workbook(output)  # {"in_memory": True})
         worksheet = workbook.add_worksheet()
 
         columns = [_('Medium ID'), _('Medium'), _('Publisher'), _('Cover'), _('Maximal number of users'), _('Assigned'),
