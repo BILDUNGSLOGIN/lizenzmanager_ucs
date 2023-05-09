@@ -34,7 +34,7 @@ import os
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 from subprocess import Popen
-import xlsxwriter
+from .xlsxwriter import Workbook
 import io
 import base64
 
@@ -300,7 +300,7 @@ class Instance(SchoolBaseModule):
             ])
 
         output = io.BytesIO()
-        workbook = xlsxwriter.Workbook(output)  # {"in_memory": True})
+        workbook = Workbook(output)  # {"in_memory": True})
         worksheet = workbook.add_worksheet()
 
         columns = ['License code', 'Medium ID', 'Medium', 'Publisher', 'License type', 'Special License type',
