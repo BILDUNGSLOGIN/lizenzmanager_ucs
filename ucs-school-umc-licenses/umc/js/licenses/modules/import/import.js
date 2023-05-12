@@ -144,7 +144,7 @@ define([
     getImport: function(pickUpNumber) {
       this.standbyDuring(
           tools.umcpCommand('licenses/import/get', {
-            school: this.schoolId,
+            school: this.getSchoolId(),
             pickUpNumber: pickUpNumber,
           }).then(
               lang.hitch(this, function(response) {

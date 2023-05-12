@@ -305,6 +305,8 @@ class LdapRepository:
         assignment_updates = []
         delete_licenses = []
         delete_assignments = []
+        license_object_to_deletes = []
+        assignment_object_to_deletes = []
 
         for filepath in filepaths:
             f = open(filepath, 'r')
@@ -325,8 +327,7 @@ class LdapRepository:
             deleted = False
             for delete_license in delete_licenses:
                 if _license.entryUUID == delete_license['entryUUID']:
-                    self._licenses.remove(_license)
-                    del _license
+                    license_object_to_deletes.append(_license)
                     deleted = True
                     break
 
@@ -338,7 +339,6 @@ class LdapRepository:
                         _license.quantity_assigned = license_update['quantity_assigned']
                         license_updates.remove(license_update)
                         break
-
         for _assignment in self._assignments:
             if len(assignment_updates) <= 0 and len(delete_assignments) <= 0:
                 break
@@ -346,8 +346,7 @@ class LdapRepository:
             deleted = False
             for delete_assignment in delete_assignments:
                 if _assignment.entryUUID == delete_assignment['entryUUID']:
-                    self._assignments.remove(_assignment)
-                    del _assignment
+                    assignment_object_to_deletes.append(_assignment)
                     deleted = True
                     break
 
@@ -362,6 +361,13 @@ class LdapRepository:
                             '%Y-%m-%d').date() if assignment_update['bildungsloginAssignmentTimeOfAssignment'] else None
                         assignment_updates.remove(assignment_update)
                         break
+
+        for license_object_to_delete in license_object_to_deletes:
+            self._licenses.remove(license_object_to_delete)
+
+        for assignment_object_to_delete in assignment_object_to_deletes:
+            self._assignments.remove(assignment_object_to_delete)
+
 
     def get_license_by_uuid(self, uuid):
         # type: (str) -> LdapLicense

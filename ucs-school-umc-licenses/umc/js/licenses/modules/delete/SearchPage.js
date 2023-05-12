@@ -167,11 +167,12 @@ define([
 
           tools.umcpCommand('licenses/delete',
               {school: this.getSchoolId(), licenseCodes: temp_codes}).
-              then(function(result) {
+              then(lang.hitch(this, function(result) {
                 this.current += temp_codes.length;
 
                 if (this.progressInfo) {
-                  this.progressInfo.update(this.current,
+                  this.progressInfo.update(
+                      Math.floor(100 * this.current / this.max),
                       _('Deleted %s from %s', this.current, this.max));
                 }
 
@@ -179,9 +180,16 @@ define([
                   this._delete(licenseCodes);
                 } else {
                   refreshGrid(this._searchForm.value);
+                  this.deferred.resolve({
+                    'error': null,
+                    'message': null,
+                    'reason': null,
+                    'result': null,
+                  });
+                  this.progressInfo.destroyRecursive();
                 }
 
-              }, function(result) {
+              }), function(result) {
                 this.deferred.resolve({
                   'error': null,
                   'message': null,
@@ -205,11 +213,7 @@ define([
           if (licenseCodes.length <= this.allocation_chunksize) {
             this._delete(licenseCodes);
           } else {
-            this.progressInfo = new ProgressInfo({
-              maximum: licenseCodes.length,
-            });
-
-            this.progressInfo._delete.set('maximum', licenseCodes.length);
+            this.progressInfo = new ProgressInfo();
 
             this._delete(licenseCodes);
 
@@ -406,7 +410,6 @@ define([
                 values.onlyAvailableLicenses = false;
                 values.school = this.getSchoolId();
 
-
                 if (values.licenseType == '') {
                   values.licenseType = [];
                 } else if (values.licenseType == 'SINGLE') {
@@ -431,7 +434,7 @@ define([
         buildRendering: function() {
           this.inherited(arguments);
 
-          // retrieve chunksize from UCR if present.
+          //retrieve chunksize from UCR if present.
           tools.ucr('bildungslogin/assignment/chunksize').
               then(lang.hitch(this, function(data) {
                 this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
