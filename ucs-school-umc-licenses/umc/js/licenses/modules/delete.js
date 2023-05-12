@@ -4,7 +4,7 @@ define([
   '../common/Module',
   './delete/SearchPage',
   './licenses/DetailPage',
-  'umc/i18n!umc/modules/licenses'
+  'umc/i18n!umc/modules/licenses',
 ], function(declare, lang, Module, SearchPage, DetailPage, _) {
   return declare('umc.modules.licenses.delete', [Module], {
 
@@ -44,6 +44,7 @@ define([
       const searchPage = new SearchPage({
         getSchoolId: lang.hitch(this, 'getSchoolId'),
         openDetailPage: lang.hitch(this, 'openDetailPage'),
+        standbyDuring: lang.hitch(this, 'standbyDuring'),
       });
 
       const detailsPage = new DetailPage({
