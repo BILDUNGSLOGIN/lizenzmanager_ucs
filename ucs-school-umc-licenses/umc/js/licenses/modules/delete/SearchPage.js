@@ -171,7 +171,8 @@ define([
                 this.current += temp_codes.length;
 
                 if (this.progressInfo) {
-                  this.progressInfo.update(Math.floor(100 * this.current / this.max),
+                  this.progressInfo.update(
+                      Math.floor(100 * this.current / this.max),
                       _('Deleted %s from %s', this.current, this.max));
                 }
 
@@ -433,13 +434,11 @@ define([
         buildRendering: function() {
           this.inherited(arguments);
 
-          // retrieve chunksize from UCR if present.
-          // tools.ucr('bildungslogin/assignment/chunksize').
-          //     then(lang.hitch(this, function(data) {
-          //       this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
-          //     }));
-
-          this.allocation_chunksize = 3;
+          //retrieve chunksize from UCR if present.
+          tools.ucr('bildungslogin/assignment/chunksize').
+              then(lang.hitch(this, function(data) {
+                this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
+              }));
         },
       });
 });
