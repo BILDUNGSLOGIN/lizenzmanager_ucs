@@ -1,3 +1,11 @@
+ucs-school-umc-licenses (2.3.2) stable; urgency=medium
+
+  * ET-166 Load the chosen school id correctly.
+  * ET-169 Fix the progress info widget.
+  * Apply license delete files correctly.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 12 May 2023 14:26:59 +0200
+
 ucs-school-umc-licenses (2.3.1) unstable; urgency=medium
 
   * Fix bugs from the javascript refactoring
