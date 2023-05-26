@@ -315,7 +315,7 @@ class Instance(SchoolBaseModule):
 
         header_format = workbook.add_format({'bold': True})
         result.insert(0, columns)
-        worksheet.set_column(0, len(columns), 25)
+        worksheet.set_column(0, len(columns) - 1, 25)
 
         for row_num, row in enumerate(result):
             for col_num, data in enumerate(row):
@@ -883,7 +883,7 @@ class Instance(SchoolBaseModule):
 
         header_format = workbook.add_format({'bold': True})
         result.insert(0, columns)
-        worksheet.set_column(0, len(columns), 25)
+        worksheet.set_column(0, len(columns) - 1, 25)
 
         for row_num, row in enumerate(result):
             for col_num, data in enumerate(row):
