@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-05-26 08:25+0000\n"
+"POT-Creation-Date: 2023-05-26 09:00+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -922,6 +922,9 @@ msgstr "gültig"
 
 #~ msgid "License Type"
 #~ msgstr "Lizenztyp"
+
+msgid "Licenses are being processed. Please have a little patience."
+msgstr "Lizenzen werden bearbeitet. Bitte haben Sie etwas Geduld."
 
 #~ msgid "Please select a license type"
 #~ msgstr "Bitte einen Lizenztypen auswählen"

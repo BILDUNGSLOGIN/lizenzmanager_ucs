@@ -186,7 +186,9 @@ define([
                     'reason': null,
                     'result': null,
                   });
-                  this.progressInfo.destroyRecursive();
+                  if (this.progressInfo) {
+                    this.progressInfo.destroyRecursive();
+                  }
                 }
 
               }), function(result) {
@@ -214,6 +216,10 @@ define([
             this._delete(licenseCodes);
           } else {
             this.progressInfo = new ProgressInfo();
+
+            this.progressInfo.update(
+                0,
+                _('Licenses are being processed. Please have a little patience.'));
 
             this._delete(licenseCodes);
 
