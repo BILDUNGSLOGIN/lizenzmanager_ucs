@@ -39,7 +39,7 @@
 
 .licensesTable__row {
   display: grid;
-  grid-template-columns: 150px 1fr;
+  grid-template-columns: 130px 1fr;
   height: min-content;
 }
 

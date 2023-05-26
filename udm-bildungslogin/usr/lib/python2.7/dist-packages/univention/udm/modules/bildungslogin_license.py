@@ -60,6 +60,14 @@ class ValidityStatusPropertyEncoder(DisabledPropertyEncoder):
         elif value == "0":
             return False
 
+    @staticmethod
+    def encode(value=None):
+        if value is None or value:
+            return '1'
+        else:
+            return '0'
+
+
 
 class BildungsloginLicenseObjectProperties(GenericObjectProperties):
     """bildungslogin/license UDM properties."""

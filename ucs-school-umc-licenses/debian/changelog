@@ -1,3 +1,17 @@
+ucs-school-umc-licenses (2.3.3) stable; urgency=medium
+
+  * ET-158 Make more space between the license details columns.
+  * ET-160 Change validity end to redemption period to avoid confusion.
+  * ET-172 Add descriptive text on initialize of the progress info.
+  * ET-170 Add individual icon for the delete module flavour.
+  * ET-168 Show correctly the group name in the assignment on the pop up.
+  * ET-167 Give the correct success message on license assignment.
+  * ET-164 Keep state of the search page after page change.
+  * ET-163 Reset search page after school change.
+  * ET-161 Try to avoid the table header to overlap with the license table in the product.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 26 May 2023 17:59:01 +0200
+
 ucs-school-umc-licenses (2.3.2) stable; urgency=medium
 
   * ET-166 Load the chosen school id correctly.

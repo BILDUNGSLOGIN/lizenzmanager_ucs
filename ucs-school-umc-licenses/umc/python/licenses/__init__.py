@@ -315,7 +315,7 @@ class Instance(SchoolBaseModule):
 
         header_format = workbook.add_format({'bold': True})
         result.insert(0, columns)
-        worksheet.set_column(0, len(columns), 25)
+        worksheet.set_column(0, len(columns) - 1, 25)
 
         for row_num, row in enumerate(result):
             for col_num, data in enumerate(row):
@@ -814,17 +814,6 @@ class Instance(SchoolBaseModule):
         school = request.options.get("school")
         pattern = request.options.get("pattern")
         license_types = request.options.get("licenseType", None)
-
-        user_count = None
-
-        if license_types is not None and "WORKGROUP" in license_types:
-            workgroup_name = request.options.get("groupName", None)
-
-            if workgroup_name is not None:
-                group = self.repository.get_workgroup_by_name(workgroup_name)
-
-                if group:
-                    user_count = len(group.memberUid)
         meta_data_objs = self.repository.filter_metadata(pattern)
 
         for meta_datum_obj in meta_data_objs:
@@ -877,8 +866,7 @@ class Instance(SchoolBaseModule):
                         number_of_licenses,
                         number_of_assigned_licenses,
                         number_of_expired_licenses,
-                        number_of_available_licenses,
-                        user_count
+                        number_of_available_licenses
                     ]
                 )
 
@@ -891,12 +879,11 @@ class Instance(SchoolBaseModule):
                    _('Available'),
                    _('Import date'), _('Number of Licenses'), _('Number of assigned licenses'),
                    _('Number of expired licenses'),
-                   _('Number of available licenses'),
-                   _('Number of Users')]
+                   _('Number of available licenses')]
 
         header_format = workbook.add_format({'bold': True})
         result.insert(0, columns)
-        worksheet.set_column(0, len(columns), 25)
+        worksheet.set_column(0, len(columns) - 1, 25)
 
         for row_num, row in enumerate(result):
             for col_num, data in enumerate(row):

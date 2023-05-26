@@ -186,6 +186,7 @@ define([
       this._table.set('product', product);
       this._grid.moduleStore.setData(product.licenses);
       this._grid.filter();
+      this._grid.resize();
       this._set('product', product);
     },
 
