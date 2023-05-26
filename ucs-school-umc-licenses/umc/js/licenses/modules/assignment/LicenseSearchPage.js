@@ -396,8 +396,7 @@ define([
             this._assignmentText.set('content', msg);
             const node = dom.byId(id);
             on(node, 'click', lang.hitch(this, function(evt) {
-              let label = `<div>${entities.encode(
-                  this.getSchoolId())}</div>`;
+              let label = `<div>${entities.encode(this.getSchoolId())}</div>`;
 
               Tooltip.show(label, node);
               evt.stopImmediatePropagation();
@@ -434,8 +433,7 @@ define([
             const node = dom.byId(id);
             on(node, 'click', lang.hitch(this, function(evt) {
               let label = '';
-              label = `<div>${entities.encode(
-                    this.getGroupName())}</div>`;
+              label = `<div>${entities.encode(this.getGroupName())}</div>`;
               Tooltip.show(label, node);
               evt.stopImmediatePropagation();
               on.once(window, 'click', lang.hitch(this, function(event) {
@@ -546,16 +544,15 @@ define([
             values.licenseType = ['WORKGROUP'];
           }
 
-          tools.umcpCommand('licenses/export_to_excel', values).then(
-              lang.hitch(this, function(response) {
+          tools.umcpCommand('licenses/export_to_excel', values).
+              then(lang.hitch(this, function(response) {
                 const res = response.result;
                 if (res.errorMessage) {
                   dialog.alert(result.errorMessage);
                 } else {
                   saveAs(b64toBlob(res.file), res.fileName);
                 }
-              }),
-          );
+              }));
         },
 
         buildRendering: function() {
@@ -719,8 +716,7 @@ define([
               if (this.getAssignmentType() === 'user') {
                 // Call a wrapper function, for chunked action and a progress bar.
                 this._wrap_assign('licenses/assign_to_users', {
-                  licenseCodes: licenses.map(
-                      (license) => license.licenseCode), // Use the already-reduced list of users who really need the license.
+                  licenseCodes: licenses.map((license) => license.licenseCode), // Use the already-reduced list of users who really need the license.
                   // ET-67: we cannot calculate this in advance; so take ALL selected users instead.
                   usernames: this.getUserIds(),
                 }, this.allocation_chunksize).
@@ -743,17 +739,15 @@ define([
                       }
                       if (result.countSuccessfulAssignments) {
                         if (result.countSuccessfulAssignments ===
-                            this.getAssignmentType() === 'user') {
+                            this.getUserIds().length) {
                           msg += '<p>' + entities.encode(
-                                  _('Licenses were successfully assigned to all %s selected users.',
-                                      result.countSuccessfulAssignments)) +
-                              '</p>';
+                              _('Licenses were successfully assigned to all %s selected users.',
+                                  result.countSuccessfulAssignments)) + '</p>';
                         } else {
                           msg += '<p>' + entities.encode(
-                                  _('Licenses were successfully assigned to %s of the %s selected users. The remaining users already had the license.',
-                                      result.countSuccessfulAssignments,
-                                      this.getUserIds().length)) +
-                              '</p>';
+                              _('Licenses were successfully assigned to %s of the %s selected users. The remaining users already had the license.',
+                                  result.countSuccessfulAssignments,
+                                  this.getUserIds().length)) + '</p>';
                         }
                       }
                       if (result.failedAssignments.length) {
@@ -796,8 +790,7 @@ define([
                 let school = this.getSchoolId();
 
                 tools.umcpCommand('licenses/assign_to_school', {
-                  licenseCodes: licenses.map(
-                      (license) => license.licenseCode),
+                  licenseCodes: licenses.map((license) => license.licenseCode),
                   school: school,
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
@@ -840,12 +833,9 @@ define([
                 }));
               } else if (this.getAssignmentType() === 'schoolClass') {
                 tools.umcpCommand('licenses/assign_to_class', {
-                  licenseCodes: licenses.map(
-                      (license) => license.licenseCode),
-                  schoolClass: this.getGroup().substr(
-                      3,
-                      this.getGroup().indexOf(',') - 3,
-                  ),
+                  licenseCodes: licenses.map((license) => license.licenseCode),
+                  schoolClass: this.getGroup().
+                      substr(3, this.getGroup().indexOf(',') - 3),
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
                   let msg = '';
@@ -887,12 +877,9 @@ define([
                 }));
               } else if (this.getAssignmentType() === 'workgroup') {
                 tools.umcpCommand('licenses/assign_to_workgroup', {
-                  licenseCodes: licenses.map(
-                      (license) => license.licenseCode),
-                  workgroup: this.getGroup().substr(
-                      3,
-                      this.getGroup().indexOf(',') - 3,
-                  ),
+                  licenseCodes: licenses.map((license) => license.licenseCode),
+                  workgroup: this.getGroup().
+                      substr(3, this.getGroup().indexOf(',') - 3),
                 }).then(lang.hitch(this, function(response) {
                   const result = response.result;
                   let msg = '';
@@ -1057,25 +1044,18 @@ define([
           });
 
           this._excelExportForm = new Form({
-            widgets: [],
-            buttons: [
+            widgets: [], buttons: [
               {
-                name: 'submit',
-                label: _('Export'),
-                style: 'margin-top:20px',
-              },
-            ],
+                name: 'submit', label: _('Export'), style: 'margin-top:20px',
+              }],
           });
 
-          this._excelExportForm.on(
-              'submit',
-              lang.hitch(this, function() {
-                values = this._searchForm.value;
-                values.school = this.getSchoolId();
-                values.pattern = this._searchForm.value.pattern;
-                this.exportToExcel(values);
-              }),
-          );
+          this._excelExportForm.on('submit', lang.hitch(this, function() {
+            values = this._searchForm.value;
+            values.school = this.getSchoolId();
+            values.pattern = this._searchForm.value.pattern;
+            this.exportToExcel(values);
+          }));
 
           this.addChild(this._assignmentText);
           this.addChild(this._searchForm);
