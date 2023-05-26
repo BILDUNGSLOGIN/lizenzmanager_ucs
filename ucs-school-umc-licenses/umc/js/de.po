@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-05-26 09:00+0000\n"
+"POT-Creation-Date: 2023-05-26 15:59+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -19,7 +19,7 @@ msgid "%d licenses selected"
 msgstr "%d Lizenzen ausgewählt"
 
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:465
-#: umc/js/licenses/modules/products/SearchPage.js:431
+#: umc/js/licenses/modules/products/SearchPage.js:437
 msgid "Acquired"
 msgstr "Erworben"
 
@@ -35,7 +35,7 @@ msgstr ""
 msgid "All classes"
 msgstr "Alle Klassen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:745
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:736
 msgid ""
 "All selected users already have the requested license. Therefore, nothing "
 "had to be done."
@@ -47,12 +47,12 @@ msgstr ""
 msgid "All workgroups"
 msgstr "Alle Lerngruppen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:718
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:710
 msgid "Assign licenses"
 msgstr "Lizenzen zuweisen"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:358
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:419
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:418
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:107
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:203
 #: umc/js/licenses/modules/products/SearchPage.js:113
@@ -61,7 +61,7 @@ msgid "Assign licenses to %s selected users."
 msgstr "Lizenzen %s ausgewählten Benutzern zuweisen."
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:357
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:418
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:417
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:106
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:202
 #: umc/js/licenses/modules/products/SearchPage.js:112
@@ -72,45 +72,45 @@ msgstr "Lizenzen 1 ausgewählten Benutzer zuweisen."
 msgid "Assign licenses to selected school."
 msgstr "Lizenzen ausgewählter Schule zuweisen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:415
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:414
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:145
 #: umc/js/licenses/modules/products/SearchPage.js:151
 msgid "Assign licenses to selected workgroup/class."
 msgstr "Lizenzen ausgewählter Lerngruppe/Klasse zuweisen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:966
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:948
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:415
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:470
 #: umc/js/licenses/modules/licenses/DetailPage.js:240
 #: umc/js/licenses/modules/licenses/SearchPage.js:246
-#: umc/js/licenses/modules/delete/SearchPage.js:345
-#: umc/js/licenses/modules/products/DetailPage.js:286
-#: umc/js/licenses/modules/products/SearchPage.js:381
-#: umc/js/licenses/modules/products/SearchPage.js:436
+#: umc/js/licenses/modules/delete/SearchPage.js:351
+#: umc/js/licenses/modules/products/DetailPage.js:287
+#: umc/js/licenses/modules/products/SearchPage.js:387
+#: umc/js/licenses/modules/products/SearchPage.js:442
 msgid "Assigned"
 msgstr "Zugewiesen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:669
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:661
 #: umc/js/licenses/common/LicenseSearchformMixin.js:198
 msgid "Assigned to Class"
 msgstr "Zu Klasse zugewiesen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:655
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:647
 #: umc/js/licenses/common/LicenseSearchformMixin.js:184
 msgid "Assigned to Workgroup"
 msgstr "Zu Lerngruppe zugewiesen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:790
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:843
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:890
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:937
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:779
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:831
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:875
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:919
 msgid "Assigning licenses"
 msgstr "Lizenzen zuweisen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:740
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:814
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:861
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:908
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:731
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:802
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:846
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:890
 msgid "Assigning licenses failed"
 msgstr "Lizenzen zuweisen fehlgeschlagen"
 
@@ -128,20 +128,20 @@ msgstr "Zuweisungsstatus"
 msgid "Author"
 msgstr "Autor"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:970
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:952
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:425
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:480
 #: umc/js/licenses/modules/licenses/DetailPage.js:238
 #: umc/js/licenses/modules/licenses/SearchPage.js:251
-#: umc/js/licenses/modules/delete/SearchPage.js:355
-#: umc/js/licenses/modules/products/DetailPage.js:296
-#: umc/js/licenses/modules/products/SearchPage.js:391
-#: umc/js/licenses/modules/products/SearchPage.js:446
+#: umc/js/licenses/modules/delete/SearchPage.js:361
+#: umc/js/licenses/modules/products/DetailPage.js:297
+#: umc/js/licenses/modules/products/SearchPage.js:397
+#: umc/js/licenses/modules/products/SearchPage.js:452
 msgid "Available"
 msgstr "Verfügbar"
 
-#: umc/js/licenses/modules/products.js:38 umc/js/licenses/modules/delete.js:29
-#: umc/js/licenses/modules/licenses.js:56
+#: umc/js/licenses/modules/products.js:39 umc/js/licenses/modules/delete.js:29
+#: umc/js/licenses/modules/licenses.js:57
 #: umc/js/licenses/modules/licenses/DetailPage.js:402
 msgid "Back"
 msgstr "Zurück"
@@ -161,7 +161,7 @@ msgstr "Cache-Aktualisierung läuft bereits."
 msgid "Cache update status:"
 msgstr "Cache-Aktualisierungsstatus:"
 
-#: umc/js/licenses/modules/delete/SearchPage.js:239
+#: umc/js/licenses/modules/delete/SearchPage.js:245
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -169,7 +169,7 @@ msgstr "Abbrechen"
 msgid "Change medium"
 msgstr "Medium ändern"
 
-#: umc/js/licenses/modules/products/DetailPage.js:217
+#: umc/js/licenses/modules/products/DetailPage.js:218
 msgid "Change product"
 msgstr "Produkt ändern"
 
@@ -184,7 +184,7 @@ msgstr "Nutzerauswahl ändern"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:364
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:393
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:430
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:429
 msgid "Choose the licenses you want to assign."
 msgstr "Wählen Sie die Lizenzen, die Sie zuweisen möchten."
 
@@ -209,8 +209,8 @@ msgstr "Weiter bearbeiten"
 
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:544
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:584
-#: umc/js/licenses/modules/products/SearchPage.js:511
-#: umc/js/licenses/modules/products/SearchPage.js:551
+#: umc/js/licenses/modules/products/SearchPage.js:517
+#: umc/js/licenses/modules/products/SearchPage.js:557
 msgid "Cover not found"
 msgstr "Buchdeckel nicht gefunden"
 
@@ -218,8 +218,8 @@ msgstr "Buchdeckel nicht gefunden"
 msgid "Date of assignment"
 msgstr "Zuweisungsdatum"
 
-#: umc/js/licenses/modules/delete/SearchPage.js:242
-#: umc/js/licenses/modules/delete/SearchPage.js:279
+#: umc/js/licenses/modules/delete/SearchPage.js:248
+#: umc/js/licenses/modules/delete/SearchPage.js:285
 msgid "Delete"
 msgstr "Löschen"
 
@@ -228,15 +228,15 @@ msgstr "Löschen"
 msgid "Deleted %s from %s"
 msgstr "%s von %s gelöscht"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:973
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1032
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:955
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1014
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:430
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:485
 #: umc/js/licenses/modules/licenses/DetailPage.js:223
 #: umc/js/licenses/modules/licenses/SearchPage.js:254
-#: umc/js/licenses/modules/products/DetailPage.js:301
-#: umc/js/licenses/modules/products/SearchPage.js:396
-#: umc/js/licenses/modules/products/SearchPage.js:451
+#: umc/js/licenses/modules/products/DetailPage.js:302
+#: umc/js/licenses/modules/products/SearchPage.js:402
+#: umc/js/licenses/modules/products/SearchPage.js:457
 msgid "Delivery"
 msgstr "Lieferung"
 
@@ -252,25 +252,25 @@ msgstr "Änderungen verwerfen"
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:589
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:581
 #: umc/js/licenses/common/LicenseSearchformMixin.js:118
 msgid "End import period"
 msgstr "Ende Zeitraum Import"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:968
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:950
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:420
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:475
 #: umc/js/licenses/modules/licenses/DetailPage.js:241
 #: umc/js/licenses/modules/licenses/SearchPage.js:249
-#: umc/js/licenses/modules/delete/SearchPage.js:350
-#: umc/js/licenses/modules/products/DetailPage.js:291
-#: umc/js/licenses/modules/products/SearchPage.js:386
-#: umc/js/licenses/modules/products/SearchPage.js:441
+#: umc/js/licenses/modules/delete/SearchPage.js:356
+#: umc/js/licenses/modules/products/DetailPage.js:292
+#: umc/js/licenses/modules/products/SearchPage.js:392
+#: umc/js/licenses/modules/products/SearchPage.js:447
 msgid "Expired"
 msgstr "Verfallen"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:246
-#: umc/js/licenses/modules/delete/SearchPage.js:360
+#: umc/js/licenses/modules/delete/SearchPage.js:366
 msgid "Expiry date"
 msgstr "Ablaufdatum"
 
@@ -282,31 +282,31 @@ msgstr "Ende Zeitraum Ablaufdatum"
 msgid "Expiry date start"
 msgstr "Beginn Zeitraum Ablaufdatum"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1069
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1049
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:603
 #: umc/js/licenses/modules/licenses/SearchPage.js:178
-#: umc/js/licenses/modules/delete/SearchPage.js:399
-#: umc/js/licenses/modules/products/SearchPage.js:307
+#: umc/js/licenses/modules/delete/SearchPage.js:405
+#: umc/js/licenses/modules/products/SearchPage.js:312
 msgid "Export"
 msgstr "Exportieren"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:872
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:857
 msgid "Failed to assign licenses to the selected class."
 msgstr "Der ausgewählten Klasse konnten keine Lizenzen zugewiesen werden."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:825
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:813
 msgid "Failed to assign licenses to the selected school."
 msgstr "Der ausgewählten Schule konnten keine Lizenzen zugewiesen werden."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:770
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:759
 msgid "Failed to assign licenses to the selected users:"
 msgstr "Den ausgewählten Benutzern konnten keine Lizenzen zugewiesen werden:"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:919
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:901
 msgid "Failed to assign licenses to the selected workgroup."
 msgstr "Der ausgewählten Lerngruppe konnten keine Lizenzen zugewiesen werden."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:695
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:687
 #: umc/js/licenses/common/LicenseSearchformMixin.js:272
 msgid "Filters"
 msgstr "Filter"
@@ -319,9 +319,9 @@ msgstr "Fertig"
 msgid "First name"
 msgstr "Vorname"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1003
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:985
 #: umc/js/licenses/modules/licenses/SearchPage.js:242
-#: umc/js/licenses/modules/delete/SearchPage.js:335
+#: umc/js/licenses/modules/delete/SearchPage.js:341
 msgid "For"
 msgstr "Für"
 
@@ -341,30 +341,34 @@ msgstr "Nachname"
 msgid "Learning Group Licences"
 msgstr "Lerngruppenlizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:610
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:946
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:986
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:602
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:928
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:968
 #: umc/js/licenses/modules/licenses/DetailPage.js:209
 #: umc/js/licenses/modules/licenses/SearchPage.js:223
-#: umc/js/licenses/modules/delete/SearchPage.js:304
-#: umc/js/licenses/modules/products/DetailPage.js:250
+#: umc/js/licenses/modules/delete/SearchPage.js:310
+#: umc/js/licenses/modules/products/DetailPage.js:251
 #: umc/js/licenses/common/LicenseSearchformMixin.js:139
 msgid "License code"
 msgstr "Lizenzcode"
 
 #: umc/js/licenses/modules/assignment/UserSelectionPage.js:293
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:595
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:962
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1001
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:587
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:944
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:983
 #: umc/js/licenses/modules/licenses/DetailPage.js:212
 #: umc/js/licenses/modules/licenses/SearchPage.js:240
-#: umc/js/licenses/modules/delete/SearchPage.js:330
-#: umc/js/licenses/modules/products/DetailPage.js:276
+#: umc/js/licenses/modules/delete/SearchPage.js:336
+#: umc/js/licenses/modules/products/DetailPage.js:277
 #: umc/js/licenses/common/LicenseSearchformMixin.js:124
 msgid "License type"
 msgstr "Lizenztyp"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:758
+#: umc/js/licenses/modules/delete/SearchPage.js:222
+msgid "Licenses are being processed. Please have a little patience."
+msgstr "Lizenzen werden bearbeitet. Bitte haben Sie etwas Geduld."
+
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:748
 #, javascript-format
 msgid ""
 "Licenses were successfully assigned to %s of the %s selected users. The "
@@ -373,21 +377,21 @@ msgstr ""
 "Die Lizenzen wurden erfolgreich an %s der %s ausgewählten Benutzer "
 "zugewiesen. Die übrigen Nutzer hatten die Lizenz bereits."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:753
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:744
 #, javascript-format
 msgid "Licenses were successfully assigned to all %s selected users."
 msgstr ""
 "Die Lizenzen wurden erfolgreich allen %s ausgewählten Benutzern zugewiesen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:866
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:851
 msgid "Licenses were successfully assigned to selected class."
 msgstr "Die Lizenzen wurden erfolgreich der ausgewählten Klasse zugewiesen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:819
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:807
 msgid "Licenses were successfully assigned to selected school."
 msgstr "Die Lizenzen wurden erfolgreich der ausgewählten Schule zugewiesen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:913
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:895
 msgid "Licenses were successfully assigned to selected workgroup."
 msgstr ""
 "Die Lizenzen wurden erfolgreich der ausgewählten Lerngruppe zugewiesen."
@@ -396,51 +400,51 @@ msgstr ""
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:570
 #: umc/js/licenses/modules/licenses/DetailPage.js:102
 #: umc/js/licenses/modules/products/DetailPage.js:101
-#: umc/js/licenses/modules/products/SearchPage.js:497
-#: umc/js/licenses/modules/products/SearchPage.js:537
+#: umc/js/licenses/modules/products/SearchPage.js:503
+#: umc/js/licenses/modules/products/SearchPage.js:543
 msgid "Loading cover..."
 msgstr "Lade Buchdeckel..."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:964
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1005
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:946
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:987
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:410
 #: umc/js/licenses/modules/licenses/DetailPage.js:235
 #: umc/js/licenses/modules/licenses/SearchPage.js:244
-#: umc/js/licenses/modules/delete/SearchPage.js:340
-#: umc/js/licenses/modules/products/DetailPage.js:281
-#: umc/js/licenses/modules/products/SearchPage.js:376
+#: umc/js/licenses/modules/delete/SearchPage.js:346
+#: umc/js/licenses/modules/products/DetailPage.js:282
+#: umc/js/licenses/modules/products/SearchPage.js:382
 msgid "Max. Users"
 msgstr "Max. Nutzer"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:622
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:614
 #: umc/js/licenses/common/LicenseSearchformMixin.js:151
 msgid "Media Title"
 msgstr "Medientitel"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:958
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:997
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:940
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:979
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:400
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:456
 #: umc/js/licenses/modules/licenses/SearchPage.js:236
-#: umc/js/licenses/modules/delete/SearchPage.js:320
-#: umc/js/licenses/modules/products/DetailPage.js:266
-#: umc/js/licenses/modules/products/SearchPage.js:366
-#: umc/js/licenses/modules/products/SearchPage.js:422
+#: umc/js/licenses/modules/delete/SearchPage.js:326
+#: umc/js/licenses/modules/products/DetailPage.js:267
+#: umc/js/licenses/modules/products/SearchPage.js:372
+#: umc/js/licenses/modules/products/SearchPage.js:428
 msgid "Medium"
 msgstr "Medium"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:628
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:949
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:989
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:620
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:931
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:971
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:389
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:446
 #: umc/js/licenses/modules/licenses/DetailPage.js:206
 #: umc/js/licenses/modules/licenses/SearchPage.js:227
-#: umc/js/licenses/modules/delete/SearchPage.js:309
+#: umc/js/licenses/modules/delete/SearchPage.js:315
 #: umc/js/licenses/modules/products/DetailPage.js:145
-#: umc/js/licenses/modules/products/DetailPage.js:255
-#: umc/js/licenses/modules/products/SearchPage.js:355
-#: umc/js/licenses/modules/products/SearchPage.js:412
+#: umc/js/licenses/modules/products/DetailPage.js:256
+#: umc/js/licenses/modules/products/SearchPage.js:361
+#: umc/js/licenses/modules/products/SearchPage.js:418
 #: umc/js/licenses/common/LicenseSearchformMixin.js:157
 msgid "Medium ID"
 msgstr "Medien ID"
@@ -450,7 +454,7 @@ msgstr "Medien ID"
 msgid "Next"
 msgstr "Weiter"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:746
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:737
 msgid "No assignment needed"
 msgstr "Keine Zuweisung nötig"
 
@@ -470,12 +474,12 @@ msgstr "Ok"
 msgid "One license selected"
 msgstr "Eine Lizenz ausgewählt"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:640
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:632
 #: umc/js/licenses/common/LicenseSearchformMixin.js:169
 msgid "Only assignable licenses"
 msgstr "Nur freie Lizenzen"
 
-#: umc/js/licenses/modules/products/DetailPage.js:231
+#: umc/js/licenses/modules/products/DetailPage.js:232
 msgid "Open license"
 msgstr "Lizenz öffnen"
 
@@ -497,18 +501,18 @@ msgstr ""
 msgid "Please select a school"
 msgstr "Bitte eine Schule auswählen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:647
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:960
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:999
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:639
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:942
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:981
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:405
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:461
 #: umc/js/licenses/modules/licenses/DetailPage.js:203
 #: umc/js/licenses/modules/licenses/SearchPage.js:238
-#: umc/js/licenses/modules/delete/SearchPage.js:325
+#: umc/js/licenses/modules/delete/SearchPage.js:331
 #: umc/js/licenses/modules/products/DetailPage.js:144
-#: umc/js/licenses/modules/products/DetailPage.js:271
-#: umc/js/licenses/modules/products/SearchPage.js:371
-#: umc/js/licenses/modules/products/SearchPage.js:427
+#: umc/js/licenses/modules/products/DetailPage.js:272
+#: umc/js/licenses/modules/products/SearchPage.js:377
+#: umc/js/licenses/modules/products/SearchPage.js:433
 #: umc/js/licenses/common/LicenseSearchformMixin.js:176
 msgid "Publisher"
 msgstr "Verlag"
@@ -533,7 +537,7 @@ msgstr "Rolle"
 msgid "Roles"
 msgstr "Rollen"
 
-#: umc/js/licenses/modules/licenses.js:47
+#: umc/js/licenses/modules/licenses.js:48
 #: umc/js/licenses/modules/licenses/DetailPage.js:397
 msgid "Save"
 msgstr "Speichern"
@@ -552,7 +556,7 @@ msgstr "Schullizenz"
 msgid "School license"
 msgstr "Schullizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:604
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:596
 #: umc/js/licenses/common/LicenseSearchformMixin.js:133
 msgid ""
 "Search for licenses that have this user assigned. (Searches for 'first "
@@ -562,11 +566,11 @@ msgstr ""
 "'Vorname', 'Nachname' und 'Benutzername')"
 
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:362
-#: umc/js/licenses/modules/products/SearchPage.js:328
+#: umc/js/licenses/modules/products/SearchPage.js:333
 msgid "Search licensed media"
 msgstr "Lizenzierte Medien durchsuchen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:617
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:609
 #: umc/js/licenses/common/LicenseSearchformMixin.js:146
 msgid "Search licenses"
 msgstr "Lizenzen suchen"
@@ -588,7 +592,7 @@ msgstr ""
 "Wählen Sie eine Lerngruppe oder geben Sie einen freien Text ein (z. B. einen "
 "Teil des Namens der Lerngruppen)"
 
-#: umc/js/licenses/modules/products/SearchPage.js:343
+#: umc/js/licenses/modules/products/SearchPage.js:349
 msgid "Show details"
 msgstr "Details anzeigen"
 
@@ -596,7 +600,7 @@ msgstr "Details anzeigen"
 msgid "Single and Volume Licences"
 msgstr "Einzel- und Volumenlizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:522
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:515
 #: umc/js/licenses/modules/delete/SearchPage.js:145
 #: umc/js/licenses/common/LicenseSearchformMixin.js:99
 msgid "Single license"
@@ -606,7 +610,7 @@ msgstr "Einzellizenz"
 msgid "Single- / Volumelicense"
 msgstr "Einzel- / Volumenlizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:768
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:757
 msgid "Some selected users could not be assigned licenses:"
 msgstr ""
 "Einigen ausgewählten Benutzern konnten keine Lizenzen zugewiesen werden:"
@@ -615,7 +619,7 @@ msgstr ""
 msgid "Special license"
 msgstr "Sonderlizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:584
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:576
 #: umc/js/licenses/common/LicenseSearchformMixin.js:113
 msgid "Start import period"
 msgstr "Beginn Zeitraum Import"
@@ -624,7 +628,7 @@ msgstr "Beginn Zeitraum Import"
 msgid "Started cache update."
 msgstr "Cache-Aktualisierung gestartet."
 
-#: umc/js/licenses/modules/products/DetailPage.js:318
+#: umc/js/licenses/modules/products/DetailPage.js:319
 msgid "Sum"
 msgstr "Summe"
 
@@ -632,8 +636,8 @@ msgstr "Summe"
 msgid "The license could not be removed from the following users:"
 msgstr "Die Lizenz konnte von den folgenden Benutzern nicht entfernt werden:"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:738
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:796
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:729
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:785
 msgid ""
 "The number of selected licenses is not sufficient to assign a license to all "
 "selected users. Therefore, no licenses have been assigned. Please reduce the "
@@ -644,7 +648,7 @@ msgstr ""
 "Bitte reduzieren Sie die Anzahl der ausgewählten Benutzer oder wählen Sie "
 "mehr Lizenzen aus und wiederholen Sie den Vorgang."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:859
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:844
 msgid ""
 "The number of selected licenses is not sufficient to assign a license to the "
 "selected class."
@@ -652,7 +656,7 @@ msgstr ""
 "Die Anzahl der ausgewählten Lizenzen reicht nicht aus, um der ausgewählten "
 "Klasse die Lizenzen zuzuweisen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:812
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:800
 msgid ""
 "The number of selected licenses is not sufficient to assign a license to the "
 "selected school."
@@ -660,7 +664,7 @@ msgstr ""
 "Die Anzahl der ausgewählten Lizenzen reicht nicht aus, um der ausgewählten "
 "Schule die Lizenzen zuzuweisen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:906
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:888
 msgid ""
 "The number of selected licenses is not sufficient to assign a license to the "
 "selected workgroup."
@@ -721,7 +725,7 @@ msgstr "Nutzungsstatus"
 msgid "User"
 msgstr "Nutzer"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:602
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:594
 #: umc/js/licenses/common/LicenseSearchformMixin.js:131
 msgid "User ID"
 msgstr "Nutzer ID"
@@ -730,7 +734,7 @@ msgstr "Nutzer ID"
 msgid "Username"
 msgstr "Benutzername"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1020
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1002
 msgid "Validity end"
 msgstr "Gültigkeitsende"
 
@@ -738,7 +742,7 @@ msgstr "Gültigkeitsende"
 msgid "Validity span"
 msgstr "Gültigkeitsdauer"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1008
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:990
 #: umc/js/licenses/modules/licenses/DetailPage.js:226
 msgid "Validity start"
 msgstr "Gültigkeitsbeginn"
@@ -748,20 +752,20 @@ msgstr "Gültigkeitsbeginn"
 msgid "Validity status"
 msgstr "Gültigkeitsstatus"
 
-#: umc/js/licenses/modules/delete/SearchPage.js:291
+#: umc/js/licenses/modules/delete/SearchPage.js:297
 msgid "View"
 msgstr "Anzeigen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:523
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:516
 #: umc/js/licenses/modules/delete/SearchPage.js:146
 #: umc/js/licenses/common/LicenseSearchformMixin.js:100
 msgid "Volume license"
 msgstr "Volumenlizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:781
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:834
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:881
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:928
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:770
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:822
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:866
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:910
 msgid ""
 "Warning: The validity for the following assigned licenses lies in the future:"
 msgstr ""
@@ -780,7 +784,7 @@ msgstr "Lerngruppe"
 msgid "Workgroup license"
 msgstr "Lerngruppenlizenz"
 
-#: umc/js/licenses/modules/delete/SearchPage.js:227
+#: umc/js/licenses/modules/delete/SearchPage.js:233
 #, javascript-format
 msgid ""
 "You have selected %s licenses. Do you really want to delete this? This "
@@ -822,7 +826,7 @@ msgstr "ausgewählte Schule anzeigen"
 msgid "show selected users"
 msgstr "ausgewählte Benutzer anzeigen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:426
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:425
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:147
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:206
 #: umc/js/licenses/modules/products/SearchPage.js:153
@@ -830,12 +834,12 @@ msgid "show selected workgroup/class"
 msgstr "ausgewählte Lerngruppe/Klasse anzeigen"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:182
-#: umc/js/licenses/modules/delete/SearchPage.js:373
+#: umc/js/licenses/modules/delete/SearchPage.js:379
 msgid "undefined"
 msgstr "unbestimmt"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:180
-#: umc/js/licenses/modules/delete/SearchPage.js:371
+#: umc/js/licenses/modules/delete/SearchPage.js:377
 msgid "unlimited"
 msgstr "unbefristet"
 
@@ -922,9 +926,6 @@ msgstr "gültig"
 
 #~ msgid "License Type"
 #~ msgstr "Lizenztyp"
-
-msgid "Licenses are being processed. Please have a little patience."
-msgstr "Lizenzen werden bearbeitet. Bitte haben Sie etwas Geduld."
 
 #~ msgid "Please select a license type"
 #~ msgstr "Bitte einen Lizenztypen auswählen"
