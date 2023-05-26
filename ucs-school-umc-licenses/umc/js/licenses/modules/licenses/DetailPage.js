@@ -226,7 +226,7 @@ define([
                 _('Validity start'),
                 d('validityStart')],
               [
-                _('Validity end'),
+                _('Redemption period'),
                 d('validityEnd')],
               [
                 _('Validity span'),

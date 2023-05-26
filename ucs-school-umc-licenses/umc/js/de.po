@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-05-12 12:24+0000\n"
+"POT-Creation-Date: 2023-05-26 08:25+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -83,7 +83,7 @@ msgstr "Lizenzen ausgewählter Lerngruppe/Klasse zuweisen."
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:470
 #: umc/js/licenses/modules/licenses/DetailPage.js:240
 #: umc/js/licenses/modules/licenses/SearchPage.js:246
-#: umc/js/licenses/modules/delete/SearchPage.js:344
+#: umc/js/licenses/modules/delete/SearchPage.js:345
 #: umc/js/licenses/modules/products/DetailPage.js:286
 #: umc/js/licenses/modules/products/SearchPage.js:381
 #: umc/js/licenses/modules/products/SearchPage.js:436
@@ -133,7 +133,7 @@ msgstr "Autor"
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:480
 #: umc/js/licenses/modules/licenses/DetailPage.js:238
 #: umc/js/licenses/modules/licenses/SearchPage.js:251
-#: umc/js/licenses/modules/delete/SearchPage.js:354
+#: umc/js/licenses/modules/delete/SearchPage.js:355
 #: umc/js/licenses/modules/products/DetailPage.js:296
 #: umc/js/licenses/modules/products/SearchPage.js:391
 #: umc/js/licenses/modules/products/SearchPage.js:446
@@ -161,7 +161,7 @@ msgstr "Cache-Aktualisierung läuft bereits."
 msgid "Cache update status:"
 msgstr "Cache-Aktualisierungsstatus:"
 
-#: umc/js/licenses/modules/delete/SearchPage.js:238
+#: umc/js/licenses/modules/delete/SearchPage.js:239
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -218,12 +218,12 @@ msgstr "Buchdeckel nicht gefunden"
 msgid "Date of assignment"
 msgstr "Zuweisungsdatum"
 
-#: umc/js/licenses/modules/delete/SearchPage.js:241
-#: umc/js/licenses/modules/delete/SearchPage.js:278
+#: umc/js/licenses/modules/delete/SearchPage.js:242
+#: umc/js/licenses/modules/delete/SearchPage.js:279
 msgid "Delete"
 msgstr "Löschen"
 
-#: umc/js/licenses/modules/delete/SearchPage.js:175
+#: umc/js/licenses/modules/delete/SearchPage.js:176
 #, javascript-format
 msgid "Deleted %s from %s"
 msgstr "%s von %s gelöscht"
@@ -262,7 +262,7 @@ msgstr "Ende Zeitraum Import"
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:475
 #: umc/js/licenses/modules/licenses/DetailPage.js:241
 #: umc/js/licenses/modules/licenses/SearchPage.js:249
-#: umc/js/licenses/modules/delete/SearchPage.js:349
+#: umc/js/licenses/modules/delete/SearchPage.js:350
 #: umc/js/licenses/modules/products/DetailPage.js:291
 #: umc/js/licenses/modules/products/SearchPage.js:386
 #: umc/js/licenses/modules/products/SearchPage.js:441
@@ -270,7 +270,7 @@ msgid "Expired"
 msgstr "Verfallen"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:246
-#: umc/js/licenses/modules/delete/SearchPage.js:359
+#: umc/js/licenses/modules/delete/SearchPage.js:360
 msgid "Expiry date"
 msgstr "Ablaufdatum"
 
@@ -285,7 +285,7 @@ msgstr "Beginn Zeitraum Ablaufdatum"
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1069
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:603
 #: umc/js/licenses/modules/licenses/SearchPage.js:178
-#: umc/js/licenses/modules/delete/SearchPage.js:398
+#: umc/js/licenses/modules/delete/SearchPage.js:399
 #: umc/js/licenses/modules/products/SearchPage.js:307
 msgid "Export"
 msgstr "Exportieren"
@@ -321,7 +321,7 @@ msgstr "Vorname"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1003
 #: umc/js/licenses/modules/licenses/SearchPage.js:242
-#: umc/js/licenses/modules/delete/SearchPage.js:334
+#: umc/js/licenses/modules/delete/SearchPage.js:335
 msgid "For"
 msgstr "Für"
 
@@ -346,7 +346,7 @@ msgstr "Lerngruppenlizenz"
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:986
 #: umc/js/licenses/modules/licenses/DetailPage.js:209
 #: umc/js/licenses/modules/licenses/SearchPage.js:223
-#: umc/js/licenses/modules/delete/SearchPage.js:303
+#: umc/js/licenses/modules/delete/SearchPage.js:304
 #: umc/js/licenses/modules/products/DetailPage.js:250
 #: umc/js/licenses/common/LicenseSearchformMixin.js:139
 msgid "License code"
@@ -358,7 +358,7 @@ msgstr "Lizenzcode"
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1001
 #: umc/js/licenses/modules/licenses/DetailPage.js:212
 #: umc/js/licenses/modules/licenses/SearchPage.js:240
-#: umc/js/licenses/modules/delete/SearchPage.js:329
+#: umc/js/licenses/modules/delete/SearchPage.js:330
 #: umc/js/licenses/modules/products/DetailPage.js:276
 #: umc/js/licenses/common/LicenseSearchformMixin.js:124
 msgid "License type"
@@ -406,7 +406,7 @@ msgstr "Lade Buchdeckel..."
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:410
 #: umc/js/licenses/modules/licenses/DetailPage.js:235
 #: umc/js/licenses/modules/licenses/SearchPage.js:244
-#: umc/js/licenses/modules/delete/SearchPage.js:339
+#: umc/js/licenses/modules/delete/SearchPage.js:340
 #: umc/js/licenses/modules/products/DetailPage.js:281
 #: umc/js/licenses/modules/products/SearchPage.js:376
 msgid "Max. Users"
@@ -422,7 +422,7 @@ msgstr "Medientitel"
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:400
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:456
 #: umc/js/licenses/modules/licenses/SearchPage.js:236
-#: umc/js/licenses/modules/delete/SearchPage.js:319
+#: umc/js/licenses/modules/delete/SearchPage.js:320
 #: umc/js/licenses/modules/products/DetailPage.js:266
 #: umc/js/licenses/modules/products/SearchPage.js:366
 #: umc/js/licenses/modules/products/SearchPage.js:422
@@ -436,7 +436,7 @@ msgstr "Medium"
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:446
 #: umc/js/licenses/modules/licenses/DetailPage.js:206
 #: umc/js/licenses/modules/licenses/SearchPage.js:227
-#: umc/js/licenses/modules/delete/SearchPage.js:308
+#: umc/js/licenses/modules/delete/SearchPage.js:309
 #: umc/js/licenses/modules/products/DetailPage.js:145
 #: umc/js/licenses/modules/products/DetailPage.js:255
 #: umc/js/licenses/modules/products/SearchPage.js:355
@@ -504,7 +504,7 @@ msgstr "Bitte eine Schule auswählen"
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:461
 #: umc/js/licenses/modules/licenses/DetailPage.js:203
 #: umc/js/licenses/modules/licenses/SearchPage.js:238
-#: umc/js/licenses/modules/delete/SearchPage.js:324
+#: umc/js/licenses/modules/delete/SearchPage.js:325
 #: umc/js/licenses/modules/products/DetailPage.js:144
 #: umc/js/licenses/modules/products/DetailPage.js:271
 #: umc/js/licenses/modules/products/SearchPage.js:371
@@ -512,6 +512,10 @@ msgstr "Bitte eine Schule auswählen"
 #: umc/js/licenses/common/LicenseSearchformMixin.js:176
 msgid "Publisher"
 msgstr "Verlag"
+
+#: umc/js/licenses/modules/licenses/DetailPage.js:229
+msgid "Redemption period"
+msgstr "Einlösefrist"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:217
 msgid "Reference"
@@ -727,7 +731,6 @@ msgid "Username"
 msgstr "Benutzername"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1020
-#: umc/js/licenses/modules/licenses/DetailPage.js:229
 msgid "Validity end"
 msgstr "Gültigkeitsende"
 
@@ -745,7 +748,7 @@ msgstr "Gültigkeitsbeginn"
 msgid "Validity status"
 msgstr "Gültigkeitsstatus"
 
-#: umc/js/licenses/modules/delete/SearchPage.js:290
+#: umc/js/licenses/modules/delete/SearchPage.js:291
 msgid "View"
 msgstr "Anzeigen"
 
@@ -777,7 +780,7 @@ msgstr "Lerngruppe"
 msgid "Workgroup license"
 msgstr "Lerngruppenlizenz"
 
-#: umc/js/licenses/modules/delete/SearchPage.js:226
+#: umc/js/licenses/modules/delete/SearchPage.js:227
 #, javascript-format
 msgid ""
 "You have selected %s licenses. Do you really want to delete this? This "
@@ -827,12 +830,12 @@ msgid "show selected workgroup/class"
 msgstr "ausgewählte Lerngruppe/Klasse anzeigen"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:182
-#: umc/js/licenses/modules/delete/SearchPage.js:372
+#: umc/js/licenses/modules/delete/SearchPage.js:373
 msgid "undefined"
 msgstr "unbestimmt"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:180
-#: umc/js/licenses/modules/delete/SearchPage.js:370
+#: umc/js/licenses/modules/delete/SearchPage.js:371
 msgid "unlimited"
 msgstr "unbefristet"
 
