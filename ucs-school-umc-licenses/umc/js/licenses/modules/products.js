@@ -20,6 +20,7 @@ define([
     },
 
     afterChooseSchool: function() {
+      this.searchPage.createAfterSchoolChoose();
       if (this.state.product && this.state.product[0] !== '') {
         this.openDetailPage(this.state.product[0]);
       }
@@ -44,11 +45,11 @@ define([
     buildRendering: function() {
       this.inherited(arguments);
 
-      const searchPage = new SearchPage({
+      this.searchPage = new SearchPage({
         getSchoolId: lang.hitch(this, 'getSchoolId'),
         openDetailPage: lang.hitch(this, 'openDetailPage'),
       });
-      this.addPage(searchPage);
+      this.addPage(this.searchPage);
 
       const detailPage = new DetailPage({
         getSchoolId: lang.hitch(this, 'getSchoolId'),

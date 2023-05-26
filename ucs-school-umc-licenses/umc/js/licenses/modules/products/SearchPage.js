@@ -289,15 +289,20 @@ define([
       );
     },
 
-    buildRendering: function() {
-      this.inherited(arguments);
-
+    createAfterSchoolChoose() {
       this.activeCover = [];
 
-      this._assignmentText = new Text({
-        region: 'nav',
-        class: 'dijitDisplayNone',
-      });
+      if (this._searchForm) {
+        this.removeChild(this._searchForm);
+      }
+
+      if (this._excelExportForm) {
+        this.removeChild(this._excelExportForm);
+      }
+
+      if (this._grid) {
+        this.removeChild(this._grid);
+      }
 
       this._excelExportForm = new Form({
         widgets: [],
@@ -338,16 +343,17 @@ define([
         }),
       });
 
-      const actions = [{
-        name: 'edit',
-        label: _('Show details'),
-        isStandardAction: true,
-        isContextAction: true,
-        isMultiAction: false,
-        callback: lang.hitch(this, function(_idxs, products) {
-          this.openDetailPage(products[0].productId);
-        }),
-      }];
+      const actions = [
+        {
+          name: 'edit',
+          label: _('Show details'),
+          isStandardAction: true,
+          isContextAction: true,
+          isMultiAction: false,
+          callback: lang.hitch(this, function(_idxs, products) {
+            this.openDetailPage(products[0].productId);
+          }),
+        }];
 
       const columns = [
         {
@@ -562,10 +568,13 @@ define([
           }),
       );
 
-      this.addChild(this._assignmentText);
       this.addChild(this._searchForm);
       this.addChild(this._excelExportForm);
       this.addChild(this._grid);
+    },
+
+    buildRendering: function() {
+      this.inherited(arguments);
     },
   });
 });
