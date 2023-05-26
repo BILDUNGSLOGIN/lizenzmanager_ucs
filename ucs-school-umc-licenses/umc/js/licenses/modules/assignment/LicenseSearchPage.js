@@ -434,13 +434,8 @@ define([
             const node = dom.byId(id);
             on(node, 'click', lang.hitch(this, function(evt) {
               let label = '';
-              if (allocation.workgroup && allocation.workgroup !== '') {
-                label = `<div>${entities.encode(
-                    this.getGroup())}</div>`;
-              } else {
-                label = `<div>${entities.encode(
-                    this.getGroup())}</div>`;
-              }
+              label = `<div>${entities.encode(
+                    this.getGroupName())}</div>`;
               Tooltip.show(label, node);
               evt.stopImmediatePropagation();
               on.once(window, 'click', lang.hitch(this, function(event) {
