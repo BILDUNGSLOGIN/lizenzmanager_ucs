@@ -20,7 +20,7 @@
 			<name>Import media licenses / Update cache</name>
 			<description>Importing media licences into the BILDUNGSLOGIN licence manager</description>
 		</flavor>
-		<flavor id="licenses/delete" icon="media-license-overview" priority="51">
+		<flavor id="licenses/delete" icon="delete-licenses" priority="51">
 			<name>Delete licenses</name>
 			<description>Delete media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
