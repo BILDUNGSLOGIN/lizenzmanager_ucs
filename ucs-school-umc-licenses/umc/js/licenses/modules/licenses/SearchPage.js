@@ -156,7 +156,7 @@ define([
           this.inherited(arguments);
         },
 
-        afterPageChange: function() {
+        createAfterSchoolChoose: function() {
 
           if (this._searchForm) {
             this.removeChild(this._searchForm);
