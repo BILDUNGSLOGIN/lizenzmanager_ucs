@@ -49,7 +49,7 @@ define([
   '../../common/LicenseSearchformMixin',
   '../../common/FormatterMixin',
   'umc/i18n!umc/modules/licenses',
-  '../../../libraries/FileSaver',
+  '../../../libraries/FileHelper',
   '../../../libraries/base64',
 ], function(
     declare,
@@ -260,7 +260,7 @@ define([
                 if (res.errorMessage) {
                   dialog.alert(result.errorMessage);
                 } else {
-                  saveAs(b64toBlob(res.file), res.fileName);
+                  downloadBlob(b64toBlob(res.file), res.fileName);
                 }
               }),
           );

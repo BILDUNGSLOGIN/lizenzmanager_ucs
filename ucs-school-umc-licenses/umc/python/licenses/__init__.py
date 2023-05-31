@@ -346,7 +346,7 @@ class Instance(SchoolBaseModule):
         self.finished(request.id,
                       {
                           "file": base64.encodestring(xlsx_data),
-                          "fileName": "licenses.xls"
+                          "fileName": "licenses.xlsx"
                       }
                       )
 
@@ -913,7 +913,7 @@ class Instance(SchoolBaseModule):
         self.finished(request.id,
                       {
                           "file": base64.encodestring(xlsx_data),
-                          "fileName": "products.xls"
+                          "fileName": "products.xlsx"
                       }
                       )
 
