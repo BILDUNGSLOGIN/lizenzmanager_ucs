@@ -59,7 +59,7 @@ msgstr "Lizenzcode"
 
 #: umc/python/licenses/__init__.py:309
 msgid "License type"
-msgstr "Sonderlizenz"
+msgstr "Lizenztyp"
 
 #: umc/python/licenses/__init__.py:877
 msgid "Maximal number of users"
