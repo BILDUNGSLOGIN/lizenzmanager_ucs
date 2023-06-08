@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-06-08 12:18+0000\n"
+"POT-Creation-Date: 2023-06-08 14:09+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -23,7 +23,7 @@ msgstr "%d Lizenzen ausgewählt"
 msgid "Acquired"
 msgstr "Erworben"
 
-#: umc/js/licenses/modules/import/import.js:291
+#: umc/js/licenses/modules/import/import.js:295
 msgid ""
 "After importing new licenses, an update via the \"Update cache\" button is "
 "also required."
@@ -145,18 +145,18 @@ msgstr "Verfügbar"
 msgid "Back"
 msgstr "Zurück"
 
-#: umc/js/licenses/modules/import/import.js:188
-#: umc/js/licenses/modules/import/import.js:262
+#: umc/js/licenses/modules/import/import.js:191
+#: umc/js/licenses/modules/import/import.js:266
 msgid "Cache last updated:"
 msgstr "Cache zuletzt aktualisiert:"
 
-#: umc/js/licenses/modules/import/import.js:172
+#: umc/js/licenses/modules/import/import.js:174
 msgid "Cache update already running."
 msgstr "Cache-Aktualisierung läuft bereits."
 
-#: umc/js/licenses/modules/import/import.js:192
-#: umc/js/licenses/modules/import/import.js:197
-#: umc/js/licenses/modules/import/import.js:267
+#: umc/js/licenses/modules/import/import.js:195
+#: umc/js/licenses/modules/import/import.js:200
+#: umc/js/licenses/modules/import/import.js:271
 msgid "Cache update status:"
 msgstr "Cache-Aktualisierungsstatus:"
 
@@ -172,7 +172,7 @@ msgstr "Medium ändern"
 msgid "Change product"
 msgstr "Produkt ändern"
 
-#: umc/js/licenses/modules/import/import.js:218
+#: umc/js/licenses/modules/import/import.js:221
 #: umc/js/licenses/common/Module.js:134
 msgid "Change school"
 msgstr "Schule wechseln"
@@ -310,7 +310,7 @@ msgstr "Der ausgewählten Lerngruppe konnten keine Lizenzen zugewiesen werden."
 msgid "Filters"
 msgstr "Filter"
 
-#: umc/js/licenses/modules/import/import.js:197
+#: umc/js/licenses/modules/import/import.js:200
 msgid "Finished"
 msgstr "Fertig"
 
@@ -328,7 +328,7 @@ msgstr "Für"
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: umc/js/licenses/modules/import/import.js:244
+#: umc/js/licenses/modules/import/import.js:247
 msgid "Import licences"
 msgstr "Lizenzen importieren"
 
@@ -482,11 +482,11 @@ msgstr "Nur freie Lizenzen"
 msgid "Open license"
 msgstr "Lizenz öffnen"
 
-#: umc/js/licenses/modules/import/import.js:234
+#: umc/js/licenses/modules/import/import.js:237
 msgid "Pick-up number for licence data package"
 msgstr "Abholnummer für Lizenzdatenpaket"
 
-#: umc/js/licenses/modules/import/import.js:237
+#: umc/js/licenses/modules/import/import.js:240
 msgid ""
 "Please enter the collection number for the licence data package you wish to "
 "import. You received the collection number at the end of the purchase "
@@ -623,7 +623,7 @@ msgstr "Sonderlizenz"
 msgid "Start import period"
 msgstr "Beginn Zeitraum Import"
 
-#: umc/js/licenses/modules/import/import.js:170
+#: umc/js/licenses/modules/import/import.js:172
 msgid "Started cache update."
 msgstr "Cache-Aktualisierung gestartet."
 
@@ -675,7 +675,7 @@ msgstr ""
 msgid "There are unsaved changes. Are you sure to cancel?"
 msgstr "Einige Änderungen sind noch nicht gespeichert. Möchten Sie abbrechen?"
 
-#: umc/js/licenses/modules/import/import.js:300
+#: umc/js/licenses/modules/import/import.js:304
 msgid ""
 "This button is also used to update the cache after creating/deleting users "
 "or study groups."
@@ -683,7 +683,7 @@ msgstr ""
 "Dieser Button dient auch zur Aktualisierung des Cache nach dem Anlegen/"
 "Löschen von Benutzern oder Lerngruppen."
 
-#: umc/js/licenses/modules/import/import.js:295
+#: umc/js/licenses/modules/import/import.js:299
 msgid ""
 "This process can take a long time if you have a large number of licenses."
 msgstr ""
@@ -706,11 +706,11 @@ msgstr "Zur Lizenzauswahl"
 msgid "To media selection"
 msgstr "Zur Medienauswahl"
 
-#: umc/js/licenses/modules/import/import.js:273
+#: umc/js/licenses/modules/import/import.js:277
 msgid "Update cache"
 msgstr "Cache aktualisieren"
 
-#: umc/js/licenses/modules/import/import.js:192
+#: umc/js/licenses/modules/import/import.js:195
 msgid "Updating"
 msgstr "Aktualisierung läuft"
 
