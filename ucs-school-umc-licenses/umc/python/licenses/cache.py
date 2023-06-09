@@ -103,8 +103,8 @@ class LdapLicense:
         self.user_strings = user_strings
         self.medium = None
 
-        self.bildungsloginUsageStatus = bildungslogin_usage_status if bildungslogin_usage_status else '0'
-        self.bildungsloginValidityStatus = bildungslogin_validity_status if bildungslogin_validity_status else '1'
+        self.bildungsloginUsageStatus = bildungslogin_usage_status
+        self.bildungsloginValidityStatus = bildungslogin_validity_status
 
         if bildungslogin_expiry_date is not None:
             try:

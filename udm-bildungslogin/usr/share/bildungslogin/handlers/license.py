@@ -221,7 +221,6 @@ property_descriptions = {
         long_description=_("The validity of the license, dictated by the bildungslogin api"),
         syntax=univention.admin.syntax.boolean,
         may_change=True,
-        default="1",
     ),
     "registered": univention.admin.property(
         short_description=_("Registered"),

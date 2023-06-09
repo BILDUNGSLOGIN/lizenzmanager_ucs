@@ -281,6 +281,21 @@ class Instance(SchoolBaseModule):
         result = []
         for _license in licenses:
             metadata = _license.medium
+
+            if _license.bildungsloginValidityStatus == '1':
+                validity_status = _('valid')
+            elif _license.bildungsloginValidityStatus == '0':
+                validity_status = _('invalid')
+            else:
+                validity_status = _('unknown')
+
+            if _license.bildungsloginUsageStatus == '1':
+                usage_status = _('activated')
+            elif _license.bildungsloginUsageStatus == '0':
+                usage_status = _('not activated')
+            else:
+                usage_status = _('unknown')
+
             result.append([
                 _license.bildungsloginLicenseCode,
                 _license.bildungsloginProductId,
@@ -297,8 +312,8 @@ class Instance(SchoolBaseModule):
                 undefined_if_none(_license.quantity_assigned),
                 undefined_if_none(_license.quantity_available),
                 undefined_if_none(_license.quantity_expired),
-                _('valid') if _license.bildungsloginValidityStatus == '1' else _('invalid'),
-                _('activated') if _license.bildungsloginUsageStatus == '1' else _('not activated'),
+                validity_status,
+                usage_status,
                 optional_date2str(_license.bildungsloginExpiryDate)
             ])
 
