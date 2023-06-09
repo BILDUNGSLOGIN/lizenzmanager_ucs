@@ -284,8 +284,9 @@ define([
             if (res.errorMessage) {
               dialog.alert(result.errorMessage);
             } else {
-              saveAs(b64toBlob(res.file), res.fileName);
+              downloadFile(res.URL, 'products.xlsx');
             }
+            this._excelExportForm._buttons.submit.set('disabled', false);
           }),
       );
     },
@@ -609,6 +610,7 @@ define([
       this._excelExportForm.on(
           'submit',
           lang.hitch(this, function() {
+            this._excelExportForm._buttons.submit.set('disabled', true);
             values = this._searchForm.value;
             values.school = this.getSchoolId();
             values.pattern = this._searchForm.value.pattern;

@@ -1,9 +1,7 @@
-function downloadBlob(blob, name) {
-    const blobUrl = URL.createObjectURL(blob);
-  
+function downloadFile(url, name) {
     const link = document.createElement("a");
   
-    link.href = blobUrl;
+    link.href = url;
     link.download = name;
   
     document.body.appendChild(link);

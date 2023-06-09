@@ -43,6 +43,7 @@
 		<command name="licenses/products/query" function="products_query"></command>
 		<command name="licenses/products/get" function="products_get"></command>
 		<command name="licenses/products/export_to_excel" function="products_to_excel"></command>
+		<command name="licenses/download_export" function="download_export"></command>
 		<command name="licenses/import/get" function="get_license"></command>
 		<command name="licenses/not_assigned_users" function="not_assigned_users"></command>
 		<command name="licenses/cache/rebuild" function="cache_rebuild"></command>

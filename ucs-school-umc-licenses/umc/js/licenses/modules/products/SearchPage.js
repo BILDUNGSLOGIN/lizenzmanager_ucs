@@ -283,8 +283,9 @@ define([
             if (res.errorMessage) {
               dialog.alert(result.errorMessage);
             } else {
-              downloadBlob(b64toBlob(res.file), res.fileName);
+              downloadFile(res.URL, 'license.xlsx');
             }
+            this._excelExportForm._buttons.submit.set('disabled', false);
           }),
       );
     },
