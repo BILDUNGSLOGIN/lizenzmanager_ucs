@@ -54,7 +54,7 @@ define([
       });
       this.addHeaderButton({
         name: 'backToOverview',
-        label: _('Back'),
+        label: _('To license overview'),
         callback: lang.hitch(this, 'backToOverview'),
         visible: false,
       });

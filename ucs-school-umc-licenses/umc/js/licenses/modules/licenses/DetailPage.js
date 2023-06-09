@@ -154,10 +154,12 @@ define([
           function validityStatus(id) {
             let val = license[id];
 
-            if (val === "1" || val === undefined) {
+            if (val === "1") {
               return _('valid');
-            } else {
+            } else if (val === "0") {
               return _('invalid');
+            } else {
+              return _('unknown');
             }
           }
 
@@ -166,8 +168,10 @@ define([
 
             if (val === "1") {
               return _('activated');
-            } else {
+            }  else if (val === "0") {
               return _('not activated');
+            } else {
+              return _('unknown');
             }
           }
 
@@ -309,6 +313,7 @@ define([
               lang.hitch(this, function(response) {
                 const license = response.result;
                 this.set('license', license);
+                console.log(license);
                 return license.licenseCode;
               }),
           ),

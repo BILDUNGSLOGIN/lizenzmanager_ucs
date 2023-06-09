@@ -155,7 +155,9 @@ define([
                   this.importSuccessful(res);
                 }
               }),
-          ),
+          ).finally(lang.hitch(this, function() {
+            this._form._buttons.submit.set('disabled', false);
+          })),
       );
     },
 
@@ -185,7 +187,8 @@ define([
                 dialog.alert(result.errorMessage);
               } else {
                 this._cache_form.getWidget('last_cache_build').
-                    set('content', _('Cache last updated:') + ' ' + result.time);
+                    set('content',
+                        _('Cache last updated:') + ' ' + result.time);
                 if (result.status == true) {
                   this._cache_form.getWidget('cache_build_status').
                       set('content',
@@ -250,6 +253,7 @@ define([
           lang.hitch(this, function() {
             const values = this._form.getValues();
             const pickUpNumber = values.pickUpNumber;
+            this._form._buttons.submit.set('disabled', true);
             this.getImport(pickUpNumber);
           }),
       );

@@ -9,7 +9,8 @@ define([
     buildRendering: function() {
       this.inherited(arguments);
       this.importPage = new ImportPage({
-        'getSchoolId': lang.hitch(this, 'getSchoolId')
+        'getSchoolId': lang.hitch(this, 'getSchoolId'),
+        'standbyDuring': lang.hitch(this, 'standbyDuring')
       });
 
       this.addPage(this.importPage);

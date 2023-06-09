@@ -1,3 +1,14 @@
+ucs-school-umc-licenses (2.3.4) unstable; urgency=medium
+
+  * ET-162 Relabel button to avoid confusion.
+  * ET-173 Correctly translate license type to german.
+  * ET-166 Correctly use the standby state by license import.
+  * ET-159 Use max width to force license title to a linebreak.
+  * ET-170 Change the icons from white to black.
+  * ET-171 Add new states unknown to usage status and validity status.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 09 Jun 2023 17:30:50 +0200
+
 ucs-school-umc-licenses (2.3.3) stable; urgency=medium
 
   * ET-158 Make more space between the license details columns.

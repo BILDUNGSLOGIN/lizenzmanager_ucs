@@ -55,18 +55,20 @@ class ValidityStatusPropertyEncoder(DisabledPropertyEncoder):
 
     @staticmethod
     def decode(value=None):
-        if value is None or value == "1":
+        if value == "1":
             return True
         elif value == "0":
             return False
+        return None
 
     @staticmethod
     def encode(value=None):
-        if value is None or value:
+        if value is None:
+            return None
+        if value:
             return '1'
         else:
             return '0'
-
 
 
 class BildungsloginLicenseObjectProperties(GenericObjectProperties):
@@ -82,7 +84,7 @@ class BildungsloginLicenseObjectProperties(GenericObjectProperties):
         "num_expired": StringIntPropertyEncoder,
         "num_available": StringIntPropertyEncoder,
         "assignments": dn_list_property_encoder_for("bildungslogin/assignment"),
-        "usage_status": DisabledPropertyEncoder,
+        "usage_status": ValidityStatusPropertyEncoder,
         "expired": ExpiredPropertyEncoder,
         "expiry_date": DatePropertyEncoder,
         "validity_status": ValidityStatusPropertyEncoder,

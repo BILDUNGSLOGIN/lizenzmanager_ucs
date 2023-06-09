@@ -31,6 +31,8 @@
 # /usr/share/common-licenses/AGPL-3; if not, see
 # <http://www.gnu.org/licenses/>.
 import os
+import random
+import string
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 from subprocess import Popen
@@ -54,7 +56,7 @@ from univention.lib.i18n import Translation
 from univention.management.console.config import ucr
 from univention.management.console.error import UMC_Error
 from univention.management.console.log import MODULE
-from univention.management.console.modules.decorators import sanitize
+from univention.management.console.modules.decorators import sanitize, allow_get_request
 from univention.management.console.modules.sanitizers import (
     BooleanSanitizer,
     LDAPSearchSanitizer,
@@ -64,6 +66,7 @@ from univention.management.console.modules.sanitizers import (
 from univention.udm.exceptions import SearchLimitReached
 from .cache import LdapRepository
 from .constants import JSON_PATH, JSON_DIR, CACHE_BUILD_SCRIPT
+from six.moves.urllib_parse import quote
 
 _ = Translation("ucs-school-umc-licenses").translate
 
@@ -281,6 +284,21 @@ class Instance(SchoolBaseModule):
         result = []
         for _license in licenses:
             metadata = _license.medium
+
+            if _license.bildungsloginValidityStatus == '1':
+                validity_status = _('valid')
+            elif _license.bildungsloginValidityStatus == '0':
+                validity_status = _('invalid')
+            else:
+                validity_status = _('unknown')
+
+            if _license.bildungsloginUsageStatus == '1':
+                usage_status = _('activated')
+            elif _license.bildungsloginUsageStatus == '0':
+                usage_status = _('not activated')
+            else:
+                usage_status = _('unknown')
+
             result.append([
                 _license.bildungsloginLicenseCode,
                 _license.bildungsloginProductId,
@@ -297,13 +315,14 @@ class Instance(SchoolBaseModule):
                 undefined_if_none(_license.quantity_assigned),
                 undefined_if_none(_license.quantity_available),
                 undefined_if_none(_license.quantity_expired),
-                _('valid') if _license.bildungsloginValidityStatus == '1' else _('invalid'),
-                _('activated') if _license.bildungsloginUsageStatus == '1' else _('not activated'),
+                validity_status,
+                usage_status,
                 optional_date2str(_license.bildungsloginExpiryDate)
             ])
 
-        output = io.BytesIO()
-        workbook = Workbook(output)  # {"in_memory": True})
+        filename = 'bildungsloginLicense_' + ''.join(
+            random.choice(string.ascii_letters) for _ in range(0, 20)) + '.xlsx'
+        workbook = Workbook('/tmp/' + filename)
         worksheet = workbook.add_worksheet()
 
         columns = [_('License code'), _('Medium ID'), _('Medium'), _('Publisher'), _('License type'),
@@ -325,15 +344,15 @@ class Instance(SchoolBaseModule):
                     worksheet.write(row_num, col_num, data)
         workbook.close()
 
-        xlsx_data = output.getvalue()
+        self.finished(request.id, {'URL': '/univention/command/licenses/download_export?export=%s' % (
+            quote(filename),)})
 
-        MODULE.info("licenses.products.export_to_excel: result: %s" % str(xlsx_data))
-        self.finished(request.id,
-                      {
-                          "file": base64.encodestring(xlsx_data),
-                          "fileName": "licenses.xls"
-                      }
-                      )
+    @allow_get_request
+    @sanitize(export=StringSanitizer(required=True))
+    def download_export(self, request):
+        with open('/tmp/' + request.options.get("export"), 'rb') as fd:
+            self.finished(request.id, fd.read(), mimetype="application/excel")
+        os.remove('/tmp/' + request.options.get("export"))
 
     @sanitize(
         #  school=StringSanitizer(required=True),
@@ -870,8 +889,9 @@ class Instance(SchoolBaseModule):
                     ]
                 )
 
-        output = io.BytesIO()
-        workbook = Workbook(output)  # {"in_memory": True})
+        filename = 'bildungsloginProducts_' + ''.join(
+            random.choice(string.ascii_letters) for _ in range(0, 20)) + '.xlsx'
+        workbook = Workbook('/tmp/' + filename)
         worksheet = workbook.add_worksheet()
 
         columns = [_('Medium ID'), _('Medium'), _('Publisher'), _('Cover'), _('Maximal number of users'), _('Assigned'),
@@ -893,14 +913,8 @@ class Instance(SchoolBaseModule):
                     worksheet.write(row_num, col_num, data)
         workbook.close()
 
-        xlsx_data = output.getvalue()
-
-        self.finished(request.id,
-                      {
-                          "file": base64.encodestring(xlsx_data),
-                          "fileName": "products.xls"
-                      }
-                      )
+        self.finished(request.id, {'URL': '/univention/command/licenses/download_export?export=%s' % (
+            quote(filename),)})
 
     @sanitize(
         school=SchoolSanitizer(required=True),

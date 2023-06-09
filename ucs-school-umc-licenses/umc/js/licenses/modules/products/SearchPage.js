@@ -50,7 +50,7 @@ define([
   'umc/widgets/TextBox',
   'put-selector/put',
   'umc/i18n!umc/modules/licenses',
-  '../../../libraries/FileSaver',
+  '../../../libraries/FileHelper',
   '../../../libraries/base64',
 ], function(
     declare,
@@ -283,8 +283,9 @@ define([
             if (res.errorMessage) {
               dialog.alert(result.errorMessage);
             } else {
-              saveAs(b64toBlob(res.file), res.fileName);
+              downloadFile(res.URL, 'license.xlsx');
             }
+            this._excelExportForm._buttons.submit.set('disabled', false);
           }),
       );
     },

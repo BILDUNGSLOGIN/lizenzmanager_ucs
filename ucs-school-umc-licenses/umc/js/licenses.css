@@ -41,6 +41,7 @@
   display: grid;
   grid-template-columns: 130px 1fr;
   height: min-content;
+  max-width: 500px;
 }
 
 

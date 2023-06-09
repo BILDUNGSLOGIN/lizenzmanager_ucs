@@ -49,7 +49,7 @@ define([
   '../../common/LicenseSearchformMixin',
   '../../common/FormatterMixin',
   'umc/i18n!umc/modules/licenses',
-  '../../../libraries/FileSaver',
+  '../../../libraries/FileHelper',
   '../../../libraries/base64',
 ], function(
     declare,
@@ -138,6 +138,22 @@ define([
           values.licenseType = '';
         },
 
+        saveData: (function (data, fileName) {
+          var a = document.createElement("a");
+          document.body.appendChild(a);
+          a.style = "display: none";
+          return function (data, fileName) {
+              var json = JSON.stringify(data),
+                  blob = new Blob([json], {type: "octet/stream"}),
+                  url = window.URL.createObjectURL(blob);
+              a.href = url;
+              a.download = fileName;
+              a.click();
+              window.URL.revokeObjectURL(url);
+          }}
+        ),
+        
+
         exportToExcel: function(values) {
           tools.umcpCommand('licenses/export_to_excel', values).then(
               lang.hitch(this, function(response) {
@@ -145,8 +161,9 @@ define([
                 if (res.errorMessage) {
                   dialog.alert(result.errorMessage);
                 } else {
-                  saveAs(b64toBlob(res.file), res.fileName);
+                  downloadFile(res.URL, 'license.xlsx');
                 }
+                this._excelExportForm._buttons.submit.set('disabled', false);
               }),
           );
         },// allow only either class or workgroup to be set
@@ -184,6 +201,7 @@ define([
           this._excelExportForm.on(
               'submit',
               lang.hitch(this, function() {
+                this._excelExportForm._buttons.submit.set('disabled', true);
                 values = this._searchForm.value;
                 values.isAdvancedSearch = this._isAdvancedSearch;
                 values.onlyAvailableLicenses = false;
