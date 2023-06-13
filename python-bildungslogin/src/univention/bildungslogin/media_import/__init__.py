@@ -141,20 +141,21 @@ class MediaImportError(Exception):
     pass
 
 
-def get_access_token(client_id, client_secret, scope, auth_server):
-    # type: (str, str, str, str) -> str
+def get_access_token(client_id, client_secret, scope, auth_server, proxies=None):
+    # type: (str, str, str, str, dict) -> str
     response = requests.post(
         auth_server,
         data={"grant_type": "client_credentials", "scope": scope},
         auth=(client_id, client_secret),
+        proxies=proxies
     )
     if response.status_code != 200:
         raise AuthError("Authorization failed: %s" % (response.json()["error_description"],))
     return response.json()["access_token"]
 
 
-def retrieve_media_data(access_token, resource_server, product_ids):
-    # type: (str, str, List[str]) -> List[dict]
+def retrieve_media_data(access_token, resource_server, product_ids, proxies=None):
+    # type: (str, str, List[str], dict) -> List[dict]
     return requests.post(
         resource_server + "/external/univention/media/query",
         json=[{"id": product_id} for product_id in product_ids],
@@ -162,11 +163,12 @@ def retrieve_media_data(access_token, resource_server, product_ids):
             "Authorization": "Bearer " + access_token,
             "Content-Type": "application/vnd.de.bildungslogin.mediaquery+json",
         },
+        proxies=proxies
     ).json()
 
 
-def retrieve_media_feed(access_token, resource_server, modified_after):
-    # type: (str, str, int) -> List[str]
+def retrieve_media_feed(access_token, resource_server, modified_after, proxies=None):
+    # type: (str, str, int, dict) -> List[str]
     return requests.post(
         resource_server + "/external/univention/media/feed",
         json={"modifiedAfter": int(modified_after)},
@@ -174,6 +176,7 @@ def retrieve_media_feed(access_token, resource_server, modified_after):
             "Authorization": "Bearer " + access_token,
             "Content-Type": "application/vnd.de.bildungslogin.mediafeed-query+json",
         },
+        proxies=proxies
     ).json()
 
 
