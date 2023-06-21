@@ -74,6 +74,13 @@ PARSER.add_argument(
     default=JSON_PATH,
     help='The path to the cache file. (Default: %(default)s)',
 )
+PARSER.add_argument(
+    "--school",
+    metavar='SCHOOL',
+    help=(
+        "School name used to create the folder in which the cache file will be saved."
+    ),
+)
 
 def add_attribute_to_dictionary(dict_entry, obj, key):
     if key in dict_entry:
@@ -529,7 +536,58 @@ def add_user_to_license(_license, user):
         _license['user_strings'].append(user['uid'])
 
 
-def main(cache_file):
+def filter_dictionary_by_school(dictionary, school):
+    processed_list = {
+        'users': [],
+        'schools': [],
+        'assignments': [],
+        'licenses': [],
+        'workgroups': [],
+        'classes': [],
+        'metadata': [],
+    }
+
+    for _user in dictionary.get('users', []):
+        if school in _user.get('ucsschoolSchool'):
+            processed_list['users'].append(_user)
+    
+    for _school in dictionary.get('schools', []):
+        if school == _school.get('ou'):
+            processed_list['schools'].append(_school)
+
+    for _assignment in dictionary.get('assignments', []):
+        processed_list['assignments'].append(_assignment)
+            
+    for _license in dictionary.get('licenses', []):
+        if school == _license.get('bildungsloginLicenseSchool'):
+            processed_list['licenses'].append(_license)
+
+    for _workgroup in dictionary.get('workgroups', []):
+        processed_list['workgroups'].append(_workgroup)
+        
+    for _class in dictionary.get('classes', []):
+        if str(_class.get('entry_dn')).find(school) >= 0:
+            processed_list['classes'].append(_class)
+
+    for _metadata in dictionary.get('metadata', []):
+        if any(_metadata.get('bildungsloginProductId') == license.get('bildungsloginProductId') for license in processed_list['licenses']):
+            processed_list['metadata'].append(_metadata)
+            
+    return processed_list
+
+def store_school_cache_file(dictionary, school):
+    if any(s.get('ou') == school for s in dictionary.get('schools', [])):
+        school_folder = JSON_DIR + 'schools/' + school;
+        school_dict = filter_dictionary_by_school(dictionary, school)
+        if not os.path.isdir(school_folder):
+            os.makedirs(school_folder)
+
+        tmp_school_filepath = school_folder + '/cache.json'
+        tmp_school_file = open(tmp_school_filepath, 'w')
+        json.dump(school_dict, tmp_school_file)
+        tmp_school_file.close()
+
+def main(cache_file, school):
     """Start the main routine of the script.
 
     Fetch the LDAP objects, transform and filter them as needed and write the JSON objects to the
@@ -588,16 +646,22 @@ def main(cache_file):
         sum(len(objs) for objs in filtered_dict.values())))
 
     logger.debug("Convert to JSON and write to cache file")
+    
+    if school:
+        store_school_cache_file(filtered_dict, school)
+    else:
+        tmp_filepath = cache_file + '~'
+        tmp_file = open(tmp_filepath, 'w')
+        json.dump(filtered_dict, tmp_file)
+        tmp_file.close()
 
-    tmp_filepath = cache_file + '~'
-    tmp_file = open(tmp_filepath, 'w')
-    json.dump(filtered_dict, tmp_file)
-    tmp_file.close()
-
-    if os.path.isfile(cache_file):
-        os.unlink(cache_file)
-    os.rename(tmp_filepath, cache_file)
-
+        if os.path.isfile(cache_file):
+            os.unlink(cache_file)
+        os.rename(tmp_filepath, cache_file)
+        
+        for _school in filtered_dict.get('schools', []):
+            store_school_cache_file(filtered_dict, _school.get('ou'))
+    
     for (dirpath, dirnames, filenames) in os.walk(JSON_DIR):
         for filename in filenames:
             regex = re.compile('license-.*json')
@@ -607,9 +671,8 @@ def main(cache_file):
 
     logger.info("Finished")
 
-
 if __name__ == '__main__':
     args = PARSER.parse_args()
     logging.basicConfig(level=args.log_level, format='%(levelname)s - %(message)s')
     logger.debug('Parsed arguments: {}'.format(args))
-    main(args.cache_file)
+    main(args.cache_file, args.school)

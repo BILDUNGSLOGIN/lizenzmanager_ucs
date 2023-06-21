@@ -162,7 +162,9 @@ define([
     },
 
     cacheRebuild: function() {
-      tools.umcpCommand('licenses/cache/rebuild', {}).then(
+      tools.umcpCommand('licenses/cache/rebuild', {
+        school: this.getSchoolId()
+      }).then(
           lang.hitch(this, function(response) {
             const res = response.result;
             if (res.errorMessage) {

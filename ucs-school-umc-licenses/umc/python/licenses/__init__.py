@@ -1065,8 +1065,9 @@ class Instance(SchoolBaseModule):
         return False
 
     def cache_rebuild(self, request):
+        school = request.options.get("school")
         if not self._cache_is_running():
-            Popen(['python ' + CACHE_BUILD_SCRIPT], shell=True, stdout=None)
+            Popen(['python ' + CACHE_BUILD_SCRIPT + " --school " + school], shell=True, stdout=None)
             self.finished(
                 request.id,
                 {'status': 1}
