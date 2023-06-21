@@ -296,7 +296,7 @@ class LdapRepository:
 
         biggest_timestamp = self._timestamp
         updates = []
-        for (dirpath, dirnames, filenames) in os.walk(JSON_DIR + 'schools/' + self._current_school):
+        for (dirpath, dirnames, filenames) in os.walk(JSON_DIR + 'schools/' + self._current_school + '/'):
             for filename in filenames:
                 regex = re.compile('license-.*json')
                 if regex.match(filename):
