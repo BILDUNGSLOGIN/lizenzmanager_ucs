@@ -47,16 +47,6 @@ import re
 logger = logging.getLogger(__name__)
 entry_dn_pattern = re.compile(".*dc=.*")
 
-SEARCH_FILTER = ''.join([
-    '(|',
-    '(&(uid=*)(ucsschoolSchool=*))',
-    '(objectClass=bildungsloginAssignment)',
-    '(objectClass=bildungsloginLicense)',
-    '(objectClass=bildungsloginMetaData)',
-    '(objectClass=ucsschoolOrganizationalUnit)(objectClass=ucsschoolGroup)',
-    ')',
-])
-
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
 JSON_DIR = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/'
 
@@ -81,6 +71,30 @@ PARSER.add_argument(
         "School name used to create the folder in which the cache file will be saved."
     ),
 )
+
+SCHOOL = PARSER.parse_args().school
+
+if SCHOOL:
+    SEARCH_FILTER = ''.join([
+        '(|',
+        '(&(uid=*)(ucsschoolSchool=' + SCHOOL + '))',
+        '(objectClass=bildungsloginAssignment)',
+        '(&(objectClass=bildungsloginLicense)(bildungsloginLicenseSchool=' + SCHOOL + '))',
+        '(objectClass=bildungsloginMetaData)',
+        '(&(objectClass=ucsschoolOrganizationalUnit)(ou=' + SCHOOL + '))',
+        '(&(objectClass=ucsschoolGroup)(ucsschoolRole=*' + SCHOOL + '*))',
+        ')',
+    ])
+else:
+    SEARCH_FILTER = ''.join([
+        '(|',
+        '(&(uid=*)(ucsschoolSchool=*))',
+        '(objectClass=bildungsloginAssignment)',
+        '(objectClass=bildungsloginLicense)',
+        '(objectClass=bildungsloginMetaData)',
+        '(objectClass=ucsschoolOrganizationalUnit)(objectClass=ucsschoolGroup)',
+        ')',
+    ])
 
 def add_attribute_to_dictionary(dict_entry, obj, key):
     if key in dict_entry:
@@ -639,6 +653,7 @@ def main(cache_file, school):
             'bildungsloginValidityStatus'
         ],
     )
+    
     logger.debug('Found {} objects'.format(len(response)))
 
     filtered_dict = transform_to_dictionary(response)
