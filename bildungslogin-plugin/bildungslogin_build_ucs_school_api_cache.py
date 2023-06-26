@@ -550,56 +550,32 @@ def add_user_to_license(_license, user):
         _license['user_strings'].append(user['uid'])
 
 
-def filter_dictionary_by_school(dictionary, school):
-    processed_list = {
-        'users': [],
-        'schools': [],
-        'assignments': [],
-        'licenses': [],
-        'workgroups': [],
-        'classes': [],
-        'metadata': [],
-    }
-
-    for _user in dictionary.get('users', []):
-        if school in _user.get('ucsschoolSchool'):
-            processed_list['users'].append(_user)
-    
-    for _school in dictionary.get('schools', []):
-        if school == _school.get('ou'):
-            processed_list['schools'].append(_school)
-
-    for _assignment in dictionary.get('assignments', []):
-        processed_list['assignments'].append(_assignment)
-            
-    for _license in dictionary.get('licenses', []):
-        if school == _license.get('bildungsloginLicenseSchool'):
-            processed_list['licenses'].append(_license)
-
-    for _workgroup in dictionary.get('workgroups', []):
-        processed_list['workgroups'].append(_workgroup)
-        
-    for _class in dictionary.get('classes', []):
-        if str(_class.get('entry_dn')).find(school) >= 0:
-            processed_list['classes'].append(_class)
+def get_products_from_licenses(dictionary):
+    metadata = []
 
     for _metadata in dictionary.get('metadata', []):
-        if any(_metadata.get('bildungsloginProductId') == license.get('bildungsloginProductId') for license in processed_list['licenses']):
-            processed_list['metadata'].append(_metadata)
+        if any(_metadata.get('bildungsloginProductId') == license.get('bildungsloginProductId') for license in dictionary.get('licenses', [])):
+            metadata.append(_metadata)
             
-    return processed_list
+    return metadata
 
 def store_school_cache_file(dictionary, school):
     if any(s.get('ou') == school for s in dictionary.get('schools', [])):
-        school_folder = JSON_DIR + 'schools/' + school;
-        school_dict = filter_dictionary_by_school(dictionary, school)
-        if not os.path.isdir(school_folder):
-            os.makedirs(school_folder)
+        tmp_school_folder = JSON_DIR + 'schools/' + school
+        tmp_school_filepath = tmp_school_folder + '/cache.json'
+        tmp_school_dict = dictionary;
+        tmp_school_dict['metadata'] = get_products_from_licenses(dictionary)
 
-        tmp_school_filepath = school_folder + '/cache.json'
+        if not os.path.isdir(tmp_school_folder):
+            os.makedirs(tmp_school_folder)
+
+        if os.path.isfile(tmp_school_filepath):
+            os.unlink(tmp_school_filepath)
+
         tmp_school_file = open(tmp_school_filepath, 'w')
-        json.dump(school_dict, tmp_school_file)
+        json.dump(tmp_school_dict, tmp_school_file)
         tmp_school_file.close()
+        del tmp_school_folder, tmp_school_dict, tmp_school_filepath, tmp_school_file
 
 def main(cache_file, school):
     """Start the main routine of the script.
