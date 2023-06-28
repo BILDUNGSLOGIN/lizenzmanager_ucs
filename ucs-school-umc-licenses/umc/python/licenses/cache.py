@@ -265,19 +265,24 @@ class LdapRepository:
         self._timestamp = None
         self._clear()
 
-    def update(self, start_up=False):
+    def update(self, school, start_up=False):
         if not exists(JSON_PATH):
             MODULE.error('JSON file not found at ' + JSON_PATH + '. Please check if it is updating.')
             if not start_up:
                 raise Exception("JSON file not found at " + JSON_PATH + ". Please check if it is updating.")
             return
+        
+        cache_path = JSON_DIR + '/schools/' + school + '/cache.json'
 
-        stat = os.stat(JSON_PATH)
+        if not os.path.isfile(cache_path):
+            cache_path = JSON_PATH
+
+        stat = os.stat(cache_path)
         file_time = stat.st_mtime
 
         if self._timestamp is None or file_time > self._timestamp:
             self._clear()
-            f = open(JSON_PATH, 'r')
+            f = open(cache_path, 'r')
             json_string = f.read()
             f.close()
             json_dictionary = json.loads(json_string)

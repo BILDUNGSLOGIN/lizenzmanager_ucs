@@ -176,6 +176,9 @@ define([
                 label: _('Publisher'),
                 staticValues: [{id: '', label: ''}],
                 dynamicValues: 'licenses/publishers',
+                dynamicOptions: {
+                  school: this.getSchoolId(),
+                },
                 size: 'TwoThirds',
                 visible: false,
               }, {
