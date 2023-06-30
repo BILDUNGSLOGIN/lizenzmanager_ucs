@@ -260,13 +260,20 @@ class LdapRepository:
     _metadata = None  # type: List[LdapMetaData]
     _licenses = None  # type: List[LdapLicense]
     _schools = None  # type: List[LdapSchool]
+    _current_school = None 
 
     def __init__(self):
         self._timestamp = None
         self._clear()
 
     def update(self, school, start_up=False):
-        cache_path = JSON_DIR + '/schools/' + str(school) + '/cache.json'
+
+        if school:
+            school_changed = school != self._current_school
+        else:
+            school_changed = False
+
+        cache_path = JSON_DIR + 'schools/' + str(school if school_changed else self._current_school) + '/cache.json'
 
         if not exists(cache_path):
             MODULE.error('JSON file not found at ' + cache_path + '. Please check if it is updating.')
@@ -277,7 +284,8 @@ class LdapRepository:
         stat = os.stat(cache_path)
         file_time = stat.st_mtime
 
-        if self._timestamp is None or file_time > self._timestamp:
+        if school_changed or self._timestamp is None or file_time > self._timestamp:
+            self._current_school = school
             self._clear()
             f = open(cache_path, 'r')
             json_string = f.read()
@@ -288,7 +296,7 @@ class LdapRepository:
 
         biggest_timestamp = self._timestamp
         updates = []
-        for (dirpath, dirnames, filenames) in os.walk(JSON_DIR):
+        for (dirpath, dirnames, filenames) in os.walk(JSON_DIR + 'schools/' + self._current_school):
             for filename in filenames:
                 regex = re.compile('license-.*json')
                 if regex.match(filename):
@@ -1002,7 +1010,7 @@ class LdapRepository:
         return None
 
     def _get_license_cache_file(self, entry_uuid):
-        return open(JSON_DIR + 'license-' + entry_uuid + '.json', 'w')
+        return open(JSON_DIR + 'schools/' + self._current_school + '/license-' + entry_uuid + '.json', 'w')
 
     def cache_single_license(self, _license, assignments=None):
         if not assignments:
