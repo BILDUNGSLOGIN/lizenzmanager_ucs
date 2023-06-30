@@ -308,6 +308,7 @@ define([
     load: function(licenseCode) {
       return this.standbyDuring(
           tools.umcpCommand('licenses/get', {
+            school: this.getSchoolId(),
             licenseCode: licenseCode,
           }).then(
               lang.hitch(this, function(response) {
