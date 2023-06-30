@@ -127,7 +127,7 @@ class Instance(SchoolBaseModule):
             class -- str
         }
         """
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         try:
             sizelimit = int(ucr.get("directory/manager/web/sizelimit", 2000))
         except ValueError:
@@ -239,7 +239,7 @@ class Instance(SchoolBaseModule):
             class -- str
         }
         """
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         try:
             sizelimit = int(ucr.get("directory/manager/web/sizelimit", 2000))
         except ValueError:
@@ -369,7 +369,7 @@ class Instance(SchoolBaseModule):
         MODULE.info("licenses.get: options: %s" % str(request.options))
         # TODO should the school be incorperated in getting the license?
         # school = request.options.get("school")
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         license_code = request.options.get("licenseCode")
         license = self.repository.get_license_by_code(license_code)
         assigned_users = self.repository.get_assigned_users_by_license(license)
@@ -409,7 +409,7 @@ class Instance(SchoolBaseModule):
 
     @LDAP_Connection(USER_WRITE)
     def publishers(self, request, ldap_user_write=None):
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         MODULE.info("licenses.publishers: options: %s" % str(request.options))
         result = [{"id": publisher, "label": publisher} for publisher in self.repository.get_publishers()]
         MODULE.info("licenses.publishers: result: %s" % str(result))
@@ -688,7 +688,7 @@ class Instance(SchoolBaseModule):
             pattern
         }
         """
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         MODULE.info("licenses.query: options: %s" % str(request.options))
         school = request.options.get("school")
         pattern = request.options.get("pattern")
@@ -736,7 +736,7 @@ class Instance(SchoolBaseModule):
             showOnlyAvailable: bool [optional]
         }
         """
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         MODULE.info("licenses.products.query: options: %s" % str(request.options))
         result = []
 
@@ -827,7 +827,7 @@ class Instance(SchoolBaseModule):
             showOnlyAvailable: bool [optional]
         }
         """
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         result = []
 
         school = request.options.get("school")
@@ -929,7 +929,7 @@ class Instance(SchoolBaseModule):
         }
         """
         MODULE.info("licenses.products.get: options: %s" % str(request.options))
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         school = request.options.get("school")
         product_id = request.options.get("productId")
         licenses = self.repository.get_licenses_by_product_id(product_id, school)
@@ -1023,7 +1023,7 @@ class Instance(SchoolBaseModule):
     @LDAP_Connection()
     def classes(self, request, ldap_user_read=None):
         """Returns a list of all classes of the given school"""
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         school = request.options["school"]
         _classes = self.repository.get_classes_by_school(school)
         school_classes = []
@@ -1042,7 +1042,7 @@ class Instance(SchoolBaseModule):
     @LDAP_Connection()
     def workgroups(self, request, ldap_user_read=None):
         """Returns a list of all working groups of the given school"""
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
         school = request.options["school"]
         _workgroups = self.repository.get_workgroups_by_school(school)
         workgroups = []
@@ -1065,8 +1065,9 @@ class Instance(SchoolBaseModule):
         return False
 
     def cache_rebuild(self, request):
+        school = request.options.get("school")
         if not self._cache_is_running():
-            Popen(['python ' + CACHE_BUILD_SCRIPT], shell=True, stdout=None)
+            Popen(['python ' + CACHE_BUILD_SCRIPT + " --school " + school], shell=True, stdout=None)
             self.finished(
                 request.id,
                 {'status': 1}
@@ -1089,7 +1090,7 @@ class Instance(SchoolBaseModule):
     @sanitize(school=SchoolSanitizer(required=True), licenseCodes=ListSanitizer(required=True))
     @LDAP_Connection(USER_WRITE)
     def licenses_delete(self, request, ldap_user_write):
-        self.repository.update()
+        self.repository.update(request.options.get("school"))
 
         license_codes = request.options.get("licenseCodes")
         lh = LicenseHandler(ldap_user_write)

@@ -47,16 +47,6 @@ import re
 logger = logging.getLogger(__name__)
 entry_dn_pattern = re.compile(".*dc=.*")
 
-SEARCH_FILTER = ''.join([
-    '(|',
-    '(&(uid=*)(ucsschoolSchool=*))',
-    '(objectClass=bildungsloginAssignment)',
-    '(objectClass=bildungsloginLicense)',
-    '(objectClass=bildungsloginMetaData)',
-    '(objectClass=ucsschoolOrganizationalUnit)(objectClass=ucsschoolGroup)',
-    ')',
-])
-
 JSON_PATH = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/bildungslogin.json'
 JSON_DIR = '/var/lib/univention-appcenter/apps/ucsschool-apis/data/'
 
@@ -74,11 +64,44 @@ PARSER.add_argument(
     default=JSON_PATH,
     help='The path to the cache file. (Default: %(default)s)',
 )
+PARSER.add_argument(
+    "--school",
+    metavar='SCHOOL',
+    help=(
+        "School name used to create the folder in which the cache file will be saved."
+    ),
+)
+
+SCHOOL = PARSER.parse_args().school
+
+if SCHOOL:
+    SEARCH_FILTER = ''.join([
+        '(|',
+        '(&(uid=*)(ucsschoolSchool=' + SCHOOL + '))',
+        '(objectClass=bildungsloginAssignment)',
+        '(&(objectClass=bildungsloginLicense)(bildungsloginLicenseSchool=' + SCHOOL + '))',
+        '(objectClass=bildungsloginMetaData)',
+        '(&(objectClass=ucsschoolOrganizationalUnit)(ou=' + SCHOOL + '))',
+        '(&(objectClass=ucsschoolGroup)(ucsschoolRole=*' + SCHOOL + '*))',
+        ')',
+    ])
+else:
+    SEARCH_FILTER = ''.join([
+        '(|',
+        '(&(uid=*)(ucsschoolSchool=*))',
+        '(objectClass=bildungsloginAssignment)',
+        '(objectClass=bildungsloginLicense)',
+        '(objectClass=bildungsloginMetaData)',
+        '(objectClass=ucsschoolOrganizationalUnit)(objectClass=ucsschoolGroup)',
+        ')',
+    ])
+
 
 def add_attribute_to_dictionary(dict_entry, obj, key):
     if key in dict_entry:
         obj[key] = str(
             dict_entry[key][0])
+
 
 def transform_to_dictionary(entries):
     """Transform the given LDAP objects to the format needed by UCS@School API.
@@ -378,7 +401,6 @@ def transform_to_dictionary(entries):
                 'bildungsloginUsageStatus': '',
                 'bildungsloginExpiryDate': '',
                 'bildungsloginValidityStatus': '',
-                'bildungsloginRegistered': '',
                 'groups': [],
                 'user_strings': [],
                 'quantity_assigned': 0,
@@ -393,7 +415,6 @@ def transform_to_dictionary(entries):
             add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginUsageStatus')
             add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginExpiryDate')
             add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginValidityStatus')
-
 
             processed_list['licenses'].append(obj)
         elif 'bildungsloginAssignment' in dict_entry['objectClass']:
@@ -466,6 +487,7 @@ def transform_to_dictionary(entries):
             processed_list['metadata'].append(obj)
 
     assignments_map = get_assignment_map(processed_list['assignments'])
+    processed_list['licenses'].sort(key=lambda license: license['bildungsloginDeliveryDate'])
     licenses = processed_list['licenses']
     users = processed_list['users']
     groups = processed_list['classes'] + processed_list['workgroups']
@@ -506,15 +528,22 @@ def transform_to_dictionary(entries):
 
     return processed_list
 
+
+assignments_map = {}
+
+
 def get_assignment_map(assignments):
-    assignments_map = {}
-    for assignment in assignments:
-        license_dn = assignment['entry_dn'].split(',', 1)[1]
-        if license_dn in assignments_map:
-            assignments_map[license_dn].append(assignment)
-        else:
-            assignments_map.update({license_dn: [assignment]})
+    if len(assignments_map) > 0:
+        return assignments_map
+    else:
+        for assignment in assignments:
+            license_dn = assignment['entry_dn'].split(',', 1)[1]
+            if license_dn in assignments_map:
+                assignments_map[license_dn].append(assignment)
+            else:
+                assignments_map.update({license_dn: [assignment]})
     return assignments_map
+
 
 def add_user_to_license(_license, user):
     roles = []
@@ -529,7 +558,113 @@ def add_user_to_license(_license, user):
         _license['user_strings'].append(user['uid'])
 
 
-def main(cache_file):
+def get_products_from_licenses(dictionary):
+    metadata = []
+
+    for _metadata in dictionary.get('metadata', []):
+        if any(_metadata.get('bildungsloginProductId') == license.get('bildungsloginProductId') for license in
+               dictionary.get('licenses', [])):
+            metadata.append(_metadata)
+
+    return metadata
+
+
+def filter_dictionary_by_school(dictionary, school):
+    processed_list = {
+        'users': [],
+        'schools': [],
+        'assignments': [],
+        'licenses': [],
+        'workgroups': [],
+        'classes': [],
+        'metadata': dictionary.get('metadata', []),
+    }
+
+    for _user in dictionary.get('users', []):
+        if school in _user.get('ucsschoolSchool'):
+            processed_list['users'].append(_user)
+
+    for _school in dictionary.get('schools', []):
+        if school == _school.get('ou'):
+            processed_list['schools'].append(_school)
+
+    for _assignment in dictionary.get('assignments', []):
+        processed_list['assignments'].append(_assignment)
+
+    for _license in dictionary.get('licenses', []):
+        if school == _license.get('bildungsloginLicenseSchool'):
+            processed_list['licenses'].append(_license)
+
+    for _workgroup in dictionary.get('workgroups', []):
+        processed_list['workgroups'].append(_workgroup)
+
+    for _class in dictionary.get('classes', []):
+        if str(_class.get('entry_dn')).find(school) >= 0:
+            processed_list['classes'].append(_class)
+
+    return processed_list
+
+
+def store_school_cache_file(dictionary, school):
+    if any(s.get('ou') == school for s in dictionary.get('schools', [])):
+        tmp_school_folder = JSON_DIR + 'schools/' + school
+        tmp_school_filepath = tmp_school_folder + '/cache.json'
+        tmp_school_dict = dictionary
+        tmp_school_dict['metadata'] = get_products_from_licenses(dictionary)
+
+        assignments_map = get_assignment_map(tmp_school_dict['assignments'])
+
+        tmp_school_dict['assignments'] = []
+        for license in tmp_school_dict['licenses']:
+            tmp_school_dict['assignments'] += assignments_map[license['entry_dn']]
+
+        if not os.path.isdir(tmp_school_folder):
+            os.makedirs(tmp_school_folder)
+
+        if os.path.isfile(tmp_school_filepath):
+            os.unlink(tmp_school_filepath)
+
+        tmp_school_file = open(tmp_school_filepath, 'w')
+        json.dump(tmp_school_dict, tmp_school_file)
+        tmp_school_file.close()
+        del tmp_school_folder, tmp_school_dict, tmp_school_filepath, tmp_school_file
+
+
+def store_api_cache(filtered_dict, cache_file):
+    needed_attributes = ['entryUUID',
+                         'objectClass',
+                         'uid',
+                         'givenName',
+                         'ou',
+                         'cn',
+                         'ucsschoolRole',
+                         'sn',
+                         'ucsschoolSchool',
+                         'bildungsloginLicenseCode',
+                         'bildungsloginLicenseSpecialType',
+                         'memberUid',
+                         'bildungsloginAssignmentAssignee',
+                         'bildungsloginAssignmentStatus']
+
+    for license in filtered_dict['licenses']:
+        new_license = {}
+        for key, value in license.iteritems():
+            if key in needed_attributes:
+                new_license.update({key: value})
+        filtered_dict['licenses'][filtered_dict['licenses'].index(license)] = new_license
+        del license
+
+    tmp_filepath = cache_file + '~'
+    tmp_file = open(tmp_filepath, 'w')
+    json.dump(filtered_dict, tmp_file)
+    tmp_file.close()
+
+    if os.path.isfile(cache_file):
+        os.unlink(cache_file)
+    os.rename(tmp_filepath, cache_file)
+
+
+def main(cache_file, school):
     """Start the main routine of the script.
 
     Fetch the LDAP objects, transform and filter them as needed and write the JSON objects to the
@@ -581,22 +716,38 @@ def main(cache_file):
             'bildungsloginValidityStatus'
         ],
     )
+
     logger.debug('Found {} objects'.format(len(response)))
 
-    filtered_dict = transform_to_dictionary(response)
+    dictionary = transform_to_dictionary(response)
     logger.debug('After filtering and transformation {} objects remaining'.format(
-        sum(len(objs) for objs in filtered_dict.values())))
+        sum(len(objs) for objs in dictionary.values())))
 
     logger.debug("Convert to JSON and write to cache file")
 
-    tmp_filepath = cache_file + '~'
-    tmp_file = open(tmp_filepath, 'w')
-    json.dump(filtered_dict, tmp_file)
-    tmp_file.close()
+    if school:
+        store_school_cache_file(dictionary, school)
+        for (dirpath, dirnames, filenames) in os.walk(JSON_DIR + 'schools/' + school + '/'):
+            for filename in filenames:
+                regex = re.compile('license-.*json')
+                if regex.match(filename):
+                    os.unlink(dirpath + filename)
+            break
 
-    if os.path.isfile(cache_file):
-        os.unlink(cache_file)
-    os.rename(tmp_filepath, cache_file)
+    else:
+        for _school in dictionary.get('schools', []):
+            store_school_cache_file(
+                filter_dictionary_by_school(dictionary, _school.get('ou')),
+                _school.get('ou')
+            )
+            for (dirpath, dirnames, filenames) in os.walk(JSON_DIR + 'schools/' + _school.get('ou') + '/'):
+                for filename in filenames:
+                    regex = re.compile('license-.*json')
+                    if regex.match(filename):
+                        os.unlink(dirpath + filename)
+                break
+
+        store_api_cache(dictionary, cache_file)
 
     for (dirpath, dirnames, filenames) in os.walk(JSON_DIR):
         for filename in filenames:
@@ -612,4 +763,4 @@ if __name__ == '__main__':
     args = PARSER.parse_args()
     logging.basicConfig(level=args.log_level, format='%(levelname)s - %(message)s')
     logger.debug('Parsed arguments: {}'.format(args))
-    main(args.cache_file)
+    main(args.cache_file, args.school)

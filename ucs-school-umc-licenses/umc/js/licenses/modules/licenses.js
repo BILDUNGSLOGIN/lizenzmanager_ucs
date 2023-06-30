@@ -69,6 +69,7 @@ define([
       this.addPage(this.searchPage);
 
       this.detailPage = new DetailPage({
+        getSchoolId: lang.hitch(this, 'getSchoolId'),
         standbyDuring: lang.hitch(this, 'standbyDuring'),
         onBack: lang.hitch(this, 'backToOverview'),
         getSaveButton: lang.hitch(this, 'getSaveButton'),
