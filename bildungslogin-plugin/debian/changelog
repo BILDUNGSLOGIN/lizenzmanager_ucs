@@ -1,3 +1,10 @@
+bildungslogin-plugin (2.3.2) unstable; urgency=medium
+
+  * Implemented a school based caching.
+  * ET-180 Sort licenses by delivery date.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 30 Jun 2023 11:09:49 +0200
+
 bildungslogin-plugin (2.3.1) unstable; urgency=medium
 
   * Implement cron for updating the license status.
