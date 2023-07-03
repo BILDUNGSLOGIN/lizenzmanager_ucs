@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.3.7) unstable; urgency=medium
+
+  * ET-175 Add unknown filter to usage status and validity status.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Wed, 05 Jul 2023 17:13:57 +0200
+
 ucs-school-umc-licenses (2.3.6) unstable; urgency=medium
 
   * ET-176 Correctly display purchasing reference and validity span.

@@ -620,10 +620,16 @@ class LdapRepository:
             licenses = filter(lambda _license: school_class in _license.groups, licenses)
 
         if valid_status:
-            licenses = filter(lambda _license: _license.bildungsloginValidityStatus == valid_status, licenses)
+            if valid_status == '-':
+                licenses = filter(lambda _license: _license.bildungsloginValidityStatus == '', licenses)
+            else:
+                licenses = filter(lambda _license: _license.bildungsloginValidityStatus == valid_status, licenses)
 
         if usage_status:
-            licenses = filter(lambda _license: _license.bildungsloginUsageStatus == usage_status, licenses)
+            if usage_status == '-':
+                licenses = filter(lambda _license: _license.bildungsloginUsageStatus == '', licenses)
+            else:
+                licenses = filter(lambda _license: _license.bildungsloginUsageStatus == usage_status, licenses)
 
         if expiry_date_from:
             licenses = filter(lambda

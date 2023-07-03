@@ -216,7 +216,11 @@ define([
                 staticValues: [
                   {
                     id: '', label: '',
-                  }, {
+                  },
+                  {
+                    id: '-', label: _('unknown'),
+                  },
+                  {
                     id: '0', label: _('invalid'),
                   }, {
                     id: '1', label: _('valid'),
@@ -230,7 +234,11 @@ define([
                 staticValues: [
                   {
                     id: '', label: '',
-                  }, {
+                  },
+                  {
+                    id: '-', label: _('unknown'),
+                  },
+                  {
                     id: '0', label: _('not activated'),
                   }, {
                     id: '1', label: _('activated'),
