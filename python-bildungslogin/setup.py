@@ -47,7 +47,8 @@ setup(
         "univention.bildungslogin",
         "univention.bildungslogin.license_import",
         "univention.bildungslogin.media_import",
-        "univention.bildungslogin.license_retrieval"
+        "univention.bildungslogin.license_retrieval",
+        "univention.bildungslogin.license_status_update"
     ],
     package_dir={"": "src"},
     entry_points={
