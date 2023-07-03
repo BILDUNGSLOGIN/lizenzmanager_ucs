@@ -1,3 +1,10 @@
+bildungslogin-plugin (2.3.3) unstable; urgency=medium
+
+  * Do not ignore the attribute entry_dn by cache building.
+  * Delete not used metadata from json.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 03 Jul 2023 15:59:47 +0200
+
 bildungslogin-plugin (2.3.2) unstable; urgency=medium
 
   * Implemented a school based caching.

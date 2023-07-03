@@ -633,6 +633,7 @@ def store_school_cache_file(dictionary, school):
 def store_api_cache(filtered_dict, cache_file):
     needed_attributes = ['entryUUID',
                          'objectClass',
+                         'entry_dn',
                          'uid',
                          'givenName',
                          'ou',
@@ -653,6 +654,8 @@ def store_api_cache(filtered_dict, cache_file):
                 new_license.update({key: value})
         filtered_dict['licenses'][filtered_dict['licenses'].index(license)] = new_license
         del license
+
+    del filtered_dict['metadata']
 
     tmp_filepath = cache_file + '~'
     tmp_file = open(tmp_filepath, 'w')
