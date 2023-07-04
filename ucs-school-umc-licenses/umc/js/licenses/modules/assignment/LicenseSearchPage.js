@@ -165,6 +165,10 @@ define([
                   this._wrap_assign_progress._progressBar.set('maximum',
                       usernames.length);
 
+                  this._wrap_assign_progress.update(
+                      0,
+                      _('Licenses are being processed. Please have a little patience.'));
+
                   this._wrap_assign_handler();
 
                   this.standbyDuring(this._wrap_assign_deferred,
