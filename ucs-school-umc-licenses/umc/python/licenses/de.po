@@ -87,7 +87,7 @@ msgstr "Anzahl von zugewiesenen Lizenzen"
 
 #: umc/python/licenses/__init__.py:331 umc/python/licenses/__init__.py:905
 msgid "Number of available licenses"
-msgstr "Anzahl von zugewiesenen Lizenzen"
+msgstr "Anzahl von verfügbaren Lizenzen"
 
 #: umc/python/licenses/__init__.py:331 umc/python/licenses/__init__.py:904
 msgid "Number of expired licenses"
