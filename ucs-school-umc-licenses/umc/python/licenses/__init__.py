@@ -393,7 +393,7 @@ class Instance(SchoolBaseModule):
             "usage": license.bildungsloginUtilizationSystems,
             "validityStart": optional_date2str(license.bildungsloginValidityStartDate),
             "validityEnd": optional_date2str(license.bildungsloginValidityEndDate),
-            "validitySpan": license.bildungsloginPurchasingReference,
+            "validitySpan": license.bildungsloginValidityDuration,
             "author": meta_data.bildungsloginMetaDataAuthor if meta_data else '',
             "cover": meta_data.bildungsloginMetaDataCover or meta_data.bildungsloginMetaDataCoverSmall if meta_data else '',
             "productName": meta_data.bildungsloginMetaDataTitle if meta_data else '',

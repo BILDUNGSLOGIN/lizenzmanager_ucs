@@ -415,6 +415,7 @@ def transform_to_dictionary(entries):
             add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginUsageStatus')
             add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginExpiryDate')
             add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginValidityStatus')
+            add_attribute_to_dictionary(dict_entry, obj, 'bildungsloginPurchasingReference')
 
             processed_list['licenses'].append(obj)
         elif 'bildungsloginAssignment' in dict_entry['objectClass']:
@@ -460,8 +461,7 @@ def transform_to_dictionary(entries):
                 'bildungsloginMetaDataCoverSmall': '',
                 'bildungsloginMetaDataCover': '',
                 'bildungsloginMetaDataDescription': '',
-                'bildungsloginMetaDataAuthor': '',
-                'bildungsloginPurchasingReference': ''
+                'bildungsloginMetaDataAuthor': ''
             })
 
             if 'bildungsloginMetaDataDescription' in dict_entry:
@@ -479,10 +479,6 @@ def transform_to_dictionary(entries):
             if 'bildungsloginMetaDataCover' in dict_entry:
                 obj['bildungsloginMetaDataCover'] = str(
                     dict_entry['bildungsloginMetaDataCover'][0])
-
-            if 'bildungsloginPurchasingReference' in dict_entry:
-                obj['bildungsloginPurchasingReference'] = str(
-                    dict_entry['bildungsloginPurchasingReference'][0])
 
             processed_list['metadata'].append(obj)
 
@@ -719,7 +715,6 @@ def main(cache_file, school):
             'bildungsloginValidityStatus'
         ],
     )
-
     logger.debug('Found {} objects'.format(len(response)))
 
     dictionary = transform_to_dictionary(response)
