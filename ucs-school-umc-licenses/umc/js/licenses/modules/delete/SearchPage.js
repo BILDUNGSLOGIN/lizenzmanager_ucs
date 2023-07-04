@@ -267,7 +267,7 @@ define([
           );
         },// allow only either class or workgroup to be set
 
-        afterPageChange: function() {
+        createAfterSchoolChoose: function() {
           if (this._searchForm) {
             this.removeChild(this._searchForm);
           }
