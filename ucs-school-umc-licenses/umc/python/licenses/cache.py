@@ -514,11 +514,11 @@ class LdapRepository:
             if pattern.match(user.userId) or pattern.match(user.givenName) or pattern.match(user.sn):
                 users.append(user)
 
-        if workgroup != '__all__':
+        if workgroup != '__all__' and workgroup != '':
             workgroup = self.get_workgroup_by_dn(workgroup)
             users = self._filter_user_by_group(users, workgroup)
 
-        if school_class != '__all__':
+        if school_class != '__all__' and school_class != '':
             school_class = self.get_class_by_dn(school_class)
             users = self._filter_user_by_group(users, school_class)
 
