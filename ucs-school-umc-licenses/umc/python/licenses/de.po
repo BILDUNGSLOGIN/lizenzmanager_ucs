@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-06-09 13:24+0000\n"
+"POT-Creation-Date: 2023-07-04 09:03+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -12,27 +12,27 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: umc/python/licenses/__init__.py:900
+#: umc/python/licenses/__init__.py:897
 msgid "Assigned"
 msgstr "Zugewiesen"
 
-#: umc/python/licenses/__init__.py:902
+#: umc/python/licenses/__init__.py:899
 msgid "Available"
 msgstr "Verfügbar"
 
-#: umc/python/licenses/__init__.py:900
+#: umc/python/licenses/__init__.py:897
 msgid "Cover"
 msgstr ""
 
-#: umc/python/licenses/__init__.py:329
+#: umc/python/licenses/__init__.py:330
 msgid "Delivery Date"
 msgstr "Lieferdatum"
 
-#: umc/python/licenses/__init__.py:901
+#: umc/python/licenses/__init__.py:898
 msgid "Expired"
 msgstr "Abgelaufen"
 
-#: umc/python/licenses/__init__.py:332
+#: umc/python/licenses/__init__.py:333
 msgid "Expiry date"
 msgstr "Ablaufdatum"
 
@@ -49,63 +49,63 @@ msgstr ""
 "für die Anzeige von einem Administrator mit der UCR-Variabledirectory/"
 "manager/web/sizelimit angepasst werden."
 
-#: umc/python/licenses/__init__.py:903
+#: umc/python/licenses/__init__.py:900
 msgid "Import date"
 msgstr "Importdatum"
 
-#: umc/python/licenses/__init__.py:327
+#: umc/python/licenses/__init__.py:328
 msgid "License code"
 msgstr "Lizenzcode"
 
-#: umc/python/licenses/__init__.py:327
+#: umc/python/licenses/__init__.py:328
 msgid "License type"
 msgstr "Lizenztyp"
 
-#: umc/python/licenses/__init__.py:900
+#: umc/python/licenses/__init__.py:897
 msgid "Maximal number of users"
 msgstr "Maximale Anzahl von Benutzern"
 
-#: umc/python/licenses/__init__.py:327 umc/python/licenses/__init__.py:900
+#: umc/python/licenses/__init__.py:328 umc/python/licenses/__init__.py:897
 msgid "Medium"
 msgstr ""
 
-#: umc/python/licenses/__init__.py:327 umc/python/licenses/__init__.py:900
+#: umc/python/licenses/__init__.py:328 umc/python/licenses/__init__.py:897
 msgid "Medium ID"
 msgstr ""
 
-#: umc/python/licenses/__init__.py:957
+#: umc/python/licenses/__init__.py:948
 msgid "No"
 msgstr "Nein"
 
-#: umc/python/licenses/__init__.py:903
+#: umc/python/licenses/__init__.py:900
 msgid "Number of Licenses"
 msgstr "Anzahl von Lizenzen"
 
-#: umc/python/licenses/__init__.py:330 umc/python/licenses/__init__.py:903
+#: umc/python/licenses/__init__.py:331 umc/python/licenses/__init__.py:900
 msgid "Number of assigned licenses"
 msgstr "Anzahl von zugewiesenen Lizenzen"
 
-#: umc/python/licenses/__init__.py:331 umc/python/licenses/__init__.py:905
+#: umc/python/licenses/__init__.py:332 umc/python/licenses/__init__.py:902
 msgid "Number of available licenses"
 msgstr "Anzahl von verfügbaren Lizenzen"
 
-#: umc/python/licenses/__init__.py:331 umc/python/licenses/__init__.py:904
+#: umc/python/licenses/__init__.py:332 umc/python/licenses/__init__.py:901
 msgid "Number of expired licenses"
 msgstr "Anzahl von abgelaufenen Lizenzen"
 
-#: umc/python/licenses/__init__.py:329
+#: umc/python/licenses/__init__.py:330
 msgid "Number of licenses"
 msgstr "Anzahl von Lizenzen"
 
-#: umc/python/licenses/__init__.py:327 umc/python/licenses/__init__.py:900
+#: umc/python/licenses/__init__.py:328 umc/python/licenses/__init__.py:897
 msgid "Publisher"
 msgstr "Verlag"
 
-#: umc/python/licenses/__init__.py:328
+#: umc/python/licenses/__init__.py:329
 msgid "Special License type"
 msgstr "Sonderlizenz"
 
-#: umc/python/licenses/__init__.py:452
+#: umc/python/licenses/__init__.py:448
 msgid ""
 "The 'Ignore' state cannot be changed because users are already assigned to "
 "the license."
@@ -113,23 +113,23 @@ msgstr ""
 "Der Status 'Ignorieren' kann nicht geändert werden, da der Lizenz bereits "
 "Benutzer zugewiesen sind."
 
-#: umc/python/licenses/__init__.py:332
+#: umc/python/licenses/__init__.py:333
 msgid "Usage status"
 msgstr "Nutzungsstatus"
 
-#: umc/python/licenses/__init__.py:329
+#: umc/python/licenses/__init__.py:330
 msgid "Validity end"
 msgstr "Gültigkeitsende"
 
-#: umc/python/licenses/__init__.py:329
+#: umc/python/licenses/__init__.py:330
 msgid "Validity start"
 msgstr "Gültigkeitsstart"
 
-#: umc/python/licenses/__init__.py:331
+#: umc/python/licenses/__init__.py:332
 msgid "Validity status"
 msgstr "Gültigkeitsstatus"
 
-#: umc/python/licenses/__init__.py:957
+#: umc/python/licenses/__init__.py:948
 msgid "Yes"
 msgstr "Ja"
 

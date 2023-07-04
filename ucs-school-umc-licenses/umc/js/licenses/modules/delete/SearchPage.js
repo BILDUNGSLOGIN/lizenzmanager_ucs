@@ -389,11 +389,6 @@ define([
             moduleStore: store('licenseCode', 'licenses'),
             sortIndex: 11,
             addTitleOnCellHoverIfOverflow: true,
-            class: 'licensesTable__licenses',
-            gridOptions: {
-              selectionMode: 'single',
-            },
-            selectorType: 'radio',
           });
 
           this.createLicenseSearchWidget();
