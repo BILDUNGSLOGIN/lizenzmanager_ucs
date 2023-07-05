@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.3.4) unstable; urgency=medium
+
+  * Add purchasing reference to the cache file.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Wed, 05 Jul 2023 16:33:12 +0200
+
 bildungslogin-plugin (2.3.3) unstable; urgency=medium
 
   * Do not ignore the attribute entry_dn by cache building.

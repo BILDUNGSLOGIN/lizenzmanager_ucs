@@ -33,6 +33,7 @@ define([
     },
 
     afterChooseSchool: function() {
+      this.searchPage.createAfterSchoolChoose();
       if (this.state.license && this.state.license[0] !== '') {
         this.openDetailPage(this.state.license[0]);
       }
@@ -41,7 +42,7 @@ define([
     buildRendering: function() {
       this.inherited(arguments);
 
-      const searchPage = new SearchPage({
+      this.searchPage = new SearchPage({
         getSchoolId: lang.hitch(this, 'getSchoolId'),
         openDetailPage: lang.hitch(this, 'openDetailPage'),
         standbyDuring: lang.hitch(this, 'standbyDuring'),
@@ -53,7 +54,7 @@ define([
         standbyDuring: lang.hitch(this, 'standbyDuring'),
       });
 
-      this.addPage(searchPage);
+      this.addPage(this.searchPage);
       this.addPage(detailsPage);
     },
   });
