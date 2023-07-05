@@ -1,3 +1,14 @@
+ucs-school-umc-licenses (2.3.6) unstable; urgency=medium
+
+  * ET-176 Correctly display purchasing reference and validity span.
+  * ET-173 Fix translation error in export.
+  * ET-164 Keep state of the search page after page change in license delete module.
+  * ET-184 Add the select all checkbox in ucs 4.4.
+  * ET-122 Add description text to progress info in assignment module.
+  * ET-177 Relayout the product and licenses grids.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Wed, 05 Jul 2023 16:33:27 +0200
+
 ucs-school-umc-licenses (2.3.5) unstable; urgency=medium
 
   * Implemented a school based caching.
