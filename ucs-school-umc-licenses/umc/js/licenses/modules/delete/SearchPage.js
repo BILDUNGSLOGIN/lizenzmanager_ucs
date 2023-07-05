@@ -308,13 +308,13 @@ define([
           const columnsOverview = [
             {
               name: 'licenseCode',
-              label: _('License code'),
-              width: '66px',
+              label: _('LC'),
+              width: '35px',
             },
             {
               name: 'productId',
               label: _('Medium ID'),
-              width: '66px',
+              width: '155px',
               formatter: lang.hitch(this, function(value, license) {
                 if (value && value.startsWith('urn:bilo:medium:')) {
                   value = value.slice(16, value.length);
@@ -325,47 +325,55 @@ define([
             {
               name: 'productName',
               label: _('Medium'),
-              width: '150px',
+              width: '475px',
             },
             {
               name: 'publisher',
-              label: _('Publisher'),
+              label: _('PB'),
               width: '50px',
             },
             {
               name: 'licenseTypeLabel',
-              label: _('License type'),
-              width: '66px',
+              label: _('LT'),
+              width: '30px',
             },
             {
               name: 'for',
-              label: _('For'),
-              width: '66px',
+              label: _('L'),
+              width: '20px',
             },
             {
               name: 'countAquired',
-              label: _('Max. Users'),
-              width: '66px',
+              label: _('Max'),
+              width: '45px',
             },
             {
               name: 'countAssigned',
-              label: _('Assigned'),
-              width: '66px',
-            },
-            {
-              name: 'countExpired',
-              label: _('Expired'),
-              width: '66px',
+              label: _('As.'),
+              width: '45px',
             },
             {
               name: 'countAvailable',
-              label: _('Available'),
-              width: '66px',
+              label: _('Av.'),
+              width: '45px',
+            },
+            {
+              name: 'importDate',
+              label: _('Import'),
+              width: '95px',
+              formatter: lang.hitch(this, function(value, license) {
+                if (value) {
+                  value = dateLocale.format(new Date(value), {
+                    fullYear: true, selector: 'date',
+                  });
+                }
+                return value;
+              }),
             },
             {
               name: 'expiryDate',
               label: _('Expiry date'),
-              width: '100px',
+              width: '95px',
               formatter: lang.hitch(this, function(value, license) {
                 if (value) {
                   value = dateLocale.format(new Date(value), {
