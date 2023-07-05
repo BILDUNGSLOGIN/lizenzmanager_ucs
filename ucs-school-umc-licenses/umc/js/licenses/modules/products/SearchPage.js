@@ -413,60 +413,6 @@ define([
           },
         },
       ];
-      const columnsGroup = [
-        {
-          name: 'productId',
-          label: _('Medium ID'),
-          formatter: function(value) {
-            if (value && value.startsWith('urn:bilo:medium:')) {
-              value = value.slice(16, value.length);
-            }
-            return value;
-          },
-        },
-        {
-          name: 'title',
-          label: _('Medium'),
-          width: '200px',
-        },
-        {
-          name: 'publisher',
-          label: _('Publisher'),
-        },
-        {
-          name: 'countLicenses',
-          label: _('Acquired'),
-          width: 'adjust',
-        },
-        {
-          name: 'countLicensesAssigned',
-          label: _('Assigned'),
-          width: 'adjust',
-        },
-        {
-          name: 'countLicensesExpired',
-          label: _('Expired'),
-          width: 'adjust',
-        },
-        {
-          name: 'countLicensesAvailable',
-          label: _('Available'),
-          width: 'adjust',
-        },
-        {
-          name: 'latestDeliveryDate',
-          label: _('Delivery'),
-          formatter: function(value, object) {
-            if (value) {
-              value = dateLocale.format(new Date(value), {
-                fullYear: true,
-                selector: 'date',
-              });
-            }
-            return value;
-          },
-        },
-      ];
 
       this._grid = new Grid({
         actions: actions,
@@ -474,18 +420,6 @@ define([
         moduleStore: store('productId', 'licenses/products'),
         sortIndex: -8,
         addTitleOnCellHoverIfOverflow: true,
-      });
-
-      this._gridGroup = new Grid({
-        actions: actions,
-        columns: columnsGroup,
-        moduleStore: store('productId', 'licenses/products'),
-        sortIndex: -8,
-        addTitleOnCellHoverIfOverflow: true,
-        gridOptions: {
-          selectionMode: 'single',
-        },
-        selectorType: 'radio',
       });
 
       // FIXME(?) usage of private inherited variables
@@ -529,45 +463,6 @@ define([
           }),
       );
 
-      // FIXME(?) usage of private inherited variables
-      aspect.around(
-          this._gridGroup,
-          'renderRow',
-          lang.hitch(this, function(renderRow) {
-            return lang.hitch(this, function(item, options) {
-              const rowNode = renderRow.call(this._gridGroup, item, options);
-              if (item.cover) {
-                // .field-title should always exist. just to be safe
-                const tooltipTarget =
-                    query('.field-title', rowNode)[0] || rowNode;
-                on(rowNode, mouse.enter, function() {
-                  Tooltip.show(_('Loading cover...'), tooltipTarget);
-                  let showImage = true;
-                  const img = put(
-                      document.body,
-                      `img.dijitOffScreen.licensesCover[src="${item.cover}"]`,
-                  );
-                  on(img, 'load', function() {
-                    if (showImage) {
-                      const innerHTML = `<img src="${item.cover}" style="width: ${img.clientWidth}px; height: ${img.clientHeight}px">`;
-                      Tooltip.show(innerHTML, tooltipTarget);
-                    }
-                  });
-                  on(img, 'error', function() {
-                    if (showImage) {
-                      Tooltip.show(_('Cover not found'), tooltipTarget);
-                    }
-                  });
-                  on.once(rowNode, mouse.leave, function() {
-                    showImage = false;
-                    Tooltip.hide(tooltipTarget);
-                  });
-                });
-              }
-              return rowNode;
-            });
-          }),
-      );
 
       this.addChild(this._searchForm);
       this.addChild(this._excelExportForm);
