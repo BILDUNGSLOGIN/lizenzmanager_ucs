@@ -48,6 +48,7 @@ define([
   'umc/widgets/ProgressInfo',
   '../../common/LicenseSearchformMixin',
   '../../common/FormatterMixin',
+  '../../common/LicenseColumns',
   'umc/i18n!umc/modules/licenses',
   '../../../libraries/FileHelper',
   '../../../libraries/base64',
@@ -71,10 +72,11 @@ define([
     ProgressInfo,
     LicenseSearchformMixin,
     FormatterMixin,
+    LicenseColumns,
     _,
 ) {
   return declare('umc.modules.licenses.license.SearchPage',
-      [Page, LicenseSearchformMixin, FormatterMixin], {
+      [Page, LicenseSearchformMixin, FormatterMixin, LicenseColumns], {
         //// overwrites
         fullWidth: true,
 
@@ -138,21 +140,21 @@ define([
           values.licenseType = '';
         },
 
-        saveData: (function (data, fileName) {
-          var a = document.createElement("a");
-          document.body.appendChild(a);
-          a.style = "display: none";
-          return function (data, fileName) {
-              var json = JSON.stringify(data),
-                  blob = new Blob([json], {type: "octet/stream"}),
-                  url = window.URL.createObjectURL(blob);
-              a.href = url;
-              a.download = fileName;
-              a.click();
-              window.URL.revokeObjectURL(url);
-          }}
+        saveData: (function(data, fileName) {
+              var a = document.createElement('a');
+              document.body.appendChild(a);
+              a.style = 'display: none';
+              return function(data, fileName) {
+                var json = JSON.stringify(data),
+                    blob = new Blob([json], {type: 'octet/stream'}),
+                    url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                window.URL.revokeObjectURL(url);
+              };
+            }
         ),
-        
 
         exportToExcel: function(values) {
           tools.umcpCommand('licenses/export_to_excel', values).then(
@@ -207,7 +209,6 @@ define([
                 values.onlyAvailableLicenses = false;
                 values.school = this.getSchoolId();
 
-
                 if (values.licenseType == '') {
                   values.licenseType = [];
                 } else if (values.licenseType == 'SINGLE') {
@@ -236,56 +237,12 @@ define([
               this.openDetailPage(licenses[0].licenseCode);
             }),
           });
-          const columnsOverview = [
-            {
-              name: 'licenseCode', label: _('License code'), width: '66px',
-              formatter: lang.hitch(this, 'formatInvalid')
-            }, {
-              name: 'productId',
-              label: _('Medium ID'),
-              width: '66px',
-              formatter: lang.hitch(this, function(value, license) {
-                if (value && value.startsWith('urn:bilo:medium:')) {
-                  value = value.slice(16, value.length);
-                }
-                return value;
-              }),
-            }, {
-              name: 'productName', label: _('Medium'), width: '200px',
-            }, {
-              name: 'publisher', label: _('Publisher'), width: '50px',
-            }, {
-              name: 'licenseTypeLabel', label: _('License type'), width: '66px',
-            }, {
-              name: 'for', label: _('For'), width: '66px',
-            }, {
-              name: 'countAquired', label: _('Max. Users'), width: '66px',
-            }, {
-              name: 'countAssigned', label: _('Assigned'), width: '66px',
-              formatter: lang.hitch(this, 'formatActivated')
-            }, {
-              name: 'countExpired', label: _('Expired'), width: '66px',
-            }, {
-              name: 'countAvailable', label: _('Available'), width: '66px',
-            }, {
-              name: 'importDate',
-              label: _('Delivery'),
-              width: '66px',
-              formatter: lang.hitch(this, function(value, license) {
-                if (value) {
-                  value = dateLocale.format(new Date(value), {
-                    fullYear: true, selector: 'date',
-                  });
-                }
-                return value;
-              }),
-            }];
 
           this._grid = new Grid({
             actions: actions,
-            columns: columnsOverview,
+            columns: this.getColumns(),
             moduleStore: store('licenseCode', 'licenses'),
-            sortIndex: -10,
+            sortIndex: -9,
             addTitleOnCellHoverIfOverflow: true,
             class: 'licensesTable__licenses',
             gridOptions: {

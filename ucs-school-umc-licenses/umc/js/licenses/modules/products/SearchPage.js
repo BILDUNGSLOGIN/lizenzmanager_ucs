@@ -49,6 +49,7 @@ define([
   'umc/widgets/Text',
   'umc/widgets/TextBox',
   'put-selector/put',
+  '../../common/ProductColumns',
   'umc/i18n!umc/modules/licenses',
   '../../../libraries/FileHelper',
   '../../../libraries/base64',
@@ -73,9 +74,10 @@ define([
     Text,
     TextBox,
     put,
+    ProductColumns,
     _,
 ) {
-  return declare('umc.modules.licenses.product.SearchPage', [Page], {
+  return declare('umc.modules.licenses.product.SearchPage', [Page, ProductColumns], {
     //// overwrites
     fullWidth: true,
 
@@ -356,69 +358,11 @@ define([
           }),
         }];
 
-      const columns = [
-        {
-          name: 'productId',
-          label: _('Medium ID'),
-          width: '160px',
-          formatter: function(value) {
-            if (value && value.startsWith('urn:bilo:medium:')) {
-              value = value.slice(16, value.length);
-            }
-            return value;
-          },
-        },
-        {
-          name: 'title',
-          label: _('Medium'),
-          width: '200px',
-        },
-        {
-          name: 'publisher',
-          label: _('Publisher'),
-          width: '50px',
-        },
-        {
-          name: 'countAquired',
-          label: _('Max. Users'),
-          width: '93px',
-        },
-        {
-          name: 'countAssigned',
-          label: _('Assigned'),
-          width: '93px',
-        },
-        {
-          name: 'countExpired',
-          label: _('Expired'),
-          width: '93px',
-        },
-        {
-          name: 'countAvailable',
-          label: _('Available'),
-          width: '93px',
-        },
-        {
-          name: 'latestDeliveryDate',
-          label: _('Delivery'),
-          width: '153px',
-          formatter: function(value, object) {
-            if (value) {
-              value = dateLocale.format(new Date(value), {
-                fullYear: true,
-                selector: 'date',
-              });
-            }
-            return value;
-          },
-        },
-      ];
-
       this._grid = new Grid({
         actions: actions,
-        columns: columns,
+        columns: this.getColumns(),
         moduleStore: store('productId', 'licenses/products'),
-        sortIndex: -8,
+        sortIndex: -7,
         addTitleOnCellHoverIfOverflow: true,
       });
 
