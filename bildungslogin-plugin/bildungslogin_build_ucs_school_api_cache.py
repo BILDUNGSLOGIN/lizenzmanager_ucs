@@ -483,7 +483,7 @@ def transform_to_dictionary(entries):
             processed_list['metadata'].append(obj)
 
     assignments_map = get_assignment_map(processed_list['assignments'])
-    processed_list['licenses'].sort(key=lambda license: license['bildungsloginDeliveryDate'])
+    processed_list['licenses'].sort(key=lambda license: license['bildungsloginDeliveryDate'], reverse=True)
     licenses = processed_list['licenses']
     users = processed_list['users']
     groups = processed_list['classes'] + processed_list['workgroups']

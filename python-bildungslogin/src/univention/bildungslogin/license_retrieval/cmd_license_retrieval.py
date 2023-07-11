@@ -38,6 +38,7 @@ from typing import Any, Dict, List, Optional
 from . import (confirm_licenses_package, get_access_token, retrieve_licenses_package,
                save_license_package_to_json)
 from ..exceptions import AuthError, BiloServerError, LicenseSaveError, ScriptError
+from ..utils import get_proxies
 
 
 def parse_args(args=None):  # type: (Optional[List[str]]) -> argparse.Namespace
@@ -81,15 +82,16 @@ def retrieve_licenses(config, pickup_number):
     scope = config["scope"]
     auth_server = config["auth_server"]
     resource_server = config["resource_server"]
+    proxies = get_proxies()
 
     try:
-        access_token = get_access_token(client_id, client_secret, scope, auth_server)
+        access_token = get_access_token(client_id, client_secret, scope, auth_server, proxies)
     except Exception as exc:
         raise AuthError(
             "Unable to get access: {}".format(exc.message)
         )
     retrieve_response_code, license_response = \
-        retrieve_licenses_package(access_token, resource_server, pickup_number)
+        retrieve_licenses_package(access_token, resource_server, pickup_number, proxies)
     try:
         license_path = save_license_package_to_json(license_response, pickup_number)
     except Exception as exc:
@@ -97,7 +99,7 @@ def retrieve_licenses(config, pickup_number):
             "Unable to save license as a json: {}".format(exc.message)
         )
 
-    confirm_response_code = confirm_licenses_package(access_token, resource_server, pickup_number)
+    confirm_response_code = confirm_licenses_package(access_token, resource_server, pickup_number, proxies)
     if (retrieve_response_code, confirm_response_code) == (200, 409):
         raise BiloServerError("Server error: New license was already confirmed")
     return license_path, license_response['licenses']

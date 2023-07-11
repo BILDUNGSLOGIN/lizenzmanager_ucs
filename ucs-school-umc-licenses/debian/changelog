@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (2.3.8) unstable; urgency=medium
+
+  * Implement a debug button to rebuild the complete cache.
+  * Change grid columns for licenses in product module and assignment module.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 11 Jul 2023 16:53:26 +0200
+
 ucs-school-umc-licenses (2.3.7) unstable; urgency=medium
 
   * ET-175 Add unknown filter to usage status and validity status.

@@ -141,12 +141,13 @@ LICENSE_RETRIEVAL_SCHEMA = {
 }
 
 
-def get_access_token(client_id, client_secret, scope, auth_server):
-    # type: (str, str, str, str) -> str
+def get_access_token(client_id, client_secret, scope, auth_server, proxies=None):
+    # type: (str, str, str, str, dict) -> str
     response = requests.post(
         auth_server,
         data={"grant_type": "client_credentials", "scope": scope},
         auth=(client_id, client_secret),
+        proxies=proxies
     )
 
     if response.status_code != 200:
@@ -170,8 +171,8 @@ def save_license_package_to_json(license_package, pickup_number):
     return filename
 
 
-def retrieve_licenses_package(access_token, resource_server, pickup_number):
-    # type: (str, str, str) -> Tuple[int, dict]
+def retrieve_licenses_package(access_token, resource_server, pickup_number, proxies=None):
+    # type: (str, str, str, dict) -> Tuple[int, dict]
     """
     Retrieves the license package from the server by its pickup number and validates it.
     Returns the response code and retrieved JSON body in case of success.
@@ -181,6 +182,7 @@ def retrieve_licenses_package(access_token, resource_server, pickup_number):
         data={'package_id': pickup_number},
         headers={"Authorization": "Bearer " + access_token,
                  "Content-Type": "application/x-www-form-urlencoded"},
+        proxies=proxies
     )
     if r.status_code == 200 or r.status_code == 208:
         try:
@@ -198,8 +200,8 @@ def retrieve_licenses_package(access_token, resource_server, pickup_number):
     raise BiloServerError("Unknown status code: {}".format(r.status_code))
 
 
-def confirm_licenses_package(access_token, resource_server, pickup_number):
-    # type: (str, str, str) -> int
+def confirm_licenses_package(access_token, resource_server, pickup_number, proxies=None):
+    # type: (str, str, str, dict) -> int
     """
     Sends the confirmation to the server that the license package was retrieved.
     Returns the response code in case of success.
@@ -211,6 +213,7 @@ def confirm_licenses_package(access_token, resource_server, pickup_number):
             "Authorization": "Bearer " + access_token,
             "Content-Type": "application/x-www-form-urlencoded",
         },
+        proxies=proxies
     )
 
     if response.status_code in [200, 409]:

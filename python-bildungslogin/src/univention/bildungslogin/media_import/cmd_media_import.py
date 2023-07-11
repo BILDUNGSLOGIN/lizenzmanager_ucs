@@ -35,7 +35,7 @@ import sys
 from typing import Any, Dict, List, Optional
 
 from univention.admin.uldap import getAdminConnection
-
+from ..utils import get_proxies
 from ..handlers import MetaDataHandler
 from . import (
     MediaImportError,
@@ -87,8 +87,9 @@ def import_all_media_data(
     lo, client_id, client_secret, scope, auth_server, resource_server, product_ids
 ):
     # type: (Any, str, str, str, str, str, List[str]) -> None
-    access_token = get_access_token(client_id, client_secret, scope, auth_server)
-    raw_media_data = retrieve_media_data(access_token, resource_server, product_ids)
+    proxies = get_proxies()
+    access_token = get_access_token(client_id, client_secret, scope, auth_server, proxies)
+    raw_media_data = retrieve_media_data(access_token, resource_server, product_ids, proxies)
     error_message = import_multiple_raw_media_data(MetaDataHandler(lo), raw_media_data)
     if error_message:
         raise ScriptError(error_message)

@@ -36,6 +36,7 @@ from univention.bildungslogin.handlers import MetaDataHandler
 
 from . import get_access_token, retrieve_media_data, retrieve_media_feed
 from .cmd_media_import import get_config_from_file, import_multiple_raw_media_data
+from ..utils import get_proxies
 
 CONFIG_FILE = "/etc/bildungslogin/config.ini"
 UPDATE_TIMESTAMP_FILE = "/var/lib/bildungslogin/last_update"
@@ -62,10 +63,11 @@ def update_ldap_meta_data(lo):  # type: (Any) -> bool
         )
     )
     config = get_config_from_file(CONFIG_FILE)
+    proxies = get_proxies()
     access_token = get_access_token(
-        config["client_id"], config["client_secret"], config["scope"], config["auth_server"]
+        config["client_id"], config["client_secret"], config["scope"], config["auth_server"], proxies
     )
-    updated_product_ids = retrieve_media_feed(access_token, config["resource_server"], round(last_update_ts/1000))
+    updated_product_ids = retrieve_media_feed(access_token, config["resource_server"], round(last_update_ts/1000), proxies=proxies)
     print("Meta data of {} products changed on the media server.".format(len(updated_product_ids)))
     if not updated_product_ids:
         return True
