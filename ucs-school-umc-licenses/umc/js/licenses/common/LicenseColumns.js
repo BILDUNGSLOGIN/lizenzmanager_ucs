@@ -33,9 +33,10 @@ define([
       'dojo/_base/lang',
       'dojo/dom-class',
       'dojo/date/locale',
+      './FormatterMixin',
       'umc/i18n!umc/modules/licenses'],
-    function(declare, lang, domClass, dateLocale, _) {
-      return declare('umc.modules.licenses.LicenseColumns', [], {
+    function(declare, lang, domClass, dateLocale, FormatterMixin, _) {
+      return declare('umc.modules.licenses.LicenseColumns', [FormatterMixin], {
         getColumns: function() {
           return [
             {

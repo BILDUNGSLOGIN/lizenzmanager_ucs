@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-07-05 14:15+0000\n"
+"POT-Creation-Date: 2023-07-11 08:11+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -256,11 +256,11 @@ msgstr "Verfallen"
 msgid "Expiry date"
 msgstr "Ablaufdatum"
 
-#: umc/js/licenses/common/LicenseSearchformMixin.js:252
+#: umc/js/licenses/common/LicenseSearchformMixin.js:260
 msgid "Expiry date end"
 msgstr "Ende Zeitraum Ablaufdatum"
 
-#: umc/js/licenses/common/LicenseSearchformMixin.js:245
+#: umc/js/licenses/common/LicenseSearchformMixin.js:253
 msgid "Expiry date start"
 msgstr "Beginn Zeitraum Ablaufdatum"
 
@@ -289,7 +289,7 @@ msgid "Failed to assign licenses to the selected workgroup."
 msgstr "Der ausgewählten Lerngruppe konnten keine Lizenzen zugewiesen werden."
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:695
-#: umc/js/licenses/common/LicenseSearchformMixin.js:275
+#: umc/js/licenses/common/LicenseSearchformMixin.js:283
 msgid "Filters"
 msgstr "Filter"
 
@@ -713,7 +713,7 @@ msgid "Usage"
 msgstr "Nutzung"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:249
-#: umc/js/licenses/common/LicenseSearchformMixin.js:229
+#: umc/js/licenses/common/LicenseSearchformMixin.js:233
 msgid "Usage status"
 msgstr "Nutzungsstatus"
 
@@ -791,7 +791,7 @@ msgstr ""
 "Vorgang ist nicht umkehrbar!"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:170
-#: umc/js/licenses/common/LicenseSearchformMixin.js:236
+#: umc/js/licenses/common/LicenseSearchformMixin.js:244
 msgid "activated"
 msgstr "aktiviert"
 
@@ -800,7 +800,7 @@ msgid "for %(school)s"
 msgstr "für %(school)s"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:160
-#: umc/js/licenses/common/LicenseSearchformMixin.js:220
+#: umc/js/licenses/common/LicenseSearchformMixin.js:224
 msgid "invalid"
 msgstr "ungültig"
 
@@ -809,7 +809,7 @@ msgid "licenses were imported successfully"
 msgstr "Lizenzen wurden erfolgreich importiert"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:172
-#: umc/js/licenses/common/LicenseSearchformMixin.js:234
+#: umc/js/licenses/common/LicenseSearchformMixin.js:242
 msgid "not activated"
 msgstr "nicht aktiviert"
 
@@ -837,6 +837,8 @@ msgstr "unbestimmt"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:162
 #: umc/js/licenses/modules/licenses/DetailPage.js:174
+#: umc/js/licenses/common/LicenseSearchformMixin.js:221
+#: umc/js/licenses/common/LicenseSearchformMixin.js:239
 msgid "unknown"
 msgstr "unbekannt"
 
@@ -846,6 +848,6 @@ msgid "unlimited"
 msgstr "unbefristet"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:158
-#: umc/js/licenses/common/LicenseSearchformMixin.js:222
+#: umc/js/licenses/common/LicenseSearchformMixin.js:226
 msgid "valid"
 msgstr "gültig"

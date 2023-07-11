@@ -44,6 +44,7 @@ define([
   'umc/widgets/Grid',
   'umc/widgets/StandbyMixin',
   'put-selector/put',
+  '../../common/LicenseColumns',
   'umc/i18n!umc/modules/licenses',
 ], function(
     declare,
@@ -61,6 +62,7 @@ define([
     Grid,
     StandbyMixin,
     put,
+    LicenseColumns,
     _,
 ) {
   const _Table = declare(
@@ -168,206 +170,175 @@ define([
       },
   );
 
-  return declare('umc.modules.licenses.ProductDetailPage', [Page], {
-    //// overwrites
-    fullWidth: true,
+  return declare('umc.modules.licenses.ProductDetailPage',
+      [Page, LicenseColumns], {
+        //// overwrites
+        fullWidth: true,
 
-    _table: null,
-    _grid: null,
+        _table: null,
+        _grid: null,
 
-    product: null,
+        product: null,
 
-    maxUserSum: '-',
-    assignedSum: '-',
-    expiredSum: '-',
-    availableSum: '-',
+        maxUserSum: '-',
+        assignedSum: '-',
+        expiredSum: '-',
+        availableSum: '-',
 
-    _setProductAttr: function(product) {
-      this._table.set('product', product);
-      this._grid.moduleStore.setData(product.licenses);
-      this._grid.filter();
-      this._grid.resize();
-      this._set('product', product);
-    },
+        _setProductAttr: function(product) {
+          this._table.set('product', product);
+          this._grid.moduleStore.setData(product.licenses);
+          this._grid.filter();
+          this._grid.resize();
+          this._set('product', product);
+        },
 
-    load: function(productId) {
-      return this.standbyDuring(
-          tools.umcpCommand('licenses/products/get', {
-            school: this.getSchoolId(),
-            productId: productId,
-          }).then(
-              lang.hitch(this, function(response) {
-                const product = response.result;
-                this.set('product', product);
+        load: function(productId) {
+          return this.standbyDuring(
+              tools.umcpCommand('licenses/products/get', {
+                school: this.getSchoolId(),
+                productId: productId,
+              }).then(
+                  lang.hitch(this, function(response) {
+                    const product = response.result;
+                    this.set('product', product);
+                  }),
+              ),
+          );
+        },
+
+        onBack: function() {
+          // event stub
+        },
+
+        //// lifecycle
+        postMixInProperties: function() {
+          this.inherited(arguments);
+
+          this.headerButtons = [
+            {
+              name: 'close',
+              label: _('Change product'),
+              callback: lang.hitch(this, 'onBack'),
+            },
+          ];
+        },
+
+        buildRendering: function() {
+          this.inherited(arguments);
+
+          this._table = new _Table({});
+
+          const actions = [
+            {
+              name: 'edit',
+              label: _('Open license'),
+              isStandardAction: true,
+              isContextAction: true,
+              isMultiAction: false,
+              callback: lang.hitch(this, function(idxs, licenses) {
+                topic.publish(
+                    '/umc/modules/open',
+                    'licenses',
+                    'licenses/licenses',
+                    {
+                      moduleState: `school:${this.getSchoolId()}:license:${licenses[0].licenseCode}`,
+                    },
+                );
               }),
-          ),
-      );
-    },
+            },
+          ];
+          const columns = [
+            {
+              name: 'licenseCode',
+              label: _('License code'),
+              width: '138px',
+            },
+            {
+              name: 'productId',
+              label: _('Medium ID'),
+              width: '138px',
+              formatter: function(value) {
+                if (value && value.startsWith('urn:bilo:medium:')) {
+                  value = value.slice(16, value.length);
+                }
+                return value;
+              },
+            },
+            {
+              name: 'productName',
+              label: _('Medium'),
+              width: '200px',
+            },
+            {
+              name: 'publisher',
+              label: _('Publisher'),
+              width: '50px',
+            },
+            {
+              name: 'licenseTypeLabel',
+              label: _('License type'),
+              width: '138px',
+            },
+            {
+              name: 'countAquired',
+              label: _('Max. Users'),
+              width: '60px',
+            },
+            {
+              name: 'countAssigned',
+              label: _('Assigned'),
+              width: '60px',
+            },
+            {
+              name: 'countExpired',
+              label: _('Expired'),
+              width: '60px',
+            },
+            {
+              name: 'countAvailable',
+              label: _('Available'),
+              width: '60px',
+            },
+            {
+              name: 'importDate',
+              label: _('Delivery'),
+              width: '138px',
+              formatter: function(value, object) {
+                if (value) {
+                  value = dateLocale.format(new Date(value), {
+                    fullYear: true,
+                    selector: 'date',
+                  });
+                }
+                return value;
+              },
+            },
+          ];
 
-    onBack: function() {
-      // event stub
-    },
+          this._grid = new Grid({
+            actions: actions,
+            columns: this.getColumns(),
+            class: 'licensesTable__licenses',
+            moduleStore: new Observable(
+                new Memory({
+                  data: [],
+                  idProperty: 'licenseCode',
+                }),
+            ),
+            addTitleOnCellHoverIfOverflow: true,
+            gridOptions: {
+              selectionMode: 'single',
+            },
+            selectorType: 'radio',
+          });
 
-    //// lifecycle
-    postMixInProperties: function() {
-      this.inherited(arguments);
+          this.addChild(this._table);
+          this.addChild(this._grid);
+        },
 
-      this.headerButtons = [
-        {
-          name: 'close',
-          label: _('Change product'),
-          callback: lang.hitch(this, 'onBack'),
+        _onShow: function() {
+          this._grid.filter();
         },
-      ];
-    },
-
-    buildRendering: function() {
-      this.inherited(arguments);
-
-      this._table = new _Table({});
-
-      const actions = [
-        {
-          name: 'edit',
-          label: _('Open license'),
-          isStandardAction: true,
-          isContextAction: true,
-          isMultiAction: false,
-          callback: lang.hitch(this, function(idxs, licenses) {
-            topic.publish(
-                '/umc/modules/open',
-                'licenses',
-                'licenses/licenses',
-                {
-                  moduleState: `school:${this.getSchoolId()}:license:${licenses[0].licenseCode}`,
-                },
-            );
-          }),
-        },
-      ];
-      const columns = [
-        {
-          name: 'licenseCode',
-          label: _('License code'),
-          width: '138px',
-        },
-        {
-          name: 'productId',
-          label: _('Medium ID'),
-          width: '138px',
-          formatter: function(value) {
-            if (value && value.startsWith('urn:bilo:medium:')) {
-              value = value.slice(16, value.length);
-            }
-            return value;
-          },
-        },
-        {
-          name: 'productName',
-          label: _('Medium'),
-          width: '200px',
-        },
-        {
-          name: 'publisher',
-          label: _('Publisher'),
-          width: '50px',
-        },
-        {
-          name: 'licenseTypeLabel',
-          label: _('License type'),
-          width: '138px',
-        },
-        {
-          name: 'countAquired',
-          label: _('Max. Users'),
-          width: '60px',
-        },
-        {
-          name: 'countAssigned',
-          label: _('Assigned'),
-          width: '60px',
-        },
-        {
-          name: 'countExpired',
-          label: _('Expired'),
-          width: '60px',
-        },
-        {
-          name: 'countAvailable',
-          label: _('Available'),
-          width: '60px',
-        },
-        {
-          name: 'importDate',
-          label: _('Delivery'),
-          width: '138px',
-          formatter: function(value, object) {
-            if (value) {
-              value = dateLocale.format(new Date(value), {
-                fullYear: true,
-                selector: 'date',
-              });
-            }
-            return value;
-          },
-        },
-      ];
-
-      const columnsFooter = [
-        {
-          name: 'sum',
-          label: _('Sum'),
-          width: '724px',
-          sortable: false,
-        },
-        {
-          name: 'maxUser',
-          label: this.maxUserSum, // TODO: fill real value
-          width: '60px',
-          sortable: false,
-        },
-        {
-          name: 'assigned',
-          label: this.assignedSum, // TODO: fill real value
-          width: '60px',
-          sortable: false,
-        },
-        {
-          name: 'expired',
-          label: this.expiredSum, // TODO: fill real value
-          width: '60px',
-          sortable: false,
-        },
-        {
-          name: 'available',
-          label: this.availableSum, // TODO: fill real value
-          width: '176px',
-          sortable: false,
-        },
-      ];
-      this._grid = new Grid({
-        actions: actions,
-        columns: columns,
-        class: 'licensesTable__licenses',
-        moduleStore: new Observable(
-            new Memory({
-              data: [],
-              idProperty: 'licenseCode',
-            }),
-        ),
-        addTitleOnCellHoverIfOverflow: true,
-        gridOptions: {
-          selectionMode: 'single',
-        },
-        selectorType: 'radio',
       });
-
-      this.addChild(this._table);
-      this.addChild(this._grid);
-    },
-
-    _onShow: function() {
-      this._grid.filter();
-    },
-  });
 });
