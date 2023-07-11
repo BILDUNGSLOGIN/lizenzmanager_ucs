@@ -83,6 +83,7 @@ define([
     standbyDuring: null, // required parameter
     schoolId: null, // required parameter
     showChangeSchoolButton: false,
+    showDebug: false,
 
     _grid: null,
     _form: null,
@@ -163,7 +164,25 @@ define([
 
     cacheRebuild: function() {
       tools.umcpCommand('licenses/cache/rebuild', {
-        school: this.getSchoolId()
+        school: this.getSchoolId(),
+      }).then(
+          lang.hitch(this, function(response) {
+            const res = response.result;
+            if (res.errorMessage) {
+              dialog.alert(result.errorMessage);
+            } else {
+              if (res.status === 1) {
+                dialog.alert(_('Started cache update.'));
+              } else if (res.status === 2) {
+                dialog.alert(_('Cache update already running.'));
+              }
+            }
+          }),
+      );
+    },
+    cacheRebuildDebug: function() {
+      tools.umcpCommand('licenses/cache/rebuild/debug', {
+        school: this.getSchoolId(),
       }).then(
           lang.hitch(this, function(response) {
             const res = response.result;
@@ -211,6 +230,63 @@ define([
             } catch (e) {}
           }),
       );
+    },
+    getCacheStatusDebug: function(msecs = null) {
+      tools.umcpCommand('licenses/cache/status/debug', {}).then(
+          lang.hitch(this, function(response) {
+            try {
+              const result = response.result;
+              if (result.errorMessage) {
+                dialog.alert(result.errorMessage);
+              } else {
+                this._cache_form.getWidget('last_cache_build').
+                    set('content',
+                        _('Cache last updated:') + ' ' + result.time);
+                if (result.status == true) {
+                  this._cache_form.getWidget('cache_build_status').
+                      set('content',
+                          _('Cache update status:') + ' ' + _('Updating'));
+                  this._cache_form.getButton('submit').set('disabled', true);
+                } else {
+                  this._cache_form.getWidget('cache_build_status').
+                      set('content',
+                          _('Cache update status:') + ' ' + _('Finished'));
+                  this._cache_form.getButton('submit').set('disabled', false);
+                }
+              }
+              if (msecs) {
+                window.setTimeout(lang.hitch(this, function() {
+                  this.getCacheStatusDebug(msecs);
+                }), msecs);
+              }
+            } catch (e) {}
+          }),
+      );
+    },
+    addDebug: function() {
+      this._cache_debug_form = new Form({
+        widgets: [],
+        buttons: [
+          {
+            name: 'submit',
+            label: _('Update all cache'),
+          },
+        ],
+      });
+
+      this._cache_debug_form.on(
+          'submit',
+          lang.hitch(this, function() {
+            this.cacheRebuildDebug();
+            this.getCacheStatus();
+          }),
+      );
+
+      this.addChild(this._cache_debug_form);
+      this.addChild(new Text({
+        'content': _(
+            'This is a debug button enabled by ucr variable bildungslogin/debug.'),
+      }));
     },
 
     //// lifecycle
@@ -305,6 +381,13 @@ define([
         'content': _(
             'This button is also used to update the cache after creating/deleting users or study groups.'),
       }));
+
+      tools.ucr('bildungslogin/debug').
+          then(lang.hitch(this, function(data) {
+            if (data['bildungslogin/debug'] === 'true') {
+              this.addDebug();
+            }
+          }));
     },
   });
 });
