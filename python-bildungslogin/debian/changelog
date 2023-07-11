@@ -1,3 +1,9 @@
+python-bildungslogin (2.3.4) unstable; urgency=medium
+
+  * Implement forward proxy support.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 11 Jul 2023 17:23:22 +0200
+
 python-bildungslogin (2.3.3) unstable; urgency=medium
 
   * Correctly add the license_status_update namespace to the debian package.
