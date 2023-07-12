@@ -31,7 +31,7 @@
 from ldap.filter import escape_filter_chars
 
 from univention.lib.i18n import Translation
-from univention.config_registry import ucr_factory
+from univention.config_registry.backend import ConfigRegistry
 
 _ = Translation("python-bildungslogin").translate
 
@@ -50,7 +50,9 @@ def ldap_escape(value, allow_asterisks=True):
 
 
 def get_proxies():
-    ucr = ucr_factory()
+    ucr = ConfigRegistry()
+    ucr.load()
+
     http_proxy = ucr.get('proxy/http')
     https_proxy = ucr.get('proxy/https')
     if http_proxy is None and https_proxy is None:
@@ -62,5 +64,4 @@ def get_proxies():
 
     if https_proxy:
         proxies.update({'https': https_proxy})
-
     return proxies

@@ -1,3 +1,9 @@
+python-bildungslogin (2.3.5) unstable; urgency=medium
+
+  * Fix an issue with the library for common bildungslogin functions in ucs 4.4.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Wed, 12 Jul 2023 15:04:23 +0200
+
 python-bildungslogin (2.3.4) unstable; urgency=medium
 
   * Implement forward proxy support.
