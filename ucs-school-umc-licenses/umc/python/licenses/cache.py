@@ -817,6 +817,14 @@ class LdapRepository:
                 if group:
                     for member_uid in group.memberUid:
                         user = self.get_user(member_uid)
+                        user_roles = []
+
+                        for role in user.ucsschoolRole:
+                            user_roles.append(role.split(':')[0])
+
+                        if license.bildungsloginLicenseSpecialType == "Lehrkraft" and "teacher" not in user_roles:
+                            continue
+
                         users.append({
                             'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
                             'username': user.userId,
@@ -832,6 +840,14 @@ class LdapRepository:
                 _users = self._get_users_by_school(
                     self.get_school_by_uuid(assignment.bildungsloginAssignmentAssignee).ou)
                 for user in _users:
+                    user_roles = []
+
+                    for role in user.ucsschoolRole:
+                        user_roles.append(role.split(':')[0])
+
+                    if license.bildungsloginLicenseSpecialType == "Lehrkraft" and "teacher" not in user_roles:
+                        continue
+
                     users.append({
                         'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
                         'username': user.userId,
