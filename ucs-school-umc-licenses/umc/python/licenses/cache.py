@@ -260,7 +260,7 @@ class LdapRepository:
     _metadata = None  # type: List[LdapMetaData]
     _licenses = None  # type: List[LdapLicense]
     _schools = None  # type: List[LdapSchool]
-    _current_school = None 
+    _current_school = None
 
     def __init__(self):
         self._timestamp = None
@@ -377,7 +377,6 @@ class LdapRepository:
 
         for assignment_object_to_delete in assignment_object_to_deletes:
             self._assignments.remove(assignment_object_to_delete)
-
 
     def get_license_by_uuid(self, uuid):
         # type: (str) -> LdapLicense
@@ -1043,3 +1042,11 @@ class LdapRepository:
             license_file = self._get_license_cache_file(_license.entryUUID)
             json.dump(to_save, license_file)
             license_file.close()
+
+    def cache_date(self):
+        if self._current_school:
+            return datetime.fromtimestamp(
+                os.stat(JSON_DIR + 'schools/' + self._current_school + '/cache.json').st_mtime).strftime(
+                '%d.%m.%Y %H:%M:%S')
+        else:
+            return ''

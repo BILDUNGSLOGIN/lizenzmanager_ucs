@@ -1078,11 +1078,13 @@ class Instance(SchoolBaseModule):
                 {'status': 2}
             )
 
+    @sanitize(school=SchoolSanitizer(required=True))
     def cache_status(self, request):
+        self.repository.update(request.options.get("school"))
         self.finished(
             request.id,
             {
-                'time': datetime.fromtimestamp(os.stat(JSON_PATH).st_mtime).strftime('%d.%m.%Y %H:%M:%S'),
+                'time': self.repository.cache_date(),
                 'status': self._cache_is_running()
             }
         )
