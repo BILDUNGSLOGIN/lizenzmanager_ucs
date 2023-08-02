@@ -1107,7 +1107,7 @@ class Instance(SchoolBaseModule):
         })
 
     def cache_rebuild_debug(self, request):
-        if not self._cache_is_running() and ucr('bildungslogin/debug') == 'true':
+        if not self._cache_is_running() and ucr.get('bildungslogin/debug') == 'true':
             Popen(['python ' + CACHE_BUILD_SCRIPT], shell=True, stdout=None)
             self.finished(
                 request.id,
