@@ -145,9 +145,10 @@ define([
 
     onChooseDifferentWorkgroup: function(workingGroupId) {
       const classWidget = this._searchForm.getWidget('class');
+      const workgroupWidget = this._searchForm.getWidget('workgroup');
       if (this.selectedLicenseType === 'WORKGROUP')
         this.setButtonDisabled(
-            this.isButtonDisabled(classWidget, workingGroupId),
+            this.isButtonDisabled(classWidget, workgroupWidget),
         );
 
       //clear existing notification
@@ -166,8 +167,9 @@ define([
 
     onChooseDifferentClass: function(classId) {
       const workgroupWidget = this._searchForm.getWidget('workgroup');
+      const classWidget = this._searchForm.getWidget('class');
       if (this.selectedLicenseType === 'WORKGROUP')
-        this.setButtonDisabled(this.isButtonDisabled(workgroupWidget, classId));
+        this.setButtonDisabled(this.isButtonDisabled(workgroupWidget, classWidget));
 
       //clear existing notification
       this.toogleNotification('');
@@ -226,7 +228,8 @@ define([
 
     isButtonDisabled: function(schoolClass, workgroup) {
       isDisabled = false;
-      if (schoolClass === '__all__' && workgroup === '__all__') {
+      console.log([schoolClass.value, workgroup.value]);
+      if (schoolClass.value === '__all__' && workgroup.value === '__all__') {
         isDisabled = true;
       }
       return isDisabled;
@@ -331,7 +334,7 @@ define([
             name: 'submit',
             label: _('Next'),
             visible: true,
-            disable: false,
+            disable: true,
           },
         ],
         layout: [
