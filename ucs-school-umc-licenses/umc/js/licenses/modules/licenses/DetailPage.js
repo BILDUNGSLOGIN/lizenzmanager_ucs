@@ -314,7 +314,6 @@ define([
               lang.hitch(this, function(response) {
                 const license = response.result;
                 this.set('license', license);
-                console.log(license);
                 return license.licenseCode;
               }),
           ),
