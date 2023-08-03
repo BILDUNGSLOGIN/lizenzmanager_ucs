@@ -36,11 +36,12 @@ define([
 
     chooseSchool: function(school, hasMultiple) {
       this.school = school;
-      this.multipleSchools = hasMultiple;
       this.setSchoolLabel(school.label);
       this.nextPage();
       this.updateState('school', [school.id]);
-      this._headerButtons.changeSchool.set('visible', true);
+      if (hasMultiple) {
+        this._headerButtons.changeSchool.set('visible', true);
+      }
       this.afterChooseSchool();
     },
 

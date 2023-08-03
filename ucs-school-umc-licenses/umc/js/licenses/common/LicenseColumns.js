@@ -66,7 +66,7 @@ define([
               name: 'countAssigned', label: _('As.'), width: '45px',
               formatter: lang.hitch(this, 'formatActivated'),
             }, {
-              name: 'countAvailable', label: _('Av.'), width: '45px',
+              name: 'countAvailable', label: _('Free'), width: '45px',
             }, {
               name: 'importDate',
               label: _('Import'),

@@ -196,7 +196,7 @@ class Instance(SchoolBaseModule):
                     _license.bildungsloginValidityEndDate) if _license.bildungsloginValidityEndDate else None,
                 "countAquired": undefined_if_none(_license.quantity, zero_as_none=True),
                 "countAssigned": undefined_if_none(_license.quantity_assigned),
-                "countAvailable": undefined_if_none(_license.quantity_available),
+                "countAvailable": str(undefined_if_none(None if _license.quantity == 0 else _license.quantity_available)),
                 "countExpired": undefined_if_none(_license.quantity_expired),
                 "usageStatus": _license.bildungsloginUsageStatus,
                 "expiryDate": optional_date2str(_license.bildungsloginExpiryDate),
@@ -876,7 +876,6 @@ class Instance(SchoolBaseModule):
                         meta_datum_obj.bildungsloginProductId,
                         meta_datum_obj.bildungsloginMetaDataTitle,
                         meta_datum_obj.bildungsloginMetaDataPublisher,
-                        meta_datum_obj.bildungsloginMetaDataCoverSmall or meta_datum_obj.bildungsloginMetaDataCover,
                         undefined_if_none(sum_quantity),
                         sum_num_assigned,
                         undefined_if_none(sum_num_expired),
@@ -894,7 +893,7 @@ class Instance(SchoolBaseModule):
         workbook = Workbook('/tmp/' + filename)
         worksheet = workbook.add_worksheet()
 
-        columns = [_('Medium ID'), _('Medium'), _('Publisher'), _('Cover'), _('Maximal number of users'), _('Assigned'),
+        columns = [_('Medium ID'), _('Medium'), _('Publisher'), _('Maximal number of users'), _('Assigned'),
                    _('Expired'),
                    _('Available'),
                    _('Import date'), _('Number of Licenses'), _('Number of assigned licenses'),
@@ -950,7 +949,7 @@ class Instance(SchoolBaseModule):
                     str(undefined_if_none(None if license.quantity == 0 else license.quantity)),
                 "countAssigned": str(license.quantity_assigned),
                 "countAvailable":
-                    str(undefined_if_none(license.quantity_available)),
+                    str(undefined_if_none(None if license.quantity == 0 else license.quantity_available)),
                 "countExpired":
                     str(undefined_if_none(license.quantity_expired)),
                 "importDate": iso8601Date.from_datetime(license.bildungsloginDeliveryDate),
@@ -1078,11 +1077,13 @@ class Instance(SchoolBaseModule):
                 {'status': 2}
             )
 
+    @sanitize(school=SchoolSanitizer(required=True))
     def cache_status(self, request):
+        self.repository.update(request.options.get("school"))
         self.finished(
             request.id,
             {
-                'time': datetime.fromtimestamp(os.stat(JSON_PATH).st_mtime).strftime('%d.%m.%Y %H:%M:%S'),
+                'time': self.repository.cache_date(),
                 'status': self._cache_is_running()
             }
         )
@@ -1105,7 +1106,7 @@ class Instance(SchoolBaseModule):
         })
 
     def cache_rebuild_debug(self, request):
-        if not self._cache_is_running() and ucr('bildungslogin/debug') == 'true':
+        if not self._cache_is_running() and ucr.get('bildungslogin/debug') == 'true':
             Popen(['python ' + CACHE_BUILD_SCRIPT], shell=True, stdout=None)
             self.finished(
                 request.id,

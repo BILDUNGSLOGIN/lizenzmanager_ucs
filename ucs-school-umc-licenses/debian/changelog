@@ -1,3 +1,17 @@
+ucs-school-umc-licenses (2.3.9) unstable; urgency=medium
+
+  * ET-210 Return undefined of available licenses if max count ist undefined.
+  * ET-161 Avoid overlapping of table header by page change.
+  * ET-209 Delete not needed column product cover.
+  * ET-200 Avoid a bug in the translation file converter of univention.
+  * ET-201 Use widget values instead of comparing objects to strings.
+  * ET-202 Filter user from detail page if they can't use the license.
+  * ET-204 Use the method of the ucr object correctly.
+  * ET-198 Hide button choose school page when where is only one school to choose.
+  * ET-208 Rename the column available to free to avoid confusion in the abbreviation.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 03 Aug 2023 12:17:55 +0200
+
 ucs-school-umc-licenses (2.3.8) unstable; urgency=medium
 
   * Implement a debug button to rebuild the complete cache.

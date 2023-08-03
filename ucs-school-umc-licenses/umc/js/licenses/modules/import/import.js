@@ -104,26 +104,6 @@ define([
       );
     },
 
-    onBack: function() {
-      // event stub
-    },
-
-    onProductChosen: function() {
-      // event stub
-    },
-
-    onChangeUsers: function() {
-      // event stub
-    },
-
-    onChooseDifferentSchool: function() {
-      // event stub
-    },
-
-    onShowProduct: function(productId) {
-      // event stub
-    },
-
     importSuccessful: function(res) {
       const importRes = `<div>${res.licenses.length} ${_(
           'licenses were imported successfully')}.</div>`;
@@ -198,38 +178,46 @@ define([
           }),
       );
     },
+
+    afterPageChange: function() {
+      this.getCacheStatus();
+    },
+
     // with msecs: repeat every msecs, without msecs: call only once.
     getCacheStatus: function(msecs = null) {
-      tools.umcpCommand('licenses/cache/status', {}).then(
-          lang.hitch(this, function(response) {
-            try {
-              const result = response.result;
-              if (result.errorMessage) {
-                dialog.alert(result.errorMessage);
-              } else {
-                this._cache_form.getWidget('last_cache_build').
-                    set('content',
-                        _('Cache last updated:') + ' ' + result.time);
-                if (result.status == true) {
-                  this._cache_form.getWidget('cache_build_status').
-                      set('content',
-                          _('Cache update status:') + ' ' + _('Updating'));
-                  this._cache_form.getButton('submit').set('disabled', true);
+      if (this.getSchoolId()) {
+        tools.umcpCommand('licenses/cache/status', {
+          school: this.getSchoolId(),
+        }).then(
+            lang.hitch(this, function(response) {
+              try {
+                const result = response.result;
+                if (result.errorMessage) {
+                  dialog.alert(result.errorMessage);
                 } else {
-                  this._cache_form.getWidget('cache_build_status').
+                  this._cache_form.getWidget('last_cache_build').
                       set('content',
-                          _('Cache update status:') + ' ' + _('Finished'));
-                  this._cache_form.getButton('submit').set('disabled', false);
+                          _('Cache last updated:') + ' ' + result.time);
+                  if (result.status == true) {
+                    this._cache_form.getWidget('cache_build_status').
+                        set('content',
+                            _('Cache update status:') + ' ' + _('Updating'));
+                    this._cache_form.getButton('submit').set('disabled', true);
+                    window.setTimeout(lang.hitch(this, function() {
+                      this.getCacheStatus(10000);
+                    }), msecs);
+                  } else {
+                    this._cache_form.getWidget('cache_build_status').
+                        set('content',
+                            _('Cache update status:') + ' ' + _('Finished'));
+                    this._cache_form.getButton('submit').set('disabled', false);
+                  }
                 }
-              }
-              if (msecs) {
-                window.setTimeout(lang.hitch(this, function() {
-                  this.getCacheStatus(msecs);
-                }), msecs);
-              }
-            } catch (e) {}
-          }),
-      );
+
+              } catch (e) {}
+            }),
+        );
+      }
     },
     getCacheStatusDebug: function(msecs = null) {
       tools.umcpCommand('licenses/cache/status/debug', {}).then(
@@ -364,8 +352,6 @@ define([
             this.getCacheStatus();
           }),
       );
-
-      this.getCacheStatus(10000);
 
       this.addChild(this._form);
       this.addChild(new Text({

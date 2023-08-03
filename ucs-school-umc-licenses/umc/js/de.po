@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-07-11 15:17+0000\n"
+"POT-Creation-Date: 2023-08-03 06:49+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -18,7 +18,7 @@ msgstr ""
 msgid "%d licenses selected"
 msgstr "%d Lizenzen ausgewählt"
 
-#: umc/js/licenses/modules/import/import.js:373
+#: umc/js/licenses/modules/import/import.js:359
 msgid ""
 "After importing new licenses, an update via the \"Update cache\" button is "
 "also required."
@@ -26,7 +26,7 @@ msgstr ""
 "Nach dem Import neuer Lizenzen ist zusätzlich eine Aktualisierung über die "
 "Schaltfläche “Cache aktualisieren” erforderlich."
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:274
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:280
 msgid "All classes"
 msgstr "Alle Klassen"
 
@@ -38,7 +38,7 @@ msgstr ""
 "Alle ausgewählten Benutzer haben bereits die angeforderte Lizenz. Deshalb "
 "wurde keine Zuweisung ausgeführt."
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:256
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:262
 msgid "All workgroups"
 msgstr "Alle Lerngruppen"
 
@@ -125,7 +125,6 @@ msgstr "Autor"
 
 #: umc/js/licenses/modules/delete/SearchPage.js:357
 #: umc/js/licenses/common/ProductColumns.js:74
-#: umc/js/licenses/common/LicenseColumns.js:69
 msgid "Av."
 msgstr "Verf."
 
@@ -140,22 +139,62 @@ msgstr "Verfügbar"
 msgid "Back"
 msgstr "Zurück"
 
-#: umc/js/licenses/modules/import/import.js:212
-#: umc/js/licenses/modules/import/import.js:244
-#: umc/js/licenses/modules/import/import.js:344
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:65
+msgid ""
+"By assigning a learning group license, all members of a class or learning "
+"group (up to the specified maximum number, if applicable) are granted usage "
+"rights via a license code. If a new member joins the class or learning group "
+"during the license term, he or she will automatically also gain the usage "
+"authority for the relevant medium. If a member leaves the class or learning "
+"group, he or she automatically loses the usage authorization.\n"
+"A learning group license can only be assigned once and cannot be released "
+"again."
+msgstr ""
+"Durch Zuweisung einer Lerngruppenlizenz wird über einen Lizenzcode allen "
+"Mitgliedern einer Klasse oder Lerngruppe (ggf. bis zur angegebenen "
+"Maximalzahl) eine Nutzungsberechtigung erteilt. Wenn während der "
+"Lizenzlaufzeit ein neues Mitglied in die Klasse oder Lerngruppe kommt, "
+"erhält es automatisch auch eine Nutzungsberechtigung für das betreffende "
+"Medium. Verlässt ein Mitglied die Klasse oder Lerngruppe, verliert es "
+"automatisch die Nutzungsberechtigung.\n"
+"Eine Lerngruppenlizenz kann nur einmal zugewiesen und nicht wieder gelöst "
+"werden."
+
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:67
+msgid ""
+"By assigning a school license, a license code is issued to all students and "
+"teaching staff of a school staff (up to the specified maximum number, if "
+"applicable). In the case of a special school license for teachers, the usage "
+"authorization applies only to the teaching staff. Anyone who joins the "
+"school during the term of the license is automatically also granted a right "
+"to use the relevant medium.\n"
+"A school license can only be assigned once and cannot be released again."
+msgstr ""
+"Durch Zuweisung einer Schullizenz wird mit einem Lizenzcode allen "
+"Schülerinnen und Schülern einer Schule sowie allen Lehrkräften (ggf. bis zur "
+"angegebenen Maximalzahl) eine Nutzungsberechtigung erteilt. Bei einer Schul-"
+"Sonderlizenz für Lehrkräfte gilt die Nutzungsberechtigung nur für das "
+"Lehrpersonal. Wer während der Laufzeit der Lizenz an die Schule kommt, "
+"erhält automatisch auch eine Nutzungsberechtigung für das betreffende "
+"Medium.\n"
+"Eine Schullizenz kann nur einmal zugewiesen und nicht wieder gelöst werden."
+
+#: umc/js/licenses/modules/import/import.js:200
+#: umc/js/licenses/modules/import/import.js:232
+#: umc/js/licenses/modules/import/import.js:332
 msgid "Cache last updated:"
 msgstr "Cache zuletzt aktualisiert:"
 
-#: umc/js/licenses/modules/import/import.js:177
-#: umc/js/licenses/modules/import/import.js:195
+#: umc/js/licenses/modules/import/import.js:157
+#: umc/js/licenses/modules/import/import.js:175
 msgid "Cache update already running."
 msgstr "Cache-Aktualisierung läuft bereits."
 
-#: umc/js/licenses/modules/import/import.js:216
-#: umc/js/licenses/modules/import/import.js:221
-#: umc/js/licenses/modules/import/import.js:248
-#: umc/js/licenses/modules/import/import.js:253
-#: umc/js/licenses/modules/import/import.js:349
+#: umc/js/licenses/modules/import/import.js:204
+#: umc/js/licenses/modules/import/import.js:212
+#: umc/js/licenses/modules/import/import.js:236
+#: umc/js/licenses/modules/import/import.js:241
+#: umc/js/licenses/modules/import/import.js:337
 msgid "Cache update status:"
 msgstr "Cache-Aktualisierungsstatus:"
 
@@ -171,8 +210,8 @@ msgstr "Medium ändern"
 msgid "Change product"
 msgstr "Produkt ändern"
 
-#: umc/js/licenses/modules/import/import.js:299
-#: umc/js/licenses/common/Module.js:134
+#: umc/js/licenses/modules/import/import.js:287
+#: umc/js/licenses/common/Module.js:135
 msgid "Change school"
 msgstr "Schule wechseln"
 
@@ -195,8 +234,8 @@ msgstr "Wählen Sie die Lizenzen, die Sie zuweisen möchten."
 msgid "Choose the medium for which you want to assign licenses."
 msgstr "Wählen Sie das Medium, für das Sie Lizenzen zuweisen möchten."
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:279
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:395
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:285
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:401
 #: umc/js/licenses/modules/licenses/DetailPage.js:459
 msgid "Class"
 msgstr "Klasse"
@@ -297,18 +336,22 @@ msgstr "Der ausgewählten Lerngruppe konnten keine Lizenzen zugewiesen werden."
 msgid "Filters"
 msgstr "Filter"
 
-#: umc/js/licenses/modules/import/import.js:221
-#: umc/js/licenses/modules/import/import.js:253
+#: umc/js/licenses/modules/import/import.js:212
+#: umc/js/licenses/modules/import/import.js:241
 msgid "Finished"
 msgstr "Fertig"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:387
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:393
 msgid "First name"
 msgstr "Vorname"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1011
 msgid "For"
 msgstr "Für"
+
+#: umc/js/licenses/common/LicenseColumns.js:69
+msgid "Free"
+msgstr "Frei"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:225
 msgid "Ignore"
@@ -320,9 +363,28 @@ msgstr "Ignorieren"
 msgid "Import"
 msgstr "Importiert"
 
-#: umc/js/licenses/modules/import/import.js:325
+#: umc/js/licenses/modules/import/import.js:313
 msgid "Import licences"
 msgstr "Lizenzen importieren"
+
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:64
+msgid ""
+"In the case of single licenses, each license has its own license code. This "
+"can only be assigned once in order to give a person authorization to use a "
+"medium.In the case of volume licenses, multiple licenses are associated with "
+"one license code. I.e. the license code can be assigned several times (up to "
+"the specified maximum number) in order to grant usage rights for a medium to "
+"a corresponding number of persons. The assignment itself can also be divided "
+"into several cases."
+msgstr ""
+"Bei einer Einzellizenz hat jede Lizenz einen eigenen Lizenzcode. Dieser kann "
+"nur einmal zugewiesen werden, um einer Person eine Nutzungsberechtigung für "
+"ein Medium zu erteilen.\n"
+"Bei einer Volumenlizenz sind mit einem Lizenzcode mehrere Lizenzen "
+"verbunden. D.h. der Lizenzcode kann (bis zur angegebenen Maximalzahl) "
+"mehrmals zugewiesen werden, um einer entsprechenden Anzahl von Personen "
+"Nutzungsberechtigungen für ein Medium zu erteilen. Die Zuweisung kann auch "
+"aufgeteilt in mehreren Durchgängen erfolgen."
 
 #: umc/js/licenses/modules/delete/SearchPage.js:342
 #: umc/js/licenses/common/LicenseColumns.js:62
@@ -339,11 +401,11 @@ msgstr "LC"
 msgid "LT"
 msgstr "LT"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:383
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:389
 msgid "Last name"
 msgstr "Nachname"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:75
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:79
 msgid "Learning Group Licences"
 msgstr "Lerngruppenlizenz"
 
@@ -356,7 +418,7 @@ msgstr "Lerngruppenlizenz"
 msgid "License code"
 msgstr "Lizenzcode"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:293
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:299
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:600
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:968
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1009
@@ -447,7 +509,7 @@ msgstr "Medium"
 msgid "Medium ID"
 msgstr "Medien ID"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:332
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:338
 #: umc/js/licenses/common/ChooseSchoolPage.js:100
 msgid "Next"
 msgstr "Weiter"
@@ -464,7 +526,7 @@ msgstr "Keine Zuweisung nötig"
 msgid "No cover available"
 msgstr "Kein Bild verfügbar"
 
-#: umc/js/licenses/modules/import/import.js:137
+#: umc/js/licenses/modules/import/import.js:117
 msgid "Ok"
 msgstr "Ok"
 
@@ -487,11 +549,11 @@ msgstr "Lizenz öffnen"
 msgid "PB"
 msgstr "VG"
 
-#: umc/js/licenses/modules/import/import.js:315
+#: umc/js/licenses/modules/import/import.js:303
 msgid "Pick-up number for licence data package"
 msgstr "Abholnummer für Lizenzdatenpaket"
 
-#: umc/js/licenses/modules/import/import.js:318
+#: umc/js/licenses/modules/import/import.js:306
 msgid ""
 "Please enter the collection number for the licence data package you wish to "
 "import. You received the collection number at the end of the purchase "
@@ -527,7 +589,7 @@ msgstr "Referenz"
 msgid "Remove assignment"
 msgstr "Zuweisung entfernen"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:391
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:397
 msgid "Role"
 msgstr "Rolle"
 
@@ -544,11 +606,11 @@ msgstr "Speichern"
 msgid "School"
 msgstr "Schule"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:80
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:83
 msgid "School Licences"
 msgstr "Schullizenz"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:302
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:308
 #: umc/js/licenses/modules/delete/SearchPage.js:153
 #: umc/js/licenses/common/LicenseSearchformMixin.js:105
 msgid "School license"
@@ -573,18 +635,18 @@ msgstr "Lizenzierte Medien durchsuchen"
 msgid "Search licenses"
 msgstr "Lizenzen suchen"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:317
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:323
 msgid "Search user"
 msgstr "Nutzer suchen"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:281
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:287
 msgid "Select a class or enter free text (e.g. a part of a class name)"
 msgstr ""
 "Wählen Sie eine Klasse oder geben Sie einen freien Text ein (z. B. einen "
 "Teil eines Klassennamens)"
 
 # ：umc/is/licenses/UserSelectionPage.js:221
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:263
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:269
 msgid "Select a workgroup or enter free text (e.g. a part of a workgroup name)"
 msgstr ""
 "Wählen Sie eine Lerngruppe oder geben Sie einen freien Text ein (z. B. einen "
@@ -594,7 +656,7 @@ msgstr ""
 msgid "Show details"
 msgstr "Details anzeigen"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:70
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:75
 msgid "Single and Volume Licences"
 msgstr "Einzel- und Volumenlizenz"
 
@@ -604,7 +666,7 @@ msgstr "Einzel- und Volumenlizenz"
 msgid "Single license"
 msgstr "Einzellizenz"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:295
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:301
 msgid "Single- / Volumelicense"
 msgstr "Einzel- / Volumenlizenz"
 
@@ -622,8 +684,8 @@ msgstr "Sonderlizenz"
 msgid "Start import period"
 msgstr "Beginn Zeitraum Import"
 
-#: umc/js/licenses/modules/import/import.js:175
-#: umc/js/licenses/modules/import/import.js:193
+#: umc/js/licenses/modules/import/import.js:155
+#: umc/js/licenses/modules/import/import.js:173
 msgid "Started cache update."
 msgstr "Cache-Aktualisierung gestartet."
 
@@ -671,7 +733,7 @@ msgstr ""
 msgid "There are unsaved changes. Are you sure to cancel?"
 msgstr "Einige Änderungen sind noch nicht gespeichert. Möchten Sie abbrechen?"
 
-#: umc/js/licenses/modules/import/import.js:382
+#: umc/js/licenses/modules/import/import.js:368
 msgid ""
 "This button is also used to update the cache after creating/deleting users "
 "or study groups."
@@ -679,11 +741,11 @@ msgstr ""
 "Dieser Button dient auch zur Aktualisierung des Cache nach dem Anlegen/"
 "Löschen von Benutzern oder Lerngruppen."
 
-#: umc/js/licenses/modules/import/import.js:288
+#: umc/js/licenses/modules/import/import.js:276
 msgid "This is a debug button enabled by ucr variable bildungslogin/debug."
 msgstr ""
 
-#: umc/js/licenses/modules/import/import.js:377
+#: umc/js/licenses/modules/import/import.js:363
 msgid ""
 "This process can take a long time if you have a large number of licenses."
 msgstr ""
@@ -702,20 +764,20 @@ msgstr "Zur Lizenzübersicht"
 msgid "To license selection"
 msgstr "Zur Lizenzauswahl"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:367
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:373
 msgid "To media selection"
 msgstr "Zur Medienauswahl"
 
-#: umc/js/licenses/modules/import/import.js:272
+#: umc/js/licenses/modules/import/import.js:260
 msgid "Update all cache"
 msgstr "Allen Cache aktualisieren"
 
-#: umc/js/licenses/modules/import/import.js:355
+#: umc/js/licenses/modules/import/import.js:343
 msgid "Update cache"
 msgstr "Cache aktualisieren"
 
-#: umc/js/licenses/modules/import/import.js:216
-#: umc/js/licenses/modules/import/import.js:248
+#: umc/js/licenses/modules/import/import.js:204
+#: umc/js/licenses/modules/import/import.js:236
 msgid "Updating"
 msgstr "Aktualisierung läuft"
 
@@ -728,7 +790,7 @@ msgstr "Nutzung"
 msgid "Usage status"
 msgstr "Nutzungsstatus"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:316
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:322
 #: umc/js/licenses/modules/licenses/DetailPage.js:451
 msgid "User"
 msgstr "Nutzer"
@@ -738,7 +800,7 @@ msgstr "Nutzer"
 msgid "User ID"
 msgstr "Nutzer ID"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:379
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:385
 msgid "Username"
 msgstr "Benutzername"
 
@@ -780,13 +842,13 @@ msgstr ""
 "Warnung: Die Gültigkeit für die folgenden zugewiesenen Lizenzen liegt in der "
 "Zukunft:"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:261
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:399
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:267
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:405
 #: umc/js/licenses/modules/licenses/DetailPage.js:463
 msgid "Workgroup"
 msgstr "Lerngruppe"
 
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:298
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:304
 #: umc/js/licenses/modules/delete/SearchPage.js:149
 #: umc/js/licenses/common/LicenseSearchformMixin.js:102
 msgid "Workgroup license"
@@ -815,7 +877,7 @@ msgstr "für %(school)s"
 msgid "invalid"
 msgstr "ungültig"
 
-#: umc/js/licenses/modules/import/import.js:129
+#: umc/js/licenses/modules/import/import.js:109
 msgid "licenses were imported successfully"
 msgstr "Lizenzen wurden erfolgreich importiert"
 

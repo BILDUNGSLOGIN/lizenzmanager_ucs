@@ -133,13 +133,12 @@ class LdapRepository:
         self._timestamp = file_time
 
     def count_objects(self):
-        return len(self._users.keys()) + len(self._workgroups) + len(self._licenses.keys()) + len(
-            self._assignments) + len(
+        return len(self._users) + len(self._workgroups) + len(self._licenses) + len(self._assignments) + len(
             self._schools) + len(self._classes)
 
     def _clear(self):
-        self._users: Dict[str] = {}
-        self._licenses: Dict[str] = {}
+        self._users: List[LdapUser] = []
+        self._licenses: List[LdapLicense] = []
         self._assignments: List[LdapAssignment] = []
         self._schools: List[LdapSchool] = []
         self._workgroups: List[LdapGroup] = []
@@ -147,15 +146,13 @@ class LdapRepository:
 
     def _process_entries(self, entries: Dict):
         for entry in entries['users']:
-            self._users.update(
-                {entry['uid'].lower(): LdapUser(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
-                                                entry['uid'], entry['givenName'],
-                                                entry['sn'], entry['ucsschoolSchool'], entry['ucsschoolRole'])})
+            self._users.append(
+                LdapUser(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['uid'], entry['givenName'],
+                         entry['sn'], entry['ucsschoolSchool'], entry['ucsschoolRole']))
         for entry in entries['licenses']:
-            self._licenses.update(
-                {entry['entry_dn']: LdapLicense(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
-                                                entry['bildungsloginLicenseCode'],
-                                                entry['bildungsloginLicenseSpecialType'])})
+            self._licenses.append(LdapLicense(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
+                                              entry['bildungsloginLicenseCode'],
+                                              entry['bildungsloginLicenseSpecialType']))
         for entry in entries['assignments']:
             if 'bildungsloginAssignmentAssignee' in entry:
                 self._assignments.append(
@@ -172,7 +169,10 @@ class LdapRepository:
                                            entry['memberUid']))
 
     def get_user(self, userid: str) -> LdapUser | None:
-        return self._users.get(userid.lower())
+        for user in self._users:
+            if hasattr(user, 'uid') and user.uid.lower() == userid.lower():
+                return user
+        return None
 
     def get_assignments_by_assignee(self, assignee: Entry) -> List[LdapAssignment]:
         assignments = []
@@ -184,7 +184,10 @@ class LdapRepository:
         return assignments
 
     def get_license_by_assignment(self, assignment: LdapAssignment) -> LdapLicense | None:
-        return self._licenses.get(assignment.entry_dn.split(',', 1)[1])
+        for _license in self._licenses:
+            if _license.entry_dn in assignment.entry_dn:
+                return _license
+        return None
 
     def get_school(self, name: str) -> LdapSchool | None:
         for school in self._schools:

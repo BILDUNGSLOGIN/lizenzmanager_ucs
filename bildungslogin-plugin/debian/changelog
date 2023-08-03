@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.3.7) unstable; urgency=medium
+
+  * Revert untested "ET-205 Optimize performance through use of dictionaries instead of lists." for the next release.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 03 Aug 2023 12:17:08 +0200
+
 bildungslogin-plugin (2.3.6) unstable; urgency=medium
 
   * ET-205 Optimize performance through use of dictionaries instead of lists.
