@@ -196,7 +196,7 @@ class Instance(SchoolBaseModule):
                     _license.bildungsloginValidityEndDate) if _license.bildungsloginValidityEndDate else None,
                 "countAquired": undefined_if_none(_license.quantity, zero_as_none=True),
                 "countAssigned": undefined_if_none(_license.quantity_assigned),
-                "countAvailable": undefined_if_none(_license.quantity_available),
+                "countAvailable": str(undefined_if_none(None if _license.quantity == 0 else _license.quantity_available)),
                 "countExpired": undefined_if_none(_license.quantity_expired),
                 "usageStatus": _license.bildungsloginUsageStatus,
                 "expiryDate": optional_date2str(_license.bildungsloginExpiryDate),
@@ -949,7 +949,7 @@ class Instance(SchoolBaseModule):
                     str(undefined_if_none(None if license.quantity == 0 else license.quantity)),
                 "countAssigned": str(license.quantity_assigned),
                 "countAvailable":
-                    str(undefined_if_none(license.quantity_available)),
+                    str(undefined_if_none(None if license.quantity == 0 else license.quantity_available)),
                 "countExpired":
                     str(undefined_if_none(license.quantity_expired)),
                 "importDate": iso8601Date.from_datetime(license.bildungsloginDeliveryDate),
