@@ -61,6 +61,11 @@ define([
     _TemplatedMixin,
     _,
 ) {
+  const single_desc = _("In the case of single licenses, each license has its own license code. This can only be assigned once in order to give a person authorization to use a medium.In the case of volume licenses, multiple licenses are associated with one license code. I.e. the license code can be assigned several times (up to the specified maximum number) in order to grant usage rights for a medium to a corresponding number of persons. The assignment itself can also be divided into several cases.");
+  const group_desc = _("By assigning a learning group license, all members of a class or learning group (up to the specified maximum number, if applicable) are granted usage rights via a license code. If a new member joins the class or learning group during the license term, he or she will automatically also gain the usage authority for the relevant medium. If a member leaves the class or learning group, he or she automatically loses the usage authorization.\n" +
+      "A learning group license can only be assigned once and cannot be released again.");
+  const school_desc = _("By assigning a school license, a license code is issued to all students and teaching staff of a school staff (up to the specified maximum number, if applicable). In the case of a special school license for teachers, the usage authorization applies only to the teaching staff. Anyone who joins the school during the term of the license is automatically also granted a right to use the relevant medium.\n" +
+      "A school license can only be assigned once and cannot be released again.");
   const _Description = declare('umc.modules.licenses.Description',
       [_WidgetBase, _TemplatedMixin], {
         //// overwrites
@@ -68,18 +73,15 @@ define([
 <div class="description-columns">
     <div class="description-col">
     <h5>${_('Single and Volume Licences')}</h5>
-    ${_('In the case of single licenses, each license has its own license code. This can only be assigned once in order to give a person authorization to use a medium.' +
-            'In the case of volume licenses, multiple licenses are associated with one license code. I.e. the license code can be assigned several times (up to the specified maximum number) in order to grant usage rights for a medium to a corresponding number of persons. The assignment itself can also be divided into several cases.')}
+    ${single_desc}
     </div class="description-col">
     <div class="description-col">
     <h5>${_('Learning Group Licences')}</h5>
-    ${_('By assigning a learning group license, all members of a class or learning group (up to the specified maximum number, if applicable) are granted usage rights via a license code. If a new member joins the class or learning group during the license term, he or she will automatically also gain the usage authority for the relevant medium. If a member leaves the class or learning group, he or she automatically loses the usage authorization.\n' +
-            'A learning group license can only be assigned once and cannot be released again.')}
+    ${group_desc}
     </div class="description-col">
     <div class="description-col">
     <h5>${_('School Licences')}</h5>
-    ${_('By assigning a school license, a license code is issued to all students and teaching staff of a school staff (up to the specified maximum number, if applicable). In the case of a special school license for teachers, the usage authorization applies only to the teaching staff. Anyone who joins the school during the term of the license is automatically also granted a right to use the relevant medium.\n' +
-            'A school license can only be assigned once and cannot be released again.')}
+    ${school_desc}
     </div class="description-col">
 </div>
 		`,
@@ -169,7 +171,8 @@ define([
       const workgroupWidget = this._searchForm.getWidget('workgroup');
       const classWidget = this._searchForm.getWidget('class');
       if (this.selectedLicenseType === 'WORKGROUP')
-        this.setButtonDisabled(this.isButtonDisabled(workgroupWidget, classWidget));
+        this.setButtonDisabled(
+            this.isButtonDisabled(workgroupWidget, classWidget));
 
       //clear existing notification
       this.toogleNotification('');
@@ -348,9 +351,9 @@ define([
               break;
             case 'WORKGROUP':
               let className =
-                this._searchForm.getWidget("class").displayedValue;
+                  this._searchForm.getWidget('class').displayedValue;
               let workgroupName =
-                this._searchForm.getWidget("workgroup").displayedValue;
+                  this._searchForm.getWidget('workgroup').displayedValue;
 
               if (values.class !== '__all__') {
                 this.setGroup(values.class, className, 'schoolClass');
