@@ -231,7 +231,6 @@ define([
 
     isButtonDisabled: function(schoolClass, workgroup) {
       isDisabled = false;
-      console.log([schoolClass.value, workgroup.value]);
       if (schoolClass.value === '__all__' && workgroup.value === '__all__') {
         isDisabled = true;
       }
