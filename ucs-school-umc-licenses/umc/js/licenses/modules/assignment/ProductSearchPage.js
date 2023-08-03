@@ -223,7 +223,7 @@ define([
             let label = '';
 
               label = `<div>${entities.encode(
-                  this.getGroup(),
+                  this.getGroupName(),
               )}</div>`;
 
             Tooltip.show(label, node);
