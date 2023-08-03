@@ -876,7 +876,6 @@ class Instance(SchoolBaseModule):
                         meta_datum_obj.bildungsloginProductId,
                         meta_datum_obj.bildungsloginMetaDataTitle,
                         meta_datum_obj.bildungsloginMetaDataPublisher,
-                        meta_datum_obj.bildungsloginMetaDataCoverSmall or meta_datum_obj.bildungsloginMetaDataCover,
                         undefined_if_none(sum_quantity),
                         sum_num_assigned,
                         undefined_if_none(sum_num_expired),
@@ -894,7 +893,7 @@ class Instance(SchoolBaseModule):
         workbook = Workbook('/tmp/' + filename)
         worksheet = workbook.add_worksheet()
 
-        columns = [_('Medium ID'), _('Medium'), _('Publisher'), _('Cover'), _('Maximal number of users'), _('Assigned'),
+        columns = [_('Medium ID'), _('Medium'), _('Publisher'), _('Maximal number of users'), _('Assigned'),
                    _('Expired'),
                    _('Available'),
                    _('Import date'), _('Number of Licenses'), _('Number of assigned licenses'),
