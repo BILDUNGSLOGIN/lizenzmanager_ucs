@@ -44,6 +44,8 @@ import logging
 import os
 import re
 
+from univention.management.console.config import ucr
+
 logger = logging.getLogger(__name__)
 entry_dn_pattern = re.compile(".*dc=.*")
 
@@ -77,7 +79,9 @@ SCHOOL = PARSER.parse_args().school
 if SCHOOL:
     SEARCH_FILTER = ''.join([
         '(|',
-        '(&(uid=*)(ucsschoolSchool=' + SCHOOL + '))',
+        '(&(uid=*)(ucsschoolSchool=' + SCHOOL + ')',
+        '(!(shadowExpire=1))' if ucr.get('bildungslogin/use-deactivated-users') != 'true' else '',
+        ')',
         '(objectClass=bildungsloginAssignment)',
         '(&(objectClass=bildungsloginLicense)(bildungsloginLicenseSchool=' + SCHOOL + '))',
         '(objectClass=bildungsloginMetaData)',
@@ -88,7 +92,9 @@ if SCHOOL:
 else:
     SEARCH_FILTER = ''.join([
         '(|',
-        '(&(uid=*)(ucsschoolSchool=*))',
+        '(&(uid=*)(ucsschoolSchool=*)',
+        '(!(shadowExpire=1))' if ucr.get('bildungslogin/use-deactivated-users') != 'true' else '',
+        ')',
         '(objectClass=bildungsloginAssignment)',
         '(objectClass=bildungsloginLicense)',
         '(objectClass=bildungsloginMetaData)',
