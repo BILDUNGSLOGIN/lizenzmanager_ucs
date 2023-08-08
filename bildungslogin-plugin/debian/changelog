@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.3.9) unstable; urgency=medium
+
+  * ET-220 Only use active users except if it is configured otherwise.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 08 Aug 2023 12:11:05 +0200
+
 bildungslogin-plugin (2.3.8) unstable; urgency=medium
 
   * ET-205 Optimize performance through use of dictionaries instead of lists.
