@@ -21,3 +21,9 @@ Description[en]=A cron interval to get updates for license stati. See `man 5 cro
 Description[de]=Ein Cron Intervall um Lizenzstati updates zu laden. Siehe `man 5 crontab` für weitere Hilfe zur Syntax. Der Paket-Standard ist '0 2 * * *'.
 Type=str
 Categories=bildungslogin
+
+[bildungslogin/use-deactivated-users]
+Description[en]=Set to 'true' if you want assign licenses to deactivated users. The package default is 'false'.
+Description[de]=Setze den Wert auf 'true', wenn Lizenzen auch deaktivierten Nutzern zugewiesen werden können. Der Paket-Standard ist 'false.
+Type=str
+Categories=bildungslogin

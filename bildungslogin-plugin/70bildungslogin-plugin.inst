@@ -29,7 +29,7 @@
 
 ## joinscript api: bindpwdfile
 
-VERSION=7
+VERSION=8
 
 . /usr/share/univention-lib/all.sh
 . /usr/share/univention-join/joinscripthelper.lib
@@ -173,6 +173,7 @@ ucsschool_api_cache_build_and_init_ucr_vars() {
     ucr set bildungslogin/refresh-cache?'after-rebuild'
     ucr set bildungslogin/get-metadata?'0 4 * * *'
     ucr set bildungslogin/update-license-status?'0 2 * * *'
+    ucr set bildungslogin/use-deactivated-users?'false'
 }
 
 restart_ucsschool_apis_app() {
