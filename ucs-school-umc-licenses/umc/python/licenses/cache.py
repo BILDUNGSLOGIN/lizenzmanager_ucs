@@ -909,13 +909,12 @@ class LdapRepository:
                 {'license': license,
                  'assignments': assignments})
 
-        licenses_to_use = (
-            license
-            for license in licenses_assignments
-            for _ in range(license['license'].quantity_available)
-        )
-
         if object_type == ObjectType.USER:
+            licenses_to_use = (
+                license
+                for license in licenses_assignments
+                for _ in range(license['license'].quantity_available)
+            )
             for object_name in object_names:
                 license = licenses_to_use.next()
                 user = self.get_user(object_name)
@@ -927,6 +926,11 @@ class LdapRepository:
                 self.cache_single_license(license['license'], license['assignments'])
 
         elif object_type == ObjectType.GROUP:
+            licenses_to_use = (
+                license
+                for license in licenses_assignments
+                for _ in range(license['license'].is_available)
+            )
             for object_name in object_names:
                 group = self.get_group_by_name(object_name)
                 if group:
@@ -944,6 +948,11 @@ class LdapRepository:
                     MODULE.error("Couldn't find the group in cache.")
 
         elif object_type == ObjectType.SCHOOL:
+            licenses_to_use = (
+                license
+                for license in licenses_assignments
+                for _ in range(license['license'].is_available)
+            )
             for object_name in object_names:
                 license = licenses_to_use.next()
                 school = self.get_school(object_name)
