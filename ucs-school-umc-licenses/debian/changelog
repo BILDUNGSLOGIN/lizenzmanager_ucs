@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.3.10) unstable; urgency=medium
+
+  * ET-210 Catch an error if a school license is unlimited and is assigned.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 10 Aug 2023 10:20:48 +0200
+
 ucs-school-umc-licenses (2.3.9) unstable; urgency=medium
 
   * ET-210 Return undefined of available licenses if max count ist undefined.
