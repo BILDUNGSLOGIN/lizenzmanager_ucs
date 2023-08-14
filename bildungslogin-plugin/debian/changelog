@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.3.10) unstable; urgency=medium
+
+  * ET-21 Now removing the correct join status on uninstall.
+
+ -- Frank Greif <greif@univention.de>  Mon, 14 Aug 2023 18:49:47 +0200
+
 bildungslogin-plugin (2.3.9) unstable; urgency=medium
 
   * ET-220 Only use active users except if it is configured otherwise.
