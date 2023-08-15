@@ -1,3 +1,9 @@
+udm-bildungslogin (2.3.4) unstable; urgency=medium
+
+  * ET-21 Now really removing package from join status on uninstall.
+
+ -- Frank Greif <greif@univention.de>  Mon, 14 Aug 2023 18:49:29 +0200
+
 udm-bildungslogin (2.3.3) unstable; urgency=medium
 
   * ET-171 Add new states unknown to usage status and validity status.

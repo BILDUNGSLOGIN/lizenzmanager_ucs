@@ -56,6 +56,6 @@ univention-directory-manager users/user modify "$@" \
 	--dn "uid=$API_ACCESS_USER,cn=users,$(ucr get ldap/base)" \
 	--set disabled='1'
 
-joinscript_remove_script_from_status_file bildungslogin-plugin-openapi-client
+joinscript_remove_script_from_status_file bildungslogin-plugin
 
 exit 0

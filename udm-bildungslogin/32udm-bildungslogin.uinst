@@ -49,6 +49,6 @@ ucs_unregisterLDAPExtension "$@" --udm_module bildungslogin/license || die
 
 echo "Metadata, license and assignment data has not been deleted."
 
-joinscript_remove_script_from_status_file
+joinscript_remove_script_from_status_file udm-bildungslogin
 
 exit 0
