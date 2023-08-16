@@ -367,6 +367,8 @@ def transform_to_dictionary(entries):
         'metadata': [],
     }
 
+    logger.debug("Starting converting ldap objects to json compatible dictionary.")
+
     for (entry_dn, dict_entry) in entries:
         obj = {
             'entryUUID': str(dict_entry['entryUUID'][0]),
@@ -487,6 +489,7 @@ def transform_to_dictionary(entries):
                     dict_entry['bildungsloginMetaDataCover'][0])
 
             processed_list['metadata'].append(obj)
+    logger.debug("Finished converting ldap objects to json compatible dictionary.")
 
     assignments_map = get_assignment_map(processed_list['assignments'])
     processed_list['licenses'].sort(key=lambda license: license['bildungsloginDeliveryDate'], reverse=True)
@@ -536,14 +539,17 @@ assignments_map = {}
 
 def get_assignment_map(assignments):
     if len(assignments_map) > 0:
+        logger.debug("Using already existing lookup up dictionary for license to assignment.")
         return assignments_map
     else:
+        logger.debug("Starting generating lookup up dictionary for license to assignment.")
         for assignment in assignments:
             license_dn = assignment['entry_dn'].split(',', 1)[1]
             if license_dn in assignments_map:
                 assignments_map[license_dn].append(assignment)
             else:
                 assignments_map.update({license_dn: [assignment]})
+        logger.debug("Finished generating lookup up dictionary for license to assignment.")
     return assignments_map
 
 
@@ -572,6 +578,7 @@ def get_products_from_licenses(dictionary):
 
 
 def filter_dictionary_by_school(dictionary, school):
+    logger.debug("Starting filtering objects for school: " + school)
     processed_list = {
         'users': [],
         'schools': [],
@@ -603,7 +610,7 @@ def filter_dictionary_by_school(dictionary, school):
     for _class in dictionary.get('classes', []):
         if str(_class.get('entry_dn')).find(school) >= 0:
             processed_list['classes'].append(_class)
-
+    logger.debug("Finished filtering objects for school: " + school)
     return processed_list
 
 
@@ -648,7 +655,7 @@ def store_api_cache(filtered_dict, cache_file):
                          'memberUid',
                          'bildungsloginAssignmentAssignee',
                          'bildungsloginAssignmentStatus']
-
+    logger.debug("Starting filtering objects for api.")
     for license in filtered_dict['licenses']:
         new_license = {}
         for key, value in license.iteritems():
@@ -656,7 +663,7 @@ def store_api_cache(filtered_dict, cache_file):
                 new_license.update({key: value})
         filtered_dict['licenses'][filtered_dict['licenses'].index(license)] = new_license
         del license
-
+    logger.debug("Finished filtering objects for api.")
     del filtered_dict['metadata']
 
     tmp_filepath = cache_file + '~'
@@ -744,6 +751,7 @@ def main(cache_file, school):
                 filter_dictionary_by_school(dictionary, _school.get('ou')),
                 _school.get('ou')
             )
+            logger.debug("Finished cache write for school: " + _school.get('ou'))
             for (dirpath, dirnames, filenames) in os.walk(JSON_DIR + 'schools/' + _school.get('ou') + '/'):
                 for filename in filenames:
                     regex = re.compile('license-.*json')
@@ -752,6 +760,7 @@ def main(cache_file, school):
                 break
 
         store_api_cache(dictionary, cache_file)
+        logger.debug("Finished cache write for api.")
 
     for (dirpath, dirnames, filenames) in os.walk(JSON_DIR):
         for filename in filenames:

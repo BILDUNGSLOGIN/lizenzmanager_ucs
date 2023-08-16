@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.3.11) unstable; urgency=medium
+
+  * Implement more debug messages in build cache script.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Wed, 16 Aug 2023 11:07:31 +0200
+
 bildungslogin-plugin (2.3.10) unstable; urgency=medium
 
   * ET-21 Now removing the correct join status on uninstall.
