@@ -514,6 +514,7 @@ def transform_to_dictionary(entries):
                             add_user_to_license(_license, user)
                         else:
                             _license['quantity_assigned'] += 1
+                            logger.debug("Didn't found user for uuid: " + assignment['bildungsloginAssignmentAssignee'])
 
                     elif _license['bildungsloginLicenseType'] == 'WORKGROUP':
                         for group in groups:
