@@ -43,6 +43,7 @@ import json
 import logging
 import os
 import re
+import time
 
 from univention.management.console.config import ucr
 
@@ -656,13 +657,9 @@ def store_api_cache(filtered_dict, cache_file):
                          'bildungsloginAssignmentAssignee',
                          'bildungsloginAssignmentStatus']
     logger.debug("Starting filtering objects for api.")
-    for license in filtered_dict['licenses']:
-        new_license = {}
-        for key, value in license.iteritems():
-            if key in needed_attributes:
-                new_license.update({key: value})
-        filtered_dict['licenses'][filtered_dict['licenses'].index(license)] = new_license
-        del license
+    for index, license in enumerate(filtered_dict['licenses']):
+        license = {key: value for key, value in license.iteritems() if key in needed_attributes}
+        filtered_dict['licenses'][index] = license
     logger.debug("Finished filtering objects for api.")
     del filtered_dict['metadata']
 
