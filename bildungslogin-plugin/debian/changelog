@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.3.12) unstable; urgency=medium
+
+  * Use a better way to filter the license dictionaries.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 17 Aug 2023 11:06:29 +0200
+
 bildungslogin-plugin (2.3.11) unstable; urgency=medium
 
   * Implement more debug messages in build cache script.
