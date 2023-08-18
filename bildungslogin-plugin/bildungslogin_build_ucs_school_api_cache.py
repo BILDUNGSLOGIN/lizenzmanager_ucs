@@ -43,7 +43,6 @@ import json
 import logging
 import os
 import re
-import time
 
 from univention.management.console.config import ucr
 
@@ -493,11 +492,17 @@ def transform_to_dictionary(entries):
     logger.debug("Finished converting ldap objects to json compatible dictionary.")
 
     assignments_map = get_assignment_map(processed_list['assignments'])
+
     processed_list['licenses'].sort(key=lambda license: license['bildungsloginDeliveryDate'], reverse=True)
     licenses = processed_list['licenses']
     users = processed_list['users']
     groups = processed_list['classes'] + processed_list['workgroups']
     schools = processed_list['schools']
+
+    users_uid_map = get_users_uid_map(users)
+    users_uuid_map = get_users_uuid_map(users)
+
+    processed_licenses = 0
 
     for _license in licenses:
         if _license['entry_dn'] in assignments_map:
@@ -505,11 +510,7 @@ def transform_to_dictionary(entries):
             for assignment in assignments:
                 if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
                     if _license['bildungsloginLicenseType'] in ['SINGLE', 'VOLUME']:
-                        user = False
-                        for _user in users:
-                            if _user['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
-                                user = _user
-                                break
+                        user = users_uuid_map.get(assignment['bildungsloginAssignmentAssignee'])
                         if user:
                             add_user_to_license(_license, user)
                         else:
@@ -519,11 +520,12 @@ def transform_to_dictionary(entries):
                     elif _license['bildungsloginLicenseType'] == 'WORKGROUP':
                         for group in groups:
                             if group['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
-                                for user in users:
-                                    if user['uid'] in group['memberUid']:
+                                for uid in group['memberUid']:
+                                    user = users_uid_map.get(uid)
+                                    if user:
                                         add_user_to_license(_license, user)
                                         _license['groups'].append(group['entry_dn'])
-                                break
+
                     elif _license['bildungsloginLicenseType'] == 'SCHOOL':
                         for school in schools:
                             if school['entryUUID'] == assignment['bildungsloginAssignmentAssignee']:
@@ -532,6 +534,9 @@ def transform_to_dictionary(entries):
                                         add_user_to_license(_license, user)
                     else:
                         raise RuntimeError("Unknown license type: {}".format(_license['bildungsloginLicenseType']))
+        processed_licenses += 1
+        if not processed_licenses % 1000:
+            logger.debug('Processed ' + str(processed_licenses))
 
     return processed_list
 
@@ -553,6 +558,36 @@ def get_assignment_map(assignments):
                 assignments_map.update({license_dn: [assignment]})
         logger.debug("Finished generating lookup up dictionary for license to assignment.")
     return assignments_map
+
+
+users_uuid_map = {}
+
+
+def get_users_uuid_map(users):
+    if len(assignments_map) > 0:
+        logger.debug("Using already existing lookup up dictionary for assignment to user.")
+        return users_uuid_map
+    else:
+        logger.debug("Starting generating lookup up dictionary for assignment to user.")
+        for user in users:
+            users_uuid_map.update({user['entryUUID']: user})
+
+    return users_uuid_map
+
+
+users_uid_map = {}
+
+
+def get_users_uid_map(users):
+    if len(assignments_map) > 0:
+        logger.debug("Using already existing lookup up dictionary for group to user.")
+        return users_uid_map
+    else:
+        logger.debug("Starting generating lookup up dictionary for group to user.")
+        for user in users:
+            users_uid_map.update({user['uid']: user})
+
+    return users_uid_map
 
 
 def add_user_to_license(_license, user):

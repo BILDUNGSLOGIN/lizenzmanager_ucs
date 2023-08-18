@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.3.13) unstable; urgency=medium
+
+  * Use dictionaries in cache building to allow for faster user look ups.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 18 Aug 2023 14:28:59 +0200
+
 bildungslogin-plugin (2.3.12) unstable; urgency=medium
 
   * Use a better way to filter the license dictionaries.
