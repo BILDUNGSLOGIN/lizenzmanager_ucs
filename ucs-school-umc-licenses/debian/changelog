@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.3.11) unstable; urgency=medium
+
+  * ET-224 Only count the licenses and not their availability, because it could be infinite.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 21 Aug 2023 13:45:30 +0200
+
 ucs-school-umc-licenses (2.3.10) unstable; urgency=medium
 
   * ET-210 Catch an error if a school license is unlimited and is assigned.
