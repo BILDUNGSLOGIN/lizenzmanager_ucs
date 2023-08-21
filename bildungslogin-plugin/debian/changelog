@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.3.14) unstable; urgency=medium
+
+  * Bugfix for the dictionary generation in build cache script.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 21 Aug 2023 13:17:33 +0200
+
 bildungslogin-plugin (2.3.13) unstable; urgency=medium
 
   * Use dictionaries in cache building to allow for faster user look ups.
