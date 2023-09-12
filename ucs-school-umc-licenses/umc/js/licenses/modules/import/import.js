@@ -116,7 +116,6 @@ define([
         {
           label: _('Ok'),
           default: true,
-          callback: lang.hitch(this, 'onBack'),
         },
       ]);
       this._form.clearFormValues();
