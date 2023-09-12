@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (2.3.12) unstable; urgency=medium
+
+  * ET-228 Delete not defined and unused callback to repair the success popup.
+  * ET-231 Set the status of running cache rebuild already when it should rebuild and not after the server confirmed it.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 12 Sep 2023 15:27:43 +0200
+
 ucs-school-umc-licenses (2.3.11) unstable; urgency=medium
 
   * ET-224 Only count the licenses and not their availability, because it could be infinite.
