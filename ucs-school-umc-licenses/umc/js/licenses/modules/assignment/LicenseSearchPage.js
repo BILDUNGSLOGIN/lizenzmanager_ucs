@@ -270,7 +270,7 @@ define([
             _licenses_selected: function() {
               var counted = 0;
               this._grid.getSelectedItems().forEach(function(item) {
-                counted++;
+                counted += parseInt(item['countAvailable']);
               });
               return counted;
             },

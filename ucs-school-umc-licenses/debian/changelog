@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.3.13) unstable; urgency=medium
+
+  * Fix: Repair the license count logic in frontend to be compatible with backend.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 18 Sep 2023 09:47:09 +0200
+
 ucs-school-umc-licenses (2.3.12) unstable; urgency=medium
 
   * ET-228 Delete not defined and unused callback to repair the success popup.
