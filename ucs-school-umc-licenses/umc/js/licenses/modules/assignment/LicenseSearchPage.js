@@ -108,6 +108,14 @@ define([
                 _wrap_assign: function (umcp_function, args, chunksize = 1) {
 
                     this._wrap_assign_deferred = new Deferred();    // do this first
+                    // Make a progress bar
+                    this._wrap_assign_progress = new ProgressInfo();
+
+                    this._wrap_assign_progress.update(
+                                0,
+                                _('Licenses are being processed. Please have a little patience.'));
+                    this.standbyDuring(this._wrap_assign_deferred,
+                                this._wrap_assign_progress);
 
                     var arg_to_split = 'usernames';     // currently only for users
                     var usernames = args[arg_to_split]; // requested users. Will be replaced soon...
@@ -159,23 +167,12 @@ define([
                             this._wrap_assign_progress = null;	// so the _wrap_assign_handler knows it should
                             // NOT set percentage info and show the simple spinner instead
                             this._wrap_assign_handler();
-                            this.standbyDuring(this._wrap_assign_deferred);
                         } else {
-                            // Make a progress bar
-                            this._wrap_assign_progress = new ProgressInfo(
-                                {maximum: usernames.length});
                             // umc.web's Progressinfo discards all constructor arguments, even 'maximum' :-(
                             this._wrap_assign_progress._progressBar.set('maximum',
                                 usernames.length);
 
-                            this._wrap_assign_progress.update(
-                                0,
-                                _('Licenses are being processed. Please have a little patience.'));
-
                             this._wrap_assign_handler();
-
-                            this.standbyDuring(this._wrap_assign_deferred,
-                                this._wrap_assign_progress);
                         }
                     }));        // FIXME make an error handler that will resolve the deferred with an error message
 
