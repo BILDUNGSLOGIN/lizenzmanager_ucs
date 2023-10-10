@@ -938,7 +938,7 @@ class Instance(SchoolBaseModule):
                 "licenseCode": license.bildungsloginLicenseCode,
                 "productId": meta_data.bildungsloginProductId,
                 "productName": meta_data.bildungsloginMetaDataTitle,
-                "publisher": meta_data.bildungsloginMetaDataAuthor,
+                "publisher": license.publisher,
                 "licenseTypeLabel": LicenseType.label(license.bildungsloginLicenseType),
                 "validityStart": optional_date2str(license.bildungsloginValidityStartDate),
                 "validityEnd": optional_date2str(license.bildungsloginValidityEndDate),
