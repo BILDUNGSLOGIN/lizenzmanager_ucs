@@ -164,6 +164,12 @@ class LdapLicense:
             return self.quantity_assigned == 0 and not self.is_expired
         return False
 
+    @property
+    def is_group_type(self):
+        if self.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]:
+            return False
+        return True
+
     def get_cache_dictionary(self):
         return {
             'entryUUID': self.entryUUID,

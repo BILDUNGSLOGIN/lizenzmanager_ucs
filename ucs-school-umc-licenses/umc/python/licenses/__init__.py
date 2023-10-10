@@ -775,6 +775,9 @@ class Instance(SchoolBaseModule):
                     if license.is_expired:
                         sum_num_expired += license.quantity_expired
                     else:
+                        if license.is_group_type and license.quantity_available == 0:
+                            sum_num_available = None
+                            break
                         sum_num_available += license.quantity_available
 
                 # count info about licenses
