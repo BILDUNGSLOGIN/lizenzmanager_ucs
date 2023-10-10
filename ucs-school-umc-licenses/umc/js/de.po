@@ -85,13 +85,13 @@ msgstr "Zugewiesen"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:671
 #: umc/js/licenses/common/LicenseSearchformMixin.js:201
-msgid "Assigned to Class"
-msgstr "Zu Klasse zugewiesen"
+msgid "Class with group license"
+msgstr "Klasse mit Gruppenlizenz"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:657
 #: umc/js/licenses/common/LicenseSearchformMixin.js:187
-msgid "Assigned to Workgroup"
-msgstr "Zu Lerngruppe zugewiesen"
+msgid "Workgroup with group license"
+msgstr "Lerngruppe mit Gruppenlizenz"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:790
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:844

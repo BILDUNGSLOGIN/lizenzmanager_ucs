@@ -654,7 +654,7 @@ define([
                     }, {
                         type: ComboBox,
                         name: 'workgroup',
-                        label: _('Assigned to Workgroup'),
+                        label: _('Workgroup with group license'),
                         staticValues: [{id: '', label: ''}],
                         dynamicValues: 'licenses/workgroups',
                         dynamicOptions: {
@@ -668,7 +668,7 @@ define([
                     }, {
                         type: SuggestionBox,
                         name: 'class',
-                        label: _('Assigned to Class'),
+                        label: _('Class with group license'),
                         staticValues: [{id: '', label: ''}],
                         dynamicValues: 'licenses/classes',
                         dynamicOptions: {

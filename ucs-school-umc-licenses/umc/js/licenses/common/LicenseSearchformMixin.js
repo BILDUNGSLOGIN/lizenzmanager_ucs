@@ -184,7 +184,7 @@ define([
               }, {
                 type: ComboBox,
                 name: 'workgroup',
-                label: _('Assigned to Workgroup'),
+                label: _('Workgroup with group license'),
                 staticValues: [{id: '', label: ''}],
                 dynamicValues: 'licenses/workgroups',
                 dynamicOptions: {
@@ -198,7 +198,7 @@ define([
               }, {
                 type: SuggestionBox,
                 name: 'class',
-                label: _('Assigned to Class'),
+                label: _('Class with group license'),
                 staticValues: [{id: '', label: ''}],
                 dynamicValues: 'licenses/classes',
                 dynamicOptions: {
@@ -264,8 +264,8 @@ define([
 
           let layout = [
             ['timeFrom', 'timeTo', 'onlyAvailableLicenses'],
-            ['publisher', 'licenseType', 'userPattern'],
-            ['workgroup', 'class'],
+            ['publisher', 'userPattern'],
+            ['licenseType', 'workgroup', 'class'],
             ['validStatus', 'usageStatus'],
             ['expiryDateFrom', 'expiryDateTo'],
             [
