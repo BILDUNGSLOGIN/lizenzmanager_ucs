@@ -354,7 +354,7 @@ define([
             },
             {
               name: 'countAvailable',
-              label: _('Av.'),
+              label: _('Free'),
               width: '45px',
             },
             {

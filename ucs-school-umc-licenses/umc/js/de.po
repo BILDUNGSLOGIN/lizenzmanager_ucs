@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-10-10 13:11+0000\n"
+"POT-Creation-Date: 2023-10-10 13:44+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -83,16 +83,6 @@ msgstr "Lizenzen ausgewählter Lerngruppe/Klasse zuweisen."
 msgid "Assigned"
 msgstr "Zugewiesen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:671
-#: umc/js/licenses/common/LicenseSearchformMixin.js:201
-msgid "Class with group license"
-msgstr "Klasse mit Gruppenlizenz"
-
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:657
-#: umc/js/licenses/common/LicenseSearchformMixin.js:187
-msgid "Workgroup with group license"
-msgstr "Lerngruppe mit Gruppenlizenz"
-
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:790
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:844
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:889
@@ -120,11 +110,6 @@ msgstr "Zuweisungsstatus"
 #: umc/js/licenses/modules/products/DetailPage.js:145
 msgid "Author"
 msgstr "Autor"
-
-#: umc/js/licenses/modules/delete/SearchPage.js:357
-#: umc/js/licenses/common/ProductColumns.js:74
-msgid "Av."
-msgstr "Verf."
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:242
 msgid "Available"
@@ -236,6 +221,11 @@ msgstr "Wählen Sie das Medium, für das Sie Lizenzen zuweisen möchten."
 msgid "Class"
 msgstr "Klasse"
 
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:671
+#: umc/js/licenses/common/LicenseSearchformMixin.js:201
+msgid "Class with group license"
+msgstr "Klasse mit Gruppenlizenz"
+
 #: umc/js/licenses/modules/licenses/DetailPage.js:379
 msgid "Continue editing"
 msgstr "Weiter bearbeiten"
@@ -336,6 +326,8 @@ msgstr "Fertig"
 msgid "First name"
 msgstr "Vorname"
 
+#: umc/js/licenses/modules/delete/SearchPage.js:357
+#: umc/js/licenses/common/ProductColumns.js:74
 #: umc/js/licenses/common/LicenseColumns.js:69
 msgid "Free"
 msgstr "Frei"
@@ -817,6 +809,11 @@ msgstr "Lerngruppe"
 #: umc/js/licenses/common/LicenseSearchformMixin.js:102
 msgid "Workgroup license"
 msgstr "Lerngruppenlizenz"
+
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:657
+#: umc/js/licenses/common/LicenseSearchformMixin.js:187
+msgid "Workgroup with group license"
+msgstr "Lerngruppe mit Gruppenlizenz"
 
 #: umc/js/licenses/modules/delete/SearchPage.js:233
 #, javascript-format
