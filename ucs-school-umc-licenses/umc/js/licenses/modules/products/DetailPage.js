@@ -248,73 +248,7 @@ define([
               }),
             },
           ];
-          const columns = [
-            {
-              name: 'licenseCode',
-              label: _('License code'),
-              width: '138px',
-            },
-            {
-              name: 'productId',
-              label: _('Medium ID'),
-              width: '138px',
-              formatter: function(value) {
-                if (value && value.startsWith('urn:bilo:medium:')) {
-                  value = value.slice(16, value.length);
-                }
-                return value;
-              },
-            },
-            {
-              name: 'productName',
-              label: _('Medium'),
-              width: '200px',
-            },
-            {
-              name: 'publisher',
-              label: _('Publisher'),
-              width: '50px',
-            },
-            {
-              name: 'licenseTypeLabel',
-              label: _('License type'),
-              width: '138px',
-            },
-            {
-              name: 'countAquired',
-              label: _('Max. Users'),
-              width: '60px',
-            },
-            {
-              name: 'countAssigned',
-              label: _('Assigned'),
-              width: '60px',
-            },
-            {
-              name: 'countExpired',
-              label: _('Expired'),
-              width: '60px',
-            },
-            {
-              name: 'countAvailable',
-              label: _('Available'),
-              width: '60px',
-            },
-            {
-              name: 'importDate',
-              label: _('Delivery'),
-              width: '138px',
-              formatter: function(value, object) {
-                if (value) {
-                  value = dateLocale.format(new Date(value), {
-                    fullYear: true,
-                    selector: 'date',
-                  });
-                }
-                return value;
-              },
-            },
-          ];
+
 
           this._grid = new Grid({
             actions: actions,
