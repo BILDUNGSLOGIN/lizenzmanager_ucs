@@ -327,7 +327,7 @@ class Instance(SchoolBaseModule):
 
         columns = [_('License code'), _('Medium ID'), _('Medium'), _('Publisher'), _('License type'),
                    _('Special License type'),
-                   _('Delivery Date'), _('Validity start'), _('Validity end'), _('Number of licenses'),
+                   _('Delivery Date'), _('Validity start'), _('Redemption period'), _('Number of licenses'),
                    _('Number of assigned licenses'),
                    _('Number of available licenses'), _('Number of expired licenses'), _('Validity status'),
                    _('Usage status'), _('Expiry date')]
