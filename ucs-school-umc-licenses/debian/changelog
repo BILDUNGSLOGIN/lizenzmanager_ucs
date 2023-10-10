@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (2.3.14) unstable; urgency=medium
+
+  * ET-234 Activate stand by status immediately and not after a server response to avoid user interaction that could lead to an error.
+  * ET-239 Use the correct attribute for license publisher in product detail page.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 10 Oct 2023 10:44:51 +0200
+
 ucs-school-umc-licenses (2.3.13) unstable; urgency=medium
 
   * Fix: Repair the license count logic in frontend to be compatible with backend.
