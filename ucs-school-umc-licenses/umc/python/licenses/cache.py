@@ -569,6 +569,7 @@ class LdapRepository:
                         school_class=None,
                         valid_status=None,
                         usage_status=None,
+                        not_provisioned=None,
                         expiry_date_from=None,
                         expiry_date_to=None,
                         ):
@@ -646,11 +647,25 @@ class LdapRepository:
                                   _license: _license.bildungsloginExpiryDate and _license.bildungsloginExpiryDate <= expiry_date_to,
                               licenses)
 
+        if not_provisioned:
+            licenses = filter(lambda _license: self.is_license_only_assigned(_license), licenses)
+
         if sizelimit:
             if len(licenses) > sizelimit:
                 raise SearchLimitReached
 
         return licenses
+
+    def is_license_only_assigned(self, license):
+        if license.bildungsloginLicenseType in [LicenseType.SCHOOL, LicenseType.WORKGROUP]:
+            return False
+
+        assignments = self.get_assignments_by_license(license)
+        for assignment in assignments:
+            if assignment.bildungsloginAssignmentStatus == Status.ASSIGNED:
+                return True
+
+        return False
 
     def get_metadata_by_product_id(self, product_id):
         for metadata in self._metadata:

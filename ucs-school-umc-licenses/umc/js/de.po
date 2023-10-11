@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-10-10 13:44+0000\n"
+"POT-Creation-Date: 2023-10-11 11:51+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -222,7 +222,7 @@ msgid "Class"
 msgstr "Klasse"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:671
-#: umc/js/licenses/common/LicenseSearchformMixin.js:201
+#: umc/js/licenses/common/LicenseSearchformMixin.js:202
 msgid "Class with group license"
 msgstr "Klasse mit Gruppenlizenz"
 
@@ -267,7 +267,7 @@ msgid "Edit"
 msgstr "Bearbeiten"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:588
-#: umc/js/licenses/common/LicenseSearchformMixin.js:118
+#: umc/js/licenses/common/LicenseSearchformMixin.js:119
 msgid "End import period"
 msgstr "Ende Zeitraum Import"
 
@@ -280,11 +280,11 @@ msgstr "Verfallen"
 msgid "Expiry date"
 msgstr "Ablaufdatum"
 
-#: umc/js/licenses/common/LicenseSearchformMixin.js:260
+#: umc/js/licenses/common/LicenseSearchformMixin.js:267
 msgid "Expiry date end"
 msgstr "Ende Zeitraum Ablaufdatum"
 
-#: umc/js/licenses/common/LicenseSearchformMixin.js:253
+#: umc/js/licenses/common/LicenseSearchformMixin.js:260
 msgid "Expiry date start"
 msgstr "Beginn Zeitraum Ablaufdatum"
 
@@ -313,7 +313,7 @@ msgid "Failed to assign licenses to the selected workgroup."
 msgstr "Der ausgewählten Lerngruppe konnten keine Lizenzen zugewiesen werden."
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:697
-#: umc/js/licenses/common/LicenseSearchformMixin.js:283
+#: umc/js/licenses/common/LicenseSearchformMixin.js:290
 msgid "Filters"
 msgstr "Filter"
 
@@ -390,14 +390,14 @@ msgstr "Lerngruppenlizenz"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:609
 #: umc/js/licenses/modules/licenses/DetailPage.js:213
-#: umc/js/licenses/common/LicenseSearchformMixin.js:139
+#: umc/js/licenses/common/LicenseSearchformMixin.js:140
 msgid "License code"
 msgstr "Lizenzcode"
 
 #: umc/js/licenses/modules/assignment/UserSelectionPage.js:298
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:594
 #: umc/js/licenses/modules/licenses/DetailPage.js:216
-#: umc/js/licenses/common/LicenseSearchformMixin.js:124
+#: umc/js/licenses/common/LicenseSearchformMixin.js:125
 msgid "License type"
 msgstr "Lizenztyp"
 
@@ -453,7 +453,7 @@ msgid "Max. Users"
 msgstr "Max. Nutzer"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:621
-#: umc/js/licenses/common/LicenseSearchformMixin.js:151
+#: umc/js/licenses/common/LicenseSearchformMixin.js:152
 msgid "Media Title"
 msgstr "Medientitel"
 
@@ -467,7 +467,7 @@ msgstr "Medium"
 #: umc/js/licenses/modules/licenses/DetailPage.js:210
 #: umc/js/licenses/modules/delete/SearchPage.js:316
 #: umc/js/licenses/modules/products/DetailPage.js:147
-#: umc/js/licenses/common/LicenseSearchformMixin.js:157
+#: umc/js/licenses/common/LicenseSearchformMixin.js:158
 #: umc/js/licenses/common/ProductColumns.js:43
 #: umc/js/licenses/common/LicenseColumns.js:47
 msgid "Medium ID"
@@ -499,9 +499,13 @@ msgid "One license selected"
 msgstr "Eine Lizenz ausgewählt"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:639
-#: umc/js/licenses/common/LicenseSearchformMixin.js:169
+#: umc/js/licenses/common/LicenseSearchformMixin.js:170
 msgid "Only assignable licenses"
 msgstr "Nur freie Lizenzen"
+
+#: umc/js/licenses/common/LicenseSearchformMixin.js:253
+msgid "Only assigned, not yet provisioned licenses"
+msgstr "Nur zugewiesene, noch nicht provisionierte Lizenzen"
 
 #: umc/js/licenses/modules/products/DetailPage.js:235
 msgid "Open license"
@@ -534,7 +538,7 @@ msgstr "Bitte eine Schule auswählen"
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:646
 #: umc/js/licenses/modules/licenses/DetailPage.js:207
 #: umc/js/licenses/modules/products/DetailPage.js:146
-#: umc/js/licenses/common/LicenseSearchformMixin.js:176
+#: umc/js/licenses/common/LicenseSearchformMixin.js:177
 msgid "Publisher"
 msgstr "Verlag"
 
@@ -573,12 +577,12 @@ msgstr "Schullizenz"
 
 #: umc/js/licenses/modules/assignment/UserSelectionPage.js:307
 #: umc/js/licenses/modules/delete/SearchPage.js:153
-#: umc/js/licenses/common/LicenseSearchformMixin.js:105
+#: umc/js/licenses/common/LicenseSearchformMixin.js:106
 msgid "School license"
 msgstr "Schullizenz"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:603
-#: umc/js/licenses/common/LicenseSearchformMixin.js:133
+#: umc/js/licenses/common/LicenseSearchformMixin.js:134
 msgid ""
 "Search for licenses that have this user assigned. (Searches for 'first "
 "name', 'last name' and 'username')"
@@ -592,7 +596,7 @@ msgid "Search licensed media"
 msgstr "Lizenzierte Medien durchsuchen"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:616
-#: umc/js/licenses/common/LicenseSearchformMixin.js:146
+#: umc/js/licenses/common/LicenseSearchformMixin.js:147
 msgid "Search licenses"
 msgstr "Lizenzen suchen"
 
@@ -623,7 +627,7 @@ msgstr "Einzel- und Volumenlizenz"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:522
 #: umc/js/licenses/modules/delete/SearchPage.js:145
-#: umc/js/licenses/common/LicenseSearchformMixin.js:99
+#: umc/js/licenses/common/LicenseSearchformMixin.js:100
 msgid "Single license"
 msgstr "Einzellizenz"
 
@@ -641,7 +645,7 @@ msgid "Special license"
 msgstr "Sonderlizenz"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:583
-#: umc/js/licenses/common/LicenseSearchformMixin.js:113
+#: umc/js/licenses/common/LicenseSearchformMixin.js:114
 msgid "Start import period"
 msgstr "Beginn Zeitraum Import"
 
@@ -747,7 +751,7 @@ msgid "Usage"
 msgstr "Nutzung"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:249
-#: umc/js/licenses/common/LicenseSearchformMixin.js:233
+#: umc/js/licenses/common/LicenseSearchformMixin.js:234
 msgid "Usage status"
 msgstr "Nutzungsstatus"
 
@@ -757,7 +761,7 @@ msgid "User"
 msgstr "Nutzer"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:601
-#: umc/js/licenses/common/LicenseSearchformMixin.js:131
+#: umc/js/licenses/common/LicenseSearchformMixin.js:132
 msgid "User ID"
 msgstr "Nutzer ID"
 
@@ -774,7 +778,7 @@ msgid "Validity start"
 msgstr "Gültigkeitsbeginn"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:248
-#: umc/js/licenses/common/LicenseSearchformMixin.js:215
+#: umc/js/licenses/common/LicenseSearchformMixin.js:216
 msgid "Validity status"
 msgstr "Gültigkeitsstatus"
 
@@ -784,7 +788,7 @@ msgstr "Anzeigen"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:523
 #: umc/js/licenses/modules/delete/SearchPage.js:146
-#: umc/js/licenses/common/LicenseSearchformMixin.js:100
+#: umc/js/licenses/common/LicenseSearchformMixin.js:101
 msgid "Volume license"
 msgstr "Volumenlizenz"
 
@@ -806,12 +810,12 @@ msgstr "Lerngruppe"
 
 #: umc/js/licenses/modules/assignment/UserSelectionPage.js:303
 #: umc/js/licenses/modules/delete/SearchPage.js:149
-#: umc/js/licenses/common/LicenseSearchformMixin.js:102
+#: umc/js/licenses/common/LicenseSearchformMixin.js:103
 msgid "Workgroup license"
 msgstr "Lerngruppenlizenz"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:657
-#: umc/js/licenses/common/LicenseSearchformMixin.js:187
+#: umc/js/licenses/common/LicenseSearchformMixin.js:188
 msgid "Workgroup with group license"
 msgstr "Lerngruppe mit Gruppenlizenz"
 
@@ -825,7 +829,7 @@ msgstr ""
 "Vorgang ist nicht umkehrbar!"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:170
-#: umc/js/licenses/common/LicenseSearchformMixin.js:244
+#: umc/js/licenses/common/LicenseSearchformMixin.js:245
 msgid "activated"
 msgstr "aktiviert"
 
@@ -834,7 +838,7 @@ msgid "for %(school)s"
 msgstr "für %(school)s"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:160
-#: umc/js/licenses/common/LicenseSearchformMixin.js:224
+#: umc/js/licenses/common/LicenseSearchformMixin.js:225
 msgid "invalid"
 msgstr "ungültig"
 
@@ -843,7 +847,7 @@ msgid "licenses were imported successfully"
 msgstr "Lizenzen wurden erfolgreich importiert"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:172
-#: umc/js/licenses/common/LicenseSearchformMixin.js:242
+#: umc/js/licenses/common/LicenseSearchformMixin.js:243
 msgid "not activated"
 msgstr "nicht aktiviert"
 
@@ -871,8 +875,8 @@ msgstr "unbestimmt"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:162
 #: umc/js/licenses/modules/licenses/DetailPage.js:174
-#: umc/js/licenses/common/LicenseSearchformMixin.js:221
-#: umc/js/licenses/common/LicenseSearchformMixin.js:239
+#: umc/js/licenses/common/LicenseSearchformMixin.js:222
+#: umc/js/licenses/common/LicenseSearchformMixin.js:240
 msgid "unknown"
 msgstr "unbekannt"
 
@@ -882,7 +886,7 @@ msgid "unlimited"
 msgstr "unbefristet"
 
 #: umc/js/licenses/modules/licenses/DetailPage.js:158
-#: umc/js/licenses/common/LicenseSearchformMixin.js:226
+#: umc/js/licenses/common/LicenseSearchformMixin.js:227
 msgid "valid"
 msgstr "gültig"
 

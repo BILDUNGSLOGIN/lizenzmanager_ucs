@@ -106,6 +106,7 @@ class Instance(SchoolBaseModule):
         product=LDAPSearchSanitizer(default=""),
         licenseCode=LDAPSearchSanitizer(default=""),
         pattern=LDAPSearchSanitizer(default=""),
+        notProvisioned=BooleanSanitizer(),
         allocationProductId=LDAPSearchSanitizer(add_asterisks=False, default=""),
     )
     @LDAP_Connection(USER_WRITE)
@@ -121,6 +122,7 @@ class Instance(SchoolBaseModule):
             licenseType -- list
             userPattern -- str
             productId -- str
+            notProvisioned -- boolean
             product -- str
             licenseCode -- str
             pattern -- str
@@ -167,6 +169,7 @@ class Instance(SchoolBaseModule):
                 school_class=school_class,
                 valid_status=request.options.get("validStatus"),
                 usage_status=request.options.get("usageStatus"),
+                not_provisioned=request.options.get("notProvisioned"),
                 expiry_date_from=expiry_from,
                 expiry_date_to=expiry_to
             )
