@@ -554,6 +554,26 @@ class LdapRepository:
 
         return False
 
+    def get_single_license_assigned_users(self, school):
+        result = []
+
+        for license in self._licenses:
+            if license.bildungsloginLicenseType == LicenseType.SINGLE and license.bildungsloginLicenseSchool == school:
+                assignment = self.get_assignments_by_license(license)[0]
+                if assignment.bildungsloginAssignmentStatus != Status.AVAILABLE:
+                    user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                    product = self.get_metadata_by_product_id(license.bildungsloginProductId)
+                    if user:
+                        result.append([
+                            user.userId,
+                            ', '.join(group.cn for group in self.get_classes_by_user(user)),
+                            ', '.join(group.cn for group in self.get_workgroups_by_user(user)),
+                            product.bildungsloginProductId,
+                            product.bildungsloginMetaDataTitle,
+                            license.bildungsloginLicenseCode
+                        ])
+        return result
+
     def filter_licenses(self, product_id=None, school=None, license_types=None,
                         is_advanced_search=None,
                         time_from=None,
@@ -668,7 +688,7 @@ class LdapRepository:
         return False
 
     def get_metadata_by_product_id(self, product_id):
-        for metadata in self._metadata:
+        for metadata in self._metadata:  # type: LdapMetaData
             if metadata.bildungsloginProductId == product_id:
                 return metadata
         return None
@@ -797,7 +817,7 @@ class LdapRepository:
         return self._workgroups
 
     def get_user_by_uuid(self, uuid):
-        for user in self._users:
+        for user in self._users:  # type: LdapUser
             if user.entryUUID == uuid:
                 return user
         return None
@@ -894,8 +914,24 @@ class LdapRepository:
         for assignment in self._assignments:
             if license.entry_dn in assignment.entry_dn:
                 assignments.append(assignment)
+                if license.bildungsloginLicenseType == LicenseType.SINGLE:
+                    break
 
         return assignments
+
+    @staticmethod
+    def _get_group_by_user(groups, user):
+        _groups = []
+        for group in groups:
+            if user.userId in group.memberUid:
+                _groups.append(group)
+        return _groups
+
+    def get_workgroups_by_user(self, user):
+        return self._get_group_by_user(self._workgroups, user)
+
+    def get_classes_by_user(self, user):
+        return self._get_group_by_user(self._classes, user)
 
     def get_users_by_group(self, group):
         users = []

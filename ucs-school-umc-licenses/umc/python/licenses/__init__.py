@@ -199,7 +199,8 @@ class Instance(SchoolBaseModule):
                     _license.bildungsloginValidityEndDate) if _license.bildungsloginValidityEndDate else None,
                 "countAquired": undefined_if_none(_license.quantity, zero_as_none=True),
                 "countAssigned": undefined_if_none(_license.quantity_assigned),
-                "countAvailable": str(undefined_if_none(None if _license.quantity == 0 else _license.quantity_available)),
+                "countAvailable": str(
+                    undefined_if_none(None if _license.quantity == 0 else _license.quantity_available)),
                 "countExpired": undefined_if_none(_license.quantity_expired),
                 "usageStatus": _license.bildungsloginUsageStatus,
                 "expiryDate": optional_date2str(_license.bildungsloginExpiryDate),
@@ -325,8 +326,6 @@ class Instance(SchoolBaseModule):
 
         filename = 'bildungsloginLicense_' + ''.join(
             random.choice(string.ascii_letters) for _ in range(0, 20)) + '.xlsx'
-        workbook = Workbook('/tmp/' + filename)
-        worksheet = workbook.add_worksheet()
 
         columns = [_('License code'), _('Medium ID'), _('Medium'), _('Publisher'), _('License type'),
                    _('Special License type'),
@@ -335,17 +334,29 @@ class Instance(SchoolBaseModule):
                    _('Number of available licenses'), _('Number of expired licenses'), _('Validity status'),
                    _('Usage status'), _('Expiry date')]
 
-        header_format = workbook.add_format({'bold': True})
-        result.insert(0, columns)
-        worksheet.set_column(0, len(columns) - 1, 25)
+        self._create_worksheet(filename, columns, result)
 
-        for row_num, row in enumerate(result):
-            for col_num, data in enumerate(row):
-                if (row_num == 0):
-                    worksheet.write(row_num, col_num, data, header_format)
-                else:
-                    worksheet.write(row_num, col_num, data)
-        workbook.close()
+        self.finished(request.id, {'URL': '/univention/command/licenses/download_export?export=%s' % (
+            quote(filename),)})
+
+    @sanitize(school=StringSanitizer(required=True))
+    def licenses_single_to_excel(self, request):
+        self.repository.update(request.options.get("school"))
+        result = self.repository.get_single_license_assigned_users(request.options.get("school"))
+
+        filename = 'bildungsloginSingleLicense_' + ''.join(
+            random.choice(string.ascii_letters) for _ in range(0, 20)) + '.xlsx'
+
+        columns = [
+            _('User id'),
+            _('Classes'),
+            _('Workgroups'),
+            _('Medium ID'),
+            _('Medium'),
+            _('License code')
+        ]
+
+        self._create_worksheet(filename, columns, result)
 
         self.finished(request.id, {'URL': '/univention/command/licenses/download_export?export=%s' % (
             quote(filename),)})
@@ -906,17 +917,7 @@ class Instance(SchoolBaseModule):
                    _('Number of expired licenses'),
                    _('Number of available licenses')]
 
-        header_format = workbook.add_format({'bold': True})
-        result.insert(0, columns)
-        worksheet.set_column(0, len(columns) - 1, 25)
-
-        for row_num, row in enumerate(result):
-            for col_num, data in enumerate(row):
-                if (row_num == 0):
-                    worksheet.write(row_num, col_num, data, header_format)
-                else:
-                    worksheet.write(row_num, col_num, data)
-        workbook.close()
+        self._create_worksheet(filename, columns, result)
 
         self.finished(request.id, {'URL': '/univention/command/licenses/download_export?export=%s' % (
             quote(filename),)})
@@ -1123,3 +1124,19 @@ class Instance(SchoolBaseModule):
                 request.id,
                 {'status': 2}
             )
+
+    @staticmethod
+    def _create_worksheet(filename, columns, result):
+        workbook = Workbook('/tmp/' + filename)
+        worksheet = workbook.add_worksheet()
+        header_format = workbook.add_format({'bold': True})
+        result.insert(0, columns)
+        worksheet.set_column(0, len(columns) - 1, 25)
+
+        for row_num, row in enumerate(result):
+            for col_num, data in enumerate(row):
+                if (row_num == 0):
+                    worksheet.write(row_num, col_num, data, header_format)
+                else:
+                    worksheet.write(row_num, col_num, data)
+        workbook.close()

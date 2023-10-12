@@ -27,6 +27,7 @@
 		<command name="licenses/query" function="licenses_query"></command>
 		<command name="licenses/get" function="licenses_get"></command>
 		<command name="licenses/export_to_excel" function="licenses_to_excel"></command>
+		<command name="licenses/export_single_to_excel" function="licenses_single_to_excel"></command>
 		<command name="licenses/publishers" function="publishers"></command>
 		<command name="licenses/license_types" function="license_types"></command>
 		<command name="licenses/classes" function="classes"></command>

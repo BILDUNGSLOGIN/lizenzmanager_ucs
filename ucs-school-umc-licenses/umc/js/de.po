@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-10-11 11:51+0000\n"
+"POT-Creation-Date: 2023-10-12 12:58+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -18,7 +18,7 @@ msgstr ""
 msgid "%d licenses selected"
 msgstr "%d Lizenzen ausgewählt"
 
-#: umc/js/licenses/modules/import/import.js:362
+#: umc/js/licenses/modules/import/import.js:393
 msgid ""
 "After importing new licenses, an update via the \"Update cache\" button is "
 "also required."
@@ -162,7 +162,7 @@ msgstr ""
 
 #: umc/js/licenses/modules/import/import.js:211
 #: umc/js/licenses/modules/import/import.js:234
-#: umc/js/licenses/modules/import/import.js:334
+#: umc/js/licenses/modules/import/import.js:351
 msgid "Cache last updated:"
 msgstr "Cache zuletzt aktualisiert:"
 
@@ -175,7 +175,7 @@ msgstr "Cache-Aktualisierung läuft bereits."
 #: umc/js/licenses/modules/import/import.js:193
 #: umc/js/licenses/modules/import/import.js:237
 #: umc/js/licenses/modules/import/import.js:241
-#: umc/js/licenses/modules/import/import.js:339
+#: umc/js/licenses/modules/import/import.js:356
 msgid "Cache update status:"
 msgstr "Cache-Aktualisierungsstatus:"
 
@@ -291,6 +291,7 @@ msgstr "Beginn Zeitraum Ablaufdatum"
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:966
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:495
 #: umc/js/licenses/modules/licenses/SearchPage.js:197
+#: umc/js/licenses/modules/import/import.js:380
 #: umc/js/licenses/modules/delete/SearchPage.js:409
 #: umc/js/licenses/modules/products/SearchPage.js:323
 msgid "Export"
@@ -326,6 +327,15 @@ msgstr "Fertig"
 msgid "First name"
 msgstr "Vorname"
 
+#: umc/js/licenses/modules/import/import.js:408
+msgid ""
+"For control purposes, you can use the button opposite to download an Excel "
+"file that lists all the individual licenses assigned to each user."
+msgstr ""
+"Über den nebenstehenden Button können Sie zu Kontrollzwecken eine Excel-"
+"Datei herunterladen, die für jeden User alle zugewiesenen Einzellizenzen "
+"auflistet."
+
 #: umc/js/licenses/modules/delete/SearchPage.js:357
 #: umc/js/licenses/common/ProductColumns.js:74
 #: umc/js/licenses/common/LicenseColumns.js:69
@@ -342,7 +352,7 @@ msgstr "Ignorieren"
 msgid "Import"
 msgstr "Importiert"
 
-#: umc/js/licenses/modules/import/import.js:315
+#: umc/js/licenses/modules/import/import.js:332
 msgid "Import licences"
 msgstr "Lizenzen importieren"
 
@@ -517,11 +527,11 @@ msgstr "Lizenz öffnen"
 msgid "PB"
 msgstr "VG"
 
-#: umc/js/licenses/modules/import/import.js:305
+#: umc/js/licenses/modules/import/import.js:322
 msgid "Pick-up number for licence data package"
 msgstr "Abholnummer für Lizenzdatenpaket"
 
-#: umc/js/licenses/modules/import/import.js:308
+#: umc/js/licenses/modules/import/import.js:325
 msgid ""
 "Please enter the collection number for the licence data package you wish to "
 "import. You received the collection number at the end of the purchase "
@@ -698,7 +708,7 @@ msgstr ""
 msgid "There are unsaved changes. Are you sure to cancel?"
 msgstr "Einige Änderungen sind noch nicht gespeichert. Möchten Sie abbrechen?"
 
-#: umc/js/licenses/modules/import/import.js:371
+#: umc/js/licenses/modules/import/import.js:402
 msgid ""
 "This button is also used to update the cache after creating/deleting users "
 "or study groups."
@@ -710,7 +720,7 @@ msgstr ""
 msgid "This is a debug button enabled by ucr variable bildungslogin/debug."
 msgstr ""
 
-#: umc/js/licenses/modules/import/import.js:366
+#: umc/js/licenses/modules/import/import.js:397
 msgid ""
 "This process can take a long time if you have a large number of licenses."
 msgstr ""
@@ -737,7 +747,7 @@ msgstr "Zur Medienauswahl"
 msgid "Update all cache"
 msgstr "Allen Cache aktualisieren"
 
-#: umc/js/licenses/modules/import/import.js:345
+#: umc/js/licenses/modules/import/import.js:362
 msgid "Update cache"
 msgstr "Cache aktualisieren"
 
