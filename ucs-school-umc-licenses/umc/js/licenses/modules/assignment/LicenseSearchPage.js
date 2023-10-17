@@ -112,10 +112,10 @@ define([
                     this._wrap_assign_progress = new ProgressInfo();
 
                     this._wrap_assign_progress.update(
-                                0,
-                                _('Licenses are being processed. Please have a little patience.'));
+                        0,
+                        _('Licenses are being processed. Please have a little patience.'));
                     this.standbyDuring(this._wrap_assign_deferred,
-                                this._wrap_assign_progress);
+                        this._wrap_assign_progress);
 
                     var arg_to_split = 'usernames';     // currently only for users
                     var usernames = args[arg_to_split]; // requested users. Will be replaced soon...
@@ -473,6 +473,82 @@ define([
                     // event stub
                 },
 
+                assignToUsers: function (licenses) {
+                    this._wrap_assign('licenses/assign_to_users', {
+                        licenseCodes: licenses.map(
+                            (license) => license.licenseCode), // Use the already-reduced list of users who really need the license.
+                        // ET-67: we cannot calculate this in advance; so take ALL selected users instead.
+                        usernames: this.getUserIds(),
+                    }, this.allocation_chunksize).then(lang.hitch(this, function (response) {
+                        const result = response.result;
+
+                        let msg = '';
+                        if (result.notEnoughLicenses) {
+                            msg += '<p>' + entities.encode(
+                                    _('The number of selected licenses is not sufficient to assign a license to all selected users. Therefore, no licenses have been assigned. Please reduce the number of selected users or select more licenses and repeat the process.')) +
+                                '</p>';
+                            dialog.alert(msg, _('Assigning licenses failed'));
+                            return;
+                        }
+                        if (result.nothingToDo) {
+                            dialog.alert('<p>' +
+                                _('All selected users already have the requested license. Therefore, nothing had to be done.') +
+                                '</p>', _('No assignment needed'));
+                            return;
+                        }
+                        if (result.countSuccessfulAssignments) {
+                            if (result.countSuccessfulAssignments ===
+                                this.getUserIds().length) {
+                                msg += '<p>' + entities.encode(
+                                        _('Licenses were successfully assigned to all %s selected users.',
+                                            result.countSuccessfulAssignments)) +
+                                    '</p>';
+                            } else {
+                                msg += '<p>' + entities.encode(
+                                    _('Licenses were successfully assigned to %s of the %s selected users. The remaining users already had the license.',
+                                        result.countSuccessfulAssignments,
+                                        this.getUserIds().length)) + '</p>';
+                            }
+                        }
+                        if (result.failedAssignments.length) {
+                            msg += '<p>';
+                            msg += result.countSuccessfulAssignments > 0
+                                ? entities.encode(
+                                    _('Some selected users could not be assigned licenses:'))
+                                : entities.encode(
+                                    _('Failed to assign licenses to the selected users:'));
+                            msg += '<ul>';
+                            for (const error of result.failedAssignments) {
+                                msg += '<li>' + entities.encode(error) + '</li>';
+                            }
+                            msg += '</ul>';
+                            msg += '</p>';
+                        }
+                        if (result.validityInFuture.length) {
+                            msg += '<p>';
+                            msg += entities.encode(
+                                _('Warning: The validity for the following assigned licenses lies in the future:'));
+                            msg += '<ul>';
+                            for (const licenseCode of result.validityInFuture) {
+                                msg += '<li>' + entities.encode(licenseCode) +
+                                    '</li>';
+                            }
+                            msg += '</ul>';
+                            msg += '</p>';
+                        }
+                        const title = _('Assigning licenses');
+                        dialog.alert(msg, title);
+                        // Should we refresh the grid to reflect the new counters?
+                        this.refreshGrid(this._searchForm.value);
+                    }), function (message) {
+                        dialog.alert(
+                            _('The number of selected licenses is not sufficient to assign a license to all selected users. Therefore, no licenses have been assigned. Please reduce the number of selected users or select more licenses and repeat the process.'),
+                            message);
+
+                    });
+
+                },
+
                 resetAdvancedSearch: function () {
                     if (this._isAdvancedSearch) {
                         this._toggleSearch();
@@ -724,79 +800,46 @@ define([
                         canExecute: lang.hitch(this, '_can_assign_licenses'),
                         callback: lang.hitch(this, function (_idxs, licenses) {
                             if (this.getAssignmentType() === 'user') {
-                                // Call a wrapper function, for chunked action and a progress bar.
-                                this._wrap_assign('licenses/assign_to_users', {
-                                    licenseCodes: licenses.map(
-                                        (license) => license.licenseCode), // Use the already-reduced list of users who really need the license.
-                                    // ET-67: we cannot calculate this in advance; so take ALL selected users instead.
-                                    usernames: this.getUserIds(),
-                                }, this.allocation_chunksize).then(lang.hitch(this, function (response) {
-                                    const result = response.result;
+                                let deferred = new Deferred();
+                                this.standbyDuring(deferred);
+                                tools.umcpCommand('licenses/products/users_has_medium', {
+                                    school: this.getSchoolId(),
+                                    medium: this.getProductId(),
+                                    users: this.getUserIds()
+                                }).then(lang.hitch(this, function (response) {
+                                    deferred.resolve(true);
+                                    result = response.result;
 
-                                    let msg = '';
-                                    if (result.notEnoughLicenses) {
-                                        msg += '<p>' + entities.encode(
-                                                _('The number of selected licenses is not sufficient to assign a license to all selected users. Therefore, no licenses have been assigned. Please reduce the number of selected users or select more licenses and repeat the process.')) +
-                                            '</p>';
-                                        dialog.alert(msg, _('Assigning licenses failed'));
-                                        return;
-                                    }
-                                    if (result.nothingToDo) {
-                                        dialog.alert('<p>' +
-                                            _('All selected users already have the requested license. Therefore, nothing had to be done.') +
-                                            '</p>', _('No assignment needed'));
-                                        return;
-                                    }
-                                    if (result.countSuccessfulAssignments) {
-                                        if (result.countSuccessfulAssignments ===
-                                            this.getUserIds().length) {
-                                            msg += '<p>' + entities.encode(
-                                                    _('Licenses were successfully assigned to all %s selected users.',
-                                                        result.countSuccessfulAssignments)) +
-                                                '</p>';
-                                        } else {
-                                            msg += '<p>' + entities.encode(
-                                                _('Licenses were successfully assigned to %s of the %s selected users. The remaining users already had the license.',
-                                                    result.countSuccessfulAssignments,
-                                                    this.getUserIds().length)) + '</p>';
-                                        }
-                                    }
-                                    if (result.failedAssignments.length) {
-                                        msg += '<p>';
-                                        msg += result.countSuccessfulAssignments > 0
-                                            ? entities.encode(
-                                                _('Some selected users could not be assigned licenses:'))
-                                            : entities.encode(
-                                                _('Failed to assign licenses to the selected users:'));
-                                        msg += '<ul>';
-                                        for (const error of result.failedAssignments) {
-                                            msg += '<li>' + entities.encode(error) + '</li>';
-                                        }
-                                        msg += '</ul>';
-                                        msg += '</p>';
-                                    }
-                                    if (result.validityInFuture.length) {
-                                        msg += '<p>';
-                                        msg += entities.encode(
-                                            _('Warning: The validity for the following assigned licenses lies in the future:'));
-                                        msg += '<ul>';
-                                        for (const licenseCode of result.validityInFuture) {
-                                            msg += '<li>' + entities.encode(licenseCode) +
-                                                '</li>';
-                                        }
-                                        msg += '</ul>';
-                                        msg += '</p>';
-                                    }
-                                    const title = _('Assigning licenses');
-                                    dialog.alert(msg, title);
-                                    // Should we refresh the grid to reflect the new counters?
-                                    this.refreshGrid(this._searchForm.value);
-                                }), function (message) {
-                                    dialog.alert(
-                                        _('The number of selected licenses is not sufficient to assign a license to all selected users. Therefore, no licenses have been assigned. Please reduce the number of selected users or select more licenses and repeat the process.'),
-                                        message);
+                                    if (result.length > 0) {
+                                        let message = _('The following users already have a license for the selected medium. Would you like to assign these users an additional license for the medium?');
+                                        message += '<br>';
+                                        result.forEach(function (user) {
+                                            message += user + '<br>';
+                                        });
 
-                                });
+                                        dialog.confirm(message, [
+                                            {
+                                                'label': _('Cancel'),
+                                                'callback': function () {
+                                                    deferred.resolve(true);
+                                                }
+                                            },
+                                            {
+                                                'label': _('Perform assignment'),
+                                                'callback': lang.hitch(this, function () {
+                                                    deferred.resolve(true);
+                                                    this.assignToUsers(licenses);
+                                                }),
+                                                'default': true,
+                                            }
+                                        ]);
+                                    } else {
+                                        this.assignToUsers(licenses);
+                                    }
+
+                                }));
+
+
                             } else if (this.getAssignmentType() === 'school') {
                                 let school = this.getSchoolId();
 
