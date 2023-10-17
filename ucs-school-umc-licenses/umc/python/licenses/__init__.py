@@ -33,12 +33,9 @@
 import os
 import random
 import string
-from datetime import datetime
 from typing import Dict, List, Optional, Union
 from subprocess import Popen
 from .xlsxwriter import Workbook
-import io
-import base64
 
 import psutil
 from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
@@ -1135,7 +1132,7 @@ class Instance(SchoolBaseModule):
 
         for row_num, row in enumerate(result):
             for col_num, data in enumerate(row):
-                if (row_num == 0):
+                if row_num == 0:
                     worksheet.write(row_num, col_num, data, header_format)
                 else:
                     worksheet.write(row_num, col_num, data)
