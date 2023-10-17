@@ -1132,3 +1132,19 @@ class LdapRepository:
                 '%d.%m.%Y %H:%M:%S')
         else:
             return ''
+
+    def users_has_medium(self, school, medium, users):
+        users = list(self.get_user(user) for user in users)
+        licenses = self.get_licenses_by_product_id(medium, school)
+        entry_uuids = []
+        result = []
+        for license in licenses:
+            if license.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]:
+                assignments = self.get_assignments_by_license(license)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentStatus in [Status.ASSIGNED, Status.PROVISIONED]:
+                        entry_uuids.append(assignment.bildungsloginAssignmentAssignee)
+        for user in users:
+            if user.entryUUID in entry_uuids:
+                result.append(user.uid)
+        return result

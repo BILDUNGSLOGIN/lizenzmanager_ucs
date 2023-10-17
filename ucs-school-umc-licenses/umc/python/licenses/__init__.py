@@ -1109,6 +1109,13 @@ class Instance(SchoolBaseModule):
             'result': 'success'
         })
 
+    @sanitize(school=SchoolSanitizer(required=True), medium=StringSanitizer(required=True),
+              users=ListSanitizer(required=True))
+    def users_has_medium(self, request):
+        self.finished(request.id, self.repository.users_has_medium(school=request.options.get('school'),
+                                                                   medium=request.options.get('medium'),
+                                                                   users=request.options.get('users')))
+
     def cache_rebuild_debug(self, request):
         if not self._cache_is_running() and ucr.get('bildungslogin/debug') == 'true':
             Popen(['python ' + CACHE_BUILD_SCRIPT], shell=True, stdout=None)
