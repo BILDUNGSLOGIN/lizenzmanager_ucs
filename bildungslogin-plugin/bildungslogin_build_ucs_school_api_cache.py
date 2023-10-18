@@ -507,6 +507,10 @@ def transform_to_dictionary(entries):
     for _license in licenses:
         if _license['entry_dn'] in _assignments_map:
             assignments = _assignments_map[_license['entry_dn']]
+
+            if _license['bildungsloginLicenseType'] == 'VOLUME':
+                _license['volume_quantity'] = len(assignments)
+
             for assignment in assignments:
                 if assignment['bildungsloginAssignmentStatus'] != 'AVAILABLE':
                     if _license['bildungsloginLicenseType'] in ['SINGLE', 'VOLUME']:

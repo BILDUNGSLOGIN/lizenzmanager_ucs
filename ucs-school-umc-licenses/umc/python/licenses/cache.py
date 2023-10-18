@@ -59,7 +59,7 @@ class LdapLicense:
                  bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None,
                  bildungslogin_usage_status=None, bildungslogin_expiry_date=None, bildungslogin_validity_status=None,
                  quantity_assigned=None,
-                 user_strings=None, groups=None, publisher=None):
+                 user_strings=None, groups=None, publisher=None, volume_quantity=None):
         if groups:
             self.groups = groups
         else:
@@ -113,6 +113,9 @@ class LdapLicense:
             except ValueError:
                 self.bildungsloginExpiryDate = None
 
+        if self.bildungsloginLicenseType == LicenseType.VOLUME and volume_quantity:
+            self.volume_quantity = volume_quantity
+
     def add_user_string(self, user_string):
         self.user_strings.append(user_string)
 
@@ -133,7 +136,10 @@ class LdapLicense:
             if self.quantity_assigned > self.quantity:
                 return 0
             else:
-                return self.quantity - self.quantity_assigned
+                if self.volume_quantity:
+                    return self.volume_quantity - self.quantity_assigned
+                else:
+                    return self.quantity - self.quantity_assigned
 
     @property
     def quantity_expired(self):
@@ -455,7 +461,8 @@ class LdapRepository:
                 publisher=entry['bildungsloginLicenseProvider'],
                 bildungslogin_validity_status=entry['bildungsloginValidityStatus'],
                 bildungslogin_usage_status=entry['bildungsloginUsageStatus'],
-                bildungslogin_expiry_date=entry['bildungsloginExpiryDate']))
+                bildungslogin_expiry_date=entry['bildungsloginExpiryDate'],
+                volume_quantity=entry.get('volume_quantity')))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
