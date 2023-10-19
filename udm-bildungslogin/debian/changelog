@@ -1,3 +1,9 @@
+udm-bildungslogin (2.4.0) unstable; urgency=medium
+
+  * Bump Version tp signify compatibility.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 19 Oct 2023 09:23:01 +0200
+
 udm-bildungslogin (2.3.4) unstable; urgency=medium
 
   * ET-21 Now really removing package from join status on uninstall.

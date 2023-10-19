@@ -764,11 +764,12 @@ class AssignmentHandler:
     def _get_school_teachers(self, school):  # type: (UdmObject) -> List[UdmObject]
         """ Get a list of the teachers which belong to the school """
         return list(self._users_mod.search(
-            filter_format("(&(school=%s)(ucsschoolRole=teacher:school:%s))", [school.props.name, school.props.name])))
+            filter_format("(&(school=%s)(ucsschoolRole=teacher:school:%s)(disabled=0))",
+                          [school.props.name, school.props.name])))
 
     def _get_school_users(self, school):  # type: (UdmObject) -> List[UdmObject]
         """ Get a list of the users which belong to the school """
-        return list(self._users_mod.search(filter_format("(school=%s)", [school.props.name])))
+        return list(self._users_mod.search(filter_format("(&(school=%s)(disabled=0))", [school.props.name])))
 
     def get_user_by_username(self, username):  # type: (str) -> UdmObject
         return self._get_object_by_name(ObjectType.USER, username)
@@ -863,9 +864,21 @@ class AssignmentHandler:
                 _("license can't be assigned to group as it doesn't belong to the same school"))
 
     @staticmethod
-    def _check_license_quantity_against_group(license, group):
+    def is_user_teacher(user):
+        for role in user.props.ucsschoolRole:
+            if 'teacher' == role.split(':')[0]:
+                return True
+        return False
+
+    def _check_license_quantity_against_group(self, license, group):
         # type: (UdmObject, UdmObject) -> None
-        group_size = len(group.props.users)
+        if license.props.special_type == "Lehrkraft":
+            group_size = sum(
+                not self._users_mod.get(user_dn).props.disabled and self.is_user_teacher(self._users_mod.get(user_dn))
+                for user_dn in group.props.users)
+        else:
+            group_size = sum(not self._users_mod.get(user_dn).props.disabled for user_dn in group.props.users)
+
         license_quantity = license.props.quantity
         if license_quantity != 0 and group_size > license_quantity:
             raise BiloAssignmentError(
@@ -1025,9 +1038,11 @@ class AssignmentHandler:
             return result
 
         # sort licenses by validity_end_date
-        licenses.sort(key=lambda x: x.props.validity_end_date)
-        # move licenses without validity_end_date to end of list
-        licenses.sort(key=lambda x: bool(x.props.validity_end_date), reverse=True)
+        # move licenses without validity_end_date to end of list. We need to use a fake date because
+        # None can't be compared to a date.
+        licenses.sort(
+            key=lambda x: x.props.validity_end_date if x.props.validity_end_date else datetime.date(year=9999, day=1,
+                                                                                                    month=1))
 
         # assign licenses
 

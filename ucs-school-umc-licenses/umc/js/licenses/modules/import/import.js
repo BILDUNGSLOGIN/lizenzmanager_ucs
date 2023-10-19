@@ -87,7 +87,7 @@ define([
 
         _grid: null,
         _form: null,
-        _cache_form: null,
+        _cacheForm: null,
         _searchForm: null,
         _isAdvancedSearch: true,
 
@@ -184,14 +184,14 @@ define([
         },
 
         setCacheStatus: function (running) {
-            if (running == true) {
-                this._cache_form.getWidget('cache_build_status').set('content',
+            if (running) {
+                this._cacheForm.getWidget('cache_build_status').set('content',
                     _('Cache update status:') + ' ' + _('Updating'));
-                this._cache_form.getButton('submit').set('disabled', true);
+                this._cacheForm.getButton('submit').set('disabled', true);
             } else {
-                this._cache_form.getWidget('cache_build_status').set('content',
+                this._cacheForm.getWidget('cache_build_status').set('content',
                     _('Cache update status:') + ' ' + _('Finished'));
-                this._cache_form.getButton('submit').set('disabled', false);
+                this._cacheForm.getButton('submit').set('disabled', false);
             }
         },
 
@@ -207,10 +207,10 @@ define([
                             if (result.errorMessage) {
                                 dialog.alert(result.errorMessage);
                             } else {
-                                this._cache_form.getWidget('last_cache_build').set('content',
+                                this._cacheForm.getWidget('last_cache_build').set('content',
                                     _('Cache last updated:') + ' ' + result.time);
-                                this.setCacheStatus(result.status)
-                                if (result.status == true) {
+                                this.setCacheStatus(result.status);
+                                if (result.status) {
                                     window.setTimeout(lang.hitch(this, function () {
                                         this.getCacheStatus(10000);
                                     }), msecs);
@@ -230,16 +230,16 @@ define([
                         if (result.errorMessage) {
                             dialog.alert(result.errorMessage);
                         } else {
-                            this._cache_form.getWidget('last_cache_build').set('content',
+                            this._cacheForm.getWidget('last_cache_build').set('content',
                                 _('Cache last updated:') + ' ' + result.time);
                             if (result.status == true) {
-                                this._cache_form.getWidget('cache_build_status').set('content',
+                                this._cacheForm.getWidget('cache_build_status').set('content',
                                     _('Cache update status:') + ' ' + _('Updating'));
-                                this._cache_form.getButton('submit').set('disabled', true);
+                                this._cacheForm.getButton('submit').set('disabled', true);
                             } else {
-                                this._cache_form.getWidget('cache_build_status').set('content',
+                                this._cacheForm.getWidget('cache_build_status').set('content',
                                     _('Cache update status:') + ' ' + _('Finished'));
-                                this._cache_form.getButton('submit').set('disabled', false);
+                                this._cacheForm.getButton('submit').set('disabled', false);
                             }
                         }
                         if (msecs) {
@@ -294,6 +294,23 @@ define([
             this.headerButtons = headerButtons;
         },
 
+        exportToExcel: function () {
+            let values = {
+                school: this.getSchoolId()
+            }
+
+            tools.umcpCommand('licenses/export_single_to_excel', values).then(lang.hitch(this, function (response) {
+                const res = response.result;
+                if (res.errorMessage) {
+                    dialog.alert(result.errorMessage);
+                } else {
+                    downloadFile(res.URL, 'user.xlsx');
+                }
+                this._excelExportForm._buttons.submit.set('disabled',
+                    false);
+            }));
+        },
+
         buildRendering: function () {
             this.inherited(arguments);
 
@@ -326,7 +343,7 @@ define([
                 }),
             );
 
-            this._cache_form = new Form({
+            this._cacheForm = new Form({
                 widgets: [
                     {
                         type: Text,
@@ -347,7 +364,7 @@ define([
                 ],
             });
 
-            this._cache_form.on(
+            this._cacheForm.on(
                 'submit',
                 lang.hitch(this, function () {
                     this.setCacheStatus(true);
@@ -355,6 +372,20 @@ define([
                     this.getCacheStatus();
                 }),
             );
+
+            this._excelExportForm = new Form({
+                widgets: [], buttons: [
+                    {
+                        name: 'submit',
+                        label: _('Export'),
+                        style: 'margin-top:20px',
+                    }],
+            });
+
+            this._excelExportForm.on('submit', lang.hitch(this, function () {
+                this._excelExportForm._buttons.submit.set('disabled', true);
+                this.exportToExcel();
+            }));
 
             this.addChild(this._form);
             this.addChild(new Text({
@@ -365,10 +396,16 @@ define([
                 'content': _(
                     'This process can take a long time if you have a large number of licenses.'),
             }));
-            this.addChild(this._cache_form);
+            this.addChild(this._cacheForm);
             this.addChild(new Text({
                 'content': _(
                     'This button is also used to update the cache after creating/deleting users or study groups.'),
+            }));
+
+            this.addChild(this._excelExportForm);
+            this.addChild(new Text({
+                'content': _(
+                    'For control purposes, you can use the button opposite to download an Excel file that lists all the individual licenses assigned to each user.'),
             }));
 
             tools.ucr('bildungslogin/debug').then(lang.hitch(this, function (data) {

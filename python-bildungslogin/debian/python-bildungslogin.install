@@ -1,2 +1,3 @@
 etc/
 bildungslogin_metadata.py usr/lib/univention-directory-listener/system/
+bildungslogin_user.py usr/lib/univention-directory-listener/system/

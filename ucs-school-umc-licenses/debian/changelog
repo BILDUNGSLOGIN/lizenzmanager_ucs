@@ -1,3 +1,12 @@
+ucs-school-umc-licenses (2.4.0) unstable; urgency=medium
+
+  * ET-236 Implement confirmation dialog if a medium would be assigned multiple times.
+  * ET-219 Implement an export for the single licenses assigned to users.
+  * ET-212 Add a filter to easily find assigned but not provisioned licenses.
+  * ET-210 Show undefined if the product has a license which is unlimited.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 19 Oct 2023 09:22:54 +0200
+
 ucs-school-umc-licenses (2.3.14) unstable; urgency=medium
 
   * ET-234 Activate stand by status immediately and not after a server response to avoid user interaction that could lead to an error.

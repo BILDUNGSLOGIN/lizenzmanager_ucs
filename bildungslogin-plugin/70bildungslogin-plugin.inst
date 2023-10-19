@@ -29,7 +29,7 @@
 
 ## joinscript api: bindpwdfile
 
-VERSION=8
+VERSION=9
 
 . /usr/share/univention-lib/all.sh
 . /usr/share/univention-join/joinscripthelper.lib
@@ -102,6 +102,12 @@ setup_provisioning_api_access() {
     --set description="Account that is allowed to access the Bildungslogin Provisioning API." \
     --set password="$(makepasswd --chars=20)" \
     --set disabled=1 || die
+
+    echo "Setting object flag hidden to $API_ACCESS_USER"
+    univention-directory-manager users/user modify "$@" \
+      --dn "uid=$API_ACCESS_USER,cn=users,$ldap_base" \
+      --set objectFlag="hidden"
+
 }
 
 enable_ucsschool_apis_plugin() {

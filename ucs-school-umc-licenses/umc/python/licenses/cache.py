@@ -59,7 +59,7 @@ class LdapLicense:
                  bildungslogin_utilization_systems=None, bildungslogin_validity_duration=None,
                  bildungslogin_usage_status=None, bildungslogin_expiry_date=None, bildungslogin_validity_status=None,
                  quantity_assigned=None,
-                 user_strings=None, groups=None, publisher=None):
+                 user_strings=None, groups=None, publisher=None, volume_quantity=None):
         if groups:
             self.groups = groups
         else:
@@ -113,6 +113,9 @@ class LdapLicense:
             except ValueError:
                 self.bildungsloginExpiryDate = None
 
+        if self.bildungsloginLicenseType == LicenseType.VOLUME and volume_quantity:
+            self.volume_quantity = volume_quantity
+
     def add_user_string(self, user_string):
         self.user_strings.append(user_string)
 
@@ -133,7 +136,10 @@ class LdapLicense:
             if self.quantity_assigned > self.quantity:
                 return 0
             else:
-                return self.quantity - self.quantity_assigned
+                if hasattr(self, 'volume_quantity'):
+                    return self.volume_quantity - self.quantity_assigned
+                else:
+                    return self.quantity - self.quantity_assigned
 
     @property
     def quantity_expired(self):
@@ -163,6 +169,12 @@ class LdapLicense:
         elif self.bildungsloginLicenseType == LicenseType.WORKGROUP or self.bildungsloginLicenseType == LicenseType.SCHOOL:
             return self.quantity_assigned == 0 and not self.is_expired
         return False
+
+    @property
+    def is_group_type(self):
+        if self.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]:
+            return False
+        return True
 
     def get_cache_dictionary(self):
         return {
@@ -449,7 +461,8 @@ class LdapRepository:
                 publisher=entry['bildungsloginLicenseProvider'],
                 bildungslogin_validity_status=entry['bildungsloginValidityStatus'],
                 bildungslogin_usage_status=entry['bildungsloginUsageStatus'],
-                bildungslogin_expiry_date=entry['bildungsloginExpiryDate']))
+                bildungslogin_expiry_date=entry['bildungsloginExpiryDate'],
+                volume_quantity=entry.get('volume_quantity')))
         for entry in entries['assignments']:
             self._assignments.append(
                 LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
@@ -548,6 +561,26 @@ class LdapRepository:
 
         return False
 
+    def get_single_license_assigned_users(self, school):
+        result = []
+
+        for license in self._licenses:
+            if license.bildungsloginLicenseType == LicenseType.SINGLE and license.bildungsloginLicenseSchool == school:
+                assignment = self.get_assignments_by_license(license)[0]
+                if assignment.bildungsloginAssignmentStatus != Status.AVAILABLE:
+                    user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                    product = self.get_metadata_by_product_id(license.bildungsloginProductId)
+                    if user:
+                        result.append([
+                            user.userId,
+                            ', '.join(group.cn for group in self.get_classes_by_user(user)),
+                            ', '.join(group.cn for group in self.get_workgroups_by_user(user)),
+                            product.bildungsloginProductId,
+                            product.bildungsloginMetaDataTitle,
+                            license.bildungsloginLicenseCode
+                        ])
+        return result
+
     def filter_licenses(self, product_id=None, school=None, license_types=None,
                         is_advanced_search=None,
                         time_from=None,
@@ -563,6 +596,8 @@ class LdapRepository:
                         school_class=None,
                         valid_status=None,
                         usage_status=None,
+                        not_provisioned=None,
+                        not_usable=None,
                         expiry_date_from=None,
                         expiry_date_to=None,
                         ):
@@ -640,14 +675,46 @@ class LdapRepository:
                                   _license: _license.bildungsloginExpiryDate and _license.bildungsloginExpiryDate <= expiry_date_to,
                               licenses)
 
+        if not_provisioned:
+            licenses = filter(lambda _license: self.is_license_only_assigned(_license), licenses)
+
+        if not_usable:
+            licenses = filter(lambda _license: self.is_license_not_usable(_license), licenses)
+
         if sizelimit:
             if len(licenses) > sizelimit:
                 raise SearchLimitReached
 
         return licenses
 
+    def is_license_not_usable(self, license):
+        """
+
+        @type license: LdapLicense
+        """
+        if hasattr(license, 'volume_quantity') and license.volume_quantity == 0:
+            return True
+        if license.bildungsloginLicenseType == LicenseType.SINGLE:
+            assignments = self.get_assignments_by_license(license)
+            # single licenses only have one assignment
+            assignment = assignments[0]
+            if assignment.bildungsloginAssignmentStatus != Status.AVAILABLE:
+                return not bool(self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee))
+        return False
+
+    def is_license_only_assigned(self, license):
+        if license.bildungsloginLicenseType in [LicenseType.SCHOOL, LicenseType.WORKGROUP]:
+            return False
+
+        assignments = self.get_assignments_by_license(license)
+        for assignment in assignments:
+            if assignment.bildungsloginAssignmentStatus == Status.ASSIGNED:
+                return True
+
+        return False
+
     def get_metadata_by_product_id(self, product_id):
-        for metadata in self._metadata:
+        for metadata in self._metadata:  # type: LdapMetaData
             if metadata.bildungsloginProductId == product_id:
                 return metadata
         return None
@@ -776,7 +843,7 @@ class LdapRepository:
         return self._workgroups
 
     def get_user_by_uuid(self, uuid):
-        for user in self._users:
+        for user in self._users:  # type: LdapUser
             if user.entryUUID == uuid:
                 return user
         return None
@@ -873,8 +940,24 @@ class LdapRepository:
         for assignment in self._assignments:
             if license.entry_dn in assignment.entry_dn:
                 assignments.append(assignment)
+                if license.bildungsloginLicenseType == LicenseType.SINGLE:
+                    break
 
         return assignments
+
+    @staticmethod
+    def _get_group_by_user(groups, user):
+        _groups = []
+        for group in groups:
+            if user.userId in group.memberUid:
+                _groups.append(group)
+        return _groups
+
+    def get_workgroups_by_user(self, user):
+        return self._get_group_by_user(self._workgroups, user)
+
+    def get_classes_by_user(self, user):
+        return self._get_group_by_user(self._classes, user)
 
     def get_users_by_group(self, group):
         users = []
@@ -1075,3 +1158,19 @@ class LdapRepository:
                 '%d.%m.%Y %H:%M:%S')
         else:
             return ''
+
+    def users_has_medium(self, school, medium, users):
+        users = list(self.get_user(user) for user in users)
+        licenses = self.get_licenses_by_product_id(medium, school)
+        entry_uuids = []
+        result = []
+        for license in licenses:
+            if license.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]:
+                assignments = self.get_assignments_by_license(license)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentStatus in [Status.ASSIGNED, Status.PROVISIONED]:
+                        entry_uuids.append(assignment.bildungsloginAssignmentAssignee)
+        for user in users:
+            if user.entryUUID in entry_uuids:
+                result.append(user.uid)
+        return result

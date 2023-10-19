@@ -1,3 +1,10 @@
+python-bildungslogin (2.4.0) unstable; urgency=medium
+
+  * ET-237 Implement a listener to clean up assignments after user deletion.
+  * ET-233 Do not count disabled user in groups and schools.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 19 Oct 2023 09:22:24 +0200
+
 python-bildungslogin (2.3.5) unstable; urgency=medium
 
   * Fix an issue with the library for common bildungslogin functions in ucs 4.4.

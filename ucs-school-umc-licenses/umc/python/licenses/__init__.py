@@ -33,12 +33,9 @@
 import os
 import random
 import string
-from datetime import datetime
 from typing import Dict, List, Optional, Union
 from subprocess import Popen
 from .xlsxwriter import Workbook
-import io
-import base64
 
 import psutil
 from ucsschool.lib.school_umc_base import SchoolBaseModule, SchoolSanitizer
@@ -106,6 +103,8 @@ class Instance(SchoolBaseModule):
         product=LDAPSearchSanitizer(default=""),
         licenseCode=LDAPSearchSanitizer(default=""),
         pattern=LDAPSearchSanitizer(default=""),
+        notProvisioned=BooleanSanitizer(),
+        notUsable=BooleanSanitizer(),
         allocationProductId=LDAPSearchSanitizer(add_asterisks=False, default=""),
     )
     @LDAP_Connection(USER_WRITE)
@@ -121,6 +120,7 @@ class Instance(SchoolBaseModule):
             licenseType -- list
             userPattern -- str
             productId -- str
+            notProvisioned -- boolean
             product -- str
             licenseCode -- str
             pattern -- str
@@ -167,6 +167,8 @@ class Instance(SchoolBaseModule):
                 school_class=school_class,
                 valid_status=request.options.get("validStatus"),
                 usage_status=request.options.get("usageStatus"),
+                not_provisioned=request.options.get("notProvisioned"),
+                not_usable=request.options.get("notUsable"),
                 expiry_date_from=expiry_from,
                 expiry_date_to=expiry_to
             )
@@ -196,7 +198,8 @@ class Instance(SchoolBaseModule):
                     _license.bildungsloginValidityEndDate) if _license.bildungsloginValidityEndDate else None,
                 "countAquired": undefined_if_none(_license.quantity, zero_as_none=True),
                 "countAssigned": undefined_if_none(_license.quantity_assigned),
-                "countAvailable": str(undefined_if_none(None if _license.quantity == 0 else _license.quantity_available)),
+                "countAvailable": str(
+                    undefined_if_none(None if _license.quantity == 0 else _license.quantity_available)),
                 "countExpired": undefined_if_none(_license.quantity_expired),
                 "usageStatus": _license.bildungsloginUsageStatus,
                 "expiryDate": optional_date2str(_license.bildungsloginExpiryDate),
@@ -322,27 +325,37 @@ class Instance(SchoolBaseModule):
 
         filename = 'bildungsloginLicense_' + ''.join(
             random.choice(string.ascii_letters) for _ in range(0, 20)) + '.xlsx'
-        workbook = Workbook('/tmp/' + filename)
-        worksheet = workbook.add_worksheet()
 
         columns = [_('License code'), _('Medium ID'), _('Medium'), _('Publisher'), _('License type'),
                    _('Special License type'),
-                   _('Delivery Date'), _('Validity start'), _('Validity end'), _('Number of licenses'),
+                   _('Delivery Date'), _('Validity start'), _('Redemption period'), _('Number of licenses'),
                    _('Number of assigned licenses'),
                    _('Number of available licenses'), _('Number of expired licenses'), _('Validity status'),
                    _('Usage status'), _('Expiry date')]
 
-        header_format = workbook.add_format({'bold': True})
-        result.insert(0, columns)
-        worksheet.set_column(0, len(columns) - 1, 25)
+        self._create_worksheet(filename, columns, result)
 
-        for row_num, row in enumerate(result):
-            for col_num, data in enumerate(row):
-                if (row_num == 0):
-                    worksheet.write(row_num, col_num, data, header_format)
-                else:
-                    worksheet.write(row_num, col_num, data)
-        workbook.close()
+        self.finished(request.id, {'URL': '/univention/command/licenses/download_export?export=%s' % (
+            quote(filename),)})
+
+    @sanitize(school=StringSanitizer(required=True))
+    def licenses_single_to_excel(self, request):
+        self.repository.update(request.options.get("school"))
+        result = self.repository.get_single_license_assigned_users(request.options.get("school"))
+
+        filename = 'bildungsloginSingleLicense_' + ''.join(
+            random.choice(string.ascii_letters) for _ in range(0, 20)) + '.xlsx'
+
+        columns = [
+            _('User id'),
+            _('Classes'),
+            _('Workgroups'),
+            _('Medium ID'),
+            _('Medium'),
+            _('License code')
+        ]
+
+        self._create_worksheet(filename, columns, result)
 
         self.finished(request.id, {'URL': '/univention/command/licenses/download_export?export=%s' % (
             quote(filename),)})
@@ -775,6 +788,9 @@ class Instance(SchoolBaseModule):
                     if license.is_expired:
                         sum_num_expired += license.quantity_expired
                     else:
+                        if license.is_group_type and license.quantity_available == 0:
+                            sum_num_available = None
+                            break
                         sum_num_available += license.quantity_available
 
                 # count info about licenses
@@ -900,17 +916,7 @@ class Instance(SchoolBaseModule):
                    _('Number of expired licenses'),
                    _('Number of available licenses')]
 
-        header_format = workbook.add_format({'bold': True})
-        result.insert(0, columns)
-        worksheet.set_column(0, len(columns) - 1, 25)
-
-        for row_num, row in enumerate(result):
-            for col_num, data in enumerate(row):
-                if (row_num == 0):
-                    worksheet.write(row_num, col_num, data, header_format)
-                else:
-                    worksheet.write(row_num, col_num, data)
-        workbook.close()
+        self._create_worksheet(filename, columns, result)
 
         self.finished(request.id, {'URL': '/univention/command/licenses/download_export?export=%s' % (
             quote(filename),)})
@@ -1105,6 +1111,13 @@ class Instance(SchoolBaseModule):
             'result': 'success'
         })
 
+    @sanitize(school=SchoolSanitizer(required=True), medium=StringSanitizer(required=True),
+              users=ListSanitizer(required=True))
+    def users_has_medium(self, request):
+        self.finished(request.id, self.repository.users_has_medium(school=request.options.get('school'),
+                                                                   medium=request.options.get('medium'),
+                                                                   users=request.options.get('users')))
+
     def cache_rebuild_debug(self, request):
         if not self._cache_is_running() and ucr.get('bildungslogin/debug') == 'true':
             Popen(['python ' + CACHE_BUILD_SCRIPT], shell=True, stdout=None)
@@ -1117,3 +1130,19 @@ class Instance(SchoolBaseModule):
                 request.id,
                 {'status': 2}
             )
+
+    @staticmethod
+    def _create_worksheet(filename, columns, result):
+        workbook = Workbook('/tmp/' + filename)
+        worksheet = workbook.add_worksheet()
+        header_format = workbook.add_format({'bold': True})
+        result.insert(0, columns)
+        worksheet.set_column(0, len(columns) - 1, 25)
+
+        for row_num, row in enumerate(result):
+            for col_num, data in enumerate(row):
+                if row_num == 0:
+                    worksheet.write(row_num, col_num, data, header_format)
+                else:
+                    worksheet.write(row_num, col_num, data)
+        workbook.close()

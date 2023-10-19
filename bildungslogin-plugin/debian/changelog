@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.4.0) unstable; urgency=medium
+
+  * ET-241 Setting object flag hidden to bildungslogin-api-user as requested by univention.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 19 Oct 2023 09:22:11 +0200
+
 bildungslogin-plugin (2.3.14) unstable; urgency=medium
 
   * Bugfix for the dictionary generation in build cache script.
