@@ -70,6 +70,7 @@ define([
             'validStatus',
             'usageStatus',
             'notProvisioned',
+            'notUsable',
             'expiryDateFrom',
             'expiryDateTo',
             'workgroup',
@@ -252,6 +253,14 @@ define([
                 name: 'notProvisioned',
                 label: _('Only assigned, not yet provisioned licenses'),
                 visible: false,
+                size: 'TwoThirds',
+              },
+              {
+                type: CheckBox,
+                name: 'notUsable',
+                label: _('Licenses that where used by not existing users.'),
+                visible: false,
+                size: 'TwoThirds',
               },
               {
                 type: DateBox,
@@ -274,7 +283,7 @@ define([
             ['publisher', 'userPattern'],
             ['licenseType', 'workgroup', 'class'],
             ['validStatus', 'usageStatus', 'notProvisioned'],
-            ['expiryDateFrom', 'expiryDateTo'],
+            ['expiryDateFrom', 'expiryDateTo', 'notUsable'],
             [
               'productId',
               'product',

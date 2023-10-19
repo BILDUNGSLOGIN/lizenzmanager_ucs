@@ -597,6 +597,7 @@ class LdapRepository:
                         valid_status=None,
                         usage_status=None,
                         not_provisioned=None,
+                        not_usable=None,
                         expiry_date_from=None,
                         expiry_date_to=None,
                         ):
@@ -677,11 +678,29 @@ class LdapRepository:
         if not_provisioned:
             licenses = filter(lambda _license: self.is_license_only_assigned(_license), licenses)
 
+        if not_usable:
+            licenses = filter(lambda _license: self.is_license_not_usable(_license), licenses)
+
         if sizelimit:
             if len(licenses) > sizelimit:
                 raise SearchLimitReached
 
         return licenses
+
+    def is_license_not_usable(self, license):
+        """
+
+        @type license: LdapLicense
+        """
+        if hasattr(license, 'volume_quantity') and license.volume_quantity == 0:
+            return True
+        if license.bildungsloginLicenseType == LicenseType.SINGLE:
+            assignments = self.get_assignments_by_license(license)
+            # single licenses only have one assignment
+            assignment = assignments[0]
+            if assignment.bildungsloginAssignmentStatus != Status.AVAILABLE:
+                return not bool(self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee))
+        return False
 
     def is_license_only_assigned(self, license):
         if license.bildungsloginLicenseType in [LicenseType.SCHOOL, LicenseType.WORKGROUP]:
