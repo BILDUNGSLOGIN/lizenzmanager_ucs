@@ -1038,9 +1038,11 @@ class AssignmentHandler:
             return result
 
         # sort licenses by validity_end_date
-        licenses.sort(key=lambda x: x.props.validity_end_date)
-        # move licenses without validity_end_date to end of list
-        licenses.sort(key=lambda x: bool(x.props.validity_end_date), reverse=True)
+        # move licenses without validity_end_date to end of list. We need to use a fake date because
+        # None can't be compared to a date.
+        licenses.sort(
+            key=lambda x: x.props.validity_end_date if x.props.validity_end_date else datetime.date(year=9999, day=1,
+                                                                                                    month=1))
 
         # assign licenses
 
