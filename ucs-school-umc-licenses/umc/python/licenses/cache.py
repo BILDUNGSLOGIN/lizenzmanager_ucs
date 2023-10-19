@@ -136,7 +136,7 @@ class LdapLicense:
             if self.quantity_assigned > self.quantity:
                 return 0
             else:
-                if self.volume_quantity:
+                if hasattr(self, 'volume_quantity'):
                     return self.volume_quantity - self.quantity_assigned
                 else:
                     return self.quantity - self.quantity_assigned
