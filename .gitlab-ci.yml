@@ -1,5 +1,14 @@
 default:
   image: registry.gitlab.com/bildungslogin/lizenzmanager
+  before_script:
+    - apt-get install -y openssl ca-certificates
+    - mkdir -p /usr/local/share/ca-certificates/extra
+    - openssl s_client -connect ${CI_SERVER_HOST}:${CI_SERVER_PORT} -servername ${CI_SERVER_HOST} -showcerts </dev/null 2>/dev/null | sed -e '/-----BEGIN/,/-----END/!d' | tee "/usr/local/share/ca-certificates/${CI_SERVER_HOST}.crt" >/dev/null
+    - update-ca-certificates
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - mkdir ~/.ssh && touch ~/.ssh/known_hosts
+    - ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
 variables:
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/release/${CI_PIPELINE_IID}"
@@ -8,6 +17,7 @@ stages:
   - build
   - package
   - release
+  - publish
 
 build-packages:
   stage: build
@@ -67,3 +77,15 @@ release-packages:
           url: "${PACKAGE_REGISTRY_URL}/dist.tgz"
           link_type: package
 
+publish-source:
+  stage: publish
+  script:
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+    - cd $CI_PROJECT_DIR
+    - cp .secure_files/deploy_key deploy_key && chmod 400 deploy_key
+    - ssh-add deploy_key
+    - git config remote.github.url >&- || git remote add github git@github.com:Bildungslogin/lizenzmanager.git
+    - git checkout -B main
+    - git push --force github main
+  only:
+    - main
