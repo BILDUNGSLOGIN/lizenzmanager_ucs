@@ -886,8 +886,9 @@ class LdapRepository:
                         user = self.get_user(member_uid)
                         user_roles = []
 
-                        for role in user.ucsschoolRole:
-                            user_roles.append(role.split(':')[0])
+                        if user:
+                            for role in user.ucsschoolRole:
+                                user_roles.append(role.split(':')[0])
 
                         if license.bildungsloginLicenseSpecialType == "Lehrkraft" and "teacher" not in user_roles:
                             continue
