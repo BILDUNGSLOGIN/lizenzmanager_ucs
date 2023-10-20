@@ -776,7 +776,11 @@ class Instance(SchoolBaseModule):
 
                 sum_quantity = 0
                 for license in non_ignored_licenses:
-                    sum_quantity += license.quantity
+                    if license.is_group_type and license.quantity_available == 0:
+                        sum_quantity = None
+                        break
+                    else:
+                        sum_quantity += license.quantity
 
                 sum_num_assigned = 0
                 for license in non_ignored_licenses:
