@@ -130,7 +130,7 @@ define([
             }, {
               type: TextBox,
               name: 'userPattern',
-              label: _('User ID'),
+              label: _('Username'),
               description: _(
                   'Search for licenses that have this user assigned. (Searches for \'first name\', \'last name\' and \'username\')'),
               size: 'TwoThirds',
@@ -258,7 +258,7 @@ define([
               {
                 type: CheckBox,
                 name: 'notUsable',
-                label: _('Licenses that where used by not existing users.'),
+                label: _('Licenses assigned to deleted users'),
                 visible: false,
                 size: 'TwoThirds',
               },
