@@ -334,7 +334,7 @@ msgid ""
 "file that lists all the individual licenses assigned to each user."
 msgstr ""
 "Über den nebenstehenden Button können Sie zu Kontrollzwecken eine Excel-"
-"Datei herunterladen, die für jeden User alle zugewiesenen Einzellizenzen "
+"Datei herunterladen,<br> die für jeden User alle zugewiesenen Einzellizenzen "
 "auflistet."
 
 #: umc/js/licenses/modules/delete/SearchPage.js:357
