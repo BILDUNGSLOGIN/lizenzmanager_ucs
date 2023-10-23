@@ -46,7 +46,7 @@ class BildungsloginUserListener(ListenerModuleHandler):
     def remove(self, dn, old):
         self.logger.info("Release assignment for user %r...", old.get('uid'))
         process_output = subprocess.Popen(
-            ['sudo', 'bildungslogin-assignment-release', '--entry-uuid', old.get('entryUUID')],
+            ['sudo', 'bildungslogin-assignment-release', '--entry-uuid', old['entryUUID'][0]],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT)
         stdout, stderr = process_output.communicate()
