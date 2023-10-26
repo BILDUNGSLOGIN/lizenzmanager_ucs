@@ -1,3 +1,9 @@
+python-bildungslogin (2.4.1) unstable; urgency=medium
+
+  * Add a parameter to allow a complete update of the license status.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 26 Oct 2023 12:14:31 +0200
+
 python-bildungslogin (2.4.0) unstable; urgency=medium
 
   * ET-237 Implement a listener to clean up assignments after user deletion.

@@ -22,6 +22,9 @@ def parse_args(args=None):  # type: (Optional[List[str]]) -> argparse.Namespace
     parser.add_argument(
         "--config-file", required=False, help="A path to a file which contains all config options for this command."
     )
+    parser.add_argument(
+        "--get-all", required=False, help="Get all status information, not just the new.", action="store_true",
+    )
 
     return parser.parse_args(args)
 
@@ -56,12 +59,12 @@ def register_licenses(client_id, client_secret, scope, auth_server, resource_ser
                     license.save()
 
 
-def update_licenses_status(access_token, resource_server):
+def update_licenses_status(access_token, resource_server, get_all):
     lo, _ = getAdminConnection()
     udm = UDM(lo).version(2).get('bildungslogin/license')
 
     request = requests.get(
-        url=resource_server + "/licensestatus/v1/data",
+        url=resource_server + "/licensestatus/v1/data" + ('?filter=all' if get_all else ''),
         headers={"Authorization": "Bearer " + access_token},
     )
     if request.status_code != 200:
@@ -98,7 +101,7 @@ def get_licenses():
     return licenses
 
 
-def update_licenses(config):
+def update_licenses(config, args):
     licenses = get_licenses()
     register_licenses(config['client_id'],
                       config['client_secret'],
@@ -108,12 +111,12 @@ def update_licenses(config):
                                     config['client_secret'],
                                     config['scope'],
                                     config['auth_server'])
-    update_licenses_status(access_token, config['resource_server'])
+    update_licenses_status(access_token, config['resource_server'], args.get_all)
 
 
 def main():  # type: () -> None
     try:
         args = parse_args()
-        update_licenses(get_config(args))
+        update_licenses(get_config(args), args)
     except ScriptError as err:
         print("Script Error: %s" % (err,), file=sys.stderr)
