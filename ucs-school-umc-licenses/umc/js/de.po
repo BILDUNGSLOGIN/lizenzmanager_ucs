@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-10-19 07:16+0000\n"
+"POT-Creation-Date: 2023-10-20 11:58+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -334,7 +334,7 @@ msgid ""
 "file that lists all the individual licenses assigned to each user."
 msgstr ""
 "Über den nebenstehenden Button können Sie zu Kontrollzwecken eine Excel-"
-"Datei herunterladen, die für jeden User alle zugewiesenen Einzellizenzen "
+"Datei herunterladen,<br> die für jeden User alle zugewiesenen Einzellizenzen "
 "auflistet."
 
 #: umc/js/licenses/modules/delete/SearchPage.js:357
@@ -418,8 +418,8 @@ msgid "Licenses are being processed. Please have a little patience."
 msgstr "Lizenzen werden bearbeitet. Bitte haben Sie etwas Geduld."
 
 #: umc/js/licenses/common/LicenseSearchformMixin.js:261
-msgid "Licenses that where used by not existing users."
-msgstr "Lizenzen die von nicht mehr existenten Benutzern aufgebraucht wurden."
+msgid "Licenses assigned to deleted users"
+msgstr "Lizenzen, die gelöschten Benutzern zugewiesen sind"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:508
 #, javascript-format
@@ -787,12 +787,9 @@ msgstr "Nutzungsstatus"
 msgid "User"
 msgstr "Nutzer"
 
+#: umc/js/licenses/modules/assignment/UserSelectionPage.js:384
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:677
 #: umc/js/licenses/common/LicenseSearchformMixin.js:133
-msgid "User ID"
-msgstr "Nutzer ID"
-
-#: umc/js/licenses/modules/assignment/UserSelectionPage.js:384
 msgid "Username"
 msgstr "Benutzername"
 
@@ -922,6 +919,9 @@ msgstr "gültig"
 
 #~ msgid "Sum"
 #~ msgstr "Summe"
+
+#~ msgid "User ID"
+#~ msgstr "Nutzer ID"
 
 #~ msgid "Validity end"
 #~ msgstr "Gültigkeitsende"

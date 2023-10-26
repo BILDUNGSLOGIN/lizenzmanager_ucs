@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-bildungslogin 0.0.3\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-10-18 13:09+0000\n"
+"POT-Creation-Date: 2023-10-23 11:40+0000\n"
 "PO-Revision-Date: 2021-08-12 11:58+0200\n"
 "Last-Translator: Daniel Tröder <troeder@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -52,11 +52,11 @@ msgstr ""
 "Fehler beim Erstellen von Metadaten für das Produkt mit der ID {p_id!r}!\n"
 "{exc}"
 
-#: src/univention/bildungslogin/handlers.py:1107
+#: src/univention/bildungslogin/handlers.py:1109
 msgid "Illegal status change to {status!r}!"
 msgstr "Ungültiger Statusübergang zu {status!r}!"
 
-#: src/univention/bildungslogin/handlers.py:1136
+#: src/univention/bildungslogin/handlers.py:1138
 #, python-brace-format
 msgid ""
 "Invalid assignment status change!\n"
@@ -108,7 +108,7 @@ msgstr ""
 msgid "Meta data object with product id {p_id!r} does not exist!"
 msgstr "Metadaten Objekt mit Produkt ID {p_id!r} existiert nicht!"
 
-#: src/univention/bildungslogin/handlers.py:1085
+#: src/univention/bildungslogin/handlers.py:1087
 msgid ""
 "No assignment for license with {dn!r} was found for object {object_uuid!r}."
 msgstr ""

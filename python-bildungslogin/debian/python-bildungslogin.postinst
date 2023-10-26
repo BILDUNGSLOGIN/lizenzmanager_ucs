@@ -41,8 +41,6 @@ ucr set \
 id listener > /dev/null 2>&1 && chown listener /etc/bildungslogin/config.ini
 chmod 640 /etc/bildungslogin/config.ini
 
-if [ -x /etc/init.d/univention-directory-listener ]; then
-	deb-systemd-invoke restart univention-directory-listener
-fi
+deb-systemd-invoke restart univention-directory-listener
 
 exit 0

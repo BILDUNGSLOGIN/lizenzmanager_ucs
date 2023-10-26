@@ -886,8 +886,9 @@ class LdapRepository:
                         user = self.get_user(member_uid)
                         user_roles = []
 
-                        for role in user.ucsschoolRole:
-                            user_roles.append(role.split(':')[0])
+                        if user:
+                            for role in user.ucsschoolRole:
+                                user_roles.append(role.split(':')[0])
 
                         if license.bildungsloginLicenseSpecialType == "Lehrkraft" and "teacher" not in user_roles:
                             continue
@@ -974,6 +975,8 @@ class LdapRepository:
             license.user_strings.append(user.givenName)
             license.user_strings.append(user.sn)
             license.quantity_assigned += 1
+            return True
+        return False
 
     def remove_user_from_license(self, license, user):
         if license.bildungsloginLicenseSpecialType != 'Lehrkraft' or (
@@ -1003,8 +1006,8 @@ class LdapRepository:
                 user = self.get_user(object_name)
                 for assignment in license['assignments']:
                     if assignment.bildungsloginAssignmentStatus == Status.AVAILABLE:
-                        self.add_user_to_license(license['license'], user)
-                        assignment.assign(user.entryUUID)
+                        if self.add_user_to_license(license['license'], user):
+                            assignment.assign(user.entryUUID)
                         break
                 self.cache_single_license(license['license'], license['assignments'])
 

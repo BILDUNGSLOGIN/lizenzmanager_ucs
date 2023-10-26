@@ -21,15 +21,10 @@ def cleanup_assignments(entry_uuid):
     udm_license = UDM(lo).version(2).get('bildungslogin/license')
     udm_assignment = UDM(lo).version(2).get('bildungslogin/assignment')
 
-    for license in udm_license.search():
+    for assignment in udm_assignment.search('(assignee=' + entry_uuid + ')'):
+        license = udm_license.get(",".join(assignment.dn.split(',')[1:]))
         if license.props.license_type == LicenseType.SINGLE:
-            for assignment_list in license.props.assignments:
-                assignment = udm_assignment.get(assignment_list)
-                if assignment.props.assignee == entry_uuid:
-                    free_assignment_if_possible(assignment)
-        if license.props.license_type == LicenseType.VOLUME:
-            for assignment_list in license.props.assignments:
-                assignment = udm_assignment.get(assignment_list)
-                if assignment.props.assignee == entry_uuid:
-                    if not free_assignment_if_possible(assignment):
-                        assignment.delete()
+            free_assignment_if_possible(assignment)
+        elif license.props.license_type == LicenseType.VOLUME:
+            if not free_assignment_if_possible(assignment):
+                assignment.delete()
