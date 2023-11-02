@@ -199,7 +199,29 @@ define([
           }
         },
 
+        _toggleSearch: function() {
+          this._isAdvancedSearch = !this._isAdvancedSearch;
+          [
+            'import_date_start',
+            'import_date_end',
+            'class_group',
+            'workgroup',
+            'medium',
+            'medium_id',
+            'publisher',
+            'validStatus',
+            'usageStatus',
+            'notProvisioned'].forEach(lang.hitch(this, function(widgetName) {
+            const widget = this._searchForm.getWidget(widgetName);
+            if (widget) {
+              widget.set('visible', this._isAdvancedSearch);
+            }
+          }));
+        },
+
         createAfterSchoolChoose: function() {
+          this._isAdvancedSearch = false;
+
           if (this._searchForm) {
             this.removeChild(this._searchForm);
           }
@@ -239,12 +261,14 @@ define([
               name: 'import_date_start',
               label: _('Import date start'),
               size: 'TwoThirds',
+              visible: false
             },
             {
               type: DateBox,
               name: 'import_date_end',
               label: _('Import date end'),
               size: 'TwoThirds',
+              visible: false
             },
             {
               type: SuggestionBox,
@@ -256,6 +280,7 @@ define([
                 school: this.getSchoolId(),
               },
               size: 'TwoThirds',
+              visible: false
             },
             {
               type: ComboBox,
@@ -267,6 +292,7 @@ define([
               dynamicOptions: {
                 school: this.getSchoolId(),
               },
+              visible: false
             },
             {
               type: TextBox,
@@ -279,12 +305,14 @@ define([
               name: 'medium',
               label: _('Media Title'),
               size: 'TwoThirds',
+              visible: false
             },
             {
               type: TextBox,
               name: 'medium_id',
               label: _('Medium ID'),
               size: 'TwoThirds',
+              visible: false
             },
             {
               type: ComboBox,
@@ -296,6 +324,7 @@ define([
               dynamicOptions: {
                 school: this.getSchoolId(),
               },
+              visible: false
             },
             {
               type: ComboBox,
@@ -314,6 +343,7 @@ define([
                   id: '1', label: _('valid'),
                 }],
               size: 'TwoThirds',
+              visible: false
             },
             {
               type: ComboBox,
@@ -332,18 +362,33 @@ define([
                   id: '1', label: _('activated'),
                 }],
               size: 'TwoThirds',
+              visible: false
             },
             {
               type: CheckBox,
               name: 'notProvisioned',
               label: _('Only assigned, not yet provisioned licenses'),
               size: 'TwoThirds',
+              visible: false
             },
           ];
+
+          const buttons = [
+            {
+              name: 'toggleSearch', labelConf: {
+                class: 'umcFilters',
+              }, label: _('Filters'), iconClass: 'umcDoubleRightIcon',
+
+              callback: lang.hitch(this, function() {
+                this._toggleSearch();
+              }),
+            }];
+
           this._searchForm = new SearchForm({
             class: 'umcUDMSearchForm umcUDMSearchFormSimpleTextBox',
             region: 'nav',
             widgets: widgets,
+            buttons: buttons,
             layout: [
               ['import_date_start', 'import_date_end'],
               ['class_group', 'workgroup'],
