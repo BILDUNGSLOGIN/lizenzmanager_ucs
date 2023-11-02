@@ -1122,6 +1122,120 @@ class Instance(SchoolBaseModule):
                                                                    medium=request.options.get('medium'),
                                                                    users=request.options.get('users')))
 
+    @sanitize(
+        school=SchoolSanitizer(required=True),
+        import_date_start=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
+        import_date_end=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
+        class_group=StringSanitizer(default=''),
+        workgroup=StringSanitizer(default=''),
+        username=LDAPSearchSanitizer(default=''),
+        medium=LDAPSearchSanitizer(default=''),
+        medium_id=LDAPSearchSanitizer(default=''),
+        publisher=LDAPSearchSanitizer(add_asterisks=False, default=''),
+        validStatus=StringSanitizer(default=''),
+        usageStatus=StringSanitizer(default=''),
+        notProvisioned=BooleanSanitizer()
+    )
+    def users_list(self, request):
+        school = request.options.get('school')
+        self.repository.update(school)
+        import_date_start = request.options.get('import_date_start')
+        import_date_start = iso8601Date.to_datetime(import_date_start) if import_date_start else None
+        import_date_end = request.options.get('import_date_end')
+        import_date_end = iso8601Date.to_datetime(import_date_end) if import_date_end else None
+        users = self.repository.filter_user_to_medium_and_license(school,
+                                                                  import_date_start=import_date_start,
+                                                                  import_date_end=import_date_end,
+                                                                  class_group=request.options.get('class_group'),
+                                                                  workgroup=request.options.get('workgroup'),
+                                                                  username=request.options.get('username'),
+                                                                  medium=request.options.get('medium'),
+                                                                  medium_id=request.options.get('medium_id'),
+                                                                  publisher=request.options.get('publisher'),
+                                                                  valid_status=request.options.get('validStatus'),
+                                                                  usage_status=request.options.get('usageStatus'),
+                                                                  not_provisioned=request.options.get('notProvisioned')
+                                                                  )
+        result = []
+        for user in users:
+            result.append({
+                'assignment': user['assignment'].entryUUID,
+                'uid': user['user'].uid,
+                'license': user['license'].bildungsloginLicenseCode,
+                'status': user['assignment'].bildungsloginAssignmentStatus,
+                'medium': user['product'].bildungsloginMetaDataTitle,
+                'classes': ', '.join(group.cn.split(school + "-")[1] for group in user['classes']),
+                'workgroups': ', '.join(group.cn.split(school + "-")[1] for group in user['workgroups']),
+                'roles': Role.label(user['user'].ucsschoolRole),
+                'publisher': user['license'].publisher,
+                'date_assignment': iso8601Date.from_datetime(
+                    user['assignment'].bildungsloginAssignmentTimeOfAssignment),
+                'import_date': iso8601Date.from_datetime(user['license'].bildungsloginDeliveryDate)
+            })
+        self.finished(request.id, result)
+
+    @sanitize(
+        school=SchoolSanitizer(required=True),
+        import_date_start=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
+        import_date_end=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
+        class_group=StringSanitizer(default=''),
+        workgroup=StringSanitizer(default=''),
+        username=LDAPSearchSanitizer(default=''),
+        medium=LDAPSearchSanitizer(default=''),
+        medium_id=LDAPSearchSanitizer(default=''),
+        publisher=LDAPSearchSanitizer(add_asterisks=False, default=''),
+        validStatus=StringSanitizer(default=''),
+        usageStatus=StringSanitizer(default=''),
+        notProvisioned=BooleanSanitizer()
+    )
+    def users_to_excel(self, request):
+        school = request.options.get('school')
+        self.repository.update(school)
+        import_date_start = request.options.get('import_date_start')
+        import_date_start = iso8601Date.to_datetime(import_date_start) if import_date_start else None
+        import_date_end = request.options.get('import_date_end')
+        import_date_end = iso8601Date.to_datetime(import_date_end) if import_date_end else None
+        users = self.repository.filter_user_to_medium_and_license(school,
+                                                                  import_date_start=import_date_start,
+                                                                  import_date_end=import_date_end,
+                                                                  class_group=request.options.get('class_group'),
+                                                                  workgroup=request.options.get('workgroup'),
+                                                                  username=request.options.get('username'),
+                                                                  medium=request.options.get('medium'),
+                                                                  medium_id=request.options.get('medium_id'),
+                                                                  publisher=request.options.get('publisher'),
+                                                                  valid_status=request.options.get('validStatus'),
+                                                                  usage_status=request.options.get('usageStatus'),
+                                                                  not_provisioned=request.options.get('notProvisioned')
+                                                                  )
+        result = []
+        for user in users:
+            result.append([
+                user['user'].uid,
+                ', '.join(group.cn.split(school + "-")[1] for group in user['classes']),
+                ', '.join(group.cn.split(school + "-")[1] for group in user['workgroups']),
+                user['product'].bildungsloginProductId,
+                user['product'].bildungsloginMetaDataTitle,
+                user['license'].bildungsloginLicenseCode
+            ])
+
+        columns = [
+            _('User id'),
+            _('Classes'),
+            _('Workgroups'),
+            _('Medium ID'),
+            _('Medium'),
+            _('License code')
+        ]
+
+        filename = 'bildungsloginUser_' + ''.join(
+            random.choice(string.ascii_letters) for _ in range(0, 20)) + '.xlsx'
+        self._create_worksheet(filename, columns, result)
+
+        self.finished(request.id, {'URL': '/univention/command/licenses/download_export?export=%s' % (
+            quote(filename),)})
+        self.finished(request.id, result)
+
     def cache_rebuild_debug(self, request):
         if not self._cache_is_running() and ucr.get('bildungslogin/debug') == 'true':
             Popen(['python ' + CACHE_BUILD_SCRIPT], shell=True, stdout=None)

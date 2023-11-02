@@ -3,6 +3,8 @@ from datetime import date, datetime
 import json
 from os.path import exists
 import re
+
+from typing import List, Dict, Union, Any
 from univention.management.console.log import MODULE
 
 from univention.bildungslogin.handlers import (
@@ -560,6 +562,90 @@ class LdapRepository:
                 license.medium.bildungsloginProductId.lower())
 
         return False
+
+    def get_user_to_medium_and_license(self, school):
+        result = []  # type: List[Dict[str, Union[LdapLicense, LdapMetaData, None, List[Any], LdapUser, LdapAssignment]]]
+
+        for license in self._licenses:  # type: LdapLicense
+            if (license.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]
+                    and license.bildungsloginLicenseSchool == school):
+                assignments = self.get_assignments_by_license(license)
+                for assignment in assignments:  # type: LdapAssignment
+                    user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                    if user is not None:
+                        result.append({
+                            'user': user,
+                            'product': self.get_metadata_by_product_id(license.bildungsloginProductId),
+                            'license': license,
+                            'workgroups': self.get_workgroups_by_user(user),
+                            'classes': self.get_classes_by_user(user),
+                            'assignment': assignment
+                        })
+
+        return result
+
+    def filter_user_to_medium_and_license(self, school,
+                                          import_date_start=None,
+                                          import_date_end=None,
+                                          class_group=None,
+                                          workgroup=None,
+                                          username=None,
+                                          medium=None,
+                                          medium_id=None,
+                                          publisher=None,
+                                          valid_status=None,
+                                          usage_status=None,
+                                          not_provisioned=None
+                                          ):
+        results = self.get_user_to_medium_and_license(school)
+
+        if import_date_start:
+            results = filter(lambda item: item['license'].bildungsloginDeliveryDate and item[
+                'license'].bildungsloginDeliveryDate >= import_date_start, results)
+
+        if import_date_end:
+            results = filter(lambda item: item['license'].bildungsloginDeliveryDate and item[
+                'license'].bildungsloginDeliveryDate <= import_date_end, results)
+
+        if class_group:
+            results = filter(lambda item: class_group in [group.cn for group in item['classes']], results)
+
+        if workgroup:
+            results = filter(lambda item: workgroup in [group.cn for group in item['workgroups']], results)
+
+        if username and username != '*':
+            user_pattern = re.compile(username.lower().replace('*', '.*'))
+            results = filter(lambda item: user_pattern.match(item['user'].uid), results)
+
+        if medium and medium != '*':
+            medium = re.compile(medium.lower().replace('*', '.*'))
+            results = filter(lambda item: medium.match(item['product'].bildungsloginMetaDataTitle), results)
+
+        if medium_id and medium_id != '*':
+            medium_id = re.compile(medium_id.lower().replace('*', '.*'))
+            results = filter(lambda item: medium_id.match(item['product'].bildungsloginProductId), results)
+
+        if publisher:
+            results = filter(
+                lambda item: publisher == item['license'].publisher if item['license'].publisher else False,
+                results)
+
+        if valid_status:
+            if valid_status == '-':
+                results = filter(lambda item: item['license'].bildungsloginValidityStatus == '', results)
+            else:
+                results = filter(lambda item: item['license'].bildungsloginValidityStatus == valid_status, results)
+
+        if usage_status:
+            if usage_status == '-':
+                results = filter(lambda item: item['license'].bildungsloginUsageStatus == '', results)
+            else:
+                results = filter(lambda item: item['license'].bildungsloginUsageStatus == usage_status, results)
+
+        if not_provisioned:
+            results = filter(lambda item: self.is_license_only_assigned(item['license']), results)
+
+        return results
 
     def get_single_license_assigned_users(self, school):
         result = []

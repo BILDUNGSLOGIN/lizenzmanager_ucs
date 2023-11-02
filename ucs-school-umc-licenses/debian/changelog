@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.4.1) unstable; urgency=medium
+
+  * ET-253 Implement a user overview to allow for easier assigment freeing.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 02 Nov 2023 18:51:38 +0100
+
 ucs-school-umc-licenses (2.4.0) unstable; urgency=medium
 
   * ET-236 Implement confirmation dialog if a medium would be assigned multiple times.
