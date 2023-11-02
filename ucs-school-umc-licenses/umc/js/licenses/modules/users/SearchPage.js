@@ -53,7 +53,8 @@ define([
   'umc/widgets/SuggestionBox',
   'umc/widgets/Text',
   'put-selector/put',
-  '../../common/ProductColumns',
+  'dojo/Deferred',
+  'umc/widgets/ProgressInfo',
   'umc/i18n!umc/modules/licenses',
   '../../../libraries/FileHelper',
   '../../../libraries/base64',
@@ -82,11 +83,12 @@ define([
     SuggestionBox,
     Text,
     put,
-    ProductColumns,
+    Deferred,
+    ProgressInfo,
     _,
 ) {
   return declare('umc.modules.licenses.users.SearchPage',
-      [Page, ProductColumns], {
+      [Page], {
         //// overwrites
         fullWidth: true,
 
@@ -108,6 +110,7 @@ define([
         expiredSum: '-',
         availableSum: '-',
         userCount: null,
+        failedAssignments: [],
 
         query: function() {
           this.standbyDuring(
@@ -142,6 +145,58 @@ define([
                 this._excelExportForm._buttons.submit.set('disabled', false);
               }),
           );
+        },
+
+        removeLicenseFromUsers: function() {
+          if (this.delete_assigments.length > 0) {
+            let item = this.delete_assigments.shift();
+
+            tools.umcpCommand('licenses/remove_from_users', {
+              licenseCode: item.license,
+              usernames: [item.uid],
+            }).then(
+                lang.hitch(this, function(response) {
+                  const failedAssignments = response.result.failedAssignments;
+                  if (failedAssignments.length) {
+                    this.failedAssignments.concat(failedAssignments);
+                  }
+                  this.progressInfo.update(Math.floor(
+                          100 * this.delete_assigments_count -
+                          this.delete_assigments.length /
+                          this.delete_assigments_count),
+                      _('Licenses are being processed. Please have a little patience.'),
+                  );
+                  this.removeLicenseFromUsers();
+                }),
+            );
+          } else {
+            this.deferred.resolve({
+              'error': null,
+              'message': null,
+              'reason': null,
+              'result': null,
+            });
+            if (this.progressInfo) {
+              this.progressInfo.destroyRecursive();
+            }
+            if (this.failedAssignments.length) {
+              const containerWidget = new ContainerWidget({});
+              const container = put(containerWidget.domNode, 'div');
+              put(
+                  container,
+                  'p',
+                  _('The license could not be removed from the following users:'),
+              );
+              const table = put(container, 'table');
+              for (let failedAssignment of this.failedAssignments) {
+                const tr = put(table, 'tr');
+                put(tr, 'td', failedAssignment.username);
+                put(tr, 'td', failedAssignment.error);
+              }
+              dialog.alert(containerWidget);
+            }
+            this._searchForm.submit();
+          }
         },
 
         createAfterSchoolChoose: function() {
@@ -301,7 +356,32 @@ define([
             }),
           });
 
-          const actions = [];
+          const actions = [
+            {
+              name: 'edit',
+              label: _('Remove assignment'),
+              isStandardAction: true,
+              isContextAction: true,
+              isMultiAction: true,
+              canExecute: function(item) {
+                return item.status === 'ASSIGNED';
+              },
+              callback: lang.hitch(this, function(_idxs, items) {
+                this.failedAssignments = [];
+                this.deferred = new Deferred();
+                this.progressInfo = new ProgressInfo();
+                this.delete_assigments = items;
+                this.delete_assigments_count = items.length;
+                this.progressInfo.update(Math.floor(
+                        100 * this.delete_assigments_count -
+                        this.delete_assigments.length /
+                        this.delete_assigments_count),
+                    _('Licenses are being processed. Please have a little patience.'),
+                );
+                this.standbyDuring(this.deferred, this.progressInfo);
+                this.removeLicenseFromUsers();
+              }),
+            }];
 
           this._grid = new Grid({
             actions: actions,

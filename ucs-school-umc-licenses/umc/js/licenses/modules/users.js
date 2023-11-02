@@ -20,6 +20,7 @@ define([
 
       this.searchPage = new SearchPage({
         getSchoolId: lang.hitch(this, 'getSchoolId'),
+        standbyDuring: lang.hitch(this, 'standbyDuring'),
       });
       this.addPage(this.searchPage);
     },

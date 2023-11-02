@@ -1162,6 +1162,7 @@ class Instance(SchoolBaseModule):
                 'assignment': user['assignment'].entryUUID,
                 'uid': user['user'].uid,
                 'license': user['license'].bildungsloginLicenseCode,
+                'status': user['assignment'].bildungsloginAssignmentStatus,
                 'medium': user['product'].bildungsloginMetaDataTitle,
                 'classes': ', '.join(group.cn.split(school + "-")[1] for group in user['classes']),
                 'workgroups': ', '.join(group.cn.split(school + "-")[1] for group in user['workgroups']),
