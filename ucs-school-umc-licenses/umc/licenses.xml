@@ -45,6 +45,7 @@
 		<command name="licenses/schools" function="schools"></command>
 		<command name="licenses/delete" function="licenses_delete"></command>
 		<command name="licenses/users/query" function="users_query"></command>
+		<command name="licenses/users/export_to_excel" function="users_to_excel"></command>
 		<command name="licenses/users/list/query" function="users_list"></command>
 		<command name="licenses/products/query" function="products_query"></command>
 		<command name="licenses/products/get" function="products_get"></command>

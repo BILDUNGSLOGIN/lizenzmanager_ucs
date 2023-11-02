@@ -140,7 +140,7 @@ define([
                 if (res.errorMessage) {
                   dialog.alert(result.errorMessage);
                 } else {
-                  downloadFile(res.URL, 'license.xlsx');
+                  downloadFile(res.URL, 'user.xlsx');
                 }
                 this._excelExportForm._buttons.submit.set('disabled', false);
               }),
