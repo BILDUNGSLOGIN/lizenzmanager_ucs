@@ -40,6 +40,7 @@ define([
   './licenses/modules/licenses',
   './licenses/modules/products',
   './licenses/modules/delete',
+  './licenses/modules/users',
   'umc/i18n!umc/modules/licenses',
   'xstyle/css!./licenses.css',
 ], function(
@@ -54,6 +55,7 @@ define([
     LicensesModule,
     ProductsModule,
     DeleteModule,
+    UsersModule,
     _,
 ) {
   return declare('umc.modules.licenses', [Module], {
@@ -121,6 +123,9 @@ define([
           break;
         case 'licenses/delete':
           this.module = new DeleteModule(props);
+          break;
+        case 'licenses/users':
+          this.module = new UsersModule(props);
           break;
       }
 

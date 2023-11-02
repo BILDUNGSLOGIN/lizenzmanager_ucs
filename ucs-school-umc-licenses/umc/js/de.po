@@ -353,6 +353,9 @@ msgstr "Ignorieren"
 msgid "Import"
 msgstr "Importiert"
 
+msgid "Import date"
+msgstr "Importdatum"
+
 #: umc/js/licenses/modules/import/import.js:332
 msgid "Import licences"
 msgstr "Lizenzen importieren"
@@ -913,6 +916,12 @@ msgstr "unbefristet"
 #: umc/js/licenses/common/LicenseSearchformMixin.js:228
 msgid "valid"
 msgstr "gültig"
+
+msgid "Classes"
+msgstr "Klassen"
+
+msgid "Workgroups"
+msgstr "Lerngruppen"
 
 #~ msgid "For"
 #~ msgstr "Für"

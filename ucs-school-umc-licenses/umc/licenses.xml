@@ -8,21 +8,25 @@
 			<name>Licensed media</name>
 			<description>View and search licensed media in the BILDUNGSLOGIN license manager</description>
 		</flavor>
-		<flavor id="licenses/licenses" icon="media-license-overview" priority="54">
+		<flavor id="licenses/licenses" icon="media-license-overview" priority="55">
 			<name>Media license overview</name>
 			<description>Display, search and revoke media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
-		<flavor id="licenses/allocation" icon="assign-media-licences" priority="53">
+		<flavor id="licenses/allocation" icon="assign-media-licences" priority="54">
 			<name>Assign media licenses</name>
 			<description>Assign media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
-		<flavor id="licenses/import" icon="import-media-licenses" priority="52">
+		<flavor id="licenses/import" icon="import-media-licenses" priority="53">
 			<name>Import media licenses / Update cache</name>
 			<description>Importing media licences into the BILDUNGSLOGIN licence manager</description>
 		</flavor>
-		<flavor id="licenses/delete" icon="delete-licenses" priority="51">
+		<flavor id="licenses/delete" icon="delete-licenses" priority="52">
 			<name>Delete licenses</name>
 			<description>Delete media licenses in the BILDUNGSLOGIN license manager</description>
+		</flavor>
+		<flavor id="licenses/users" icon="licensed-media" priority="51">
+			<name>User/license overview</name>
+			<description>List users with licenses and resolve assigned licenses</description>
 		</flavor>
 		<command name="licenses/query" function="licenses_query"></command>
 		<command name="licenses/get" function="licenses_get"></command>
@@ -41,6 +45,7 @@
 		<command name="licenses/schools" function="schools"></command>
 		<command name="licenses/delete" function="licenses_delete"></command>
 		<command name="licenses/users/query" function="users_query"></command>
+		<command name="licenses/users/list/query" function="users_list"></command>
 		<command name="licenses/products/query" function="products_query"></command>
 		<command name="licenses/products/get" function="products_get"></command>
 		<command name="licenses/products/export_to_excel" function="products_to_excel"></command>
