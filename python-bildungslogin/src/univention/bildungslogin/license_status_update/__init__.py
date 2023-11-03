@@ -26,6 +26,10 @@ def parse_args(args=None):  # type: (Optional[List[str]]) -> argparse.Namespace
         "--get-all", required=False, help="Get all status information, not just the new.", action="store_true",
     )
 
+    parser.add_argument(
+        "--register-all", required=False, help="Register all licenses, not just the new.", action="store_true",
+    )
+
     return parser.parse_args(args)
 
 
@@ -88,21 +92,21 @@ def update_licenses_status(access_token, resource_server, get_all):
                         elif update['validity'] == 'INVALID':
                             license.props.validity_status = False
                     if 'expireDate' in update:
-                        license.props.expiry_date = datetime.utcfromtimestamp(update['expireDate'] / 1000).date()
+                        license.props.expiry_date = datetime.utcfromtimestamp(update['expireDate']).date()
                     license.save()
 
 
-def get_licenses():
+def get_licenses(register_all):
     lo, _ = getAdminConnection()
     udm = UDM(lo).version(2).get('bildungslogin/license')
-    licenses = udm.search('(!(registered=1))')
+    licenses = udm.search('(!(registered=1))' if not register_all else '')
     licenses = [license for license in licenses]
 
     return licenses
 
 
 def update_licenses(config, args):
-    licenses = get_licenses()
+    licenses = get_licenses(args.register_all)
     register_licenses(config['client_id'],
                       config['client_secret'],
                       config['scope'],

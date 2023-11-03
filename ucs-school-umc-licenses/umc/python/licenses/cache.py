@@ -663,7 +663,9 @@ class LdapRepository:
                             ', '.join(group.cn for group in self.get_workgroups_by_user(user)),
                             product.bildungsloginProductId,
                             product.bildungsloginMetaDataTitle,
-                            license.bildungsloginLicenseCode
+                            license.bildungsloginLicenseCode,
+                            LicenseType.label(license.bildungsloginLicenseType),
+                            Status.label(assignment.bildungsloginAssignmentStatus),
                         ])
         return result
 
@@ -973,8 +975,10 @@ class LdapRepository:
                         user_roles = []
 
                         if user:
-                            for role in user.ucsschoolRole:
-                                user_roles.append(role.split(':')[0])
+                            continue
+
+                        for role in user.ucsschoolRole:
+                            user_roles.append(role.split(':')[0])
 
                         if license.bildungsloginLicenseSpecialType == "Lehrkraft" and "teacher" not in user_roles:
                             continue

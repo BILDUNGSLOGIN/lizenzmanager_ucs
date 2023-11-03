@@ -1,3 +1,9 @@
+python-bildungslogin (2.4.2) unstable; urgency=medium
+
+  * ET-254 Implement a register all parameter and the use of unix timestamps with seconds and without milliseconds.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 03 Nov 2023 15:25:05 +0100
+
 python-bildungslogin (2.4.1) unstable; urgency=medium
 
   * Add a parameter to allow a complete update of the license status.

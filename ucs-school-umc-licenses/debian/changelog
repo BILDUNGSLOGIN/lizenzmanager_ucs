@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (2.4.2) unstable; urgency=medium
+
+  * ET-233 Fix a bug that leads to an exception if a user of a group got deleted.
+  * ET-219 Add column license type and assignment status to export.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 03 Nov 2023 15:24:56 +0100
+
 ucs-school-umc-licenses (2.4.1) unstable; urgency=medium
 
   * ET-253 Implement a user overview to allow for easier assigment freeing.
