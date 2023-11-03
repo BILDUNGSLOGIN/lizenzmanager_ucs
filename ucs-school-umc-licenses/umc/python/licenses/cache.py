@@ -663,7 +663,9 @@ class LdapRepository:
                             ', '.join(group.cn for group in self.get_workgroups_by_user(user)),
                             product.bildungsloginProductId,
                             product.bildungsloginMetaDataTitle,
-                            license.bildungsloginLicenseCode
+                            license.bildungsloginLicenseCode,
+                            LicenseType.label(license.bildungsloginLicenseType),
+                            Status.label(assignment.bildungsloginAssignmentStatus),
                         ])
         return result
 

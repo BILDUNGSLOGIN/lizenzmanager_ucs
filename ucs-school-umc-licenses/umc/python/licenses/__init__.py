@@ -352,7 +352,9 @@ class Instance(SchoolBaseModule):
             _('Workgroups'),
             _('Medium ID'),
             _('Medium'),
-            _('License code')
+            _('License code'),
+            _('License type'),
+            _('Status')
         ]
 
         self._create_worksheet(filename, columns, result)
@@ -1216,7 +1218,9 @@ class Instance(SchoolBaseModule):
                 ', '.join(group.cn.split(school + "-")[1] for group in user['workgroups']),
                 user['product'].bildungsloginProductId,
                 user['product'].bildungsloginMetaDataTitle,
-                user['license'].bildungsloginLicenseCode
+                user['license'].bildungsloginLicenseCode,
+                LicenseType.label(user['license'].bildungsloginLicenseType),
+                Status.label(user['assignment'].bildungsloginAssignmentStatus),
             ])
 
         columns = [
@@ -1225,7 +1229,9 @@ class Instance(SchoolBaseModule):
             _('Workgroups'),
             _('Medium ID'),
             _('Medium'),
-            _('License code')
+            _('License code'),
+            _('License type'),
+            _('Status')
         ]
 
         filename = 'bildungsloginUser_' + ''.join(

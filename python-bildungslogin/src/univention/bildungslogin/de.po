@@ -96,6 +96,9 @@ msgstr ""
 "Lizenz mit Lizenztyp {license_type!r} kann dem Objekttyp {object_type!r} "
 "nicht zugewiesen werden"
 
+msgid "License type"
+msgstr "Lizenztyp"
+
 #: src/univention/bildungslogin/handlers.py:845
 msgid ""
 "License with special type 'Lehrkraft' can't be assigned to user {username!r}"
