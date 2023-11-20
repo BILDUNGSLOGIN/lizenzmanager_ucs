@@ -107,8 +107,11 @@ def update_licenses_status(access_token, resource_server, get_all, debug=False):
                             license.props.validity_status = True
                         elif update['validity'] == 'INVALID':
                             license.props.validity_status = False
-                    if 'expireDate' in update and update['expireDate']:
-                        license.props.expiry_date = datetime.utcfromtimestamp(float(update['expireDate'])).date()
+                    if 'expireDate' in update:
+                        if update['expireDate']:
+                            license.props.expiry_date = datetime.utcfromtimestamp(float(update['expireDate'])).date()
+                        else:
+                            license.props.expiry_date = None
                     license.save()
 
 
