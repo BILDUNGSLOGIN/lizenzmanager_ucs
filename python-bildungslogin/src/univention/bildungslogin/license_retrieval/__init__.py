@@ -141,7 +141,7 @@ LICENSE_RETRIEVAL_SCHEMA = {
 }
 
 
-def get_access_token(client_id, client_secret, scope, auth_server, proxies=None):
+def get_access_token(client_id, client_secret, scope, auth_server, proxies=None, debug=False):
     # type: (str, str, str, str, dict) -> str
     response = requests.post(
         auth_server,
@@ -149,6 +149,9 @@ def get_access_token(client_id, client_secret, scope, auth_server, proxies=None)
         auth=(client_id, client_secret),
         proxies=proxies
     )
+
+    if debug:
+        print(response.content)
 
     if response.status_code != 200:
         raise AuthError("Authorization failed: %s" % (response.json()["error_description"],))

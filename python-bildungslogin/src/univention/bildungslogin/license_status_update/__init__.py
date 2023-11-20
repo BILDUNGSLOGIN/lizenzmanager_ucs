@@ -30,10 +30,22 @@ def parse_args(args=None):  # type: (Optional[List[str]]) -> argparse.Namespace
         "--register-all", required=False, help="Register all licenses, not just the new.", action="store_true",
     )
 
+    parser.add_argument(
+        "--skip-register", required=False, help="Skip the registering part.", action="store_true",
+    )
+
+    parser.add_argument(
+        "--license-code", required=False, help="Use to register a single license."
+    )
+
+    parser.add_argument(
+        "--debug", required=False, help="Print server answers out.", action="store_true"
+    )
+
     return parser.parse_args(args)
 
 
-def register_licenses(client_id, client_secret, scope, auth_server, resource_server, licenses):
+def register_licenses(client_id, client_secret, scope, auth_server, resource_server, licenses, debug=False):
     while len(licenses) > 0:
         tmp_licenses = []
         for _ in range(0, 101):
@@ -58,12 +70,14 @@ def register_licenses(client_id, client_secret, scope, auth_server, resource_ser
                 print("Status code: {0}".format(str(request.status_code)))
                 print("Error: " + request.content)
             else:
+                if debug:
+                    print(request.content)
                 for license in tmp_licenses:
                     license.props.registered = True
                     license.save()
 
 
-def update_licenses_status(access_token, resource_server, get_all):
+def update_licenses_status(access_token, resource_server, get_all, debug=False):
     lo, _ = getAdminConnection()
     udm = UDM(lo).version(2).get('bildungslogin/license')
 
@@ -75,6 +89,8 @@ def update_licenses_status(access_token, resource_server, get_all):
         print("Update Status code: " + str(request.status_code))
         print("Body: " + request.content)
     else:
+        if debug:
+            print(request.content)
         for update in request.json():
             if 'code' in update:
                 print('License code: ' + update['code'])
@@ -91,31 +107,36 @@ def update_licenses_status(access_token, resource_server, get_all):
                             license.props.validity_status = True
                         elif update['validity'] == 'INVALID':
                             license.props.validity_status = False
-                    if 'expireDate' in update:
-                        license.props.expiry_date = datetime.utcfromtimestamp(update['expireDate']).date()
+                    if 'expireDate' in update and update['expireDate']:
+                        license.props.expiry_date = datetime.utcfromtimestamp(float(update['expireDate'])).date()
                     license.save()
 
 
-def get_licenses(register_all):
+def get_licenses(register_all, license_code=False):
     lo, _ = getAdminConnection()
     udm = UDM(lo).version(2).get('bildungslogin/license')
-    licenses = udm.search('(!(registered=1))' if not register_all else '')
+    if license_code:
+        licenses = udm.search('(code={})'.format(license_code) if not register_all else '')
+    else:
+        licenses = udm.search('(!(registered=1))' if not register_all else '')
     licenses = [license for license in licenses]
-
     return licenses
 
 
 def update_licenses(config, args):
-    licenses = get_licenses(args.register_all)
-    register_licenses(config['client_id'],
-                      config['client_secret'],
-                      config['scope'],
-                      config['auth_server'], config['resource_server'], licenses)
+    if not args.skip_register:
+        print('Start registering licenses')
+        licenses = get_licenses(args.register_all, args.license_code)
+        register_licenses(config['client_id'],
+                          config['client_secret'],
+                          config['scope'],
+                          config['auth_server'], config['resource_server'], licenses, debug=args.debug)
     access_token = get_access_token(config['client_id'],
                                     config['client_secret'],
                                     config['scope'],
-                                    config['auth_server'])
-    update_licenses_status(access_token, config['resource_server'], args.get_all)
+                                    config['auth_server'],
+                                    debug=args.debug)
+    update_licenses_status(access_token, config['resource_server'], args.get_all, debug=args.debug)
 
 
 def main():  # type: () -> None
