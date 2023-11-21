@@ -843,6 +843,16 @@ define([
                             } else if (this.getAssignmentType() === 'school') {
                                 let school = this.getSchoolId();
 
+                                this._wrap_assign_deferred = new Deferred();    // do this first
+                                // Make a progress bar
+                                this._wrap_assign_progress = new ProgressInfo();
+
+                                this._wrap_assign_progress.update(
+                                    0,
+                                    _('Licenses are being processed. Please have a little patience.'));
+                                this.standbyDuring(this._wrap_assign_deferred,
+                                    this._wrap_assign_progress);
+
                                 tools.umcpCommand('licenses/assign_to_school', {
                                     licenseCodes: licenses.map(
                                         (license) => license.licenseCode),
@@ -886,6 +896,12 @@ define([
 
                                     const title = _('Assigning licenses');
                                     dialog.alert(msg, title);
+                                })).finally(lang.hitch(this, function() {
+                                  this._wrap_assign_deferred.resolve();
+                                  if (this._wrap_assign_progress) {
+                                      this._wrap_assign_progress.destroyRecursive();
+                                  }
+                                  this.refreshGrid(this._searchForm.value);
                                 }));
                             } else if (this.getAssignmentType() === 'schoolClass') {
                                 tools.umcpCommand('licenses/assign_to_class', {
