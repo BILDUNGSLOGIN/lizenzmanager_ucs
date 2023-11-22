@@ -44,6 +44,8 @@ define([
   'umc/widgets/Grid',
   'umc/widgets/CheckBox',
   'umc/widgets/ContainerWidget',
+  'dojo/Deferred',
+  'umc/widgets/ProgressInfo',
   'put-selector/put',
   'umc/i18n!umc/modules/licenses',
 ], function(
@@ -62,6 +64,8 @@ define([
     Grid,
     CheckBox,
     ContainerWidget,
+    Deferred,
+    ProgressInfo,
     put,
     _,
 ) {
@@ -154,9 +158,9 @@ define([
           function validityStatus(id) {
             let val = license[id];
 
-            if (val === "1") {
+            if (val === '1') {
               return _('valid');
-            } else if (val === "0") {
+            } else if (val === '0') {
               return _('invalid');
             } else {
               return _('unknown');
@@ -166,9 +170,9 @@ define([
           function usageStatus(id) {
             let val = license[id];
 
-            if (val === "1") {
+            if (val === '1') {
               return _('activated');
-            }  else if (val === "0") {
+            } else if (val === '0') {
               return _('not activated');
             } else {
               return _('unknown');
@@ -343,12 +347,21 @@ define([
     },
 
     removeLicenseFromUsers: function(usernames) {
+      this._wrap_assign_deferred = new Deferred();    // do this first
+      // Make a progress bar
+      this._wrap_assign_progress = new ProgressInfo();
+
+      this._wrap_assign_progress.update(
+          0,
+          _('License is being processed. Please have a little patience.'));
+      this.standbyDuring(this._wrap_assign_deferred,
+          this._wrap_assign_progress);
+
       tools.umcpCommand('licenses/remove_from_users', {
         licenseCode: this.license.licenseCode,
         usernames: usernames,
       }).then(
           lang.hitch(this, function(response) {
-            this.load(this.license.licenseCode);
             const failedAssignments = response.result.failedAssignments;
             if (failedAssignments.length) {
               const containerWidget = new ContainerWidget({});
@@ -367,7 +380,13 @@ define([
               dialog.alert(containerWidget);
             }
           }),
-      );
+      ).finally(lang.hitch(this, function() {
+          this._wrap_assign_deferred.resolve();
+          if (this._wrap_assign_progress) {
+              this._wrap_assign_progress.destroyRecursive();
+          }
+          this.load(this.license.licenseCode);
+      }));
     },
 
     back: function() {
