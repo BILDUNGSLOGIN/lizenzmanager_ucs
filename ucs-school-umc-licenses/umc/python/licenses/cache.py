@@ -267,13 +267,26 @@ class LdapMetaData:
 
 
 class LdapRepository:
-    _publishers = None  # type: List[str]
-    _workgroups = None  # type: List[LdapGroup]
-    _classes = None  # type: List[LdapGroup]
-    _users = None  # type: List[LdapUser]
-    _metadata = None  # type: List[LdapMetaData]
-    _licenses = None  # type: List[LdapLicense]
-    _schools = None  # type: List[LdapSchool]
+    _publishers = None  # type: List[str] | None
+    _workgroups_by_uuid = None  # type: Dict[str, LdapGroup] | None
+    _workgroups_by_cn = None  # type: Dict[str, LdapGroup] | None
+    _workgroups_by_dn = None  # type: Dict[str, LdapGroup] | None
+    _workgroups_grouped_by_uid = None  # type: Dict[str, List[LdapGroup]] | None
+    _classes_by_uuid = None  # type: Dict[str, LdapGroup] | None
+    _classes_by_cn = None  # type: Dict[str, LdapGroup] | None
+    _classes_by_dn = None  # type: Dict[str, LdapGroup] | None
+    _classes_grouped_by_uid = None  # type: Dict[str, List[LdapGroup]] | None
+    _users_by_uuid = None  # type: Dict[str, LdapUser] | None
+    _users_by_uid = None  # type: Dict[str, LdapUser] | None
+    _metadata_by_productid = None  # type: Dict[str, LdapMetaData] | None
+    _licenses_by_uuid = None  # type: Dict[str, LdapLicense] | None
+    _licenses_by_dn = None  # type: Dict[str, LdapLicense] | None
+    _licenses_by_code = None  # type: Dict[str, LdapLicense] | None
+    _licenses_grouped_by_school_and_product_id = None  # type: Dict[str, Dict[str, List[LdapLicense]]] | None
+    _schools_by_uuid = None  # type: Dict[str, LdapSchool] | None
+    _schools_by_ou = None  # type: Dict[str, LdapSchool] | None
+    _assignments_by_uuid = None  # type: Dict[str, LdapAssignment] | None
+    _assignments_grouped_by_dn = None  # type: Dict[str, List[LdapAssignment]] | None
     _current_school = None
 
     def __init__(self):
@@ -344,7 +357,7 @@ class LdapRepository:
                 license_updates.append(json_dictionary['license'])
                 assignment_updates += json_dictionary['assignments']
 
-        for _license in self._licenses:
+        for _license in self._licenses_by_uuid.values():
             if len(license_updates) <= 0 and len(delete_licenses) <= 0:
                 break
 
@@ -363,7 +376,7 @@ class LdapRepository:
                         _license.quantity_assigned = license_update['quantity_assigned']
                         license_updates.remove(license_update)
                         break
-        for _assignment in self._assignments:
+        for _assignment in self._assignments_by_uuid.values():
             if len(assignment_updates) <= 0 and len(delete_assignments) <= 0:
                 break
 
@@ -387,52 +400,68 @@ class LdapRepository:
                         break
 
         for license_object_to_delete in license_object_to_deletes:
-            self._licenses.remove(license_object_to_delete)
+            del self._licenses_by_uuid[license_object_to_delete.entryUUID]
 
         for assignment_object_to_delete in assignment_object_to_deletes:
-            self._assignments.remove(assignment_object_to_delete)
+            del self._assignments_by_uuid[assignment_object_to_delete.entryUUID]
 
     def get_license_by_uuid(self, uuid):
         # type: (str) -> LdapLicense
-        for license in self._licenses:
-            if license.entryUUID == uuid:
-                return license
-        return None
+        return self._licenses_by_uuid.get(uuid)
 
     def get_assignment_by_uuid(self, uuid):
-        for assignment in self._assignments:
-            if assignment.entryUUID == uuid:
-                return assignment
-        return None
+        return self._assignments_by_uuid.get(uuid)
 
     def get_license_by_dn(self, dn):
         # type: (str) -> LdapLicense
-        for license in self._licenses:
-            if license.entry_dn == dn:
-                return license
-        return None
+        return self._licenses_by_dn.get(dn)
 
     def count_objects(self):
-        return len(self._users) + len(self._workgroups) + len(self._licenses) + len(self._assignments) + len(
-            self._schools) + len(self._classes)
+        return len(self._users_by_uuid) + len(self._workgroups_by_uuid) + len(self._licenses_by_uuid) + len(self._assignments_by_uuid) + len(
+            self._schools_by_uuid) + len(self._classes_by_uuid)
 
     def _clear(self):
-        self._users = []
-        self._licenses = []
-        self._assignments = []
-        self._schools = []
-        self._workgroups = []
-        self._classes = []
-        self._metadata = []
+        self._users_by_uuid = {}
+        self._users_by_uid = {}
+        self._licenses_by_uuid = {}
+        self._licenses_by_dn = {}
+        self._licenses_by_code = {}
+        self._licenses_grouped_by_school_and_product_id = {}
+        self._assignments_by_uuid = {}
+        self._assignments_grouped_by_dn = {}
+        self._schools_by_uuid = {}
+        self._schools_by_ou = {}
+        self._workgroups_by_uuid = {}
+        self._workgroups_by_cn = {}
+        self._workgroups_by_dn = {}
+        self._workgroups_grouped_by_uid = {}
+        self._classes_by_uuid = {}
+        self._classes_by_cn = {}
+        self._classes_by_dn = {}
+        self._classes_grouped_by_uid = {}
+        self._metadata_by_productid = {}
         self._publishers = []
 
     def _process_entries(self, entries):
         for entry in entries['users']:
-            self._users.append(
-                LdapUser(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['uid'], entry['givenName'],
-                         entry['sn'], entry['ucsschoolSchool'], entry['ucsschoolRole']))
+            user = LdapUser(
+                entry["entryUUID"],
+                entry["entry_dn"],
+                entry["objectClass"],
+                entry["uid"],
+                entry["givenName"],
+                entry["sn"],
+                entry["ucsschoolSchool"],
+                entry["ucsschoolRole"],
+            )
+            self._users_by_uuid.update({
+                entry["entryUUID"]: user
+            })
+            self._users_by_uid.update({
+                entry["uid"]: user
+            })
         for entry in entries['licenses']:
-            self._licenses.append(LdapLicense(
+            _license = LdapLicense(
                 entry_uuid=entry['entryUUID'],
                 entry_dn=entry['entry_dn'],
                 object_class=entry['objectClass'],
@@ -464,50 +493,119 @@ class LdapRepository:
                 bildungslogin_validity_status=entry['bildungsloginValidityStatus'],
                 bildungslogin_usage_status=entry['bildungsloginUsageStatus'],
                 bildungslogin_expiry_date=entry['bildungsloginExpiryDate'],
-                volume_quantity=entry.get('volume_quantity')))
+                volume_quantity=entry.get('volume_quantity'))
+            self._licenses_by_uuid.update({
+                entry["entryUUID"]: _license
+            })
+            self._licenses_by_dn.update({
+                ','.join(entry["entry_dn"].split(',')[1:]): _license
+            })
+            self._licenses_by_code.update({
+                entry["bildungsloginLicenseCode"]: _license
+            })
+            _school = entry['bildungsloginLicenseSchool']
+            _product_id = entry['bildungsloginProductId']
+            if self._licenses_grouped_by_school_and_product_id.get(_school) is None:
+                self._licenses_grouped_by_school_and_product_id[_school] = {}
+            if self._licenses_grouped_by_school_and_product_id.get(_school).get(_product_id) is None:
+                self._licenses_grouped_by_school_and_product_id[_school][_product_id] = []
+            self._licenses_grouped_by_school_and_product_id[_school][_product_id].append(_license)
+
         for entry in entries['assignments']:
-            self._assignments.append(
-                LdapAssignment(entry['entryUUID'], entry['entry_dn'], entry['objectClass'],
-                               entry['bildungsloginAssignmentStatus'], entry[
-                                   'bildungsloginAssignmentAssignee'] if 'bildungsloginAssignmentAssignee' in entry else '',
-                               entry[
-                                   'bildungsloginAssignmentTimeOfAssignment'] if 'bildungsloginAssignmentTimeOfAssignment' in entry else ''))
+            _assignment = LdapAssignment(
+                entry['entryUUID'],
+                entry['entry_dn'],
+                entry['objectClass'],
+                entry['bildungsloginAssignmentStatus'],
+                entry['bildungsloginAssignmentAssignee'] if 'bildungsloginAssignmentAssignee' in entry else '',
+                entry['bildungsloginAssignmentTimeOfAssignment'] if 'bildungsloginAssignmentTimeOfAssignment' in entry else '')
+            self._assignments_by_uuid.update({
+                entry["entryUUID"]: _assignment
+            })
+            _dn = ','.join(entry["entry_dn"].split(',')[1:])
+            if self._assignments_grouped_by_dn.get(_dn) is None:
+                self._assignments_grouped_by_dn[_dn] = []
+            self._assignments_grouped_by_dn[_dn].append(_assignment)
+
         for entry in entries['schools']:
-            self._schools.append(LdapSchool(entry['entryUUID'], entry['entry_dn'], entry['objectClass'], entry['ou']))
+            _school = LdapSchool(
+                entry['entryUUID'],
+                entry['entry_dn'],
+                entry['objectClass'],
+                entry['ou']
+            )
+            self._schools_by_uuid.update({
+                entry["entryUUID"]: _school
+            })
+            self._schools_by_ou.update({
+                entry["ou"]: _school
+            })
+
         for entry in entries['workgroups']:
-            self._workgroups.append(
-                LdapGroup(entry['entryUUID'], entry['entry_dn'], entry['cn'], entry['ucsschoolRole'],
-                          entry['memberUid']))
+            _workgroup = LdapGroup(
+                entry['entryUUID'],
+                entry['entry_dn'],
+                entry['cn'],
+                entry['ucsschoolRole'],
+                entry['memberUid']
+            )
+            self._workgroups_by_uuid.update({
+                entry["entryUUID"]: _workgroup
+            })
+            self._workgroups_by_cn.update({
+                entry["cn"]: _workgroup
+            })
+            self._workgroups_by_dn.update({
+                entry["entry_dn"]: _workgroup
+            })
         for entry in entries['classes']:
-            self._classes.append(LdapGroup(entry['entryUUID'], entry['entry_dn'], entry['cn'], entry['ucsschoolRole'],
-                                           entry['memberUid']))
+            _class = LdapGroup(
+                entry['entryUUID'],
+                entry['entry_dn'],
+                entry['cn'],
+                entry['ucsschoolRole'],
+                entry['memberUid']
+            )
+            self._classes_by_uuid.update({
+                entry["entryUUID"]: _class
+            })
+            self._classes_by_cn.update({
+                entry["cn"]: _class
+            })
+            self._classes_by_dn.update({
+                entry["entry_dn"]: _class
+            })
         for entry in entries['metadata']:
-            self._metadata.append(LdapMetaData(entry['entryUUID'], entry['entry_dn'], entry['bildungsloginProductId'],
-                                               entry['bildungsloginMetaDataTitle'],
-                                               entry['bildungsloginMetaDataPublisher'],
-                                               entry['bildungsloginMetaDataCover'],
-                                               entry['bildungsloginMetaDataCoverSmall'],
-                                               entry['bildungsloginMetaDataAuthor'],
-                                               entry['bildungsloginMetaDataDescription']))
+            _metadata = LdapMetaData(
+                entry['entryUUID'],
+                entry['entry_dn'],
+                entry['bildungsloginProductId'],
+                entry['bildungsloginMetaDataTitle'],
+                entry['bildungsloginMetaDataPublisher'],
+                entry['bildungsloginMetaDataCover'],
+                entry['bildungsloginMetaDataCoverSmall'],
+                entry['bildungsloginMetaDataAuthor'],
+                entry['bildungsloginMetaDataDescription'],
+            )
+            self._metadata_by_productid.update({
+                entry["bildungsloginProductId"]: _metadata
+            })
             if 'bildungsloginMetaDataPublisher' in entry:
                 self._publishers.append(entry['bildungsloginMetaDataPublisher'])
         self._publishers = list(dict.fromkeys(self._publishers))
 
-        for _license in self._licenses:
+        for _license in self._licenses_by_uuid.values():
             _license.medium = self.get_metadata_by_product_id(_license.bildungsloginProductId)
 
     def get_publishers(self):
         return self._publishers
 
     def get_user(self, userid):
-        for user in self._users:
-            if hasattr(user, 'uid') and user.uid == userid:
-                return user
-        return None
+        return self._users_by_uid.get(userid)
 
     def _get_users_by_school(self, school):
         users = []
-        for user in self._users:
+        for user in self._users_by_uuid.values():
             if school in user.ucsschoolSchool:
                 users.append(user)
         return users
@@ -541,7 +639,7 @@ class LdapRepository:
     def filter_metadata(self, pattern):
         filtered_metadata = []
         pattern = re.compile(pattern.lower().replace('*', '.*'))
-        for metadata in self._metadata:
+        for metadata in self._metadata_by_productid.values():
             if pattern.match(metadata.bildungsloginProductId.lower()) or pattern.match(
                     metadata.bildungsloginMetaDataPublisher.lower()) or pattern.match(
                 metadata.bildungsloginMetaDataTitle.lower()):
@@ -566,7 +664,7 @@ class LdapRepository:
     def get_user_to_medium_and_license(self, school):
         result = []  # type: List[Dict[str, Union[LdapLicense, LdapMetaData, None, List[Any], LdapUser, LdapAssignment]]]
 
-        for license in self._licenses:  # type: LdapLicense
+        for license in self._licenses_by_uuid.values():  # type: LdapLicense
             if (license.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME]
                     and license.bildungsloginLicenseSchool == school):
                 assignments = self.get_assignments_by_license(license)
@@ -650,7 +748,7 @@ class LdapRepository:
     def get_single_license_assigned_users(self, school):
         result = []
 
-        for license in self._licenses:
+        for license in self._licenses_by_uuid.values():
             if license.bildungsloginLicenseType == LicenseType.SINGLE and license.bildungsloginLicenseSchool == school:
                 assignment = self.get_assignments_by_license(license)[0]
                 if assignment.bildungsloginAssignmentStatus != Status.AVAILABLE:
@@ -690,7 +788,7 @@ class LdapRepository:
                         expiry_date_to=None,
                         ):
 
-        licenses = self._licenses
+        licenses = self._licenses_by_uuid.values()
         if restrict_to_this_product_id:
             licenses = filter(lambda _license: _license.bildungsloginProductId == restrict_to_this_product_id, licenses)
 
@@ -802,34 +900,24 @@ class LdapRepository:
         return False
 
     def get_metadata_by_product_id(self, product_id):
-        for metadata in self._metadata:  # type: LdapMetaData
-            if metadata.bildungsloginProductId == product_id:
-                return metadata
-        return None
+        return self._metadata_by_productid.get(product_id)
 
     def get_group_by_name(self, name):
-        groups = self._workgroups + self._classes
-        for group in groups:
-            if group.cn == name:
-                return group
+        groups = self._workgroups_by_cn.update(self._classes_by_cn)
+        if isinstance(groups, dict):
+            return groups.get(name)
         return None
 
     def get_workgroup_by_name(self, name):
-        for group in self._workgroups:
-            if group.cn == name:
-                return group
-        return None
+        return self._workgroups_by_cn.get(name)
 
     def get_class_by_name(self, name):
-        for group in self._classes:
-            if group.cn == name:
-                return group
-        return None
+        return self._classes_by_cn.get(name)
 
     def get_workgroup_names_by_user(self, user):
         groups = []
 
-        for group in self._workgroups:
+        for group in self._workgroups_by_uuid.values():
             if user.uid in group.memberUid:
                 groups.append(group.cn.split('-')[1])
         return groups
@@ -837,38 +925,26 @@ class LdapRepository:
     def get_class_names_by_user(self, user):
         groups = []
 
-        for group in self._classes:
+        for group in self._classes_by_uuid.values():
             if user.uid in group.memberUid:
                 groups.append(group.cn.split('-')[1])
         return groups
 
     def get_workgroup_by_dn(self, dn):
-        for group in self._workgroups:
-            if group.entry_dn == dn:
-                return group
-        return None
+        return self._workgroups_by_dn.get(dn)
 
     def get_class_by_dn(self, dn):
-        for group in self._classes:
-            if group.entry_dn == dn:
-                return group
-        return None
+        return self._classes_by_dn.get(dn)
 
     def get_group_by_uuid(self, entry_uuid):
-        for group in self.groups:
-            if group.entryUUID == entry_uuid:
-                return group
-        return None
+        return dict((group.entryUUID, group) for group in self.groups).get(entry_uuid)
 
     def get_workgroup_by_uuid(self, entry_uuid):
-        for group in self._workgroups:
-            if group.entryUUID == entry_uuid:
-                return group
-        return None
+        return self._workgroups_by_uuid.get(entry_uuid)
 
     def get_assignments_by_assignee(self, assignee):
         assignments = []
-        for assignment in self._assignments:
+        for assignment in self._assignments_by_uuid.values():
             if assignment.bildungsloginAssignmentAssignee \
                     == assignee.entryUUID:
                 assignments.append(assignment)
@@ -876,16 +952,10 @@ class LdapRepository:
         return assignments
 
     def get_license_by_assignment(self, assignment):
-        for _license in self._licenses:
-            if _license.entry_dn in assignment.entry_dn:
-                return _license
-        return None
+        return self._licenses_by_dn.get(assignment.entry_dn)
 
     def get_license_by_code(self, code):
-        for _license in self._licenses:
-            if _license.bildungsloginLicenseCode == code:
-                return _license
-        return None
+        return self._licenses_by_code.get(code)
 
     def get_licenses_by_codes(self, codes):
         licenses = []
@@ -894,57 +964,48 @@ class LdapRepository:
         return licenses
 
     def get_school(self, name):
-        for school in self._schools:
-            if name == school.ou:
-                return school
-        return None
+        return self._schools_by_ou.get(name)
 
     def get_classes_by_school(self, school):
         classes = []
-        for _class in self._classes:
+        for _class in self._classes_by_uuid.values():
             if _class.ucsschoolRole == "school_class:school:" + school:
                 classes.append(_class)
         return classes
 
     def get_classes(self, school, user):
         classes = []
-        for _class in self._classes:
+        for _class in self._classes_by_uuid.values():
             if _class.ucsschoolRole == "school_class:school:" + school.ou and user.uid in _class.memberUid:
                 classes.append(_class)
         return classes
 
     def get_workgroups_by_school(self, school):
         workgroups = []
-        for workgroup in self._workgroups:
+        for workgroup in self._workgroups_by_uuid.values():
             if workgroup.ucsschoolRole == "workgroup:school:" + school:
                 workgroups.append(workgroup)
         return workgroups
 
     def get_workgroups(self, school, user):
         workgroups = []
-        for workgroup in self._workgroups:
+        for workgroup in self._workgroups_by_uuid.values():
             if workgroup.ucsschoolRole == "workgroup:school:" + school.ou and user.uid in workgroup.memberUid:
                 workgroups.append(workgroup)
         return workgroups
 
     def get_all_workgroups(self):
-        return self._workgroups
+        return list(self._workgroups_by_uuid.values())
 
     def get_user_by_uuid(self, uuid):
-        for user in self._users:  # type: LdapUser
-            if user.entryUUID == uuid:
-                return user
-        return None
+        return self._users_by_uuid.get(uuid)
 
     def get_school_by_uuid(self, entry_uuid):
-        for school in self._schools:
-            if school.entryUUID == entry_uuid:
-                return school
-        return None
+        return self._schools_by_uuid.get(entry_uuid)
 
     @property
     def groups(self):
-        return self._workgroups + self._classes
+        return list(self._workgroups_by_uuid.values()) + list(self._classes_by_uuid.values())
 
     def get_assigned_users_by_license(self, license):
         users = []
@@ -1025,32 +1086,17 @@ class LdapRepository:
         self.cache_single_license(license)
 
     def get_assignments_by_license(self, license):
-        assignments = []
-        for assignment in self._assignments:
-            if license.entry_dn in assignment.entry_dn:
-                assignments.append(assignment)
-                if license.bildungsloginLicenseType == LicenseType.SINGLE:
-                    break
-
-        return assignments
-
-    @staticmethod
-    def _get_group_by_user(groups, user):
-        _groups = []
-        for group in groups:
-            if user.userId in group.memberUid:
-                _groups.append(group)
-        return _groups
+        return self._assignments_grouped_by_dn.get(license.entry_dn, [])
 
     def get_workgroups_by_user(self, user):
-        return self._get_group_by_user(self._workgroups, user)
+        return self._workgroups_grouped_by_uid.get(user.userId)
 
     def get_classes_by_user(self, user):
-        return self._get_group_by_user(self._classes, user)
+        return self._classes_grouped_by_uid.get(user.userId)
 
     def get_users_by_group(self, group):
         users = []
-        for user in self._users:
+        for user in self._users_by_uuid.values():
             if user.userId in group.memberUid:
                 users.append(user)
 
@@ -1200,18 +1246,10 @@ class LdapRepository:
         return _list
 
     def get_licenses_by_product_id(self, product_id, school):
-        licenses = []
-
-        for license in self._licenses:
-            if license.bildungsloginProductId == product_id and license.bildungsloginLicenseSchool == school:
-                licenses.append(license)
-        return licenses
+        return self._licenses_grouped_by_school_and_product_id.get(school).get(product_id, [])
 
     def get_class_by_uuid(self, uuid):
-        for school_class in self._classes:
-            if school_class.entryUUID == uuid:
-                return school_class
-        return None
+        return self._classes_by_uuid.get(uuid)
 
     def _get_license_cache_file(self, entry_uuid):
         return open(JSON_DIR + 'schools/' + self._current_school + '/license-' + entry_uuid + '.json', 'w')
