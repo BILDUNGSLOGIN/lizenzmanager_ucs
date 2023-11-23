@@ -16,6 +16,9 @@ msgstr ""
 msgid "Assigned"
 msgstr "Zugewiesen"
 
+msgid "Date of assignment"
+msgstr "Zuweisungsdatum"
+
 #: umc/python/licenses/__init__.py:920
 msgid "Available"
 msgstr "Verfügbar"
@@ -132,6 +135,9 @@ msgstr "Nutzungsstatus"
 #: umc/python/licenses/__init__.py:350 umc/python/licenses/__init__.py:1227
 msgid "User id"
 msgstr "Benutzer ID"
+
+msgid "User role"
+msgstr "Nutzerrolle"
 
 #: umc/python/licenses/__init__.py:331
 msgid "Validity start"
