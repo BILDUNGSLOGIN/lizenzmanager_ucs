@@ -749,22 +749,23 @@ class LdapRepository:
         result = []
 
         for license in self._licenses_by_uuid.values():
-            if license.bildungsloginLicenseType == LicenseType.SINGLE and license.bildungsloginLicenseSchool == school:
-                assignment = self.get_assignments_by_license(license)[0]
-                if assignment.bildungsloginAssignmentStatus != Status.AVAILABLE:
-                    user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
-                    product = self.get_metadata_by_product_id(license.bildungsloginProductId)
-                    if user:
-                        result.append([
-                            user.userId,
-                            ', '.join(group.cn for group in self.get_classes_by_user(user)),
-                            ', '.join(group.cn for group in self.get_workgroups_by_user(user)),
-                            product.bildungsloginProductId,
-                            product.bildungsloginMetaDataTitle,
-                            license.bildungsloginLicenseCode,
-                            LicenseType.label(license.bildungsloginLicenseType),
-                            Status.label(assignment.bildungsloginAssignmentStatus),
-                        ])
+            if license.bildungsloginLicenseType in [LicenseType.SINGLE, LicenseType.VOLUME] and license.bildungsloginLicenseSchool == school:
+                assignments = self.get_assignments_by_license(license)
+                for assignment in assignments:
+                    if assignment.bildungsloginAssignmentStatus != Status.AVAILABLE:
+                        user = self.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                        product = self.get_metadata_by_product_id(license.bildungsloginProductId)
+                        if user:
+                            result.append([
+                                user.userId,
+                                ', '.join(group.cn for group in self.get_classes_by_user(user)),
+                                ', '.join(group.cn for group in self.get_workgroups_by_user(user)),
+                                product.bildungsloginProductId,
+                                product.bildungsloginMetaDataTitle,
+                                license.bildungsloginLicenseCode,
+                                LicenseType.label(license.bildungsloginLicenseType),
+                                Status.label(assignment.bildungsloginAssignmentStatus),
+                            ])
         return result
 
     def filter_licenses(self, product_id=None, school=None, license_types=None,
@@ -1089,10 +1090,10 @@ class LdapRepository:
         return self._assignments_grouped_by_dn.get(license.entry_dn, [])
 
     def get_workgroups_by_user(self, user):
-        return self._workgroups_grouped_by_uid.get(user.userId)
+        return self._workgroups_grouped_by_uid.get(user.userId, [])
 
     def get_classes_by_user(self, user):
-        return self._classes_grouped_by_uid.get(user.userId)
+        return self._classes_grouped_by_uid.get(user.userId, [])
 
     def get_users_by_group(self, group):
         users = []
