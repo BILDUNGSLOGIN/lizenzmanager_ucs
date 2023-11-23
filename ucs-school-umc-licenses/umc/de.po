@@ -45,8 +45,8 @@ msgstr "Nutzer mit Lizenzen auflisten und zugewiesene Lizenzen lösen"
 msgid "Media license overview"
 msgstr "Medienlizenz-Übersicht"
 
-msgid "User/license overview"
-msgstr "Nutzer-/ Lizenzübersicht"
+msgid "User/license overview (for individual and volume licenses)"
+msgstr "Nutzer-/ Lizenzübersicht (für Einzel- und Volumenlizenzen)"
 
 msgid "View and search licensed media in the BILDUNGSLOGIN license manager"
 msgstr ""

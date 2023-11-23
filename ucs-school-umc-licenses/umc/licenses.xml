@@ -25,7 +25,7 @@
 			<description>Delete media licenses in the BILDUNGSLOGIN license manager</description>
 		</flavor>
 		<flavor id="licenses/users" icon="licensed-media" priority="51">
-			<name>User/license overview</name>
+			<name>User/license overview (for individual and volume licenses)</name>
 			<description>List users with licenses and resolve assigned licenses</description>
 		</flavor>
 		<command name="licenses/query" function="licenses_query"></command>
