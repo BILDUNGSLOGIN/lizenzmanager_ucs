@@ -975,24 +975,22 @@ class LdapRepository:
                         user_roles = []
 
                         if user:
-                            continue
+                            for role in user.ucsschoolRole:
+                                user_roles.append(role.split(':')[0])
 
-                        for role in user.ucsschoolRole:
-                            user_roles.append(role.split(':')[0])
+                            if license.bildungsloginLicenseSpecialType == "Lehrkraft" and "teacher" not in user_roles:
+                                continue
 
-                        if license.bildungsloginLicenseSpecialType == "Lehrkraft" and "teacher" not in user_roles:
-                            continue
-
-                        users.append({
-                            'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
-                            'username': user.userId,
-                            'status': assignment.bildungsloginAssignmentStatus,
-                            'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
-                            'roles': user.get_roles(),
-                            'roleLabels': Role.label(user.get_roles()),
-                            'classes': self.get_class_names_by_user(user),
-                            'workgroups': self.get_workgroup_names_by_user(user),
-                        })
+                            users.append({
+                                'dateOfAssignment': assignment.bildungsloginAssignmentTimeOfAssignment,
+                                'username': user.userId,
+                                'status': assignment.bildungsloginAssignmentStatus,
+                                'statusLabel': Status.label(assignment.bildungsloginAssignmentStatus),
+                                'roles': user.get_roles(),
+                                'roleLabels': Role.label(user.get_roles()),
+                                'classes': self.get_class_names_by_user(user),
+                                'workgroups': self.get_workgroup_names_by_user(user),
+                            })
         elif license.bildungsloginLicenseType == 'SCHOOL':
             for assignment in assignments:
                 _users = self._get_users_by_school(
