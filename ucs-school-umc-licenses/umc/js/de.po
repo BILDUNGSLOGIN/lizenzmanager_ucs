@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-11-21 13:43+0000\n"
+"POT-Creation-Date: 2023-11-23 15:14+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -48,7 +48,7 @@ msgstr "Alle Lerngruppen"
 msgid "As."
 msgstr "Zug."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:796
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:815
 msgid "Assign licenses"
 msgstr "Lizenzen zuweisen"
 
@@ -84,16 +84,16 @@ msgid "Assigned"
 msgstr "Zugewiesen"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:539
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:897
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:948
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:993
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:916
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:967
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1012
 msgid "Assigning licenses"
 msgstr "Lizenzen zuweisen"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:490
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:867
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:918
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:963
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:886
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:937
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:982
 msgid "Assigning licenses failed"
 msgstr "Lizenzen zuweisen fehlgeschlagen"
 
@@ -179,7 +179,7 @@ msgstr "Cache-Aktualisierung läuft bereits."
 msgid "Cache update status:"
 msgstr "Cache-Aktualisierungsstatus:"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:822
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:841
 #: umc/js/licenses/modules/delete/SearchPage.js:245
 msgid "Cancel"
 msgstr "Abbrechen"
@@ -223,7 +223,7 @@ msgstr "Wählen Sie das Medium, für das Sie Lizenzen zuweisen möchten."
 msgid "Class"
 msgstr "Klasse"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:747
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:756
 #: umc/js/licenses/common/LicenseSearchformMixin.js:203
 msgid "Class with group license"
 msgstr "Klasse mit Gruppenlizenz"
@@ -273,7 +273,7 @@ msgstr "Änderungen verwerfen"
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:664
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:673
 #: umc/js/licenses/common/LicenseSearchformMixin.js:120
 msgid "End import period"
 msgstr "Ende Zeitraum Import"
@@ -295,7 +295,7 @@ msgstr "Ende Zeitraum Ablaufdatum"
 msgid "Expiry date start"
 msgstr "Beginn Zeitraum Ablaufdatum"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1025
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1044
 #: umc/js/licenses/modules/assignment/ProductSearchPage.js:495
 #: umc/js/licenses/modules/licenses/SearchPage.js:197
 #: umc/js/licenses/modules/import/import.js:380
@@ -305,11 +305,11 @@ msgstr "Beginn Zeitraum Ablaufdatum"
 msgid "Export"
 msgstr "Exportieren"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:929
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:948
 msgid "Failed to assign licenses to the selected class."
 msgstr "Der ausgewählten Klasse konnten keine Lizenzen zugewiesen werden."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:878
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:897
 msgid "Failed to assign licenses to the selected school."
 msgstr "Der ausgewählten Schule konnten keine Lizenzen zugewiesen werden."
 
@@ -317,11 +317,11 @@ msgstr "Der ausgewählten Schule konnten keine Lizenzen zugewiesen werden."
 msgid "Failed to assign licenses to the selected users:"
 msgstr "Den ausgewählten Benutzern konnten keine Lizenzen zugewiesen werden:"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:974
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:993
 msgid "Failed to assign licenses to the selected workgroup."
 msgstr "Der ausgewählten Lerngruppe konnten keine Lizenzen zugewiesen werden."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:773
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:790
 #: umc/js/licenses/modules/users/SearchPage.js:380
 #: umc/js/licenses/common/LicenseSearchformMixin.js:299
 msgid "Filters"
@@ -361,7 +361,7 @@ msgstr "Ignorieren"
 msgid "Import"
 msgstr "Importiert"
 
-#: umc/js/licenses/modules/users/SearchPage.js:475
+#: umc/js/licenses/modules/users/SearchPage.js:483
 msgid "Import date"
 msgstr "Importdatum"
 
@@ -420,7 +420,7 @@ msgstr "Nachname"
 msgid "Learning Group Licences"
 msgstr "Lerngruppenlizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:685
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:694
 #: umc/js/licenses/modules/licenses/DetailPage.js:217
 #: umc/js/licenses/common/LicenseSearchformMixin.js:141
 msgid "License code"
@@ -431,14 +431,14 @@ msgid "License is being processed. Please have a little patience."
 msgstr "Lizenz wird bearbeitet. Bitte haben Sie etwas Geduld."
 
 #: umc/js/licenses/modules/assignment/UserSelectionPage.js:298
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:670
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:679
 #: umc/js/licenses/modules/licenses/DetailPage.js:220
 #: umc/js/licenses/common/LicenseSearchformMixin.js:126
 msgid "License type"
 msgstr "Lizenztyp"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:116
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:852
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:871
 #: umc/js/licenses/modules/delete/SearchPage.js:222
 #: umc/js/licenses/modules/users/SearchPage.js:167
 #: umc/js/licenses/modules/users/SearchPage.js:424
@@ -464,15 +464,15 @@ msgid "Licenses were successfully assigned to all %s selected users."
 msgstr ""
 "Die Lizenzen wurden erfolgreich allen %s ausgewählten Benutzern zugewiesen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:923
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:942
 msgid "Licenses were successfully assigned to selected class."
 msgstr "Die Lizenzen wurden erfolgreich der ausgewählten Klasse zugewiesen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:872
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:891
 msgid "Licenses were successfully assigned to selected school."
 msgstr "Die Lizenzen wurden erfolgreich der ausgewählten Schule zugewiesen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:968
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:987
 msgid "Licenses were successfully assigned to selected workgroup."
 msgstr ""
 "Die Lizenzen wurden erfolgreich der ausgewählten Lerngruppe zugewiesen."
@@ -495,7 +495,7 @@ msgstr "Max"
 msgid "Max. Users"
 msgstr "Max. Nutzer"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:697
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:706
 #: umc/js/licenses/modules/users/SearchPage.js:306
 #: umc/js/licenses/common/LicenseSearchformMixin.js:153
 msgid "Media Title"
@@ -508,7 +508,7 @@ msgstr "Medientitel"
 msgid "Medium"
 msgstr "Medium"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:703
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:712
 #: umc/js/licenses/modules/licenses/DetailPage.js:214
 #: umc/js/licenses/modules/delete/SearchPage.js:316
 #: umc/js/licenses/modules/users/SearchPage.js:313
@@ -544,7 +544,7 @@ msgstr "Ok"
 msgid "One license selected"
 msgstr "Eine Lizenz ausgewählt"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:715
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:724
 #: umc/js/licenses/common/LicenseSearchformMixin.js:171
 msgid "Only assignable licenses"
 msgstr "Nur freie Lizenzen"
@@ -564,7 +564,7 @@ msgstr "Lizenz öffnen"
 msgid "PB"
 msgstr "VG"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:828
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:847
 msgid "Perform assignment"
 msgstr "Zuweisung durchführen"
 
@@ -586,7 +586,7 @@ msgstr ""
 msgid "Please select a school"
 msgstr "Bitte eine Schule auswählen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:722
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:731
 #: umc/js/licenses/modules/licenses/DetailPage.js:211
 #: umc/js/licenses/modules/users/SearchPage.js:320
 #: umc/js/licenses/modules/users/SearchPage.js:465
@@ -636,7 +636,7 @@ msgstr "Schullizenz"
 msgid "School license"
 msgstr "Schullizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:679
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:688
 #: umc/js/licenses/common/LicenseSearchformMixin.js:135
 msgid ""
 "Search for licenses that have this user assigned. (Searches for 'first "
@@ -650,7 +650,7 @@ msgstr ""
 msgid "Search licensed media"
 msgstr "Lizenzierte Medien durchsuchen"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:692
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:701
 #: umc/js/licenses/common/LicenseSearchformMixin.js:148
 msgid "Search licenses"
 msgstr "Lizenzen suchen"
@@ -699,7 +699,7 @@ msgstr ""
 msgid "Special license"
 msgstr "Sonderlizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:659
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:668
 #: umc/js/licenses/common/LicenseSearchformMixin.js:115
 msgid "Start import period"
 msgstr "Beginn Zeitraum Import"
@@ -709,7 +709,7 @@ msgstr "Beginn Zeitraum Import"
 msgid "Started cache update."
 msgstr "Cache-Aktualisierung gestartet."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:814
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:833
 msgid ""
 "The following users already have a license for the selected medium. Would "
 "you like to assign these users an additional license for the medium?"
@@ -734,7 +734,7 @@ msgstr ""
 "Bitte reduzieren Sie die Anzahl der ausgewählten Benutzer oder wählen Sie "
 "mehr Lizenzen aus und wiederholen Sie den Vorgang."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:916
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:935
 msgid ""
 "The number of selected licenses is not sufficient to assign a license to the "
 "selected class."
@@ -742,7 +742,7 @@ msgstr ""
 "Die Anzahl der ausgewählten Lizenzen reicht nicht aus, um der ausgewählten "
 "Klasse die Lizenzen zuzuweisen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:865
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:884
 msgid ""
 "The number of selected licenses is not sufficient to assign a license to the "
 "selected school."
@@ -750,7 +750,7 @@ msgstr ""
 "Die Anzahl der ausgewählten Lizenzen reicht nicht aus, um der ausgewählten "
 "Schule die Lizenzen zuzuweisen."
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:961
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:980
 msgid ""
 "The number of selected licenses is not sufficient to assign a license to the "
 "selected workgroup."
@@ -826,7 +826,7 @@ msgid "User"
 msgstr "Nutzer"
 
 #: umc/js/licenses/modules/assignment/UserSelectionPage.js:384
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:677
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:686
 #: umc/js/licenses/modules/users/SearchPage.js:300
 #: umc/js/licenses/modules/users/SearchPage.js:436
 #: umc/js/licenses/common/LicenseSearchformMixin.js:133
@@ -858,9 +858,9 @@ msgid "Volume license"
 msgstr "Volumenlizenz"
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:530
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:887
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:938
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:983
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:906
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:957
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:1002
 msgid ""
 "Warning: The validity for the following assigned licenses lies in the future:"
 msgstr ""
@@ -880,7 +880,7 @@ msgstr "Lerngruppe"
 msgid "Workgroup license"
 msgstr "Lerngruppenlizenz"
 
-#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:733
+#: umc/js/licenses/modules/assignment/LicenseSearchPage.js:742
 #: umc/js/licenses/common/LicenseSearchformMixin.js:189
 msgid "Workgroup with group license"
 msgstr "Lerngruppe mit Gruppenlizenz"
