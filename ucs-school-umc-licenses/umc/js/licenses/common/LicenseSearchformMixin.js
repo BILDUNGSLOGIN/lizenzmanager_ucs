@@ -93,7 +93,7 @@ define([
           }
         },
 
-        createLicenseSearchWidget: function() {
+        createLicenseSearchWidget: function(hide_fields = []) {
           this._isAdvancedSearch = false;
 
           this._licenseTypes = [
@@ -107,7 +107,7 @@ define([
               id: 'SCHOOL', label: _('School license'),
             }];
 
-          const widgets = [
+          let widgets = [
             {
               type: DateBox,
               name: 'timeFrom',
@@ -277,6 +277,10 @@ define([
                 size: 'TwoThirds',
               },
           );
+
+          widgets = widgets.filter(function(widget) {
+            return !(hide_fields.includes(widget.name));
+          });
 
           let layout = [
             ['timeFrom', 'timeTo', 'onlyAvailableLicenses'],

@@ -251,7 +251,7 @@ define([
             selectorType: 'radio',
           });
 
-          this.createLicenseSearchWidget();
+          this.createLicenseSearchWidget(['notProvisioned', 'notUsable']);
 
           this.addChild(this._searchForm);
           this.addChild(this._excelExportForm);

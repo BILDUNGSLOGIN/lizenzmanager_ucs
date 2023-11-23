@@ -399,7 +399,7 @@ define([
             addTitleOnCellHoverIfOverflow: true,
           });
 
-          this.createLicenseSearchWidget();
+          this.createLicenseSearchWidget(['notProvisioned']);
 
           this._excelExportForm = new Form({
             widgets: [],
