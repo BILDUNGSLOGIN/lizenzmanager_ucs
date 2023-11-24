@@ -1,3 +1,11 @@
+ucs-school-umc-licenses (2.4.3) unstable; urgency=medium
+
+  * ET-257 Add columns to the user list export.
+  * ET-259 Use dictionaries for higher performance.
+  * Fixes for fatal errors and not consistent outputs.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 24 Nov 2023 11:48:26 +0100
+
 ucs-school-umc-licenses (2.4.2) unstable; urgency=medium
 
   * ET-233 Fix a bug that leads to an exception if a user of a group got deleted.

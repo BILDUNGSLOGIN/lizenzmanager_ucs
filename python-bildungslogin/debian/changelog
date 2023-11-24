@@ -1,3 +1,9 @@
+python-bildungslogin (2.4.3) unstable; urgency=medium
+
+  * Add useful tools to status api updater to allow debugging and repairing.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 24 Nov 2023 11:48:19 +0100
+
 python-bildungslogin (2.4.2) unstable; urgency=medium
 
   * ET-254 Implement a register all parameter and the use of unix timestamps with seconds and without milliseconds.
