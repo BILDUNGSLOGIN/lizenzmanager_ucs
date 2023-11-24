@@ -558,6 +558,10 @@ class LdapRepository:
             self._workgroups_by_dn.update({
                 entry["entry_dn"]: _workgroup
             })
+            for uid in entry['memberUid']:
+                if self._workgroups_grouped_by_uid.get(uid) is None:
+                    self._workgroups_grouped_by_uid[uid] = []
+                self._workgroups_grouped_by_uid[uid].append(_workgroup)
         for entry in entries['classes']:
             _class = LdapGroup(
                 entry['entryUUID'],
@@ -575,6 +579,10 @@ class LdapRepository:
             self._classes_by_dn.update({
                 entry["entry_dn"]: _class
             })
+            for uid in entry['memberUid']:
+                if self._classes_grouped_by_uid.get(uid) is None:
+                    self._classes_grouped_by_uid[uid] = []
+                self._classes_grouped_by_uid[uid].append(_class)
         for entry in entries['metadata']:
             _metadata = LdapMetaData(
                 entry['entryUUID'],
