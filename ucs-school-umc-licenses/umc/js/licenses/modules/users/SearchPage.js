@@ -469,12 +469,27 @@ define([
                 name: 'date_assignment',
                 label: _('Date of assignment'),
                 width: '90px',
+                formatter: lang.hitch(this, function(value, item) {
+                  if (value) {
+                    value = dateLocale.format(new Date(value), {
+                      fullYear: true, selector: 'date',
+                    });
+                  }
+                  return value;
+              }),
               },
               {
                 name: 'import_date',
                 label: _('Import date'),
                 width: '90px',
-
+                formatter: lang.hitch(this, function(value, item) {
+                  if (value) {
+                    value = dateLocale.format(new Date(value), {
+                      fullYear: true, selector: 'date',
+                    });
+                  }
+                  return value;
+              }),
               },
             ],
             moduleStore: store('assignment', 'licenses/users/list'),

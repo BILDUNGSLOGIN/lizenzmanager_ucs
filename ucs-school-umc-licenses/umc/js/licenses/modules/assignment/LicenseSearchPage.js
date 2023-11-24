@@ -639,13 +639,22 @@ define([
                     }));
                 },
 
-                buildRendering: function () {
-                    this.inherited(arguments);
+              afterPageChange: function () {
+                  if (this._assignmentText) {
+                    this.removeChild(this._assignmentText);
+                  }
 
-                    // retrieve chunksize from UCR if present.
-                    tools.ucr('bildungslogin/assignment/chunksize').then(lang.hitch(this, function (data) {
-                        this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
-                    }));
+                  if (this._searchForm) {
+                    this.removeChild(this._searchForm);
+                  }
+
+                  if (this._excelExportForm) {
+                    this.removeChild(this._excelExportForm);
+                  }
+
+                  if (this._gridAllocation) {
+                    this.removeChild(this._gridAllocation);
+                  }
 
                     this._assignmentText = new Text({
                         region: 'nav', class: 'dijitDisplayNone',
@@ -758,7 +767,16 @@ define([
                     });
 
                     let layout = null;
-                    layout = [
+                    let buttons = [];
+
+                    if(this.getAssignmentType() == 'school') {
+                      layout = [
+                        [
+                            'licenseCode',
+                            'pattern',
+                            'submit']];
+                    } else {
+                      layout = [
                         ['timeFrom', 'timeTo', 'userPattern'], [
                             'licenseType',
                             'licenseCode',
@@ -766,8 +784,7 @@ define([
                             'submit',
                             'toggleSearchLabel',
                             'toggleSearch']];
-                    const buttons = [
-                        {
+                      buttons.push({
                             name: 'toggleSearch', labelConf: {
                                 class: 'umcFilters',
                             }, label: _('Filters'), iconClass: 'umcDoubleRightIcon',
@@ -775,7 +792,9 @@ define([
                             callback: lang.hitch(this, function () {
                                 this._toggleSearch();
                             }),
-                        }];
+                        });
+                    }
+
                     this._searchForm = new SearchForm({
                         class: 'umcUDMSearchForm umcUDMSearchFormSimpleTextBox',
                         region: 'nav',
@@ -843,6 +862,16 @@ define([
                             } else if (this.getAssignmentType() === 'school') {
                                 let school = this.getSchoolId();
 
+                                this._wrap_assign_deferred = new Deferred();    // do this first
+                                // Make a progress bar
+                                this._wrap_assign_progress = new ProgressInfo();
+
+                                this._wrap_assign_progress.update(
+                                    0,
+                                    _('Licenses are being processed. Please have a little patience.'));
+                                this.standbyDuring(this._wrap_assign_deferred,
+                                    this._wrap_assign_progress);
+
                                 tools.umcpCommand('licenses/assign_to_school', {
                                     licenseCodes: licenses.map(
                                         (license) => license.licenseCode),
@@ -886,6 +915,12 @@ define([
 
                                     const title = _('Assigning licenses');
                                     dialog.alert(msg, title);
+                                })).finally(lang.hitch(this, function() {
+                                  this._wrap_assign_deferred.resolve();
+                                  if (this._wrap_assign_progress) {
+                                      this._wrap_assign_progress.destroyRecursive();
+                                  }
+                                  this.refreshGrid(this._searchForm.value);
                                 }));
                             } else if (this.getAssignmentType() === 'schoolClass') {
                                 tools.umcpCommand('licenses/assign_to_class', {
@@ -1025,6 +1060,14 @@ define([
 
                     this.addChild(this._gridAllocation);
                     this._grid = this._gridAllocation;
+              },
+
+                buildRendering: function () {
+                    this.inherited(arguments);
+                    // retrieve chunksize from UCR if present.
+                    tools.ucr('bildungslogin/assignment/chunksize').then(lang.hitch(this, function (data) {
+                        this.allocation_chunksize = data['bildungslogin/assignment/chunksize'];
+                    }));
                 },
             });
     });

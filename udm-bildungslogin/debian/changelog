@@ -1,3 +1,9 @@
+udm-bildungslogin (2.4.1) unstable; urgency=medium
+
+  * Add property registered to the ldap index.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 24 Nov 2023 11:48:38 +0100
+
 udm-bildungslogin (2.4.0) unstable; urgency=medium
 
   * Bump Version tp signify compatibility.
