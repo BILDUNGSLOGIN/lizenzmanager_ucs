@@ -4,7 +4,7 @@ Bildungslogin.de bietet ein zentrales Medienregal, über das sich viele verschie
 
 UCS und die Erweiterung UCS@school stellen für Schulträger und Bildungsministerien schulische Infrastruktur vornehmlich als Identity and Accessmanagement (IAM) bereit. Die dort bereits vorhandenen Benutzerkonten sollen für die Nutzung von bildungslogin.de verwendet werden können, inkl. Zuweisung und Übertragung von Lizenzen, sodass zum einen eine doppelte Pflege entfällt und zum anderen Lehrkräfte und SuS direkt aus der schulischen IT-Infrastruktur heraus mit ihren gewohnten Zugangsdaten auch bildungslogin.de nutzen können.
 
-Die Implementierung ist aktuell mit `UCS 4.4` (über rpm- files) sowie `UCS 5.0` (als Univention- APP) kompatibel.
+Die Implementierung ist aktuell mit `UCS 5.0` (als Univention- APP) kompatibel.
 
 ## Abstimmung mit bildungslogin.de
 
@@ -28,7 +28,7 @@ Auf dem UCS- Server muss SSO, sowie die UCS@School- API eingerichtet sein und vo
 
 ### 1. Single-Sign-On und Portal
 
-- Für SSO wird der `OpenID Connect Provider` benötigt. Die Installation und Konfiguration ist im [UCS Handbuch](https://docs.software-univention.de/handbuch-4.4.html#domain:oidc) beschrieben.
+- Für SSO wird der UCS- eigene `SAML Identity Provider` verwendet. Die Konfiguration ist im [UCS Handbuch](https://docs.software-univention.de/manual/5.0/en/domain-ldap/saml.html) beschrieben. **Wichtig** ist die Konfiguration des **korrekten Formates der NameID** (_urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified_ )
 - Für die gesicherte und verschlüsselte Datenübertragung kann [Let’s Encrypt aus dem App Center](https://www.univention.de/produkte/univention-app-center/app-katalog/letsencrypt/) verwendet werden.
 - Ein Blick in den Hilfe-Artikel ist hilfreich, wenn das [Portal und SSO umkonfiguriert](https://help.univention.com/t/reconfigure-ucs-single-sign-on/16161) wird.
 - Stellen Sie sicher, dass die SSO- Authentifizierung aus dem Internet erreichbar ist - und führen Sie ggf. notwendige Absicherungsmassnahmen durch.
@@ -42,27 +42,30 @@ Auf dem UCS- Server muss SSO, sowie die UCS@School- API eingerichtet sein und vo
 
 
 Überprüfen Sie dass alle Skripte erfolgreich durchlaufen wurden: GUI-> Domain -> Domain join: alle erfolgreich?
+
 ## Lizenzmanagermodul- Installation
 
-### 1. Pakete installieren
-
+### Hinweis
 Zur Konfiguration des UDM REST API Clients wird eine Java Runtime in den Docker Container installiert. Dafür muss dieser auf den deutschen Debian Mirror zugreifen. Ausgehende HTTP-Verbindungen - zumindest zur IP `141.76.2.4` (`ftp.de.debian.org`) - müssen dafür während der Installation erlaubt sein.
 
-**ACHTUNG**: auf Primary und Backup nodes (DC Master und DC Backup) installiert das Joinscript `68udm-bildungslogin.inst` des Pakets `udm-bildungslogin` LDAP-Indices. Dafür wird der LDAP Server temporär angehalten. Bei großen Installationen kann dies eine Weile dauern.
-
-Zur Installation führen Sie folgende Schritte aus:
-- Einrichten des Repositories (Details erhalten Sie beim Onboarding)
-- `apt install bildungslogin-plugin python-bildungslogin udm-bildungslogin ucs-school-umc-licenses` 
-
-Beschreibung der Pakete:
+Zur Bereitstellung über die App werden die folgenden Pakete installiert:
 - `python-bildungslogin` (Programmbibliothek und CLI Lizenzimport)
 - `udm-bildungslogin` (UDM Module)
 - `ucs-school-umc-licenses` (UMC Modul)
 - `bildungslogin-plugin` (Provisionierungs REST API Plugin für die `ucsschool-apis` App.)
 
+### App- Center Installation (UCS5)
+Navigieren Sie zum App Center in Ihrer UCS- Installation, und suchen Sie nach `"BILDUNGSLOGIN"`.
+
+Daraufhin wird Ihnen der `BILDUNGSLOGIN Lizenzmanager` angezeigt. Beachten Sie die Hinweise auf den folgenden Seiten, und installieren Sie den Lizenzmanager wie gewohnt.
+
+**ACHTUNG**: auf Primary und Backup nodes (DC Master und DC Backup) installiert das Joinscript `68udm-bildungslogin.inst` des Pakets `udm-bildungslogin` LDAP-Indices. Dafür wird der LDAP Server temporär angehalten. Bei großen Installationen kann dies eine Weile dauern.
+
+**WICHTIG**:
 Ebenso ist ein API- Benutzer mit der ID **bildungslogin-api-user** eingerichtet. Diesem muss noch ein Passwort vergeben werden (siehe [Konfiguration](#1-setup-der-provisioning-api)).
 
 Bei einer Deinstallation wird dieser Nutzer deaktiviert.
+
 
 ## Verifizierung der Installation
 
@@ -175,6 +178,23 @@ Die Variable kann zwei unterschiedliche Werte enthalten:
 #### Überwachung der Cache- Generation
 Die Logs der Cache- Generierung werden in das syslog/journald geschrieben (bildungslogin-rebuild-cache), und sollten entsprechend überwacht werden - speziell auf "WARNING" oder "ERROR"- Nachrichten.
 
+
+### 5. Lizenzstatus- Aktualisierung
+Sollte der Status einer Lizenz nicht, oder nicht korrekt angezeigt werden, so kann dieser Status manuell aktualisiert werden:
+
+```bash
+bildungslogin_update_license_status.py --config-file /etc/bildungslogin/config.ini
+```
+Mit bildungslogin_update_license_status.py --config-file /etc/bildungslogin/config.ini   kann man dann per Hand Lizenzen registrieren und Lizenzstatus aktualisieren.
+
+#### Weitere Parameter
+```bash
+--get-all - Setzt den filter auf all und sollte damit alle Daten abrufen
+--register-all - Erzwingt eine komplette neu Registrierung (Für Sonderfälle falls die API Resettet wurde oder ähnliches was UCS nicht mitbekommt)
+--skip-register - Überspringt die Registrierung und ruft nur Lizenzstatusaktualisierungen ab
+--license-code <Lizenzcode> - Registriert eine bestimmte Lizenz (unabhängig ob sie schon registriert wurde)
+--debug - Sorgt dafür das der Body bei allen Serverantworten ausgegeben wird (Damit bekommt man die JSON mit den Lizenzstatusinformationen ausgeben. Beim Registrieren ist der Body gernell leer und im Fehlerfall wird er auch ohne Debug ausgegeben.)
+```
 # Benutzung 
 
 ## Univention Management Console
