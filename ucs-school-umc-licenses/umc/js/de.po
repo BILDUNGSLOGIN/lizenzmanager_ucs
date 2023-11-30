@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ucs-school-umc-licenses\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-11-23 15:14+0000\n"
+"POT-Creation-Date: 2023-11-30 07:29+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Univention <packages@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -323,7 +323,7 @@ msgstr "Der ausgewählten Lerngruppe konnten keine Lizenzen zugewiesen werden."
 
 #: umc/js/licenses/modules/assignment/LicenseSearchPage.js:790
 #: umc/js/licenses/modules/users/SearchPage.js:380
-#: umc/js/licenses/common/LicenseSearchformMixin.js:299
+#: umc/js/licenses/common/LicenseSearchformMixin.js:303
 msgid "Filters"
 msgstr "Filter"
 
@@ -367,11 +367,11 @@ msgstr "Importdatum"
 
 #: umc/js/licenses/modules/users/SearchPage.js:269
 msgid "Import date end"
-msgstr "Importdatum Start"
+msgstr "Importdatum Ende"
 
 #: umc/js/licenses/modules/users/SearchPage.js:262
 msgid "Import date start"
-msgstr "Importdatum Ende"
+msgstr "Importdatum Start"
 
 #: umc/js/licenses/modules/import/import.js:332
 msgid "Import licences"
