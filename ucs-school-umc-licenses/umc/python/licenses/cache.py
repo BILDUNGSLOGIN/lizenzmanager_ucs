@@ -132,7 +132,7 @@ class LdapLicense:
 
     @property
     def quantity_available(self):
-        if self.is_expired:
+        if self.is_expired or self.bildungsloginValidityStatus == '0':
             return 0
         else:
             if self.quantity_assigned > self.quantity:
