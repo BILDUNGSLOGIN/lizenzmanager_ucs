@@ -1130,8 +1130,8 @@ class Instance(SchoolBaseModule):
         import_date_end=StringSanitizer(regex_pattern=iso8601Date.regex, allow_none=True, default=None),
         class_group=StringSanitizer(default=''),
         workgroup=StringSanitizer(default=''),
-        username=LDAPSearchSanitizer(default=''),
-        medium=LDAPSearchSanitizer(default=''),
+        username=LDAPSearchSanitizer(add_asterisks=True, default=''),
+        medium=LDAPSearchSanitizer(add_asterisks=True, default=''),
         medium_id=LDAPSearchSanitizer(default=''),
         publisher=LDAPSearchSanitizer(add_asterisks=False, default=''),
         validStatus=StringSanitizer(default=''),
@@ -1172,7 +1172,8 @@ class Instance(SchoolBaseModule):
                 'publisher': user['license'].publisher,
                 'date_assignment': iso8601Date.from_datetime(
                     user['assignment'].bildungsloginAssignmentTimeOfAssignment),
-                'import_date': iso8601Date.from_datetime(user['license'].bildungsloginDeliveryDate)
+                'import_date': iso8601Date.from_datetime(user['license'].bildungsloginDeliveryDate),
+                "validityStatus": user['license'].bildungsloginValidityStatus,
             })
         self.finished(request.id, result)
 

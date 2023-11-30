@@ -132,7 +132,7 @@ class LdapLicense:
 
     @property
     def quantity_available(self):
-        if self.is_expired:
+        if self.is_expired or self.bildungsloginValidityStatus == '0':
             return 0
         else:
             if self.quantity_assigned > self.quantity:
@@ -714,10 +714,10 @@ class LdapRepository:
                 'license'].bildungsloginDeliveryDate <= import_date_end, results)
 
         if class_group:
-            results = filter(lambda item: class_group in [group.cn for group in item['classes']], results)
+            results = filter(lambda item: class_group in [group.entry_dn for group in item['classes']], results)
 
         if workgroup:
-            results = filter(lambda item: workgroup in [group.cn for group in item['workgroups']], results)
+            results = filter(lambda item: workgroup in [group.entry_dn for group in item['workgroups']], results)
 
         if username and username != '*':
             user_pattern = re.compile(username.lower().replace('*', '.*'))
@@ -725,7 +725,7 @@ class LdapRepository:
 
         if medium and medium != '*':
             medium = re.compile(medium.lower().replace('*', '.*'))
-            results = filter(lambda item: medium.match(item['product'].bildungsloginMetaDataTitle), results)
+            results = filter(lambda item: medium.match(item['product'].bildungsloginMetaDataTitle.lower()), results)
 
         if medium_id and medium_id != '*':
             medium_id = re.compile(medium_id.lower().replace('*', '.*'))
