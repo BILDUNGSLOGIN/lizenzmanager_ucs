@@ -1172,7 +1172,8 @@ class Instance(SchoolBaseModule):
                 'publisher': user['license'].publisher,
                 'date_assignment': iso8601Date.from_datetime(
                     user['assignment'].bildungsloginAssignmentTimeOfAssignment),
-                'import_date': iso8601Date.from_datetime(user['license'].bildungsloginDeliveryDate)
+                'import_date': iso8601Date.from_datetime(user['license'].bildungsloginDeliveryDate),
+                "validityStatus": user['license'].bildungsloginValidityStatus,
             })
         self.finished(request.id, result)
 

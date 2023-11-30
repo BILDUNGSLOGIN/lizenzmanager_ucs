@@ -310,6 +310,7 @@ define([
               name: 'licenseCode',
               label: _('LC'),
               width: '35px',
+              formatter: lang.hitch(this, 'formatInvalid')
             },
             {
               name: 'productId',

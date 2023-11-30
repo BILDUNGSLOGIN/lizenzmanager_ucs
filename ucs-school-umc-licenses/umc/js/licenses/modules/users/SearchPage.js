@@ -55,6 +55,7 @@ define([
   'put-selector/put',
   'dojo/Deferred',
   'umc/widgets/ProgressInfo',
+  '../../common/FormatterMixin',
   'umc/i18n!umc/modules/licenses',
   '../../../libraries/FileHelper',
   '../../../libraries/base64',
@@ -85,10 +86,11 @@ define([
     put,
     Deferred,
     ProgressInfo,
+    FormatterMixin,
     _,
 ) {
   return declare('umc.modules.licenses.users.SearchPage',
-      [Page], {
+      [Page, FormatterMixin], {
         //// overwrites
         fullWidth: true,
 
@@ -440,6 +442,7 @@ define([
                 name: 'license',
                 label: _('LC'),
                 width: '35px',
+                formatter: lang.hitch(this, 'formatInvalid')
               },
               {
                 name: 'medium',
