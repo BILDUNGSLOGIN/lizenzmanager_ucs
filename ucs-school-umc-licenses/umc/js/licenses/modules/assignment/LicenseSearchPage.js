@@ -1060,6 +1060,8 @@ define([
 
                     this.addChild(this._gridAllocation);
                     this._grid = this._gridAllocation;
+
+                    this.refreshGrid(this._searchForm.value);
               },
 
                 buildRendering: function () {
