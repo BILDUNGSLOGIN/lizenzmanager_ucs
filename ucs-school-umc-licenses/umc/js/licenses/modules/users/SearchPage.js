@@ -396,7 +396,7 @@ define([
               ['class_group', 'workgroup'],
               ['medium', 'medium_id', 'publisher'],
               ['validStatus', 'usageStatus', 'notProvisioned'],
-              ['username', 'submit'],
+              ['username', 'submit', 'toggleSearch'],
             ],
             onSearch: lang.hitch(this, function(values) {
               this.refreshGrid(values, true);
