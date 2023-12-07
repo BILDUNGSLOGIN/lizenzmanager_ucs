@@ -405,7 +405,7 @@ define([
 
           const actions = [
             {
-              name: 'edit',
+              name: 'remove',
               label: _('Remove assignment'),
               isStandardAction: true,
               isContextAction: true,
