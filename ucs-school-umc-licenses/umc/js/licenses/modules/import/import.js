@@ -405,7 +405,7 @@ define([
             this.addChild(this._excelExportForm);
             this.addChild(new Text({
                 'content': _(
-                    'For control purposes, you can use the button opposite to download an Excel file that lists all the individual licenses assigned to each user.'),
+                    'For control purposes, you can use the button opposite to download an Excel file that lists all the single and volume licenses assigned to each user.'),
             }));
 
             tools.ucr('bildungslogin/debug').then(lang.hitch(this, function (data) {

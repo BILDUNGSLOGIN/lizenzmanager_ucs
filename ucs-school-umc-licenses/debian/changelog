@@ -1,3 +1,13 @@
+ucs-school-umc-licenses (2.4.5) unstable; urgency=medium
+
+  * ET-280 Correctly search for groups in the dictionaries.
+  * ET-284 Change the action name of the remove assignment action in the user module, so it isn't the standard action.
+  * ET-281 Change the filter layout of the user module to put the filter button in the same position as the license module.
+  * ET-282 Fix the product id filter in user module.
+  * ET-272 Simplify grid selection in assignment module and allow license listing in all assignment types.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 07 Dec 2023 17:25:18 +0100
+
 ucs-school-umc-licenses (2.4.4) unstable; urgency=medium
 
   * ET-255 Use better icons

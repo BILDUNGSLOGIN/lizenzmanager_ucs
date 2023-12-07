@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.4.1) unstable; urgency=medium
+
+  * ET-283 Load only school specific groups in the school cache.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 07 Dec 2023 17:24:18 +0100
+
 bildungslogin-plugin (2.4.0) unstable; urgency=medium
 
   * ET-241 Setting object flag hidden to bildungslogin-api-user as requested by univention.

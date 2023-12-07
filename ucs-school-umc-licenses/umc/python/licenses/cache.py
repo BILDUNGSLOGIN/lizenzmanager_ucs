@@ -729,7 +729,7 @@ class LdapRepository:
 
         if medium_id and medium_id != '*':
             medium_id = re.compile(medium_id.lower().replace('*', '.*'))
-            results = filter(lambda item: medium_id.match(item['product'].bildungsloginProductId), results)
+            results = filter(lambda item: medium_id.match(item['product'].bildungsloginProductId.lower()), results)
 
         if publisher:
             results = filter(
@@ -912,9 +912,10 @@ class LdapRepository:
         return self._metadata_by_productid.get(product_id)
 
     def get_group_by_name(self, name):
-        groups = self._workgroups_by_cn.update(self._classes_by_cn)
-        if isinstance(groups, dict):
-            return groups.get(name)
+        if self.get_workgroup_by_name(name):
+            return self.get_workgroup_by_name(name)
+        if self.get_class_by_name(name):
+            return self.get_class_by_name(name)
         return None
 
     def get_workgroup_by_name(self, name):
