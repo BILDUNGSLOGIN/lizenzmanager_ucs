@@ -646,11 +646,14 @@ def filter_dictionary_by_school(dictionary, school):
             processed_list['licenses'].append(_license)
 
     for _workgroup in dictionary.get('workgroups', []):
-        processed_list['workgroups'].append(_workgroup)
+        if _workgroup.get('ucsschoolRole'):
+            if school == _workgroup.get('ucsschoolRole').split(':')[-1]:
+                processed_list['workgroups'].append(_workgroup)
 
     for _class in dictionary.get('classes', []):
-        if str(_class.get('entry_dn')).find(school) >= 0:
-            processed_list['classes'].append(_class)
+        if _class.get('ucsschoolRole'):
+            if school == _class.get('ucsschoolRole').split(':')[-1]:
+                processed_list['classes'].append(_class)
     logger.debug("Finished filtering objects for school: " + school)
     return processed_list
 
