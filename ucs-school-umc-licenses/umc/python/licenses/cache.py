@@ -729,7 +729,7 @@ class LdapRepository:
 
         if medium_id and medium_id != '*':
             medium_id = re.compile(medium_id.lower().replace('*', '.*'))
-            results = filter(lambda item: medium_id.match(item['product'].bildungsloginProductId), results)
+            results = filter(lambda item: medium_id.match(item['product'].bildungsloginProductId.lower()), results)
 
         if publisher:
             results = filter(
