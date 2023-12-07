@@ -912,9 +912,10 @@ class LdapRepository:
         return self._metadata_by_productid.get(product_id)
 
     def get_group_by_name(self, name):
-        groups = self._workgroups_by_cn.update(self._classes_by_cn)
-        if isinstance(groups, dict):
-            return groups.get(name)
+        if self.get_workgroup_by_name(name):
+            return self.get_workgroup_by_name(name)
+        if self.get_class_by_name(name):
+            return self.get_class_by_name(name)
         return None
 
     def get_workgroup_by_name(self, name):
