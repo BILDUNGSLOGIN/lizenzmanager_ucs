@@ -1,3 +1,9 @@
+python-bildungslogin (2.4.4) unstable; urgency=medium
+
+  * ET-254 Use local timezone for date extraction instead utc.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 15 Dec 2023 14:48:17 +0100
+
 python-bildungslogin (2.4.3) unstable; urgency=medium
 
   * Add useful tools to status api updater to allow debugging and repairing.
