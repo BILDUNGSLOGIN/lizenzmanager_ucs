@@ -1,346 +1,362 @@
-# bildungslogin
+# BILDUNGSLOGIN
 
-## Getting started:
+Unser Ziel ist es, den Zugriff auf und die Verteilung von digitalen Bildungsmedien für Lernende und Lehrende so einfach wie möglich zu gestalten.
 
-[Installation and usage](getting_started.md)
+## BILDUNGSLOGIN Lizenzmanager für UCS
 
-# Architecture
-The bildungslogin- module is made up of the following main components:
-- a udm- module with currently three methods: bildungslogin/assignments, bildungslogin/licenses, bildungslogin/metadata
-- a GUI- part for the UCS@School- UMC
-- a server API for the BILDUNGSLOGIN to query assigned licenses
-- a schema- extension to store licenses, metadata and assignments in the LDAP
+Mit dem BILDUNGSLOGIN Lizenzmanager ermöglichen Sie Ihren Schülerinnen und Schülern sowie Lehrkräften einfach und schnell den Zugriff auf lizenzierungspflichtige digitale Bildungsmedien von Cornelsen, Klett, Westermann und vielen weiteren Anbietern.
 
-## Schema- Extension
-The gross of the license- handling is done in the ldap under the module- storage `cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,$LDAP_BASE`
+## Beispiele und Entwicklung
+In den verlinkten Dateien finden sich weitere Hinweise zur [Architektur und Entwicklung](DEVELOPMENT.md), sowie [Beispiele für Tests u.a.](EXAMPLES.md)
 
-Directly underneath this DN, the actual licenses are stored. Under the licenses, the actual assignments are then stored:
-- for single- and volume licenses with one assignment entry per available license
-- for group- licenses with only one single assignment entry
+# Überblick und Vorbereitung
 
-The assignment entry is then amended with the EntryUUID of the assigned unit, which is either
-- for single- and volume licenses the **EntryUUID of the User** or
-- for group- licenses with the **EntryUUID of the Group**
+Bildungslogin.de bietet ein zentrales Medienregal, über das sich viele verschiedene digitale Anwendungen deutscher Bildungsmedienverlage nutzen lassen. Mit dieser Implementierung wird der Aufbau und die Anbindung eines Lizenzmanagers auf Basis von Univention Corporate Server (UCS) mit Single-Sign-On für das Angebot von bildungslogin.de ermöglicht.
 
-Hence the tree looks as follows:
+UCS und die Erweiterung UCS@school stellen für Schulträger und Bildungsministerien schulische Infrastruktur vornehmlich als Identity and Accessmanagement (IAM) bereit. Die dort bereits vorhandenen Benutzerkonten sollen für die Nutzung von bildungslogin.de verwendet werden können, inkl. Zuweisung und Übertragung von Lizenzen, sodass zum einen eine doppelte Pflege entfällt und zum anderen Lehrkräfte und SuS direkt aus der schulischen IT-Infrastruktur heraus mit ihren gewohnten Zugangsdaten auch bildungslogin.de nutzen können.
+
+Die Implementierung ist aktuell mit `UCS 5.0` (als Univention- APP) kompatibel.
+
+## Abstimmung mit bildungslogin.de
+
+Für den Betrieb des Plugins ist eine Abstimmung mit dem [Bildungslogin](https://www.bildungslogin.de/) notwendig. Sämtliche benötigten Parameter werden durch ein Onboarding erörtert.
+
+## Übersicht der Installation
+
+Das Lizenzmanager- Plugin für UCS besteht grundlegend aus zwei Modulen, welche bei einer Installation über die UCS-App gemeinsam installiert werden:
+- einer GUI- Komponente, um Produkte und Lizenzen einsehen, sowie Zuweisungen vornehmen zu können.
+- einer Schnittstelle, welche die Zuweisungen für BILDUNGSLOGIN zur Verfügung stellt.
+
+Bei einer Installation über mehrere Server betrachten Sie bitte diese Komponenten und verteilen diese Komponenten entsprechend. Beachten Sie bitte, dass die Installation nur auf Master- oder Backup - Servern möglich ist. Die API benötigt (stark limitierten) Schreibzugriff, daher ist eine funktionierende Kommunikation zwischen den Servern sicherzustellen.
+
+### Grundsätzliches
+
+Auf dem UCS- Server muss SSO, sowie die UCS@School- API eingerichtet sein und von extern erreichbar sein. Dies ist notwendig, da BILDUNGSLOGIN die Zuweisungen abrufen muss.
+
+# Installation
+
+## Voraussetzungen
+
+### 1. Single-Sign-On und Portal
+
+- Für SSO wird der UCS- eigene `SAML Identity Provider` verwendet. Die Konfiguration ist im [UCS Handbuch](https://docs.software-univention.de/manual/5.0/en/domain-ldap/saml.html) beschrieben. **Wichtig** ist die Konfiguration des **korrekten Formates der NameID** (_urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified_ )
+- Für die gesicherte und verschlüsselte Datenübertragung kann [Let’s Encrypt aus dem App Center](https://www.univention.de/produkte/univention-app-center/app-katalog/letsencrypt/) verwendet werden.
+- Ein Blick in den Hilfe-Artikel ist hilfreich, wenn das [Portal und SSO umkonfiguriert](https://help.univention.com/t/reconfigure-ucs-single-sign-on/16161) wird.
+- Stellen Sie sicher, dass die SSO- Authentifizierung aus dem Internet erreichbar ist - und führen Sie ggf. notwendige Absicherungsmassnahmen durch.
+
+### 2. UCS@School- Komponenten installieren
+
+1. Als erstes muss UCS@school installiert sein: Melden Sie sich an der UCS Management Konsole an, öffnen Sie den App Center und Installieren Sie die [UCS@school app](https://www.univention.de/produkte/univention-app-center/app-katalog/ucsschool/).
+2. Anschließend muss die UCS@school APIs app installiert werden. Dies können Sie auf der Kommandozeile mit root- Berechtigungen wie folgt erledigen:
+ `univention-app install ucsschool-apis` oder `univention-app install ucsschool-apis --username <GUI-Admin-Benutzername>`.
+3. Stellen Sie sicher, dass die UCS@School- API aus dem Internet erreichbar ist - und führen Sie ggf. notwendige Absicherungsmassnahmen durch.
+
+
+Überprüfen Sie dass alle Skripte erfolgreich durchlaufen wurden: GUI-> Domain -> Domain join: alle erfolgreich?
+
+## Lizenzmanagermodul- Installation
+
+### Hinweis
+Zur Konfiguration des UDM REST API Clients wird eine Java Runtime in den Docker Container installiert. Dafür muss dieser auf den deutschen Debian Mirror zugreifen. Ausgehende HTTP-Verbindungen - zumindest zur IP `141.76.2.4` (`ftp.de.debian.org`) - müssen dafür während der Installation erlaubt sein.
+
+Zur Bereitstellung über die App werden die folgenden Pakete installiert:
+- `python-bildungslogin` (Programmbibliothek und CLI Lizenzimport)
+- `udm-bildungslogin` (UDM Module)
+- `ucs-school-umc-licenses` (UMC Modul)
+- `bildungslogin-plugin` (Provisionierungs REST API Plugin für die `ucsschool-apis` App.)
+
+### App- Center Installation (UCS5)
+Navigieren Sie zum App Center in Ihrer UCS- Installation, und suchen Sie nach `"BILDUNGSLOGIN"`.
+
+Daraufhin wird Ihnen der `BILDUNGSLOGIN Lizenzmanager` angezeigt. Beachten Sie die Hinweise auf den folgenden Seiten, und installieren Sie den Lizenzmanager wie gewohnt.
+
+**ACHTUNG**: auf Primary und Backup nodes (DC Master und DC Backup) installiert das Joinscript `68udm-bildungslogin.inst` des Pakets `udm-bildungslogin` LDAP-Indices. Dafür wird der LDAP Server temporär angehalten. Bei großen Installationen kann dies eine Weile dauern.
+
+**WICHTIG**:
+Ebenso ist ein API- Benutzer mit der ID **bildungslogin-api-user** eingerichtet. Diesem muss noch ein Passwort vergeben werden (siehe [Konfiguration](#1-setup-der-provisioning-api)).
+
+Bei einer Deinstallation wird dieser Nutzer deaktiviert.
+
+
+## Verifizierung der Installation
+
+### 1. Prüfen des `memberOf` overlays
+
+Die UMC-Module setzen das LDAP-overlay `memberOf` voraus.
+Ob das LDAP-overlay aktiviert ist lässt sich über die Systemdiagnose oder `ucr get ldap/overlay/memberof` prüfen.
+Sollte es nicht aktiviert sein, sind die nötigen Schritte, zur Aktivierung, in folgendem Artikel beschrieben: [memberOf attribute: Group memberships of user and computer objects](https://help.univention.com/t/memberof-attribute-group-memberships-of-user-and-computer-objects/6439)
+
+### 2. Einstellung der `sizelimit` UCR Variable
+
+Einige der neuen UMC Module nutzen ein Limit um zu bestimmen, wie viele Ergebnisse sie maximal anzeigen, bevor sie eine
+Einschränkung durch Suchparameter verlangen. Dieses Limit kann durch die UCR Variable `directory/manager/web/sizelimit`
+gesetzt werden und ist standardmäßig auf 2000 eingestellt. Aktuell enmpfiehlt es sich dieses Limit für das Lizenzmanagement
+auf 500 zu setzen. Dies kann mit dem Befehl `ucr set directory/manager/web/sizelimit=500` erreicht werden.
+
+### 3. Vorhandensein aller UDM- Module
+
+Zur Sicherstellung, dass alle relevanten [UDM-Module](#univention-directory-manager) installiert wurden, kann der folgende Befehl verwendet werden: `udm modules | grep bildungslogin`.
+
+Hierbei sollten die folgenden Module ausgegeben werden:
+- bildungslogin/assignment
+- bildungslogin/license
+- bildungslogin/metadata
+
+## Installationsprobleme
+
+Probleme bei der Installation können häufig durch das erneute Ausführen der Join Skripte behoben werden:
+
+```bash
+univention-run-join-scripts --run-scripts --force 68udm-bildungslogin.inst
+univention-run-join-scripts --run-scripts --force 69bildungslogin-plugin-openapi-client.inst
+univention-run-join-scripts --run-scripts --force 70bildungslogin-plugin.inst
 ```
-LICENSE_MODULE_BASE
-|
- -- licenses
-   |
-    -- assignments --> EntryUUID of Assignee (or Group)
+
+## Konfiguration
+
+Wenn alles erfolgreich konfiguriert wurde, sind die beiden Joinskripte `69bildungslogin-plugin-openapi-client.inst` und `70bildungslogin-plugin.inst` ohne Fehler durchgelaufen (siehe Logfile: `/var/log/univention/join.log`).
+
+### 1. Setup der Provisioning API
+
+Zur Verwendung der Provisioning API ist beim Installationsprozess bereits ein Benutzer erstellt worden. Dieser muss nun noch aktiviert, und ein Passwort gesetzt werden.
+
+Der Nutzer inkl. Passwort muss dann dem BILDUNGSLOGIN mitgeteilt werden, damit dieser die API abfragen kann:
+
+```bash
+udm users/user modify \
+  --dn "uid=bildungslogin-api-user,cn=users,$(ucr get ldap/base)" \
+  --set disabled=0 \
+  --set password="<geheimes passwort hier einsetzen>"
 ```
+
+### 2. Anbindungsdetails zum BILDUNGSLOGIN konfigurieren
+Die Datei /etc/bildungslogin/config.ini enthält notwendige Daten, um sich mit dem BILDUNGSLOGIN zu verbinden. Sie erhalten diese beim Onboarding:
+
+**Auth**
+- **clientId**: ID für den Bezug von AccessTokens zur Nutzung der Bildungslogin-API, für `  `.
+- **clientSecret**: Secret für den Bezug von AccessTokens zur Nutzung der Bildungslogin-API.
+- **Scope**: Verwendetes Scope für die Anbindung
+
+**APIEndpoint**
+- **AuthServer**: Der Authentifizierungsserver des BILDUNGSLOGINs, welcher Token ausstellt
+- **ResourceServer**:  Der API- Endpunkt des BILDUNGSLOGIN, um einen Lizenz- bzw. Medienabruf durchzuführen
+
+#### Anpassen der Zeit der Metadatenaktualisierung
+
+Die Metadaten werden jeden Tag zwischen 20 und 6 Uhr aktualisiert.
+
+Das kann durch zwei Variablen angepasst werden:
+- cron/bildungslogin-meta-data/time kann die Startzeit angegeben werden
+- cron/bildungslogin-meta-data/command kann über den Parameter von /usr/sbin/jitter die Zeitspanne angegeben werden, in der zufällig der Befehl ausgeführt wird. Der Default-Wert ist 36000, was 10 Stunden entspricht.
+
+### 3. Portal-Eintrag hinzufügen
+
+Auf der Portalseite wird eine Kachel mit den folgenden Werten eingerichtet, um direkt vom UCS@School- System auf das Medienregal zugreifen zu können. Den Wert von <idp_name> erhalten Sie zusammen mit den Anbindungsdetails (2.) beim Onboarding. Details siehe auch [UCS Handbuch](https://docs.software-univention.de/handbuch-4.4.html#central:portal).
+
+**Relevante Konfiguration:**
+- Logo: 
+- Link (Test): https://www.bildungslogin-test.de/app/#/sso/bilob?idp_hint=<idp_name>
+- Link (Produktion): https://www.bildungslogin.de/app/#/sso/bilob?idp_hint=<idp_name>
+
+Den **idp_name** erhalten Sie vom Bildungslogin beim Onboarding.
+
+### 4. API- Caching Konfiguration überprüfen/anpassen
+
+Um auch bei größeren Systemen eine optimale Performance zu erreichen, werden die Lizenzzuweisungen für die API grundsätzlich gecached.
+Dies geschieht standardmäßig einmal täglich um 5 Uhr morgens.
+
+Um dies anzupassen, bzw. die Zeiten für einen Cache-Rebuild/-Refresh anzupassen, gibt es die folgenden UCR-Variablen:
+- bildungslogin/rebuild-cache
+- bildungslogin/refresh-cache
+
+#### bildungslogin/rebuild-cache
+
+Diese Variable ist für den eigentlichen Rebuild des Caches verantwortlich. Die aktuellen Zuweisungen werden zu den hier hinterlegten Zeitpunkt(en) ausgelesen und in einer Cache-Datei hinterlegt.
+
+Die Variable muss einen validen Cron-Zeitplanausdruck enthalten.
+
+#### bildungslogin/refresh-cache
+
+Diese Variable ist für den Neustart der UCS@School-API zuständig. Wenn die UCS@School-API neu gestartet wird, wird auch das Cache-File neu eingelesen, und somit sind sämtliche Daten aktuell.
+
+Ein Neustart ist allerdings nicht zwingend notwendig: wenn das Cache-File aktualisiert wird, wird beim ersten Aufruf (pro Worker) das Cache-File eingelesen und verwendet.
+Da bei größeren Systemen das Einlesen einige Zeit benötigt, wird empfohlen, die API anstattdessen neu zu starten, um Timeouts oder längere Wartezeiten für die Nutzer zu verhindern.
+
+Die Variable kann zwei unterschiedliche Werte enthalten:
+- den Wert `after-rebuild` - dieser startet die UCS@School-API neu sobald das Cachefile neu erstellt wurde,
+- einen validen Cron-Zeitplanausdruck.
+
+#### Überwachung der Cache- Generation
+Die Logs der Cache- Generierung werden in das syslog/journald geschrieben (bildungslogin-rebuild-cache), und sollten entsprechend überwacht werden - speziell auf "WARNING" oder "ERROR"- Nachrichten.
+
+
+### 5. Lizenzstatus- Aktualisierung
+Mittels einer eigenen API bezieht der Lizenzmanager jede Nacht Informationen über den aktuellen Status von registrierten Lizenzen aus den jeweiligen Verlagssystemen über das BILDUNGSLOGIN-Backend: Gültigkeitsstatus gültig/ungültig, Nutzungsstatus aktiviert/nicht aktiviert sowie das Ablaufdatum für die Nutzung der Lizenzen.
+
+#### Status- Aktualisierung
+Sollte der Status einer Lizenz nicht, oder nicht korrekt angezeigt werden, so kann dieser Status manuell aktualisiert werden:
+
+```bash
+bildungslogin_update_license_status.py --config-file /etc/bildungslogin/config.ini
+```
+Mit bildungslogin_update_license_status.py --config-file /etc/bildungslogin/config.ini   kann man dann per Hand Lizenzen registrieren und Lizenzstatus aktualisieren.
+
+#### Weitere Parameter
+```bash
+--get-all - Setzt den Filter auf all und sollte damit alle Daten abrufen
+--register-all - Erzwingt eine komplette Neuregistrierung (Für Sonderfälle falls die API Resettet wurde oder ähnliches was UCS nicht mitbekommt)
+--skip-register - Überspringt die Registrierung und ruft nur Lizenzstatusaktualisierungen ab
+--license-code <Lizenzcode> - Registriert eine bestimmte Lizenz (unabhängig ob sie schon registriert wurde)
+--debug - Sorgt dafür, dass der Body bei allen Serverantworten ausgegeben wird (Damit bekommt man die JSON mit den Lizenzstatusinformationen ausgeben. Beim Registrieren ist der Body gernell leer und im Fehlerfall wird er auch ohne Debug ausgegeben.)
+```
+# Benutzung 
+
+## Univention Management Console
+
+In der UMC werden fünf neue Module unter `Unterricht` angezeigt
+
+- **Lizensierte Medien** LizensierteMedien im BILDUNGSLOGIN-Lizenzmanager anzeigen und durchsuchen
+- **Medienlizenz- Übersicht** 
+Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager anzeigen, suchen, entziehen
+- **Nutzer-/Lizenzübersicht**
+Listet alle Nutzer mit zugewiesenen Einzel-/Volumenlizenzen auf
+- **Lizenzen löschen**
+Übersicht von Lizenzen mit der Möglichkeit zur Löschung
+- **Medienlizenzen zuweisen** 
+Medien-Lizenzen im BILDUNGSLOGIN-Lizenzmanager zuweisen
+- **Medienlizenzen importieren** Medien-Lizenzen in den BILDUNGSLOGIN-Lizenzmanager importieren
+
+
+## Univention Directory Manager
+Über das bildungslogin-udm- Modul können u.a. die untenstehenden Vorgänge auf der Kommandozeile vorgenommen werden. Eine Auflistung sämtlicher Kommandos der Methoden des "bildungslogin"- UDM-Moduls findet man mit dem Help- Befehl, also:
+- `udm bildungslogin/assignments help`
+- `udm bildungslogin/license help`
+- `udm bildungslogin/metadata help`
+
+Beispiele:
+- Lizenzen importieren: `bildungslogin-license-import --license-file ./sample_license.json --school "DEMOSCHOOL"`
+- Auflisten aller Lizenzen: `udm bildungslogin/license list`
+- Auflisten der Lizenzen mit einem bestimmten Lizenzcode: `udm bildungslogin/license list --filter code=CCB-DEMO-CODE-0000`
+- Löschen einer spezifischen Lizenz (benötigt die DN): `udm bildungslogin/license remove --dn <DN Der Lizenz, z.B. vom obigen Abruf>`
+- Anzeige aller zugewiesenen Lizenzen: `udm bildungslogin/assignment list --filter status=ASSIGNED`
+
+## Bekannte Einschränkungen und Probleme
+
+**Die Konfiguration enthält Zugänge für die Testumgebung**
+
+Problemumgehung: Die Datei `/etc/bildungslogin/config.ini` muss für den Produktivbetrieb angepasst werden. Einzelheiten erhalten Sie beim Onboarding:
+
+**Der Cronjob zum Medien-Abruf ergibt einen Fehler `ValueError: No JSON object could be decoded`**
+
+Problemumgehung: Die für initiale Tests enthaltenen Dummy-Codes werden keine Mediendaten bereitgestellt. Nach dem Einspielen von richtigen Codes wird der Fehler behoben sein.
+
+**Der Single-Sign-On Login läuft ab und die UMC ist in einer Ladeschleife**
+
+Problemumgehung: Das klingt nach dem bekannten [Bug 52888](https://forge.univention.org/bugzilla/show_bug.cgi?id=52888). Als Lösung bitte die erlaubte Zeitdifferenz der SAML Gültigkeit bei der Authentifizierung auf 12 Stunden setzen, wodurch der Login an einem Arbeitstag nicht mehr vorzeitig abläuft.
+
+```bash
+ucr set umc/saml/grace_time=43200
+```
+
+## Performance
+Wenn Sie eine große Anzahl von Lizenzen importieren (mehrere Tausend) kann der Importvorgang mehrere Minuten dauern.
 
 ## Logging
+- UDM- Modul- Log: `/var/log/univention/management-console-module-licenses.log`
+- UCSSchools-API- Log (nicht exklusiv): `/var/log/univention/ucsschool-apis/http.log`
+- Log des Medienupdates: `/var/log/univention/bildungslogin-media-update.log`
 
-- The UMC- Module logs to `/var/log/univention/management-console-module-licenses.log`, the HTTP-API Log for UCSScrools also logs to `/var/log/univention/ucsschool-apis/http.log`
-- there is a specific logfile for the mediaupdate- actions: `/var/log/univention/bildungslogin-media-update.log`
+## APIs
+Für den Abruf der Lizenzzuweisungen muss die API des Moduls für den BiLo- Broker erreichbar sein.
 
-# Development
+**Basis- URL des UCS- Systems**
+- `https://<FQDN des Schulservers>/ucsschool/apis/`
 
-## Git Workflow
+**Eingehende Aufrufe**
+- POST: `auth/token`
+- GET: `bildungslogin/v1/user/`
 
-As of this writing this repository exists in two places. The first one is Univention's
-[internal GitLab](https://git.knut.univention.de/univention/customers/vbm/bildungslogin). The other
-one is a [private GitHub](https://github.com/univention/bildungslogin) repo. Packages are built in
-pipelines running on the `master` branch on the GitLab repository.
+# Deinstallation
 
-We use [OneFlow](https://www.endoflineblog.com/oneflow-a-git-branching-model-and-workflow) as a
-branching model:
+## Schulserver
 
-* development happens on feature branches;
-* the name of the branch start with `feature/` followed by a brief description of the feature:
-
-  ```bash
-  git checkout -b feature/brief-feature-description master`
-  ```
-
-* code, test, commit (see [below](#commit-messages) on how to format your commit messages);
-* if your feature is complete ensure to bump changelogs
-
-  * to avoid conflicts conflicts it is best to do this in the very end, just before creating the
-    merge request);
-  * see [below](#versioning) on versioning;
-
-* rebase on `master` and (eventually force) push your changes:
-
-  ```bash
-  git fetch origin
-  git rebase origin/master
-  git push
-  # If the remote branch diverged due to the rebase:
-  git push --force
-  ```
-
-* if you do not have access to GitLab, mention Thomas Bach in Jira (or ping him otherwise) to
-  transfer the branch to GitLab;
-* open a merge request on GitLab and set Christian Kasprowicz (handle `@ckasprow`) as reviewer;
-* Christian will review and eventually merge the branch.
-
-## Commit Messages
-
-Writing good commit messages is not easy. As a rule of thumb, try to express *why* you made a change
-and not what you changed. The what is give in the commit anyways and can be easily inspected. The
-commit message should rather express the intent and motivation of the change.
-
-Format commit messages following
-[Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
-```
-<type>[optional scope]: <description>
-
-[optional body]
-
-[optional footer(s)]
-```
-
-For `<type>` use one from
-[Angular convention](https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#type):
-
-* **build**: Changes that affect the build system or external dependencies
-* **ci**: Changes to our CI configuration files and scripts
-* **docs**: Documentation only changes
-* **feat**: A new feature
-* **fix**: A bug fix
-* **perf**: A code change that improves performance
-* **refactor**: A code change that neither fixes a bug nor adds a feature
-* **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-* **test**: Adding missing tests or correcting existing tests
-
-Additionally we have
-
-* **chore**: Routine tasks like bumping changelogs
-* **revert**: Reverting a previous commit
-
-As scope use the package you are working on wtih the following mapping:
-
-* `bildungslogin-plugin` -> `plugin`,
-* `python-bildungslogin` -> `bildungslogin`,
-* `ucs-school-umc-licenses` -> `umc`,
-* `udm-bildungslogin` -> `udm`.
-
-We do not have any rules on how to name the scope which are outside of packages, yet.
-
-You must reference a related ticket number either at the end of the `<description>` followed by a
-dash (`-`) or in the footers section using `issue: `.
-
-### Examples
-
-Bumping the changelog in packages steming from `ucs-school-umc-licenses` due to work on ticket ET-24
-could look like this:
-
-```
-chore(umc): bump changelog - ET-24
-```
-
-alternatively
-
-```
-chore(umc): bump changelog to version 2.0
-
-A much longer description why the change was introduced.
-
-issue: ET-24
-```
-
-## Versioning
-
-We use a [semantic versioning](https://semver.org/) scheme `MAJOR.MINOR.PATCH`. The packages steming
-from this repository must always have the same major and minor version.
-
-## Debugging
-TODO
-
-### Coverage
-
-#### in host
-
-Create a `.coveragerc` with the following content:
-
-```ini
-[run]
-branch = False
-parallel = True
-source = univention.bildungslogin
-        univention.udm.modules
-        univention.admin.handlers.bildungslogin
-[report]
-ignore_errors = False
-show_missing = True
-omit = handlers/ucstest
-        syntax.d/*
-        hooks.d/*
-include = /usr/lib/python2.7/dist-packages/univention/bildungslogin/*
-        /usr/lib/python2.7/dist-packages/univention/admin/handlers/bildungslogin/*.py
-        /usr/lib/python2.7/dist-packages/univention/udm/modules/bildungslogin_*.py
-```
-
-Then run (from the directory where `.coveragerc` is):
+Auf Schulservern sind nur die UMC Module zur Lizenzverwaltung und ihre Abhängigkeiten installiert.
+Sie können folgendermaßen restlos entfernt werden:
 
 ```bash
-python -m coverage run /usr/bin/pytest -lvvx /usr/share/ucs-test/*_bildungslogin_*/*_*.py && /usr/share/ucs-test/selenium-pytest && \
-  python -m coverage combine && \
-  python -m coverage report && \
-  python -m coverage html --directory=./htmlcov
+apt purge udm-bildungslogin-encoders python-bildungslogin ucs-school-umc-licenses
 ```
 
-#### In Docker container
-
-TODO
-
-# Tests und Verifizierungen
-
-## Lizenzen importieren
-
-Mit dem Tool `bildungslogin-license-import` lassen sich Lizenzen importieren.
-
-### Beispiel Lizenz
-
-Die json-Datei mit Dummy-Codes enhält gültige Lizenzdatensätze, aber mit frei erfundene Lizenzcodes. Sie dient dazu, in schulischen Testsystemen die internen Funktionen des Lizenzmanagers (ohne Medienzugriff in den Verlagssystemen) zu testen, ohne dass dafür echte Lizenzcodes benötigt werden. Die Datei wird zusammen mit den Paketen des ucs-Lizenzmanagers und einer Anleitung ausgeliefert.
-
-```json
-[
-  {
-    "lizenzcode": "WES-DEMO-CODE-0000",
-    "product_id": "urn:bilo:medium:WEB-14-124227",
-    "lizenzanzahl": 60,
-    "lizenzgeber": "WES",
-    "kaufreferenz": "Lizenzmanager-Testcode",
-    "nutzungssysteme": "Testcode ohne Medienzugriff",
-    "gueltigkeitsbeginn": "",
-    "gueltigkeitsende": "",
-    "gueltigkeitsdauer": "Schuljahreslizenz",
-    "sonderlizenz": ""
-  },
-  {
-    "lizenzcode": "CCB-DEMO-CODE-0000",
-    "product_id": "urn:bilo:medium:610081",
-    "lizenzanzahl": 60,
-    "lizenzgeber": "CCB",
-    "kaufreferenz": "Lizenzmanager-Testcode",
-    "nutzungssysteme": "Testcode ohne Medienzugriff",
-    "gueltigkeitsbeginn": "",
-    "gueltigkeitsende": "",
-    "gueltigkeitsdauer": "397 Tage",
-    "sonderlizenz": ""
-  }
-]
-```
-
-### Beispiel Import
-
-Ein Import wird wie folgt durchgeführt:
-
-`bildungslogin-license-import --license-file $PFAD_ZUR_LIZENZ --school $SCHUL_KÜRZEL`
-
-## Metadaten importieren
-
-Der Metadatenimport erfolgt automatisch.
-Bei Bedarf kann er jedoch manuell über das CLI Tool `bildungslogin-media-import` ausgeführt werden.
-Für den automatischen Import müssen die Zugangsdaten konfiguriert werden.
-
-### Konfiguration
-
-In die Datei `/etc/bildungslogin/config.ini` müssen die Zugangsdaten für die Metadaten API eingetragen werden.
-Alternativ können diese dem CLI Tool auch direkt übergeben werden (`bildungslogin-media-import --help`).
-
-### Manueller import
-
-Ein Metadatenimport für eine Produkt ID kann nun wie folgt gestartet werden:
-
-`bildungslogin-media-import --config-file /etc/bildungslogin/config.ini urn:bilo:medium:COR-9783060658336`
-
-## Verwendung der Provisioning API
-
-Mit dem Usernamen `bildungslogin-api-user` und dem Passwort kann die API genutzt werden.
-
-Der Zugriff erfolgt in zwei Schritten:
-
-1) Authorization
-
-Der Token kann folgendermaßen geholt werden:
+Zur Kontrolle ob noch andere Pakete installiert sind, kann folgendes ausgeführt werden:
 
 ```bash
-curl -X 'POST'   'https://FQDN/ucsschool/apis/auth/token' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'username=bildungslogin-api-user&password=v3r7s3cr3t'
+dpkg -l | grep -E 'bildungslogin|umc-licenses'
 ```
 
-Die Antwort ist:
+## Primary (DC Master) und Backup Server
 
-```json
-{
-  "access_token":"eyJ0eXAiOiJKV1...",
-  "token_type":"bearer"
-}
-```
+Auf dem Primary (DC Master) bzw. Backup Servern sind die UDM Modulpakete, LDAP Schema und die Provisionierungs API installiert.
+Außerdem liegen auf ihnen die LDAP Daten.
 
-2) Provisionierung von Nutzerdaten
 
-Die Daten des Users `demo_student` können mit folgendem Befehl abgerufen werden:
+### Deaktivierung bzw. Entfernung des API- Nutzers
+
+Bei einer Deinstallation der Provisionierungs API- Pakete wird der API- Nutzer deaktiviert. Dies ist bei einer Neuinstallation oder kompletten Entfernung zu beachten.
+
+### Pakete und Metadaten-Cache
+
+Die Paketdeinstallation entfernt neben allen Programmdateien optional auch die Konfigurationsdateien, sowie den Metadatencache - nicht jedoch die Lizenzdaten.
+
+Alle installierten Pakete können wir folgt angezeigt werden:
 
 ```bash
-curl -X 'GET' \
-  'https://FQDN/ucsschool/apis/bildungslogin/v1/user/demo_student' \
-  -H 'accept: application/json' \
-  -H 'Authorization: Bearer eyJ0eXAiOiJKV1...'
+dpkg -l | grep -E 'bildungslogin|umc-licenses'
 ```
 
-Zur interaktiven Erforschung der API findet sich eine Swagger UI sich unter https://FQDN/ucsschool/apis/docs.
+Zur Deinstallation unter Beibehaltung der Konfigurationsdateien `apt remove ...` verwenden.
+Um die Konfigurationsdateien ebenfalls zu löschen `apt purge ...` ausführen:
 
-
-### Beispiel Lizenzzuweisung via CLI
-
-Um eine Zuweisung durchzuführen, müssen wir ein Assignment-Objekt der Lizenz editieren. Nach einem initialen Lizenzimport sind noch alle "assignments" verfügbar. Daher nehmen wir uns ein beliebiges Objekt, welches in `assignments` referenziert ist und weisen es einem Nutzer zu. Dies geschieht mittels der EntryUUID eines Nutzers, die wir mit dem folgenden Befehl ermitteln können:
-
-```shell
-root@dc0:~# univention-ldapsearch -LLL uid=demo_student entryUUID
-dn: uid=demo_student,cn=schueler,cn=users,ou=DEMOSCHOOL,dc=realm4,dc=intranet
-entryUUID: bc2d0d2a-224f-103b-9f8a-1587660bcd6c
+```bash
+apt purge bildungslogin-plugin bildungslogin-plugin-openapi-client python-bildungslogin ucs-school-umc-licenses udm-bildungslogin udm-bildungslogin-encoders
 ```
 
-Mit diesen Informationen können wir nun eine Zuweisung durchführen:
+Die Unjoin Skripte sollten automatisch ausgeführt worden sein.
+Falls nicht, können sie gestartet werden mit:
 
-```shell
-root@dc0:~# udm bildungslogin/assignment modify --dn cn=09d1834b-d238-466a-90f2-8c52c4b1cd07,cn=c23df3f1b32e0e78a8a98e7ea2eacd5ad90447be01643d87bb34ceba942e9a39,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=realm4,dc=intranet --set assignee=bc2d0d2a-224f-103b-9f8a-1587660bcd6c --set time_of_assignment="$(date -I)" --set status=ASSIGNED
-Object modified: cn=09d1834b-d238-466a-90f2-8c52c4b1cd07,cn=c23df3f1b32e0e78a8a98e7ea2eacd5ad90447be01643d87bb34ceba942e9a39,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=realm4,dc=intranet
-root@dc0:~# udm bildungslogin/assignment list --filter cn=09d1834b-d238-466a-90f2-8c52c4b1cd07
-cn=09d1834b-d238-466a-90f2-8c52c4b1cd07
-DN: cn=09d1834b-d238-466a-90f2-8c52c4b1cd07,cn=c23df3f1b32e0e78a8a98e7ea2eacd5ad90447be01643d87bb34ceba942e9a39,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=realm4,dc=intranet
-  assignee: bc2d0d2a-224f-103b-9f8a-1587660bcd6c
-  cn: 09d1834b-d238-466a-90f2-8c52c4b1cd07
-  status: ASSIGNED
-  time_of_assignment: 2021-08-12
+```bash
+univention-run-join-scripts
 ```
 
-Wenn man diesen Nutzer nun über die Provisioning API abruft, erkennt man, dass ihm die Lizenz `VHT-7bd46a45-345c-4237-a451-4444736eb011`
-zugeordnet ist.
+### Lizenz-Daten
 
-## Beispiel Lizenz löschen
+Um zusätzlich alle Lizenz-LDAP-Objekte zu löschen, kann der gesamte LDAP-Container für das Lizenzmanagement gelöscht werden:
 
-Das Ändern der Lizenzzuweisung im "Provisioned" Status wird unterbunden, da diese bereits im Medienregal eingelöst wurden. Es ist aber möglich eine komplette Lizenz zu löschen, damit werden alle Zuordungen auch entfernt, da diese im LDAP Kind-Objekte sind.
-
-Anzeige aller Informationen und Zuordungen einer Lizenz:
-
-```shell
-root@dc0:~# udm bildungslogin/license list --filter code="WES-TEST-CODE-LZL07"
-code=WES-TEST-CODE-LZL07
-DN: cn=0fb9155c27655c172f2b2149108ed7736da6595eef302c8b160b95ee6112a0f8,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=vbm,dc=schule-univention,dc=de
+```bash
+ldapdelete -D "uid=Administrator,cn=users,$(ucr get ldap/base)" -H "ldap://$(ucr get ldap/master)" -W -x -r "cn=vbm,cn=univention,$(ucr get ldap/base)"
 ```
 
-Löschen einer Lizenz
+Dieser Befehl löscht ebenfalls die Lizenzzuweisungen und Lizenzmetadaten aus dem LDAP.
 
-```shell
-root@dc1:~# udm bildungslogin/license remove --dn cn=0fb9155c27655c172f2b2149108ed7736da6595eef302c8b160b95ee6112a0f8,cn=licenses,cn=bildungslogin,cn=vbm,cn=univention,dc=vbm,dc=schule-univention,dc=de
-...
+Der folgende Befehl sollte keine Objekte mehr finden (`such object (32)`):
+
+```bash
+univention-ldapsearch -LLL -b "cn=vbm,cn=univention,$(ucr get ldap/base)" dn
 ```
 
-## Beispiel alle Daten löschen
+### LDAP Schemata und ACLs
 
-Zum Aufräumen einer Testumgebung (Achtung: dies löscht sämtliche Lizenzen aller Schulen des Systems!)
+Sind **alle** LDAP Objekte (Lizenzen, Zuweisungen und Metadaten) entfernt worden auf die sich die LDAP Schemata und ACLs beziehen, dürfen auch diese entfernt werden.
 
-Alle Lizenzen löschen:
+Wenn bei diesem Schritt etwas schiefgeht, startet u.U. der LDAP-Server nicht mehr, bis das Problem behoben wurde.
+Wegen dieses Risokos und weil LDAP-Schemata und ACLs weder Platz noch Performance kosten, werden sie üblicherweise nicht gelöscht.
 
-```shell
-root@dc0:~# for dn in $(udm bildungslogin/license list | sed -n 's/DN: //p'); do udm bildungslogin/license remove --dn $dn; done
+Folgendermaßen können LDAP ACLs und Schemata gelöscht werden:
+
+```bash
+. /usr/share/univention-lib/ldap.sh
+ucs_unregisterLDAPExtension --acl 64bildungslogin-metadata
+ucs_unregisterLDAPExtension --acl 64bildungslogin-license
+ucs_unregisterLDAPExtension --schema bildungslogin
+ucr commit /etc/ldap/slapd.conf
+service slapd restart
 ```
