@@ -53,10 +53,14 @@ def parse_args(args=None):  # type: (Optional[List[str]]) -> argparse.Namespace
         "--config-file", required=False, help="A path to a file which contains all config options for this command."
     )
 
+    parser.add_argument(
+        "--debug", required=False, help="Print server answers out.", action="store_true"
+    )
+
     return parser.parse_args(args)
 
 
-def retrieve_licenses(config, pickup_number):
+def retrieve_licenses(config, pickup_number, debug=False):
     """
     Retrieve, save and confirm the retrieval of the license package
 
@@ -91,7 +95,7 @@ def retrieve_licenses(config, pickup_number):
             "Unable to get access: {}".format(exc.message)
         )
     retrieve_response_code, license_response = \
-        retrieve_licenses_package(access_token, resource_server, pickup_number, proxies)
+        retrieve_licenses_package(access_token, resource_server, pickup_number, proxies, debug)
     try:
         license_path = save_license_package_to_json(license_response, pickup_number)
     except Exception as exc:
@@ -146,6 +150,6 @@ def get_config_from_file(filename):  # type: (str) -> Dict[str, Any]
 def main():  # type: () -> None
     try:
         args = parse_args()
-        retrieve_licenses(get_config(args), args.pickup_number)
+        retrieve_licenses(get_config(args), args.pickup_number, debug=args.debug)
     except ScriptError as err:
         print("Script Error: %s" % (err,), file=sys.stderr)
