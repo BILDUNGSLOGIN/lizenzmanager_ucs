@@ -1,3 +1,9 @@
+python-bildungslogin (2.4.5) unstable; urgency=medium
+
+  * Update Api usage to new definition.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Mon, 15 Jan 2024 11:17:12 +0100
+
 python-bildungslogin (2.4.4) unstable; urgency=medium
 
   * ET-254 Use local timezone for date extraction instead utc.
