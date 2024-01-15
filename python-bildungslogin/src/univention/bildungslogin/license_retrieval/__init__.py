@@ -174,19 +174,21 @@ def save_license_package_to_json(license_package, pickup_number):
     return filename
 
 
-def retrieve_licenses_package(access_token, resource_server, pickup_number, proxies=None):
+def retrieve_licenses_package(access_token, resource_server, pickup_number, proxies=None, debug=False):
     # type: (str, str, str, dict) -> Tuple[int, dict]
     """
     Retrieves the license package from the server by its pickup number and validates it.
     Returns the response code and retrieved JSON body in case of success.
     """
     r = requests.get(
-        url=resource_server + "/external/publisher/v2/licensepackage",
-        data={'package_id': pickup_number},
+        url=resource_server + "/licenserouting/v1/licensepackage",
+        params={'package_id': pickup_number},
         headers={"Authorization": "Bearer " + access_token,
                  "Content-Type": "application/x-www-form-urlencoded"},
         proxies=proxies
     )
+    if debug:
+        print(r.url)
     if r.status_code == 200 or r.status_code == 208:
         try:
             validate(instance=r.json(), schema=LICENSE_RETRIEVAL_SCHEMA)
