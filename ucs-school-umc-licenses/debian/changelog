@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.4.6) unstable; urgency=medium
+
+  * ET-287 Filter assigned licenses in user module on assignment basis and not license basis.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Fri, 19 Jan 2024 15:38:31 +0100
+
 ucs-school-umc-licenses (2.4.5) unstable; urgency=medium
 
   * ET-280 Correctly search for groups in the dictionaries.

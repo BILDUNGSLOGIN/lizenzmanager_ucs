@@ -749,7 +749,7 @@ class LdapRepository:
                 results = filter(lambda item: item['license'].bildungsloginUsageStatus == usage_status, results)
 
         if not_provisioned:
-            results = filter(lambda item: self.is_license_only_assigned(item['license']), results)
+            results = filter(lambda item: item['assignment'].bildungsloginAssignmentStatus == Status.ASSIGNED, results)
 
         return results
 

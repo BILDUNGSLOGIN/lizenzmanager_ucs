@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-bildungslogin 0.0.3\n"
 "Report-Msgid-Bugs-To: packages@univention.de\n"
-"POT-Creation-Date: 2023-10-23 11:40+0000\n"
+"POT-Creation-Date: 2024-01-11 14:27+0000\n"
 "PO-Revision-Date: 2021-08-12 11:58+0200\n"
 "Last-Translator: Daniel Tröder <troeder@univention.de>\n"
 "Language-Team: German <packages@univention.de>\n"
@@ -95,9 +95,6 @@ msgid ""
 msgstr ""
 "Lizenz mit Lizenztyp {license_type!r} kann dem Objekttyp {object_type!r} "
 "nicht zugewiesen werden"
-
-msgid "License type"
-msgstr "Lizenztyp"
 
 #: src/univention/bildungslogin/handlers.py:845
 msgid ""
@@ -208,6 +205,9 @@ msgid ""
 msgstr ""
 "Lizenz kann nicht der Gruppe zugeordnet werden, da sie nicht zur gleichen "
 "Schule gehört"
+
+#~ msgid "License type"
+#~ msgstr "Lizenztyp"
 
 #~ msgid "License validity start is in the future."
 #~ msgstr "Gültigkeitsbeginn liegt in der Zukunft."
