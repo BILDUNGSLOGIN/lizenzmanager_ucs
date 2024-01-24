@@ -194,6 +194,8 @@ Die Logs der Cache-Generierung werden in das syslog/journald geschrieben (bildun
 Mittels einer eigenen API bezieht der Lizenzmanager über das BILDUNGSLOGIN-Backend jede Nacht Informationen über den aktuellen Status von registrierten Lizenzen aus den jeweiligen Verlagssystemen: Gültigkeitsstatus gültig/ungültig, Nutzungsstatus aktiviert/nicht aktiviert sowie das Ablaufdatum für die Nutzung der Lizenzen.
 
 #### Status- Aktualisierung
+Der Zeitpunkt für die Aktualisierung des Status ist in der UCR- Variable `bildungslogin/update-license-status` festgehalten. Die Variable kann im Cron- Format angepasst werden.
+
 Sollte der Status einer Lizenz nicht oder nicht korrekt angezeigt werden, so kann dieser Status manuell aktualisiert werden:
 
 ```bash
