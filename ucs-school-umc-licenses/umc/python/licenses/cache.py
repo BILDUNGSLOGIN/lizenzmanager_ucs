@@ -721,7 +721,7 @@ class LdapRepository:
 
         if username and username != '*':
             user_pattern = re.compile(username.lower().replace('*', '.*'))
-            results = filter(lambda item: user_pattern.match(item['user'].uid), results)
+            results = filter(lambda item: user_pattern.match(item['user'].uid.lower()), results)
 
         if medium and medium != '*':
             medium = re.compile(medium.lower().replace('*', '.*'))
@@ -836,9 +836,9 @@ class LdapRepository:
             licenses = filter(lambda _license: _license.match_user_regex(user_pattern), licenses)
 
         if license_code and license_code != '*':
-            license_code = re.compile(license_code.replace('*', '.*'))
+            license_code = re.compile(license_code.lower().replace('*', '.*'))
             licenses = filter(lambda _license: license_code.match(
-                _license.bildungsloginLicenseCode) if _license.bildungsloginLicenseCode else False,
+                _license.bildungsloginLicenseCode.lower()) if _license.bildungsloginLicenseCode else False,
                               licenses)
 
         if product and product != '*':
