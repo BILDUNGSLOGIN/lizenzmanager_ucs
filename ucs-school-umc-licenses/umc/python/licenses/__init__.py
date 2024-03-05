@@ -1165,7 +1165,7 @@ class Instance(SchoolBaseModule):
                 'uid': user['user'].uid,
                 'license': user['license'].bildungsloginLicenseCode,
                 'status': user['assignment'].bildungsloginAssignmentStatus,
-                'medium': user['product'].bildungsloginMetaDataTitle,
+                'medium': user['product'].bildungsloginMetaDataTitle if user['product'] else '',
                 'classes': ', '.join(group.cn.split(school + "-")[1] for group in user['classes']),
                 'workgroups': ', '.join(group.cn.split(school + "-")[1] for group in user['workgroups']),
                 'roles': Role.label(user['user'].ucsschoolRole),
