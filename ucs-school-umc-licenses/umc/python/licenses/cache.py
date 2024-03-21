@@ -1277,10 +1277,11 @@ class LdapRepository:
         license_file.close()
 
     def delete_licenses(self, license_codes):
+        licenses = []
         for license_code in license_codes:
             _license = self.get_license_by_code(license_code)
+            licenses.append(_license)
             assignments = self.get_assignments_by_license(_license)
-
             to_save = {
                 'deleted': True,
                 'license': _license.get_cache_dictionary(),
@@ -1289,6 +1290,7 @@ class LdapRepository:
             license_file = self._get_license_cache_file(_license.entryUUID)
             json.dump(to_save, license_file)
             license_file.close()
+        return licenses
 
     def cache_date(self):
         if self._current_school:

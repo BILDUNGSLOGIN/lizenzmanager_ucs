@@ -1108,10 +1108,21 @@ class Instance(SchoolBaseModule):
         license_codes = request.options.get("licenseCodes")
         lh = LicenseHandler(ldap_user_write)
         lh.delete_license(license_codes)
-        self.repository.delete_licenses(license_codes)
+        licenses = self.repository.delete_licenses(license_codes)
 
-        for license_code in license_codes:
-            MODULE.info('Deleted license: ' + license_code)
+        for license in licenses:
+            message = False
+            if license.bildungsloginLicenseType == LicenseType.SINGLE:
+                assignment = self.repository.get_assignments_by_license(license)[0]
+                if assignment.bildungsloginAssignmentStatus in [Status.ASSIGNED, Status.PROVISIONED]:
+                    user = self.repository.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
+                    if user:
+                        message = 'Deleted license from ' + user.uid + ': '
+            if message:
+                MODULE.process(message + license.bildungsloginLicenseCode)
+            else:
+                MODULE.process('Deleted license: ' + license.bildungsloginLicenseCode)
+
 
         self.finished(request.id, {
             'result': 'success'

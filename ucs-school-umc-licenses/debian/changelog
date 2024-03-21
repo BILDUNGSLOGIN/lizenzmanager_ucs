@@ -1,3 +1,9 @@
+ucs-school-umc-licenses (2.4.8) unstable; urgency=medium
+
+  * ET-290 Adding username for assigned single licenses on deletion.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Thu, 21 Mar 2024 11:16:38 +0100
+
 ucs-school-umc-licenses (2.4.7) unstable; urgency=medium
 
   * ET-289 Fix user search fails if username hase a capital letter and make license code search case-insensitive.
