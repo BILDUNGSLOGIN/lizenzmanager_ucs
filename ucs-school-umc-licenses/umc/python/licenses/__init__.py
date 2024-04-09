@@ -168,6 +168,7 @@ class Instance(SchoolBaseModule):
                 valid_status=request.options.get("validStatus"),
                 usage_status=request.options.get("usageStatus"),
                 not_provisioned=request.options.get("notProvisioned"),
+                only_provisioned=request.options.get("onlyProvisionedLicenses"),
                 not_usable=request.options.get("notUsable"),
                 expiry_date_from=expiry_from,
                 expiry_date_to=expiry_to

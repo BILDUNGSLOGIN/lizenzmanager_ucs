@@ -792,6 +792,7 @@ class LdapRepository:
                         valid_status=None,
                         usage_status=None,
                         not_provisioned=None,
+                        only_provisioned=None,
                         not_usable=None,
                         expiry_date_from=None,
                         expiry_date_to=None,
@@ -872,6 +873,9 @@ class LdapRepository:
 
         if not_provisioned:
             licenses = filter(lambda _license: self.is_license_only_assigned(_license), licenses)
+            
+        if only_provisioned:
+            licenses = filter(lambda _license: self.is_license_only_provisioned(_license), licenses)
 
         if not_usable:
             licenses = filter(lambda _license: self.is_license_not_usable(_license), licenses)
@@ -904,6 +908,14 @@ class LdapRepository:
         assignments = self.get_assignments_by_license(license)
         for assignment in assignments:
             if assignment.bildungsloginAssignmentStatus == Status.ASSIGNED:
+                return True
+
+        return False
+    
+    def is_license_only_provisioned(self, license):
+        assignments = self.get_assignments_by_license(license)
+        for assignment in assignments:
+            if assignment.bildungsloginAssignmentStatus == Status.PROVISIONED:
                 return True
 
         return False
