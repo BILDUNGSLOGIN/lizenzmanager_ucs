@@ -1,3 +1,10 @@
+ucs-school-umc-licenses (2.4.9) unstable; urgency=medium
+
+  * ET-290 Add school and admin username to license delete message.
+  * ET-293 Implement filter for only provisioned licenses.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 09 Apr 2024 14:59:19 +0200
+
 ucs-school-umc-licenses (2.4.8) unstable; urgency=medium
 
   * ET-290 Adding username for assigned single licenses on deletion.

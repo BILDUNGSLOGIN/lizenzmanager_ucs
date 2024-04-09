@@ -61,6 +61,7 @@ define([
             'timeFrom',
             'timeTo',
             'onlyAvailableLicenses',
+            'onlyProvisionedLicenses',
             'publisher',
             'licenseType',
             'userPattern',
@@ -172,7 +173,16 @@ define([
                 value: false,
                 size: 'TwoThirds',
                 visible: false,
-              }, {
+              },
+              {
+                type: CheckBox,
+                name: 'onlyProvisionedLicenses',
+                label: _('Only provisioned licenses'),
+                value: false,
+                size: 'TwoThirds',
+                visible: false,
+              },
+              {
                 type: ComboBox,
                 name: 'publisher',
                 label: _('Publisher'),
@@ -284,7 +294,7 @@ define([
 
           let layout = [
             ['timeFrom', 'timeTo', 'onlyAvailableLicenses'],
-            ['publisher', 'userPattern'],
+            ['publisher', 'userPattern', 'onlyProvisionedLicenses'],
             ['licenseType', 'workgroup', 'class'],
             ['validStatus', 'usageStatus', 'notProvisioned'],
             ['expiryDateFrom', 'expiryDateTo', 'notUsable'],

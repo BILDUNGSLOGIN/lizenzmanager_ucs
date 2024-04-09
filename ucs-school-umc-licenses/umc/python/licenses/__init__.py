@@ -168,6 +168,7 @@ class Instance(SchoolBaseModule):
                 valid_status=request.options.get("validStatus"),
                 usage_status=request.options.get("usageStatus"),
                 not_provisioned=request.options.get("notProvisioned"),
+                only_provisioned=request.options.get("onlyProvisionedLicenses"),
                 not_usable=request.options.get("notUsable"),
                 expiry_date_from=expiry_from,
                 expiry_date_to=expiry_to
@@ -1103,13 +1104,13 @@ class Instance(SchoolBaseModule):
     @sanitize(school=SchoolSanitizer(required=True), licenseCodes=ListSanitizer(required=True))
     @LDAP_Connection(USER_WRITE)
     def licenses_delete(self, request, ldap_user_write):
-        self.repository.update(request.options.get("school"))
+        school = request.options.get("school")
+        self.repository.update(school)
 
         license_codes = request.options.get("licenseCodes")
         lh = LicenseHandler(ldap_user_write)
         lh.delete_license(license_codes)
         licenses = self.repository.delete_licenses(license_codes)
-
         for license in licenses:
             message = False
             if license.bildungsloginLicenseType == LicenseType.SINGLE:
@@ -1117,12 +1118,12 @@ class Instance(SchoolBaseModule):
                 if assignment.bildungsloginAssignmentStatus in [Status.ASSIGNED, Status.PROVISIONED]:
                     user = self.repository.get_user_by_uuid(assignment.bildungsloginAssignmentAssignee)
                     if user:
-                        message = 'Deleted license from ' + user.uid + ': '
+                        message = 'Deleted license from ' + user.uid + ' in ' + school + ' by ' + request.username + ': '
             if message:
                 MODULE.process(message + license.bildungsloginLicenseCode)
             else:
-                MODULE.process('Deleted license: ' + license.bildungsloginLicenseCode)
-
+                MODULE.process(
+                    'Deleted license' + ' in ' + school + ' by ' + request.username + ': ' + license.bildungsloginLicenseCode)
 
         self.finished(request.id, {
             'result': 'success'
