@@ -1,3 +1,9 @@
+bildungslogin-plugin (2.4.2) unstable; urgency=medium
+
+  * Catch error if there are no assignments anymore as it can be by volume licenses.
+
+ -- Felix Martin <felix.martin@bergwerk-it.de>  Tue, 10 Sep 2024 15:43:49 +0200
+
 bildungslogin-plugin (2.4.1) unstable; urgency=medium
 
   * ET-283 Load only school specific groups in the school cache.

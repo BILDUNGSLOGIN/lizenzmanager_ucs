@@ -669,7 +669,11 @@ def store_school_cache_file(dictionary, school):
 
         tmp_school_dict['assignments'] = []
         for license in tmp_school_dict['licenses']:
-            tmp_school_dict['assignments'] += assignments_map[license['entry_dn']]
+            if license['entry_dn'] in assignments_map:
+                tmp_school_dict['assignments'] += assignments_map[license['entry_dn']]
+            else:
+                tmp_school_dict['assignments'] = []
+                logger.warning('License can not be assigned anymore and is not used: ' + license['bildungsloginLicenseCode'])
 
         if not os.path.isdir(tmp_school_folder):
             os.makedirs(tmp_school_folder)

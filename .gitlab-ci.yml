@@ -84,7 +84,7 @@ publish-source:
     - cd $CI_PROJECT_DIR
     - cp .secure_files/deploy_key deploy_key && chmod 400 deploy_key
     - ssh-add deploy_key
-    - git config remote.github.url >&- || git remote add github git@github.com:Bildungslogin/lizenzmanager_ucs.git
+    - git config remote.github.url >&- || git remote add github git@github.com:BILDUNGSLOGIN/lizenzmanager_ucs.git
     - git checkout -B main
     - git push --force github main
   only:
